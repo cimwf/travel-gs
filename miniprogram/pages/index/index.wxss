@@ -83,7 +83,6 @@
   color: white;
   font-size: 64rpx;
   font-weight: 200;
-  line-height: 96rpx;
   text-align: center;
   display: block;
   width: 96rpx;
