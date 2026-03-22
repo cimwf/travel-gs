@@ -27,7 +27,6 @@ page {
   flex-direction: column;
   align-items: center;
   box-sizing: border-box;
-  padding: 30rpx;
 }
 
 /* 卡片样式 */

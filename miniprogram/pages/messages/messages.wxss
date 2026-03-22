@@ -11,8 +11,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 160rpx 60rpx;
   background: white;
+  width: 100%;
   min-height: 100vh;
   box-sizing: border-box;
 }
