@@ -1,0 +1,97 @@
+<!--pages/place-detail/place-detail.wxml-->
+<view class="container">
+  <!-- 头部大图 -->
+  <view class="header">
+    <image class="header-image" src="{{place.image}}" mode="aspectFill"></image>
+    <view class="header-content">
+      <view class="place-name">{{place.name}}</view>
+      <view class="place-location">📍 {{place.location}}</view>
+    </view>
+  </view>
+
+  <!-- 基本信息卡片 -->
+  <view class="info-card">
+    <view class="info-title">📊 基本信息</view>
+    <view class="info-grid">
+      <view class="info-item">
+        <view class="info-value">{{place.distance}}km</view>
+        <view class="info-label">距北京市区</view>
+      </view>
+      <view class="info-item">
+        <view class="info-value">{{place.difficulty}}</view>
+        <view class="info-label">难度等级</view>
+      </view>
+      <view class="info-item">
+        <view class="info-value">{{place.duration}}</view>
+        <view class="info-label">建议时长</view>
+      </view>
+    </view>
+    <view class="info-extra">
+      <view class="extra-item">
+        <text class="extra-label">最佳季节：</text>
+        <text class="extra-value">{{place.bestSeason}}</text>
+      </view>
+      <view class="extra-item">
+        <text class="extra-label">海拔：</text>
+        <text class="extra-value">{{place.altitude}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 地点介绍 -->
+  <view class="desc-card">
+    <view class="info-title">📝 地点介绍</view>
+    <view class="desc-text">{{place.description}}</view>
+    <view class="tags-row">
+      <text class="tag" wx:for="{{place.tags}}" wx:key="*this">{{item}}</text>
+    </view>
+  </view>
+
+  <!-- 温馨提示 -->
+  <view class="tips-card" wx:if="{{place.tips}}">
+    <view class="info-title">💡 温馨提示</view>
+    <view class="tips-text">{{place.tips}}</view>
+  </view>
+
+  <!-- 行程列表 -->
+  <view class="trip-section">
+    <view class="section-header">
+      <view class="section-title">👥 想去的人 ({{trips.length}})</view>
+    </view>
+
+    <view class="trip-list" wx:if="{{trips.length > 0}}">
+      <view class="trip-item" wx:for="{{trips}}" wx:key="_id">
+        <view class="user-avatar">
+          <image src="{{item.userAvatar || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+        </view>
+        <view class="trip-info">
+          <view class="trip-user">{{item.userName}}</view>
+          <view class="trip-meta">
+            <text>{{item.date}}</text>
+            <text>·</text>
+            <text>{{item.hasCar ? '有车' : '无车'}}</text>
+            <text>·</text>
+            <text>已有{{item.currentCount}}人求{{item.needCount}}人</text>
+          </view>
+          <view class="trip-remark" wx:if="{{item.remark}}">{{item.remark}}</view>
+        </view>
+        <view class="trip-actions">
+          <view class="btn-apply" catchtap="onApplyTap" data-id="{{item._id}}" wx:if="{{item.hasCar}}">申请加入</view>
+          <view class="btn-invite" catchtap="onInviteTap" data-id="{{item._id}}" wx:else>邀请他</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty-state" wx:else>
+      <text>暂无行程，快来发布第一个吧！</text>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="footer-bar">
+    <view class="want-btn {{isWanted ? 'wanted' : ''}}" bindtap="onWantTap">
+      <text>{{isWanted ? '❤️ 已想去' : '🤍 我想去'}}</text>
+    </view>
+    <view class="publish-btn" bindtap="onPublishTrip">发布我的行程</view>
+  </view>
+</view>

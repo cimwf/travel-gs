@@ -1,0 +1,46 @@
+<!--pages/messages/messages.wxml-->
+<view class="container">
+  <!-- 未登录状态 -->
+  <view class="login-prompt" wx:if="{{!isLoggedIn}}">
+    <view class="prompt-icon">💬</view>
+    <view class="prompt-text">登录后查看消息</view>
+    <view class="login-btn" bindtap="onLogin">立即登录</view>
+  </view>
+
+  <!-- 消息列表 -->
+  <view class="message-list" wx:if="{{isLoggedIn && messages.length > 0}}">
+    <view 
+      class="message-item {{item.isRead ? '' : 'unread'}}" 
+      wx:for="{{messages}}" 
+      wx:key="_id"
+      data-id="{{item._id}}"
+      bindtap="onMessageTap"
+    >
+      <view class="msg-icon">
+        <text wx:if="{{item.type === 'apply'}}">📬</text>
+        <text wx:elif="{{item.type === 'accept'}}">✅</text>
+        <text wx:elif="{{item.type === 'invite'}}">🤝</text>
+        <text wx:else>📢</text>
+      </view>
+      <view class="msg-content">
+        <view class="msg-header">
+          <text class="msg-title">{{item.title}}</text>
+          <text class="msg-time">{{item.createTime}}</text>
+        </view>
+        <view class="msg-text">{{item.content}}</view>
+      </view>
+      <view class="unread-dot" wx:if="{{!item.isRead}}"></view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{isLoggedIn && messages.length === 0 && !loading}}">
+    <view class="empty-icon">📭</view>
+    <view class="empty-text">暂无消息</view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

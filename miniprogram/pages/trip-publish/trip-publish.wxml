@@ -1,0 +1,71 @@
+<!--pages/trip-publish/trip-publish.wxml-->
+<view class="container">
+  <!-- 选择地点 -->
+  <view class="form-section">
+    <view class="section-title">📍 选择地点</view>
+    <view class="form-item">
+      <text class="form-label">目的地</text>
+      <view class="form-value">
+        <text>{{placeName}}</text>
+        <text class="arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 行程信息 -->
+  <view class="form-section">
+    <view class="section-title">📅 行程信息</view>
+    
+    <view class="form-item">
+      <text class="form-label">出行日期</text>
+      <picker mode="date" value="{{date}}" start="{{minDate}}" bindchange="onDateChange">
+        <view class="form-value">
+          <text>{{date}}</text>
+          <text class="arrow">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">出行方式</text>
+      <view class="radio-group">
+        <view class="radio-item {{hasCar ? 'active' : ''}}" data-value="{{true}}" bindtap="onCarChange">有车</view>
+        <view class="radio-item {{!hasCar ? 'active' : ''}}" data-value="{{false}}" bindtap="onCarChange">无车</view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">已有人数</text>
+      <view class="count-picker">
+        <view class="count-btn" data-type="minus" bindtap="onCurrentCountChange">-</view>
+        <text class="count-value">{{currentCount}}人</text>
+        <view class="count-btn" data-type="plus" bindtap="onCurrentCountChange">+</view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">还需人数</text>
+      <view class="count-picker">
+        <view class="count-btn" data-type="minus" bindtap="onNeedCountChange">-</view>
+        <text class="count-value">{{needCount}}人</text>
+        <view class="count-btn" data-type="plus" bindtap="onNeedCountChange">+</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 补充说明 -->
+  <view class="form-section">
+    <view class="section-title">📝 补充说明</view>
+    <textarea 
+      class="remark-input"
+      placeholder="说说你的计划、要求或期望（如：早上6点出发，AA制，希望队友有户外经验等）"
+      value="{{remark}}"
+      bindinput="onRemarkInput"
+      maxlength="200"
+    ></textarea>
+    <view class="char-count">{{remark.length}}/200</view>
+  </view>
+
+  <!-- 提交按钮 -->
+  <view class="submit-btn" bindtap="onSubmit">发布行程</view>
+</view>

@@ -1,0 +1,76 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <!-- 顶部导航栏 -->
+  <view class="nav-header">
+    <view class="nav-title">北京去哪玩</view>
+    <view class="nav-subtitle">发现周边好去处</view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input">
+      <text class="search-icon">🔍</text>
+      <input placeholder="搜索目的地..." bindconfirm="onSearch" confirm-type="search" />
+    </view>
+    <view class="publish-btn" bindtap="onPublishTap">
+      <text>+</text>
+    </view>
+  </view>
+
+  <!-- 分类标签 -->
+  <scroll-view class="category-scroll" scroll-x>
+    <view class="category-list">
+      <view
+        wx:for="{{categories}}"
+        wx:key="index"
+        class="category-item {{currentCategory === index ? 'active' : ''}}"
+        data-index="{{index}}"
+        bindtap="onCategoryChange"
+      >
+        {{item}}
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 地点列表 -->
+  <scroll-view class="place-list" scroll-y>
+    <block wx:if="{{!loading && places.length > 0}}">
+      <view
+        class="place-card"
+        wx:for="{{places}}"
+        wx:key="_id"
+        data-id="{{item._id}}"
+        bindtap="onPlaceTap"
+      >
+        <image class="place-image" src="{{item.image}}" mode="aspectFill"></image>
+        <view class="place-info">
+          <view class="place-name">{{item.name}}</view>
+          <view class="place-meta">
+            <text class="distance">{{item.distance}}km</text>
+            <text class="difficulty">{{item.difficulty}}</text>
+          </view>
+          <view class="place-tags">
+            <text class="tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
+          </view>
+          <view class="place-footer">
+            <view class="want-count">
+              <text>❤️</text>
+              <text>{{item.wantCount}}人想去</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 加载中 -->
+    <view class="loading" wx:if="{{loading}}">
+      <text>加载中...</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{!loading && places.length === 0}}">
+      <text class="empty-icon">📭</text>
+      <text>暂无地点数据</text>
+    </view>
+  </scroll-view>
+</view>

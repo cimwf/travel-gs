@@ -1,0 +1,145 @@
+/* pages/messages/messages.wxss */
+
+.container {
+  min-height: 100vh;
+  background: #F5F7FA;
+}
+
+/* 未登录提示 */
+.login-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 160rpx 60rpx;
+  background: white;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.prompt-icon {
+  font-size: 120rpx;
+  margin-bottom: 32rpx;
+}
+
+.prompt-text {
+  font-size: 32rpx;
+  color: #666666;
+  margin-bottom: 48rpx;
+}
+
+.login-btn {
+  padding: 28rpx 80rpx;
+  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+  color: white;
+  border-radius: 48rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+  box-shadow: 0 8rpx 24rpx rgba(74, 144, 226, 0.3);
+}
+
+/* 消息列表 */
+.message-list {
+  padding: 24rpx 32rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.message-item {
+  display: flex;
+  align-items: flex-start;
+  background: white;
+  padding: 28rpx 32rpx;
+  margin-bottom: 20rpx;
+  border-radius: 20rpx;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+
+.message-item.unread {
+  background: rgba(74, 144, 226, 0.05);
+}
+
+.msg-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  background: #F5F7FA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+
+.msg-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.msg-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.msg-title {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333333;
+}
+
+.msg-time {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.msg-text {
+  font-size: 28rpx;
+  color: #666666;
+  line-height: 1.5;
+}
+
+.unread-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #4A90E2;
+  position: absolute;
+  top: 28rpx;
+  right: 32rpx;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 160rpx 60rpx;
+  min-height: 100vh;
+  background: white;
+  box-sizing: border-box;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 32rpx;
+}
+
+.empty-text {
+  font-size: 32rpx;
+  color: #999999;
+}
+
+/* 加载中 */
+.loading {
+  text-align: center;
+  padding: 80rpx;
+  color: #999999;
+  font-size: 28rpx;
+}
