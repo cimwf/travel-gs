@@ -13,6 +13,7 @@ Component({
     avatarUrl: '',
     nickname: '',
     gender: 0,
+    agreed: false,
     loading: false
   },
 
@@ -41,6 +42,19 @@ Component({
       this.setData({ gender });
     },
 
+    // 同意协议
+    onAgreeChange() {
+      this.setData({ agreed: !this.data.agreed });
+    },
+
+    // 打开协议页面
+    onOpenAgreement(e) {
+      const type = e.currentTarget.dataset.type;
+      wx.navigateTo({
+        url: `/pages/agreement/agreement?type=${type}`
+      });
+    },
+
     // 关闭弹窗
     onClose() {
       this.triggerEvent('close');
@@ -48,13 +62,15 @@ Component({
 
     // 确认登录
     async onConfirm() {
-      const { avatarUrl, nickname, gender } = this.data;
+      const { avatarUrl, nickname, gender, agreed } = this.data;
 
-      // 验证
-      if (!avatarUrl) {
-        wx.showToast({ title: '请选择头像', icon: 'none' });
+      // 验证协议
+      if (!agreed) {
+        wx.showToast({ title: '请先同意用户协议', icon: 'none' });
         return;
       }
+
+      // 验证昵称
       if (!nickname || nickname.trim() === '') {
         wx.showToast({ title: '请输入昵称', icon: 'none' });
         return;
@@ -76,16 +92,21 @@ Component({
 
         // 上传头像到云存储
         let avatarCloudUrl = avatarUrl;
-        if (avatarUrl.startsWith('http://tmp') || avatarUrl.startsWith('wxfile://')) {
-          const uploadRes = await new Promise((resolve, reject) => {
-            wx.cloud.uploadFile({
-              cloudPath: `avatars/${openid}_${Date.now()}.jpg`,
-              filePath: avatarUrl,
-              success: resolve,
-              fail: reject
+        if (avatarUrl && (avatarUrl.startsWith('http://tmp') || avatarUrl.startsWith('wxfile://'))) {
+          try {
+            const uploadRes = await new Promise((resolve, reject) => {
+              wx.cloud.uploadFile({
+                cloudPath: `avatars/${openid}_${Date.now()}.jpg`,
+                filePath: avatarUrl,
+                success: resolve,
+                fail: reject
+              });
             });
-          });
-          avatarCloudUrl = uploadRes.fileID;
+            avatarCloudUrl = uploadRes.fileID;
+          } catch (uploadErr) {
+            console.warn('头像上传失败，使用默认头像', uploadErr);
+            avatarCloudUrl = '';
+          }
         }
 
         // 调用API保存用户信息

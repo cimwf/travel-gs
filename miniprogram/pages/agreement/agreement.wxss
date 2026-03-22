@@ -1,0 +1,30 @@
+/* pages/agreement/agreement.wxss */
+.container {
+  padding: 32rpx;
+  background: #FFFFFF;
+  min-height: 100vh;
+}
+
+.agreement-content {
+  font-size: 28rpx;
+  color: #333333;
+  line-height: 1.8;
+}
+
+.agreement-content h1 {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 32rpx;
+  text-align: center;
+}
+
+.agreement-content h2 {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin: 32rpx 0 16rpx;
+}
+
+.agreement-content p {
+  margin-bottom: 16rpx;
+  text-indent: 2em;
+}

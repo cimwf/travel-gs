@@ -23,7 +23,7 @@
 
 .modal-content {
   position: relative;
-  width: 600rpx;
+  width: 620rpx;
   background: white;
   border-radius: 32rpx;
   overflow: hidden;
@@ -54,18 +54,43 @@
   padding: 40rpx;
 }
 
-.form-item {
-  margin-bottom: 40rpx;
+/* 价值引导 */
+.value-benefits {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  padding: 24rpx;
+  background: linear-gradient(135deg, rgba(74, 144, 226, 0.1) 0%, rgba(74, 144, 226, 0.05) 100%);
+  border-radius: 16rpx;
+  margin-bottom: 32rpx;
 }
 
-.form-item:last-child {
-  margin-bottom: 0;
+.benefit-item {
+  font-size: 28rpx;
+  color: #4A90E2;
+}
+
+/* 表单项 */
+.form-item {
+  margin-bottom: 32rpx;
+}
+
+.form-item.optional {
+  margin-bottom: 24rpx;
 }
 
 .form-label {
   font-size: 28rpx;
   color: #666666;
-  margin-bottom: 20rpx;
+  margin-bottom: 16rpx;
+  display: flex;
+  align-items: center;
+}
+
+.optional-tag {
+  font-size: 24rpx;
+  color: #999999;
+  margin-left: 8rpx;
 }
 
 /* 头像选择 */
@@ -137,15 +162,40 @@
   color: #4A90E2;
 }
 
-/* 底部按钮 */
-.modal-footer {
+/* 隐私协议 */
+.agreement-item {
   display: flex;
-  padding: 30rpx 40rpx 40rpx;
-  gap: 24rpx;
+  align-items: flex-start;
+  gap: 16rpx;
+  margin-top: 24rpx;
+  padding-top: 24rpx;
   border-top: 1rpx solid #F0F0F0;
 }
 
-.cancel-btn {
+.agreement-checkbox {
+  margin-top: 4rpx;
+  transform: scale(0.8);
+}
+
+.agreement-text {
+  font-size: 24rpx;
+  color: #666666;
+  line-height: 1.6;
+  flex: 1;
+}
+
+.agreement-text .link {
+  color: #4A90E2;
+}
+
+/* 底部按钮 */
+.modal-footer {
+  display: flex;
+  padding: 24rpx 40rpx 40rpx;
+  gap: 24rpx;
+}
+
+.skip-btn {
   flex: 1;
   height: 96rpx;
   display: flex;
@@ -158,12 +208,12 @@
   background: white;
 }
 
-.cancel-btn::after {
+.skip-btn::after {
   border: none;
 }
 
 .confirm-btn {
-  flex: 1;
+  flex: 1.5;
   height: 96rpx;
   display: flex;
   align-items: center;

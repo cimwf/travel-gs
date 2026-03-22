@@ -94,6 +94,47 @@ Page({
     wx.showToast({ title: '功能开发中', icon: 'none' });
   },
 
+  // 退出登录
+  onLogout: function () {
+    wx.showModal({
+      title: '提示',
+      content: '确定要退出登录吗？',
+      confirmText: '确定',
+      cancelText: '取消',
+      confirmColor: '#FF4D4F',
+      success: (res) => {
+        if (res.confirm) {
+          this.doLogout();
+        }
+      }
+    });
+  },
+
+  // 执行退出登录
+  doLogout: function () {
+    // 清除本地缓存
+    wx.removeStorageSync('userInfo');
+    wx.removeStorageSync('openid');
+    
+    // 清除全局状态
+    app.globalData.userInfo = null;
+    app.globalData.openid = null;
+    app.globalData.isLoggedIn = false;
+    
+    // 更新页面状态
+    this.setData({
+      userInfo: null,
+      isLoggedIn: false,
+      stats: {
+        published: 0,
+        wanted: 0,
+        completed: 0
+      }
+    });
+    
+    wx.showToast({ title: '已退出登录', icon: 'success' });
+  },
+
   // 菜单点击
   onMenuTap: function (e) {
     if (!this.data.isLoggedIn) {

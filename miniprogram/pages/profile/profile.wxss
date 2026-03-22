@@ -143,6 +143,16 @@
   color: #CCCCCC;
 }
 
+/* 退出登录 */
+.logout-item {
+  justify-content: center;
+}
+
+.logout-text {
+  color: #FF4D4F;
+  font-size: 32rpx;
+}
+
 /* 版本信息 */
 .version-info {
   text-align: center;

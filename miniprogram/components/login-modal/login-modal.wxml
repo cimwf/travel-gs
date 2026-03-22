@@ -3,11 +3,18 @@
   <view class="modal-mask" bindtap="onClose"></view>
   <view class="modal-content">
     <view class="modal-header">
-      <view class="modal-title">完善个人信息</view>
+      <view class="modal-title">登录解锁更多精彩</view>
       <view class="modal-close" bindtap="onClose">✕</view>
     </view>
     
     <view class="modal-body">
+      <!-- 价值引导 -->
+      <view class="value-benefits">
+        <view class="benefit-item">✓ 收藏喜欢的景点</view>
+        <view class="benefit-item">✓ 发布行程找伙伴</view>
+        <view class="benefit-item">✓ 参与评论互动</view>
+      </view>
+      
       <!-- 头像选择 -->
       <view class="form-item">
         <view class="form-label">头像</view>
@@ -30,20 +37,31 @@
         />
       </view>
       
-      <!-- 性别选择 -->
-      <view class="form-item">
-        <view class="form-label">性别</view>
+      <!-- 性别选择（选填） -->
+      <view class="form-item optional">
+        <view class="form-label">性别 <text class="optional-tag">（选填）</text></view>
         <view class="gender-options">
           <view class="gender-item {{gender === 1 ? 'active' : ''}}" data-gender="1" bindtap="onGenderChange">男</view>
           <view class="gender-item {{gender === 2 ? 'active' : ''}}" data-gender="2" bindtap="onGenderChange">女</view>
           <view class="gender-item {{gender === 0 ? 'active' : ''}}" data-gender="0" bindtap="onGenderChange">保密</view>
         </view>
       </view>
+      
+      <!-- 隐私协议 -->
+      <view class="agreement-item">
+        <checkbox class="agreement-checkbox" checked="{{agreed}}" bindtap="onAgreeChange" color="#4A90E2"/>
+        <view class="agreement-text">
+          我已阅读并同意
+          <text class="link" bindtap="onOpenAgreement" data-type="user">《用户协议》</text>
+          和
+          <text class="link" bindtap="onOpenAgreement" data-type="privacy">《隐私政策》</text>
+        </view>
+      </view>
     </view>
     
     <view class="modal-footer">
-      <button class="cancel-btn" bindtap="onClose">取消</button>
-      <button class="confirm-btn" bindtap="onConfirm" loading="{{loading}}">确定</button>
+      <button class="skip-btn" bindtap="onClose">暂不登录</button>
+      <button class="confirm-btn" bindtap="onConfirm" loading="{{loading}}">立即登录</button>
     </view>
   </view>
 </view>

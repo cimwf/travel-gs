@@ -4,7 +4,8 @@
     "pages/place-detail/place-detail",
     "pages/trip-publish/trip-publish",
     "pages/messages/messages",
-    "pages/profile/profile"
+    "pages/profile/profile",
+    "pages/agreement/agreement"
   ],
   "window": {
     "backgroundTextStyle": "light",
