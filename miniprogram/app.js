@@ -3,20 +3,22 @@ App({
   globalData: {
     userInfo: null,
     openid: null,
-    isLoggedIn: false
+    isLoggedIn: false,
+    cloudEnv: 'cloud1-1gxcobd051830cce'  // 云开发环境ID
   },
 
   onLaunch: function () {
-    // 初始化云开发（如果可用）
+    // 初始化云开发
     if (wx.cloud) {
       try {
         wx.cloud.init({
-          // env 参数说明：
-          //   env: 'cloud1-xxx'  云开发环境ID，开通云开发后可在控制台查看
-          // 开通云开发后，请将 env 替换为你的环境ID
-          traceUser: true,
+          env: this.globalData.cloudEnv,
+          traceUser: true
         });
         console.log('云开发初始化成功');
+        
+        // 自动登录
+        this.cloudLogin();
       } catch (err) {
         console.warn('云开发初始化失败，使用模拟数据模式', err);
       }
@@ -40,10 +42,60 @@ App({
     }
   },
 
-  // 微信登录
-  wxLogin: function () {
+  // 云开发登录
+  cloudLogin: function () {
     return new Promise((resolve, reject) => {
-      // 开发模式：模拟登录成功
+      wx.cloud.callFunction({
+        name: 'login',
+        success: res => {
+          const openid = res.result.openid;
+          this.globalData.openid = openid;
+          wx.setStorageSync('openid', openid);
+          
+          // 获取或创建用户信息
+          this.getUserInfo(openid).then(userInfo => {
+            resolve(userInfo);
+          }).catch(err => {
+            console.warn('获取用户信息失败', err);
+            resolve({ openid });
+          });
+        },
+        fail: err => {
+          console.warn('云登录失败，使用模拟模式', err);
+          this.mockLogin().then(resolve);
+        }
+      });
+    });
+  },
+
+  // 获取用户信息
+  getUserInfo: function (openid) {
+    return new Promise((resolve, reject) => {
+      wx.cloud.callFunction({
+        name: 'api',
+        data: {
+          action: 'user/get',
+          data: { userId: openid }
+        },
+        success: res => {
+          if (res.result.success && res.result.user) {
+            const user = res.result.user;
+            this.globalData.userInfo = user;
+            this.globalData.isLoggedIn = true;
+            wx.setStorageSync('userInfo', user);
+            resolve(user);
+          } else {
+            resolve(null);
+          }
+        },
+        fail: reject
+      });
+    });
+  },
+
+  // 模拟登录（开发模式）
+  mockLogin: function () {
+    return new Promise((resolve) => {
       const mockUserInfo = {
         nickName: '游客用户',
         avatarUrl: 'https://picsum.photos/100/100?random=avatar',
@@ -61,9 +113,8 @@ App({
     });
   },
 
-  // 保存用户信息到数据库
-  saveUserInfo: function (userInfo, openid) {
-    // 开发模式：暂不保存
-    console.log('保存用户信息', userInfo, openid);
+  // 兼容旧版登录方法
+  wxLogin: function () {
+    return this.cloudLogin();
   }
 });

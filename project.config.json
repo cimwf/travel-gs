@@ -1,6 +1,7 @@
 {
   "miniprogramRoot": "miniprogram/",
   "cloudfunctionRoot": "cloudfunctions/",
+  "cloudbaseRoot": "cloudbaserc.json",
   "setting": {
     "urlCheck": true,
     "es6": true,
@@ -46,7 +47,7 @@
     "disableSWC": true
   },
   "appid": "wx6cdeac08abe9747b",
-  "projectname": "beijing-go-where",
+  "projectname": "beijing-travel",
   "description": "北京去哪玩 - 旅游社交小程序",
   "cloudfunctionTemplateRoot": "",
   "condition": {},
