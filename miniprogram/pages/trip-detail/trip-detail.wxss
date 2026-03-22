@@ -1,0 +1,283 @@
+/* pages/trip-detail/trip-detail.wxss */
+.container {
+  min-height: 100vh;
+  background: #F5F7FA;
+  padding-bottom: 140rpx;
+}
+
+/* 地点卡片 */
+.place-card {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 32rpx;
+  margin: 24rpx;
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+
+.place-image {
+  width: 160rpx;
+  height: 120rpx;
+  border-radius: 16rpx;
+  margin-right: 24rpx;
+}
+
+.place-info {
+  flex: 1;
+}
+
+.place-name {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.place-address {
+  font-size: 26rpx;
+  color: #999;
+}
+
+.arrow {
+  font-size: 40rpx;
+  color: #CCC;
+}
+
+/* 状态标签 */
+.status-bar {
+  padding: 0 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 8rpx 24rpx;
+  border-radius: 24rpx;
+  font-size: 24rpx;
+}
+
+.status-tag.open {
+  background: rgba(82, 196, 26, 0.1);
+  color: #52C41A;
+}
+
+.status-tag.full {
+  background: rgba(250, 173, 20, 0.1);
+  color: #FAAD14;
+}
+
+.status-tag.cancelled {
+  background: rgba(140, 140, 140, 0.1);
+  color: #8C8C8C;
+}
+
+/* 信息卡片 */
+.info-card {
+  background: white;
+  margin: 0 24rpx 24rpx;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+
+.info-grid {
+  display: flex;
+  margin-bottom: 24rpx;
+}
+
+.info-grid:last-child {
+  margin-bottom: 0;
+}
+
+.info-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.info-icon {
+  font-size: 40rpx;
+  margin-right: 16rpx;
+}
+
+.info-value {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.info-label {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 4rpx;
+}
+
+/* 车辆卡片 */
+.car-card {
+  display: flex;
+  align-items: center;
+  background: rgba(74, 144, 226, 0.1);
+  margin: 0 24rpx 24rpx;
+  border-radius: 24rpx;
+  padding: 24rpx 32rpx;
+}
+
+.car-icon {
+  font-size: 40rpx;
+  margin-right: 16rpx;
+}
+
+.car-text {
+  font-size: 28rpx;
+  color: #4A90E2;
+}
+
+/* 发起人卡片 */
+.creator-card,
+.note-card,
+.participants-card {
+  background: white;
+  margin: 0 24rpx 24rpx;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 24rpx;
+}
+
+.creator-info {
+  display: flex;
+  align-items: center;
+}
+
+.creator-avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  margin-right: 24rpx;
+}
+
+.creator-name {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.creator-meta {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 备注说明 */
+.note-text {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.8;
+}
+
+/* 参与者列表 */
+.participants-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24rpx;
+}
+
+.participant-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 120rpx;
+}
+
+.participant-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-bottom: 12rpx;
+}
+
+.participant-name {
+  font-size: 24rpx;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120rpx;
+}
+
+/* 底部操作栏 */
+.footer-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  background: white;
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+
+.footer-left {
+  width: 200rpx;
+}
+
+.share-btn {
+  width: 100%;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid #E8E8E8;
+  border-radius: 44rpx;
+  font-size: 28rpx;
+  color: #666;
+  background: white;
+}
+
+.share-btn::after {
+  border: none;
+}
+
+.footer-right {
+  flex: 1;
+  margin-left: 24rpx;
+}
+
+.join-btn {
+  width: 100%;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+  border-radius: 44rpx;
+  font-size: 32rpx;
+  color: white;
+  border: none;
+}
+
+.join-btn::after {
+  border: none;
+}
+
+.join-btn.disabled {
+  background: #CCC;
+}
+
+/* 状态提示栏 */
+.full-bar,
+.cancelled-bar {
+  justify-content: center;
+  color: #999;
+  font-size: 28rpx;
+}
