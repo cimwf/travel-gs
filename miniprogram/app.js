@@ -4,7 +4,7 @@ App({
     userInfo: null,
     openid: null,
     isLoggedIn: false,
-    cloudEnv: 'cloud1-1gxcobd051830cce'  // 云开发环境ID
+    cloudEnv: 'cloud1-1gxcobd051830cce'
   },
 
   onLaunch: function () {
@@ -16,18 +16,16 @@ App({
           traceUser: true
         });
         console.log('云开发初始化成功');
-        
-        // 自动登录
-        this.cloudLogin();
       } catch (err) {
-        console.warn('云开发初始化失败，使用模拟数据模式', err);
+        console.warn('云开发初始化失败', err);
       }
-    } else {
-      console.warn('请使用 2.2.3 或以上的基础库以使用云能力');
     }
 
     // 检查登录状态
     this.checkLoginStatus();
+    
+    // 获取openid
+    this.getOpenid();
   },
 
   // 检查登录状态
@@ -42,79 +40,40 @@ App({
     }
   },
 
-  // 云开发登录
-  cloudLogin: function () {
+  // 获取openid
+  getOpenid: function () {
     return new Promise((resolve, reject) => {
+      // 如果已有openid，直接返回
+      if (this.globalData.openid) {
+        resolve(this.globalData.openid);
+        return;
+      }
+
+      // 调用云函数获取openid
       wx.cloud.callFunction({
         name: 'login',
         success: res => {
           const openid = res.result.openid;
           this.globalData.openid = openid;
           wx.setStorageSync('openid', openid);
-          
-          // 获取或创建用户信息
-          this.getUserInfo(openid).then(userInfo => {
-            resolve(userInfo);
-          }).catch(err => {
-            console.warn('获取用户信息失败', err);
-            resolve({ openid });
-          });
+          resolve(openid);
         },
         fail: err => {
-          console.warn('云登录失败，使用模拟模式', err);
-          this.mockLogin().then(resolve);
+          console.warn('获取openid失败', err);
+          reject(err);
         }
       });
     });
   },
 
-  // 获取用户信息
-  getUserInfo: function (openid) {
+  // 检查是否需要登录
+  requireLogin: function () {
     return new Promise((resolve, reject) => {
-      wx.cloud.callFunction({
-        name: 'api',
-        data: {
-          action: 'user/get',
-          data: { userId: openid }
-        },
-        success: res => {
-          if (res.result.success && res.result.user) {
-            const user = res.result.user;
-            this.globalData.userInfo = user;
-            this.globalData.isLoggedIn = true;
-            wx.setStorageSync('userInfo', user);
-            resolve(user);
-          } else {
-            resolve(null);
-          }
-        },
-        fail: reject
-      });
+      if (this.globalData.isLoggedIn) {
+        resolve(this.globalData.userInfo);
+      } else {
+        reject(new Error('请先登录'));
+      }
     });
-  },
-
-  // 模拟登录（开发模式）
-  mockLogin: function () {
-    return new Promise((resolve) => {
-      const mockUserInfo = {
-        nickName: '游客用户',
-        avatarUrl: 'https://picsum.photos/100/100?random=avatar',
-        gender: 0
-      };
-      
-      this.globalData.userInfo = mockUserInfo;
-      this.globalData.openid = 'mock_openid_' + Date.now();
-      this.globalData.isLoggedIn = true;
-      
-      wx.setStorageSync('userInfo', mockUserInfo);
-      wx.setStorageSync('openid', this.globalData.openid);
-      
-      resolve(mockUserInfo);
-    });
-  },
-
-  // 兼容旧版登录方法
-  wxLogin: function () {
-    return this.cloudLogin();
   }
 });

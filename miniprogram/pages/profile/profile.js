@@ -1,15 +1,16 @@
 // pages/profile/profile.js
 const app = getApp();
-const db = wx.cloud.database();
+const api = require('../../utils/api.js');
 
 Page({
   data: {
     userInfo: null,
     isLoggedIn: false,
+    showLoginModal: false,
     stats: {
-      published: 5,
-      wanted: 12,
-      completed: 8
+      published: 0,
+      wanted: 0,
+      completed: 0
     },
     menuList: [
       { icon: '📝', text: '我发布的行程', key: 'published' },
@@ -29,24 +30,59 @@ Page({
 
   onShow: function () {
     this.checkLogin();
+    if (this.data.isLoggedIn) {
+      this.loadUserStats();
+    }
   },
 
+  // 检查登录状态
   checkLogin: function () {
     const isLoggedIn = app.globalData.isLoggedIn;
     const userInfo = app.globalData.userInfo;
     this.setData({ isLoggedIn, userInfo });
   },
 
-  // 登录
-  onLogin: function () {
-    app.wxLogin().then(userInfo => {
+  // 加载用户统计
+  loadUserStats: async function () {
+    try {
+      // 获取我的行程
+      const tripsRes = await api.tripMy();
+      const published = tripsRes.trips.filter(t => t.creatorId === app.globalData.openid).length;
+      
+      // 获取想去的地方
+      const wantsRes = await api.wantList();
+      
       this.setData({
-        userInfo: userInfo,
-        isLoggedIn: true
+        stats: {
+          published,
+          wanted: wantsRes.wants.length,
+          completed: 0
+        }
       });
-    }).catch(err => {
-      console.error('登录失败', err);
+    } catch (err) {
+      console.error('加载统计数据失败', err);
+    }
+  },
+
+  // 点击登录
+  onLogin: function () {
+    this.setData({ showLoginModal: true });
+  },
+
+  // 关闭登录弹窗
+  onCloseLoginModal: function () {
+    this.setData({ showLoginModal: false });
+  },
+
+  // 登录成功
+  onLoginSuccess: function (e) {
+    const user = e.detail.user;
+    this.setData({
+      userInfo: user,
+      isLoggedIn: true,
+      showLoginModal: false
     });
+    this.loadUserStats();
   },
 
   // 编辑资料

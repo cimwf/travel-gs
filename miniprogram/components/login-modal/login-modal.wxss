@@ -1,0 +1,180 @@
+/* components/login-modal/login-modal.wxss */
+
+.login-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  position: relative;
+  width: 600rpx;
+  background: white;
+  border-radius: 32rpx;
+  overflow: hidden;
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 40rpx 40rpx 30rpx;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.modal-close {
+  font-size: 40rpx;
+  color: #999999;
+  padding: 10rpx;
+}
+
+.modal-body {
+  padding: 40rpx;
+}
+
+.form-item {
+  margin-bottom: 40rpx;
+}
+
+.form-item:last-child {
+  margin-bottom: 0;
+}
+
+.form-label {
+  font-size: 28rpx;
+  color: #666666;
+  margin-bottom: 20rpx;
+}
+
+/* 头像选择 */
+.avatar-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  line-height: normal;
+}
+
+.avatar-btn::after {
+  border: none;
+}
+
+.avatar-preview {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  background: #F5F7FA;
+  border: 4rpx solid #4A90E2;
+}
+
+.avatar-tip {
+  font-size: 24rpx;
+  color: #4A90E2;
+  margin-top: 16rpx;
+}
+
+/* 昵称输入 */
+.nickname-input {
+  width: 100%;
+  height: 96rpx;
+  padding: 0 32rpx;
+  border: 2rpx solid #E8E8E8;
+  border-radius: 16rpx;
+  font-size: 32rpx;
+  box-sizing: border-box;
+}
+
+.nickname-input:focus {
+  border-color: #4A90E2;
+}
+
+/* 性别选择 */
+.gender-options {
+  display: flex;
+  gap: 24rpx;
+}
+
+.gender-item {
+  flex: 1;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid #E8E8E8;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  color: #666666;
+  transition: all 0.2s ease;
+}
+
+.gender-item.active {
+  background: rgba(74, 144, 226, 0.1);
+  border-color: #4A90E2;
+  color: #4A90E2;
+}
+
+/* 底部按钮 */
+.modal-footer {
+  display: flex;
+  padding: 30rpx 40rpx 40rpx;
+  gap: 24rpx;
+  border-top: 1rpx solid #F0F0F0;
+}
+
+.cancel-btn {
+  flex: 1;
+  height: 96rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid #E8E8E8;
+  border-radius: 48rpx;
+  font-size: 32rpx;
+  color: #666666;
+  background: white;
+}
+
+.cancel-btn::after {
+  border: none;
+}
+
+.confirm-btn {
+  flex: 1;
+  height: 96rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+  border-radius: 48rpx;
+  font-size: 32rpx;
+  color: white;
+  border: none;
+}
+
+.confirm-btn::after {
+  border: none;
+}

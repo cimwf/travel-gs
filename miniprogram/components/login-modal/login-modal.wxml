@@ -1,0 +1,49 @@
+<!--components/login-modal/login-modal.wxml-->
+<view class="login-modal" wx:if="{{show}}">
+  <view class="modal-mask" bindtap="onClose"></view>
+  <view class="modal-content">
+    <view class="modal-header">
+      <view class="modal-title">完善个人信息</view>
+      <view class="modal-close" bindtap="onClose">✕</view>
+    </view>
+    
+    <view class="modal-body">
+      <!-- 头像选择 -->
+      <view class="form-item">
+        <view class="form-label">头像</view>
+        <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+          <image class="avatar-preview" src="{{avatarUrl || 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0'}}" mode="aspectFill"></image>
+          <view class="avatar-tip">点击选择头像</view>
+        </button>
+      </view>
+      
+      <!-- 昵称输入 -->
+      <view class="form-item">
+        <view class="form-label">昵称</view>
+        <input 
+          class="nickname-input" 
+          type="nickname" 
+          placeholder="请输入昵称" 
+          value="{{nickname}}"
+          bindinput="onNicknameInput"
+          bindblur="onNicknameBlur"
+        />
+      </view>
+      
+      <!-- 性别选择 -->
+      <view class="form-item">
+        <view class="form-label">性别</view>
+        <view class="gender-options">
+          <view class="gender-item {{gender === 1 ? 'active' : ''}}" data-gender="1" bindtap="onGenderChange">男</view>
+          <view class="gender-item {{gender === 2 ? 'active' : ''}}" data-gender="2" bindtap="onGenderChange">女</view>
+          <view class="gender-item {{gender === 0 ? 'active' : ''}}" data-gender="0" bindtap="onGenderChange">保密</view>
+        </view>
+      </view>
+    </view>
+    
+    <view class="modal-footer">
+      <button class="cancel-btn" bindtap="onClose">取消</button>
+      <button class="confirm-btn" bindtap="onConfirm" loading="{{loading}}">确定</button>
+    </view>
+  </view>
+</view>
