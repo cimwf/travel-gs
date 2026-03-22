@@ -7,10 +7,10 @@
   background: #F5F7FA;
 }
 
-/* 顶部导航栏 - 全屏宽度 */
+/* 顶部导航栏 - 全屏宽度，无内边距 */
 .nav-header {
   background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
-  padding: 48rpx 32rpx 36rpx;
+  padding: 48rpx 0 36rpx;
   width: 100%;
   box-sizing: border-box;
   margin: 0;
@@ -21,11 +21,17 @@
   font-weight: 700;
   color: white;
   margin-bottom: 12rpx;
+  padding: 0 32rpx;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .nav-subtitle {
   font-size: 26rpx;
   color: rgba(255, 255, 255, 0.85);
+  padding: 0 32rpx;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* 搜索栏 - 全屏宽度 */
