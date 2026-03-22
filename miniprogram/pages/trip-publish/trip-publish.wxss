@@ -6,14 +6,18 @@
   min-height: 100vh;
   padding-bottom: 160rpx;
   box-sizing: border-box;
+  width: 100%;
 }
 
+/* 表单区块 - 全屏宽度 */
 .form-section {
   background: white;
   border-radius: 24rpx;
   padding: 32rpx;
   margin-bottom: 32rpx;
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .section-title {
@@ -23,6 +27,8 @@
   margin-bottom: 28rpx;
   padding-bottom: 24rpx;
   border-bottom: 1rpx solid #F0F0F0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-item {
@@ -31,6 +37,8 @@
   justify-content: space-between;
   padding: 28rpx 0;
   border-bottom: 1rpx solid #F5F5F5;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-item:last-child {
@@ -41,6 +49,7 @@
   font-size: 30rpx;
   color: #333333;
   font-weight: 500;
+  flex-shrink: 0;
 }
 
 .form-value {
@@ -128,6 +137,8 @@
   font-size: 26rpx;
   color: #999999;
   margin-top: 16rpx;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* 提交按钮 */
