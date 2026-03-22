@@ -10,7 +10,7 @@ Page({
     loading: true,
     userInfo: null,
     isLoggedIn: false,
-    useCloud: false  // 是否使用云开发
+    useCloud: true  // 是否使用云开发
   },
 
   onLoad: function () {
