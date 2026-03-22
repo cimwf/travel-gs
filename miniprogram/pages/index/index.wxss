@@ -75,10 +75,21 @@
   align-items: center;
   justify-content: center;
   margin-left: 24rpx;
-  color: white;
-  font-size: 56rpx;
-  font-weight: 300;
   box-shadow: 0 8rpx 24rpx rgba(74, 144, 226, 0.35);
+  flex-shrink: 0;
+}
+
+.publish-btn text {
+  color: white;
+  font-size: 64rpx;
+  font-weight: 200;
+  line-height: 96rpx;
+  text-align: center;
+  display: block;
+  width: 96rpx;
+  height: 96rpx;
+  padding: 0;
+  margin: 0;
 }
 
 /* 分类标签 - 全屏宽度 */
