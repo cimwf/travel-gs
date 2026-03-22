@@ -1,6 +1,6 @@
 // pages/index/index.js
 const app = getApp();
-const db = wx.cloud.database();
+const api = require('../../utils/api.js');
 
 Page({
   data: {
@@ -9,7 +9,8 @@ Page({
     currentCategory: 0,
     loading: true,
     userInfo: null,
-    isLoggedIn: false
+    isLoggedIn: false,
+    useCloud: false  // 是否使用云开发
   },
 
   onLoad: function () {
@@ -29,10 +30,24 @@ Page({
   },
 
   // 加载地点列表
-  loadPlaces: function () {
+  loadPlaces: async function () {
     this.setData({ loading: true });
     
-    // 开发模式：直接使用模拟数据
+    // 尝试使用云开发
+    if (wx.cloud && this.data.useCloud) {
+      try {
+        const result = await api.placeList({});
+        this.setData({
+          places: result.places,
+          loading: false
+        });
+        return;
+      } catch (err) {
+        console.warn('云开发加载失败，使用本地数据', err);
+      }
+    }
+    
+    // 使用mock数据
     this.loadMockPlaces();
   },
 
@@ -108,31 +123,36 @@ Page({
   },
 
   // 切换分类
-  onCategoryChange: function (e) {
+  onCategoryChange: async function (e) {
     const index = e.currentTarget.dataset.index;
-    this.setData({ currentCategory: index });
-    
-    // 筛选地点
     const category = this.data.categories[index];
-    if (category === '全部') {
-      this.loadPlaces();
-    } else {
-      this.filterByCategory(category);
+    
+    this.setData({ currentCategory: index, loading: true });
+    
+    // 使用云开发
+    if (wx.cloud && this.data.useCloud) {
+      try {
+        const result = await api.placeList({ category: category === '全部' ? '' : category });
+        this.setData({
+          places: result.places,
+          loading: false
+        });
+        return;
+      } catch (err) {
+        console.warn('云开发加载失败', err);
+      }
     }
-  },
-
-  // 按分类筛选
-  filterByCategory: function (category) {
-    db.collection('places')
-      .where({
-        status: 1,
-        category: category
-      })
-      .orderBy('wantCount', 'desc')
-      .get()
-      .then(res => {
-        this.setData({ places: res.data });
+    
+    // 使用mock数据筛选
+    if (category === '全部') {
+      this.loadMockPlaces();
+    } else {
+      const filtered = this.data.places.filter(p => p.category === category);
+      this.setData({
+        places: filtered.length > 0 ? filtered : this.loadMockPlaces().filter(p => p.category === category),
+        loading: false
       });
+    }
   },
 
   // 点击地点卡片
@@ -144,35 +164,54 @@ Page({
   },
 
   // 搜索
-  onSearch: function (e) {
+  onSearch: async function (e) {
     const keyword = e.detail.value;
-    if (keyword) {
-      db.collection('places')
-        .where({
-          status: 1,
-          name: db.RegExp({
-            regexp: keyword,
-            options: 'i'
-          })
-        })
-        .get()
-        .then(res => {
-          this.setData({ places: res.data });
-        });
-    } else {
+    if (!keyword) {
       this.loadPlaces();
+      return;
     }
+    
+    // 使用云开发
+    if (wx.cloud && this.data.useCloud) {
+      try {
+        const result = await api.placeSearch(keyword);
+        this.setData({ places: result.places });
+        return;
+      } catch (err) {
+        console.warn('云开发搜索失败', err);
+      }
+    }
+    
+    // 本地搜索mock数据
+    const filtered = this.data.places.filter(p => 
+      p.name.includes(keyword) || p.tags.some(t => t.includes(keyword))
+    );
+    this.setData({ places: filtered });
   },
 
   // 登录
-  onLogin: function () {
+  onLogin: async function () {
+    if (wx.cloud && this.data.useCloud) {
+      try {
+        const result = await api.userLogin({});
+        app.globalData.userInfo = result.user;
+        app.globalData.isLoggedIn = true;
+        this.setData({
+          userInfo: result.user,
+          isLoggedIn: true
+        });
+        return;
+      } catch (err) {
+        console.warn('云登录失败', err);
+      }
+    }
+    
+    // mock登录
     app.wxLogin().then(userInfo => {
       this.setData({
         userInfo: userInfo,
         isLoggedIn: true
       });
-    }).catch(err => {
-      console.error('登录失败', err);
     });
   },
 
