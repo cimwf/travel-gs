@@ -7,11 +7,13 @@
   background: #F5F7FA;
 }
 
-/* 顶部导航栏 */
+/* 顶部导航栏 - 全屏宽度 */
 .nav-header {
   background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
-  padding: 48rpx 0 36rpx;
+  padding: 48rpx 32rpx 36rpx;
   width: 100%;
+  box-sizing: border-box;
+  margin: 0;
 }
 
 .nav-title {
@@ -19,16 +21,14 @@
   font-weight: 700;
   color: white;
   margin-bottom: 12rpx;
-  padding: 0 32rpx;
 }
 
 .nav-subtitle {
   font-size: 26rpx;
   color: rgba(255, 255, 255, 0.85);
-  padding: 0 32rpx;
 }
 
-/* 搜索栏 */
+/* 搜索栏 - 全屏宽度 */
 .search-bar {
   display: flex;
   align-items: center;
@@ -37,6 +37,7 @@
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
   width: 100%;
   box-sizing: border-box;
+  margin: 0;
 }
 
 .search-input {
@@ -74,7 +75,7 @@
   box-shadow: 0 8rpx 24rpx rgba(74, 144, 226, 0.35);
 }
 
-/* 分类标签 */
+/* 分类标签 - 全屏宽度 */
 .category-scroll {
   background: white;
   white-space: nowrap;
@@ -105,7 +106,7 @@
   box-shadow: 0 4rpx 12rpx rgba(74, 144, 226, 0.3);
 }
 
-/* 地点列表 */
+/* 地点列表 - 两侧留出边距 */
 .place-list {
   flex: 1;
   padding: 32rpx;

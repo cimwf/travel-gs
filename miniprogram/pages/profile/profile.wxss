@@ -8,18 +8,20 @@
   box-sizing: border-box;
 }
 
-/* 头部 */
+/* 头部 - 全屏宽度 */
 .profile-header {
   background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
   padding: 80rpx 32rpx 120rpx;
   width: 100%;
   box-sizing: border-box;
+  margin: 0;
 }
 
 .user-info, .login-prompt {
   display: flex;
   align-items: center;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .avatar {
@@ -61,7 +63,7 @@
   opacity: 0.9;
 }
 
-/* 统计栏 */
+/* 统计栏 - 两侧留出边距 */
 .stats-bar {
   display: flex;
   background: white;
@@ -71,6 +73,8 @@
   box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
   width: calc(100% - 64rpx);
   box-sizing: border-box;
+  margin-left: 32rpx;
+  margin-right: 32rpx;
 }
 
 .stat-item {
@@ -96,7 +100,7 @@
   margin: 10rpx 0;
 }
 
-/* 菜单 */
+/* 菜单 - 两侧留出边距 */
 .menu-section {
   background: white;
   margin: 0 32rpx 24rpx;
