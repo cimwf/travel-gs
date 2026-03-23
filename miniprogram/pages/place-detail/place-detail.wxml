@@ -5,14 +5,43 @@
     <swiper 
       class="banner-swiper" 
       indicator-dots 
-      indicator-color="rgba(255,255,255,0.5)" 
+      indicator-color="rgba(255,255,255,0.4)" 
       indicator-active-color="#ffffff"
       autoplay 
       circular
-      interval="3000"
+      interval="4000"
     >
-      <swiper-item wx:for="{{place.images}}" wx:key="*this">
-        <image class="banner-image" src="{{item}}" mode="aspectFill"></image>
+      <swiper-item>
+        <view class="banner-image banner-1">
+          <view class="banner-placeholder">
+            <text class="placeholder-icon">🏔️</text>
+            <text class="placeholder-text">东灵山主峰</text>
+          </view>
+        </view>
+      </swiper-item>
+      <swiper-item>
+        <view class="banner-image banner-2">
+          <view class="banner-placeholder">
+            <text class="placeholder-icon">🌅</text>
+            <text class="placeholder-text">日出云海</text>
+          </view>
+        </view>
+      </swiper-item>
+      <swiper-item>
+        <view class="banner-image banner-3">
+          <view class="banner-placeholder">
+            <text class="placeholder-icon">🌿</text>
+            <text class="placeholder-text">高山草甸</text>
+          </view>
+        </view>
+      </swiper-item>
+      <swiper-item>
+        <view class="banner-image banner-4">
+          <view class="banner-placeholder">
+            <text class="placeholder-icon">🌌</text>
+            <text class="placeholder-text">星空露营</text>
+          </view>
+        </view>
       </swiper-item>
     </swiper>
     <!-- 渐变遮罩 -->
@@ -100,9 +129,7 @@
       <text class="card-icon">💡</text>
       <text class="card-title">温馨提示</text>
     </view>
-    <view class="tips-list">
-      <view class="tips-item">{{place.tips}}</view>
-    </view>
+    <view class="tips-list">{{place.tips}}</view>
   </view>
 
   <!-- 行程列表 -->
@@ -116,7 +143,7 @@
 
     <view class="trip-list" wx:if="{{trips.length > 0}}">
       <view class="trip-item" wx:for="{{trips}}" wx:key="_id">
-        <image class="user-avatar" src="{{item.userAvatar || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+        <view class="user-avatar" style="background: linear-gradient(135deg, {{item.avatarColor || '#667eea'}}, {{item.avatarColor2 || '#764ba2'}});"></view>
         <view class="trip-info">
           <view class="trip-header">
             <text class="trip-user">{{item.userName}}</text>

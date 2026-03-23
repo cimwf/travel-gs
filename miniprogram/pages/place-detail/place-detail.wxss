@@ -13,7 +13,7 @@ page {
 /* ========== 顶部轮播图区域 ========== */
 .header {
   position: relative;
-  height: 440rpx;
+  height: 480rpx;
 }
 
 .banner-swiper {
@@ -24,7 +24,64 @@ page {
 .banner-image {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 轮播渐变背景 */
+.banner-1 {
+  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 50%, #2C5F8A 100%);
+}
+
+.banner-2 {
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 50%, #FFA07A 100%);
+}
+
+.banner-3 {
+  background: linear-gradient(135deg, #56AB2F 0%, #A8E6CF 50%, #88D8B0 100%);
+}
+
+.banner-4 {
+  background: linear-gradient(135deg, #2C3E50 0%, #4A4A68 50%, #6C7B95 100%);
+}
+
+/* 占位符内容 */
+.banner-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.placeholder-icon {
+  font-size: 120rpx;
+  opacity: 0.9;
+}
+
+.placeholder-text {
+  font-size: 32rpx;
+  color: rgba(255,255,255,0.9);
+  font-weight: 500;
+}
+
+/* 轮播指示点样式优化 */
+.banner-swiper .wx-swiper-dots {
+  bottom: 24rpx;
+}
+
+.banner-swiper .wx-swiper-dot {
+  width: 12rpx;
+  height: 12rpx;
+  background: rgba(255,255,255,0.5);
+  border-radius: 50%;
+  margin: 0 8rpx;
+}
+
+.banner-swiper .wx-swiper-dot-active {
+  width: 36rpx;
+  border-radius: 6rpx;
+  background: white;
 }
 
 /* 渐变遮罩 - 按设计稿 */
@@ -34,7 +91,7 @@ page {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.6) 100%);
+  background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.5) 100%);
   pointer-events: none;
   z-index: 2;
 }
@@ -43,16 +100,17 @@ page {
 .nav-back, .nav-share {
   position: absolute;
   top: 96rpx;
-  width: 64rpx;
-  height: 64rpx;
-  background: rgba(0,0,0,0.3);
+  width: 72rpx;
+  height: 72rpx;
+  background: rgba(0,0,0,0.25);
   backdrop-filter: blur(20rpx);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 36rpx;
+  font-size: 40rpx;
+  font-weight: 300;
   z-index: 10;
 }
 
@@ -67,12 +125,12 @@ page {
 /* ========== 基本信息区域 ========== */
 .info-section {
   background: white;
-  margin: -40rpx 24rpx 24rpx;
+  margin: -48rpx 24rpx 24rpx;
   border-radius: 32rpx;
   padding: 40rpx;
   position: relative;
   z-index: 5;
-  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.08);
+  box-shadow: 0 8rpx 32rpx rgba(74, 144, 226, 0.12);
 }
 
 .place-header {
@@ -91,7 +149,7 @@ page {
   display: inline-flex;
   align-items: center;
   gap: 8rpx;
-  padding: 8rpx 20rpx;
+  padding: 10rpx 24rpx;
   background: linear-gradient(135deg, #4A90E2, #6BA3E8);
   color: white;
   border-radius: 24rpx;
@@ -103,7 +161,7 @@ page {
 .stats-row {
   display: flex;
   justify-content: space-between;
-  padding: 32rpx 0;
+  padding: 32rpx 16rpx;
   border-bottom: 2rpx solid #E8E8F0;
 }
 
@@ -118,7 +176,7 @@ page {
 }
 
 .stat-value {
-  font-size: 40rpx;
+  font-size: 36rpx;
   font-weight: 700;
   color: #4A90E2;
   margin-bottom: 8rpx;
@@ -134,7 +192,7 @@ page {
   display: flex;
   flex-wrap: wrap;
   gap: 16rpx;
-  padding: 32rpx 0;
+  padding: 28rpx 0;
   border-bottom: 2rpx solid #E8E8F0;
 }
 
@@ -143,7 +201,7 @@ page {
   align-items: center;
   gap: 8rpx;
   padding: 12rpx 24rpx;
-  background: rgba(74, 144, 226, 0.08);
+  background: rgba(74, 144, 226, 0.1);
   color: #4A90E2;
   border-radius: 40rpx;
   font-size: 24rpx;
@@ -152,14 +210,14 @@ page {
 
 /* 元信息 */
 .meta-info {
-  padding-top: 32rpx;
+  padding-top: 28rpx;
 }
 
 .meta-item {
   display: flex;
   align-items: flex-start;
   gap: 20rpx;
-  margin-bottom: 24rpx;
+  margin-bottom: 20rpx;
 }
 
 .meta-item:last-child {
@@ -167,7 +225,7 @@ page {
 }
 
 .meta-icon {
-  font-size: 36rpx;
+  font-size: 32rpx;
   flex-shrink: 0;
   margin-top: 4rpx;
 }
@@ -201,11 +259,11 @@ page {
   display: flex;
   align-items: center;
   gap: 16rpx;
-  margin-bottom: 32rpx;
+  margin-bottom: 28rpx;
 }
 
 .card-icon {
-  font-size: 48rpx;
+  font-size: 44rpx;
 }
 
 .card-title {
@@ -229,20 +287,9 @@ page {
 }
 
 .tips-list {
-  list-style: none;
-}
-
-.tips-list li {
-  position: relative;
-  padding-left: 32rpx;
-  margin-bottom: 16rpx;
   font-size: 26rpx;
   color: #4A4A68;
-  line-height: 1.6;
-}
-
-.tips-list li:last-child {
-  margin-bottom: 0;
+  line-height: 1.8;
 }
 
 /* ========== 行程列表 ========== */
@@ -258,7 +305,7 @@ page {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32rpx;
+  margin-bottom: 28rpx;
 }
 
 .section-title {
@@ -274,13 +321,13 @@ page {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 40rpx;
-  height: 40rpx;
+  min-width: 44rpx;
+  height: 44rpx;
   padding: 0 12rpx;
-  background: #4A90E2;
+  background: linear-gradient(135deg, #4A90E2, #6BA3E8);
   color: white;
-  border-radius: 20rpx;
-  font-size: 22rpx;
+  border-radius: 22rpx;
+  font-size: 24rpx;
   font-weight: 600;
 }
 
@@ -288,14 +335,14 @@ page {
 .trip-list {
   display: flex;
   flex-direction: column;
-  gap: 24rpx;
+  gap: 20rpx;
 }
 
 .trip-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 24rpx;
-  padding: 28rpx;
+  padding: 24rpx;
   background: #F5F7FA;
   border-radius: 24rpx;
 }
@@ -311,6 +358,7 @@ page {
 
 .trip-info {
   flex: 1;
+  min-width: 0;
 }
 
 .trip-header {
@@ -327,7 +375,7 @@ page {
 }
 
 .trip-status {
-  padding: 4rpx 12rpx;
+  padding: 4rpx 16rpx;
   border-radius: 16rpx;
   font-size: 20rpx;
   font-weight: 500;
@@ -339,17 +387,17 @@ page {
 }
 
 .trip-status.full {
-  background: #f5f5f5;
+  background: #f0f0f0;
   color: #8E8EA0;
 }
 
 .trip-meta {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  font-size: 24rpx;
+  gap: 8rpx;
+  font-size: 22rpx;
   color: #8E8EA0;
-  margin-bottom: 8rpx;
+  margin-bottom: 4rpx;
 }
 
 .trip-meta .dot {
@@ -359,7 +407,10 @@ page {
 .trip-remark {
   font-size: 24rpx;
   color: #4A4A68;
-  margin-top: 12rpx;
+  margin-top: 8rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* 加入按钮 */
@@ -370,22 +421,23 @@ page {
   border-radius: 40rpx;
   font-size: 26rpx;
   font-weight: 500;
-  box-shadow: 0 4rpx 12rpx rgba(74, 144, 226, 0.3);
+  box-shadow: 0 4rpx 16rpx rgba(74, 144, 226, 0.3);
+  flex-shrink: 0;
 }
 
 /* 空状态 */
 .empty-state {
   text-align: center;
-  padding: 60rpx 0;
+  padding: 80rpx 0;
 }
 
 .empty-icon {
-  font-size: 80rpx;
-  margin-bottom: 16rpx;
+  font-size: 100rpx;
+  margin-bottom: 20rpx;
 }
 
 .empty-text {
-  font-size: 26rpx;
+  font-size: 28rpx;
   color: #8E8EA0;
 }
 
@@ -397,10 +449,10 @@ page {
   right: 0;
   display: flex;
   align-items: center;
-  padding: 20rpx 32rpx;
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  padding: 24rpx 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
   background: white;
-  box-shadow: 0 -8rpx 32rpx rgba(0,0,0,0.08);
+  box-shadow: 0 -8rpx 32rpx rgba(0,0,0,0.06);
   z-index: 100;
 }
 
@@ -412,7 +464,7 @@ page {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 12rpx 24rpx;
+  padding: 8rpx 20rpx;
 }
 
 .collect-btn.collected .collect-text {
@@ -420,7 +472,7 @@ page {
 }
 
 .collect-icon {
-  font-size: 48rpx;
+  font-size: 52rpx;
 }
 
 .collect-text {
@@ -442,5 +494,5 @@ page {
   border-radius: 48rpx;
   font-size: 32rpx;
   font-weight: 600;
-  box-shadow: 0 8rpx 24rpx rgba(74, 144, 226, 0.4);
+  box-shadow: 0 8rpx 24rpx rgba(74, 144, 226, 0.35);
 }

@@ -28,12 +28,6 @@ Page({
       'place_001': {
         _id: 'place_001',
         name: '东灵山',
-        images: [
-          'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800',
-          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
-          'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=800',
-          'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800'
-        ],
         description: '北京最高峰，海拔2303米，位于门头沟区。山顶有高山草甸，夏季野花遍地，秋季层林尽染。是北京驴友必打卡之地。登顶可俯瞰群山，天气好时能看到远处的城市轮廓。',
         category: '自然风光',
         distance: 150,
@@ -66,7 +60,8 @@ Page({
       {
         _id: 'trip_001',
         userName: '户外小王',
-        userAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200',
+        avatarColor: '#FF6B6B',
+        avatarColor2: '#FF8E53',
         date: '03-25 周三',
         hasCar: true,
         currentCount: 2,
@@ -77,7 +72,8 @@ Page({
       {
         _id: 'trip_002',
         userName: '旅行达人',
-        userAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200',
+        avatarColor: '#4A90E2',
+        avatarColor2: '#667eea',
         date: '03-26 周四',
         hasCar: false,
         currentCount: 1,
@@ -88,7 +84,8 @@ Page({
       {
         _id: 'trip_003',
         userName: '周末玩家',
-        userAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200',
+        avatarColor: '#56AB2F',
+        avatarColor2: '#A8E6CF',
         date: '03-27 周五',
         hasCar: true,
         currentCount: 1,
