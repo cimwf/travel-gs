@@ -4,7 +4,7 @@
   <view class="not-login" wx:if="{{!isLoggedIn}}">
     <view class="not-login-icon">💬</view>
     <view class="not-login-text">登录后查看消息</view>
-    <view class="login-btn" bindtap="onLogin">立即登录</view>
+    <view class="login-btn" bindtap="onTapLogin">立即登录</view>
   </view>
 
   <!-- 已登录状态 -->
@@ -30,7 +30,7 @@
     <view class="section">
       <view class="section-title">会话</view>
       <view class="conversation-list" wx:if="{{conversations.length > 0}}">
-        <view class="conversation-item" wx:for="{{conversations}}" wx:key="_id" bindtap="onConversationTap" data-id="{{item._id}}">
+        <view class="conversation-item" wx:for="{{conversations}}" wx:key="_id" bindtap="onTapConversation" data-id="{{item._id}}">
           <view class="avatar-wrap">
             <image class="avatar" src="{{item.avatar}}" mode="aspectFill"></image>
             <view class="unread-dot" wx:if="{{item.unreadCount > 0}}">{{item.unreadCount}}</view>
@@ -50,6 +50,3 @@
     </view>
   </block>
 </view>
-
-<!-- 登录弹窗 -->
-<login-modal show="{{showLoginModal}}" bind:close="onCloseLoginModal" bind:success="onLoginSuccess" />

@@ -1,6 +1,7 @@
 // pages/index/index.js
 const app = getApp();
 const api = require('../../utils/api.js');
+const auth = require('../../utils/auth.js');
 
 Page({
   data: {
@@ -14,7 +15,6 @@ Page({
   },
 
   onLoad: function () {
-    this.checkLogin();
     this.loadPlaces();
   },
 
@@ -22,7 +22,7 @@ Page({
     this.checkLogin();
   },
 
-  // 检查登录状态
+  // 检查登录状态（首页不需要强制登录）
   checkLogin: function () {
     const isLoggedIn = app.globalData.isLoggedIn;
     const userInfo = app.globalData.userInfo;
@@ -217,9 +217,9 @@ Page({
 
   // 发布行程
   onPublishTap: function () {
-    if (!this.data.isLoggedIn) {
-      wx.showToast({ title: '请先登录', icon: 'none' });
-      this.onLogin();
+    // 检查是否需要登录（15天机制）
+    if (auth.checkNeedLogin()) {
+      auth.goToLogin('/pages/trip-publish/trip-publish');
       return;
     }
     wx.navigateTo({

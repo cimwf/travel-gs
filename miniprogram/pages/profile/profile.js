@@ -1,6 +1,7 @@
 // pages/profile/profile.js
 const app = getApp();
 const api = require('../../utils/api.js');
+const auth = require('../../utils/auth.js');
 
 Page({
   data: {
@@ -66,83 +67,23 @@ Page({
 
   // 点击登录
   onLogin: function () {
-    this.setData({ showLoginModal: true });
+    auth.goToLogin('/pages/profile/profile');
   },
 
-  // 关闭登录弹窗
-  onCloseLoginModal: function () {
-    this.setData({ showLoginModal: false });
-  },
-
-  // 登录成功
-  onLoginSuccess: function (e) {
-    const user = e.detail.user;
-    this.setData({
-      userInfo: user,
-      isLoggedIn: true,
-      showLoginModal: false
-    });
-    this.loadUserStats();
-  },
-
-  // 编辑资料
-  onEditProfile: function () {
-    if (!this.data.isLoggedIn) {
-      this.onLogin();
-      return;
-    }
-    wx.showToast({ title: '功能开发中', icon: 'none' });
-  },
-
-  // 退出登录
-  onLogout: function () {
-    wx.showModal({
-      title: '提示',
-      content: '确定要退出登录吗？',
-      confirmText: '确定',
-      cancelText: '取消',
-      confirmColor: '#FF4D4F',
-      success: (res) => {
-        if (res.confirm) {
-          this.doLogout();
-        }
-      }
-    });
-  },
-
-  // 执行退出登录
-  doLogout: function () {
-    // 清除本地缓存
-    wx.removeStorageSync('userInfo');
-    wx.removeStorageSync('openid');
-    
-    // 清除全局状态
-    app.globalData.userInfo = null;
-    app.globalData.openid = null;
-    app.globalData.isLoggedIn = false;
-    
-    // 更新页面状态
-    this.setData({
-      userInfo: null,
-      isLoggedIn: false,
-      stats: {
-        published: 0,
-        wanted: 0,
-        completed: 0
-      }
-    });
-    
-    wx.showToast({ title: '已退出登录', icon: 'success' });
-  },
-
-  // 菜单点击
+  // 菜单点击（检查登录）
   onMenuTap: function (e) {
-    if (!this.data.isLoggedIn) {
-      this.onLogin();
-      return;
+    // 检查是否需要登录
+    if (!auth.checkNeedLogin()) {
+      // 已登录，执行实际操作
+      this.doMenuAction(e.currentTarget.dataset.key);
+    } else {
+      // 未登录，跳转到登录页
+      auth.goToLogin('/pages/profile/profile');
     }
+  },
 
-    const key = e.currentTarget.dataset.key;
+  // 实际菜单操作
+  doMenuAction: function (key) {
     switch (key) {
       case 'published':
         wx.showToast({ title: '我发布的行程', icon: 'none' });
@@ -162,6 +103,15 @@ Page({
       case 'about':
         wx.showToast({ title: '北京去哪玩 v1.0', icon: 'none' });
         break;
+    }
+  },
+
+  // 保留原有方法兼容性
+  onEditProfile: function () {
+    if (!auth.checkNeedLogin()) {
+      wx.showToast({ title: '功能开发中', icon: 'none' });
+    } else {
+      auth.goToLogin('/pages/profile/profile');
     }
   }
 });

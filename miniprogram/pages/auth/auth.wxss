@@ -1,0 +1,139 @@
+/* pages/auth/auth.wxss */
+page {
+  height: 100%;
+}
+
+.auth-page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #4A90E2 0%, #667eea 50%, #764ba2 100%);
+}
+
+/* 状态栏 */
+.status-bar {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.status-bar .time {
+  font-weight: 600;
+}
+
+.status-bar .icons {
+  display: flex;
+  gap: 5px;
+}
+
+/* 内容区域 */
+.auth-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 30px;
+}
+
+/* Logo */
+.auth-logo {
+  width: 100px;
+  height: 100px;
+  background: white;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+/* 标题 */
+.auth-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 12px;
+}
+
+.auth-subtitle {
+  font-size: 15px;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 4px;
+}
+
+/* 价值引导 */
+.auth-tagline {
+  background: rgba(255,255,255,0.15);
+  padding: 20px 28px;
+  border-radius: 12px;
+  margin: 32px 0;
+  width: 100%;
+}
+
+.tagline-item {
+  font-size: 14px;
+  color: rgba(255,255,255,0.95);
+  line-height: 2;
+  text-align: center;
+}
+
+/* 登录按钮 */
+.auth-btn {
+  width: 100%;
+  padding: 16px;
+  background: white;
+  border: none;
+  border-radius: 50px;
+  font-size: 17px;
+  font-weight: 600;
+  color: #4A90E2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.auth-btn::after {
+  border: none;
+}
+
+.auth-btn[loading] {
+  opacity: 0.7;
+}
+
+.btn-icon {
+  font-size: 20px;
+}
+
+/* 协议 */
+.auth-agreement {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(255,255,255,0.8);
+  line-height: 1.8;
+}
+
+.auth-agreement .link {
+  text-decoration: underline;
+}
+
+/* 底部 */
+.auth-footer {
+  padding: 20px 30px 40px;
+  text-align: center;
+}
+
+.skip-btn {
+  font-size: 14px;
+  color: rgba(255,255,255,0.8);
+  padding: 12px;
+}

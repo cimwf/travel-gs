@@ -1,6 +1,7 @@
 // pages/messages/messages.js
 const app = getApp();
 const api = require('../../utils/api.js');
+const auth = require('../../utils/auth.js');
 
 Page({
   data: {
@@ -11,10 +12,11 @@ Page({
   },
 
   onLoad: function () {
-    this.checkLogin();
+    // 页面加载不强制检查，展示内容
   },
 
   onShow: function () {
+    // 每次显示时检查登录状态，但不强制跳转
     this.checkLogin();
     if (this.data.isLoggedIn) {
       this.loadData();
@@ -25,6 +27,17 @@ Page({
   checkLogin: function () {
     const isLoggedIn = app.globalData.isLoggedIn;
     this.setData({ isLoggedIn });
+  },
+
+  // 页面跳转时检查登录
+  onTapConversation: function () {
+    if (!auth.checkNeedLogin()) {
+      // 已登录，允许访问
+      this.loadData();
+    } else {
+      // 未登录，跳转到登录页
+      auth.goToLogin('/pages/messages/messages');
+    }
   },
 
   // 加载数据
@@ -42,26 +55,23 @@ Page({
     });
   },
 
-  // 点击登录
-  onLogin: function () {
-    this.setData({ showLoginModal: true });
-  },
-
-  // 关闭登录弹窗
-  onCloseLoginModal: function () {
-    this.setData({ showLoginModal: false });
-  },
-
-  // 登录成功
-  onLoginSuccess: function () {
-    this.setData({
-      isLoggedIn: true,
-      showLoginModal: false
-    });
-    this.loadData();
+  // 点击登录按钮
+  onTapLogin: function () {
+    auth.goToLogin('/pages/messages/messages');
   },
 
   // 点击会话
+  onTapConversation: function () {
+    if (!auth.checkNeedLogin()) {
+      // 已登录，允许访问
+      this.onConversationTap();
+    } else {
+      // 未登录，跳转到登录页
+      auth.goToLogin('/pages/messages/messages');
+    }
+  },
+
+  // 实际处理会话点击
   onConversationTap: function (e) {
     const id = e.currentTarget.dataset.id;
     wx.showToast({ title: '聊天功能开发中', icon: 'none' });

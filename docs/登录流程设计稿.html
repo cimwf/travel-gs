@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>北京去哪玩 - 登录流程设计稿</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    
+    .design-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .design-header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+    
+    .design-header h1 {
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    
+    .design-header p {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+    
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(375px, 1fr));
+      gap: 40px;
+      justify-items: center;
+    }
+    
+    .screen-wrapper {
+      background: white;
+      border-radius: 40px;
+      padding: 20px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+    }
+    
+    .screen-title {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 15px;
+      font-weight: 500;
+    }
+    
+    .phone-frame {
+      width: 375px;
+      height: 812px;
+      background: #F5F7FA;
+      border-radius: 30px;
+      overflow: hidden;
+      position: relative;
+      border: 8px solid #1a1a1a;
+    }
+    
+    /* 状态栏 */
+    .status-bar {
+      height: 44px;
+      background: #4A90E2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .status-bar .time {
+      font-weight: 600;
+    }
+    
+    .status-bar .icons {
+      display: flex;
+      gap: 5px;
+    }
+    
+    /* ========== 页面1: 手机号授权页 ========== */
+    .auth-page {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(180deg, #4A90E2 0%, #667eea 50%, #764ba2 100%);
+    }
+    
+    .auth-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 30px;
+      color: white;
+    }
+    
+    .auth-logo {
+      width: 100px;
+      height: 100px;
+      background: white;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    
+    .auth-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    
+    .auth-subtitle {
+      font-size: 15px;
+      opacity: 0.9;
+      margin-bottom: 40px;
+      text-align: center;
+      line-height: 1.6;
+    }
+    
+    .auth-tagline {
+      background: rgba(255,255,255,0.15);
+      padding: 16px 24px;
+      border-radius: 12px;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    
+    .auth-tagline p {
+      font-size: 14px;
+      opacity: 0.95;
+      line-height: 1.8;
+    }
+    
+    .auth-btn {
+      width: 100%;
+      padding: 16px;
+      background: white;
+      border: none;
+      border-radius: 50px;
+      font-size: 17px;
+      font-weight: 600;
+      color: #4A90E2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    .auth-btn:active {
+      transform: scale(0.98);
+    }
+    
+    .auth-btn-icon {
+      width: 24px;
+      height: 24px;
+    }
+    
+    .auth-agreement {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 12px;
+      opacity: 0.8;
+      line-height: 1.6;
+    }
+    
+    .auth-agreement .link {
+      text-decoration: underline;
+    }
+    
+    .auth-footer {
+      padding: 30px;
+      text-align: center;
+    }
+    
+    /* ========== 页面2: 完善信息页 ========== */
+    .complete-page {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: #F5F7FA;
+    }
+    
+    .complete-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 30px 20px 40px;
+      color: white;
+      text-align: center;
+    }
+    
+    .complete-header .back {
+      font-size: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      opacity: 0.9;
+    }
+    
+    .complete-header h2 {
+      font-size: 24px;
+      font-weight: 600;
+    }
+    
+    .complete-form {
+      flex: 1;
+      margin: -30px 16px 0;
+      background: white;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    
+    .avatar-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    
+    .avatar-wrapper {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+    }
+    
+    .avatar-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .avatar-wrapper .avatar-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.5);
+      color: white;
+      font-size: 11px;
+      padding: 6px;
+      text-align: center;
+    }
+    
+    .avatar-tip {
+      font-size: 13px;
+      color: #999;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    
+    .form-group .required {
+      color: #f5576c;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 14px 16px;
+      background: #F5F7FA;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      font-size: 15px;
+      color: #333;
+      transition: all 0.2s;
+    }
+    
+    .form-input:focus {
+      background: white;
+      border-color: #4A90E2;
+      outline: none;
+    }
+    
+    .form-input::placeholder {
+      color: #999;
+    }
+    
+    .gender-group {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .gender-option {
+      flex: 1;
+      padding: 12px;
+      background: #F5F7FA;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .gender-option.active {
+      background: rgba(74, 144, 226, 0.1);
+      border-color: #4A90E2;
+      color: #4A90E2;
+      font-weight: 500;
+    }
+    
+    .submit-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 50px;
+      font-size: 17px;
+      font-weight: 600;
+      color: white;
+      box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    .submit-btn:active {
+      transform: scale(0.98);
+    }
+    
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    /* 底部Tab（占位，保持一致） */
+    .tab-bar {
+      height: 60px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      border-top: 1px solid #eee;
+    }
+    
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      color: #999;
+      font-size: 10px;
+    }
+    
+    .tab-item.active {
+      color: #4A90E2;
+    }
+    
+    .tab-icon {
+      font-size: 22px;
+    }
+    
+    /* 设计说明 */
+    .design-notes {
+      margin-top: 40px;
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+    }
+    
+    .design-notes h2 {
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    
+    .flow-diagram {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    
+    .flow-diagram h3 {
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 16px;
+    }
+    
+    .flow-steps {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .flow-step {
+      background: #4A90E2;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 24px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .flow-arrow {
+      font-size: 20px;
+      color: #4A90E2;
+    }
+    
+    .notes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    
+    .note-card {
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      border-left: 4px solid #4A90E2;
+    }
+    
+    .note-card h4 {
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 10px;
+    }
+    
+    .note-card p {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+    }
+    
+    .feature-list {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .feature-list li {
+      padding: 8px 0;
+      padding-left: 24px;
+      position: relative;
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .feature-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #4A90E2;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="design-container">
+    <div class="design-header">
+      <h1>🔐 登录流程设计</h1>
+      <p>UI设计稿 v2.0 | 微信小程序</p>
+    </div>
+    
+    <div class="screens-grid">
+      <!-- 页面1: 手机号授权页 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">Step 1: 手机号授权页</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span class="time">21:30</span>
+            <div class="icons">📶 🔋</div>
+          </div>
+          <div class="auth-page">
+            <div class="auth-content">
+              <div class="auth-logo">🏔️</div>
+              <div class="auth-title">北京去哪玩</div>
+              <div class="auth-subtitle">发现北京周边好玩的<br>找旅行伙伴，一起出发</div>
+              
+              <div class="auth-tagline">
+                <p>✨ 发布行程找伙伴<br>✨ 收藏喜欢的景点<br>✨ 参与评论互动</p>
+              </div>
+              
+              <button class="auth-btn">
+                <span>📱</span>
+                <span>微信手机号一键登录</span>
+              </button>
+              
+              <div class="auth-agreement">
+                登录即表示同意
+                <span class="link">《用户协议》</span> 和
+                <span class="link">《隐私政策》</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 页面2: 完善信息页 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">Step 2: 完善信息页</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span class="time">21:30</span>
+            <div class="icons">📶 🔋</div>
+          </div>
+          <div class="complete-page">
+            <div class="complete-header">
+              <div class="back">← 返回</div>
+              <h2>完善信息</h2>
+            </div>
+            <div class="complete-form">
+              <!-- 头像 -->
+              <div class="avatar-section">
+                <div class="avatar-wrapper">
+                  <span>👤</span>
+                  <div class="avatar-overlay">点击更换</div>
+                </div>
+                <div class="avatar-tip">点击可使用微信头像或上传图片</div>
+              </div>
+              
+              <!-- 昵称 -->
+              <div class="form-group">
+                <label>昵称 <span class="required">*</span></label>
+                <input class="form-input" type="text" placeholder="请输入昵称">
+              </div>
+              
+              <!-- 性别 -->
+              <div class="form-group">
+                <label>性别</label>
+                <div class="gender-group">
+                  <div class="gender-option">男</div>
+                  <div class="gender-option">女</div>
+                  <div class="gender-option active">保密</div>
+                </div>
+              </div>
+              
+              <button class="submit-btn">完成注册</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 流程说明 -->
+    <div class="design-notes">
+      <h2>📐 设计说明</h2>
+      
+      <div class="flow-diagram">
+        <h3>登录流程</h3>
+        <div class="flow-steps">
+          <div class="flow-step">1. 进入小程序</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step">2. 手机号授权页</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step">3. 微信获取手机号</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step">4. 完善信息页</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-step">5. 进入首页</div>
+        </div>
+      </div>
+      
+      <div class="notes-grid">
+        <div class="note-card">
+          <h4>📱 页面1: 手机号授权页</h4>
+          <ul class="feature-list">
+            <li>品牌Logo和slogan展示</li>
+            <li>价值引导文案（发布行程、收藏景点等）</li>
+            <li>微信一键登录按钮（getPhoneNumber）</li>
+            <li>协议链接（用户协议、隐私政策）</li>
+            <li>渐变背景，与首页风格统一</li>
+          </ul>
+        </div>
+        
+        <div class="note-card">
+          <h4>👤 页面2: 完善信息页</h4>
+          <ul class="feature-list">
+            <li>头像必填（使用微信头像/自定义上传）</li>
+            <li>昵称必填（微信nickname能力）</li>
+            <li>性别选填（默认保密）</li>
+            <li>返回按钮（可取消）</li>
+            <li>完成注册按钮提交</li>
+          </ul>
+        </div>
+        
+        <div class="note-card">
+          <h4>🔧 技术实现</h4>
+          <ul class="feature-list">
+            <li>使用微信 getPhoneNumber 获取手机号</li>
+            <li>使用微信 chooseAvatar 获取头像</li>
+            <li>云函数验证手机号并创建用户</li>
+            <li>头像上传到云存储</li>
+            <li>用户信息存入云数据库</li>
+          </ul>
+        </div>
+        
+        <div class="note-card">
+          <h4>✨ 设计亮点</h4>
+          <ul class="feature-list">
+            <li>渐变背景统一风格</li>
+            <li>卡片式表单设计</li>
+            <li>头像预览+点击更换</li>
+            <li>性别选项直观易选</li>
+            <li>必填项明确标识</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

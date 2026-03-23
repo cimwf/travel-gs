@@ -59,20 +59,8 @@
     </view>
   </view>
 
-  <!-- 退出登录 -->
-  <view class="menu-section" wx:if="{{isLoggedIn}}">
-    <view class="menu-item logout-item" bindtap="onLogout">
-      <view class="menu-left">
-        <text class="menu-text logout-text">退出登录</text>
-      </view>
-    </view>
-  </view>
-
   <!-- 版本信息 -->
   <view class="version-info">
     <text>北京去哪玩 v1.0.0</text>
   </view>
 </view>
-
-<!-- 登录弹窗 -->
-<login-modal show="{{showLoginModal}}" bind:close="onCloseLoginModal" bind:success="onLoginSuccess" />

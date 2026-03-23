@@ -16,6 +16,10 @@ exports.main = async (event, context) => {
   try {
     switch (action) {
       // ========== 用户相关 ==========
+      case 'user/check':
+        return await userCheck(data.phone);
+      case 'user/register':
+        return await userRegister(openid, data);
       case 'user/login':
         return await userLogin(openid, data);
       case 'user/update':
@@ -81,6 +85,81 @@ exports.main = async (event, context) => {
 };
 
 // ========== 用户相关 ==========
+
+// 检查手机号是否已注册
+async function userCheck(phone) {
+  if (!phone) {
+    return { success: false, error: '手机号不能为空' };
+  }
+  
+  const userRes = await db.collection('users').where({ phone }).get();
+  
+  if (userRes.data.length > 0) {
+    return { success: true, exists: true, user: userRes.data[0] };
+  }
+  
+  return { success: true, exists: false };
+}
+
+// 用户注册（新用户）
+async function userRegister(openid, data) {
+  const { phone, nickname, avatar, gender } = data;
+  
+  if (!phone) {
+    return { success: false, error: '手机号不能为空' };
+  }
+  
+  if (!nickname || !nickname.trim()) {
+    return { success: false, error: '昵称不能为空' };
+  }
+  
+  // 检查手机号是否已注册
+  const existRes = await db.collection('users').where({ phone }).get();
+  if (existRes.data.length > 0) {
+    return { success: false, error: '该手机号已注册' };
+  }
+  
+  // 检查 openid 是否已注册
+  const openidRes = await db.collection('users').where({ openid }).get();
+  if (openidRes.data.length > 0) {
+    // 更新已有用户信息
+    await db.collection('users').doc(openidRes.data[0]._id).update({
+      data: {
+        phone,
+        nickname: nickname.trim(),
+        avatar: avatar || '',
+        gender: gender || 0,
+        lastActiveAt: Date.now()
+      }
+    });
+    
+    const updatedUser = await db.collection('users').doc(openidRes.data[0]._id).get();
+    return { success: true, user: updatedUser.data };
+  }
+  
+  // 创建新用户
+  const newUser = {
+    openid,
+    phone,
+    nickname: nickname.trim(),
+    avatar: avatar || '',
+    gender: gender || 0,
+    bio: '',
+    following: 0,
+    followers: 0,
+    trips: 0,
+    places: 0,
+    tags: [],
+    carOwner: false,
+    createdAt: Date.now(),
+    lastActiveAt: Date.now()
+  };
+  
+  const res = await db.collection('users').add({ data: newUser });
+  newUser._id = res._id;
+  
+  return { success: true, user: newUser };
+}
 
 async function userLogin(openid, data) {
   // 查找用户

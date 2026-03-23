@@ -1,6 +1,7 @@
 // pages/trip-publish/trip-publish.js
 const app = getApp();
 const db = wx.cloud.database();
+const auth = require('../../utils/auth.js');
 
 Page({
   data: {
@@ -17,6 +18,20 @@ Page({
   },
 
   onLoad: function (options) {
+    // 检查登录（发布页需要登录）
+    if (!auth.checkNeedLogin()) {
+      this.initPage(options);
+    } else {
+      auth.goToLogin('/pages/trip-publish/trip-publish');
+    }
+  },
+
+  onShow: function () {
+    this.setData({ userInfo: app.globalData.userInfo });
+  },
+
+  // 初始化页面
+  initPage: function (options) {
     const placeId = options.placeId || '';
     const placeName = options.placeName || '选择地点';
     
@@ -34,10 +49,6 @@ Page({
       minDate,
       date: defaultDate
     });
-  },
-
-  onShow: function () {
-    this.setData({ userInfo: app.globalData.userInfo });
   },
 
   // 格式化日期
