@@ -1,10 +1,16 @@
 /**
  * 登录工具模块
  */
-const app = getApp();
 
 // 登录有效期：15天（毫秒）
 const LOGIN_EXPIRY = 15 * 24 * 60 * 60 * 1000;
+
+/**
+ * 获取 app 实例
+ */
+function getAppInstance() {
+  return getApp();
+}
 
 /**
  * 检查用户是否需要登录
@@ -12,8 +18,9 @@ const LOGIN_EXPIRY = 15 * 24 * 60 * 60 * 1000;
  * @returns {boolean} 是否需要登录
  */
 function checkNeedLogin(forceCheck = false) {
-  const isLoggedIn = app.globalData.isLoggedIn;
-  const userInfo = app.globalData.userInfo;
+  const app = getAppInstance();
+  const isLoggedIn = app && app.globalData && app.globalData.isLoggedIn;
+  const userInfo = app && app.globalData && app.globalData.userInfo;
   
   // 如果未登录，需要登录
   if (!isLoggedIn || !userInfo) {
@@ -43,9 +50,13 @@ function checkNeedLogin(forceCheck = false) {
  * @param {Object} userInfo - 用户信息
  */
 function handleLoginSuccess(userInfo) {
+  const app = getAppInstance();
+  
   // 保存到全局
-  app.globalData.userInfo = userInfo;
-  app.globalData.isLoggedIn = true;
+  if (app && app.globalData) {
+    app.globalData.userInfo = userInfo;
+    app.globalData.isLoggedIn = true;
+  }
   
   // 保存到本地
   wx.setStorageSync('userInfo', userInfo);
@@ -103,12 +114,16 @@ function requireLogin(pageInstance, redirectUrl) {
  * 注意：本项目不提供退出登录入口，此函数保留备用
  */
 function clearLoginStatus() {
+  const app = getAppInstance();
+  
   wx.removeStorageSync('userInfo');
   wx.removeStorageSync('lastLoginTime');
   wx.removeStorageSync('pendingRedirect');
   
-  app.globalData.userInfo = null;
-  app.globalData.isLoggedIn = false;
+  if (app && app.globalData) {
+    app.globalData.userInfo = null;
+    app.globalData.isLoggedIn = false;
+  }
 }
 
 module.exports = {
