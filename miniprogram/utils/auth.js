@@ -18,12 +18,13 @@ function getAppInstance() {
  * @returns {boolean} 是否需要登录
  */
 function checkNeedLogin(forceCheck = false) {
-  const app = getAppInstance();
-  const isLoggedIn = app && app.globalData && app.globalData.isLoggedIn;
-  const userInfo = app && app.globalData && app.globalData.userInfo;
+  // 先检查本地存储的用户信息
+  const localUserInfo = wx.getStorageSync('userInfo');
+  const lastLoginTime = wx.getStorageSync('lastLoginTime') || 0;
+  const now = Date.now();
   
-  // 如果未登录，需要登录
-  if (!isLoggedIn || !userInfo) {
+  // 如果本地没有用户信息，需要登录
+  if (!localUserInfo) {
     return true;
   }
   
@@ -33,15 +34,12 @@ function checkNeedLogin(forceCheck = false) {
   }
   
   // 检查是否超过15天未登录
-  const lastLoginTime = wx.getStorageSync('lastLoginTime') || 0;
-  const now = Date.now();
-  
   if (now - lastLoginTime > LOGIN_EXPIRY) {
-    // 超过15天，需要重新登录
     console.log('登录已过期，需要重新登录');
     return true;
   }
   
+  // 有本地信息且在有效期内，不需要登录
   return false;
 }
 
@@ -111,7 +109,6 @@ function requireLogin(pageInstance, redirectUrl) {
 
 /**
  * 清理登录状态（退出登录）
- * 注意：本项目不提供退出登录入口，此函数保留备用
  */
 function clearLoginStatus() {
   const app = getAppInstance();

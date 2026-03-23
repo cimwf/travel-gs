@@ -23,30 +23,33 @@ App({
       }
     }
 
-    // 检查登录状态（15天机制）
+    // 检查并恢复登录状态
     this.checkLoginStatus();
     
     // 获取openid
     this.getOpenid();
   },
 
-  // 检查登录状态
+  // 检查登录状态 - 从本地存储恢复
   checkLoginStatus: function () {
-    // 使用 auth 模块检查
-    if (!auth.checkNeedLogin()) {
+    const userInfo = wx.getStorageSync('userInfo');
+    const openid = wx.getStorageSync('openid');
+    const lastLoginTime = wx.getStorageSync('lastLoginTime') || 0;
+    const now = Date.now();
+    
+    // 检查是否需要登录（15天机制）
+    if (userInfo && openid && (now - lastLoginTime <= auth.LOGIN_EXPIRY)) {
       // 已登录且在有效期内，恢复用户信息
-      const userInfo = wx.getStorageSync('userInfo');
-      const openid = wx.getStorageSync('openid');
-      
-      if (userInfo && openid) {
-        this.globalData.userInfo = userInfo;
-        this.globalData.openid = openid;
-        this.globalData.isLoggedIn = true;
-      }
+      this.globalData.userInfo = userInfo;
+      this.globalData.openid = openid;
+      this.globalData.isLoggedIn = true;
+      console.log('登录状态已恢复');
     } else {
       // 登录已过期或未登录，清除缓存
       wx.removeStorageSync('userInfo');
       wx.removeStorageSync('openid');
+      wx.removeStorageSync('lastLoginTime');
+      console.log('需要重新登录');
     }
   },
 
