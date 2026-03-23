@@ -2,11 +2,6 @@
 <view class="auth-page">
   <!-- 状态栏占位 -->
   <view class="status-bar">
-    <text class="time">{{time}}</text>
-    <view class="icons">
-      <text>📶</text>
-      <text>🔋</text>
-    </view>
   </view>
   
   <view class="auth-content">
@@ -26,23 +21,24 @@
     </view>
     
     <!-- 微信登录按钮 -->
-    <button 
-      class="auth-btn" 
-      open-type="getPhoneNumber" 
-      bindgetphonenumber="onGetPhoneNumber"
-      loading="{{loading}}"
-    >
-      <text class="btn-icon">📱</text>
-      <text>微信手机号一键登录</text>
-    </button>
+    <view class="auth-btn" >
+      <button 
+        open-type="getPhoneNumber" 
+        bindgetphonenumber="onGetPhoneNumber"
+        loading="{{loading}}"
+      >
+        <text class="btn-icon">📱</text>
+        <text>微信手机号一键登录</text>
+      </button>
+    </view>
     
     <!-- 测试按钮（模拟器用） -->
-    <button 
+    <!-- <button 
       class="auth-btn test-btn" 
       bindtap="onTestLogin"
     >
       <text>测试登录（模拟器）</text>
-    </button>
+    </button> -->
     
     <!-- 协议 -->
     <view class="auth-agreement">

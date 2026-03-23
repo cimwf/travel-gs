@@ -87,18 +87,23 @@ page {
 /* 登录按钮 */
 .auth-btn {
   width: 100%;
-  padding: 16px;
   background: white;
   border: none;
-  border-radius: 50px;
+  border-radius: 30px;
   font-size: 17px;
-  font-weight: 600;
   color: #4A90E2;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  overflow: hidden;
+}
+
+.auth-btn button {
+  width: 100%;
+  height: 100%;
+  background: white;
 }
 
 .auth-btn::after {

@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>北上周边行 Logo设计方案</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+            padding: 40px 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #4A90E2;
+            font-size: 36px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 50px;
+        }
+        .brand-info {
+            background: white;
+            border-radius: 12px;
+            padding: 25px 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 2px 12px rgba(74, 144, 226, 0.1);
+        }
+        .brand-info h2 {
+            color: #4A90E2;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        .brand-info ul {
+            list-style: none;
+            color: #555;
+            line-height: 2;
+        }
+        .brand-info li::before {
+            content: "✦ ";
+            color: #4A90E2;
+        }
+        .logo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+        .logo-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .logo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(74, 144, 226, 0.2);
+        }
+        .logo-card.recommended {
+            border: 3px solid #4A90E2;
+            position: relative;
+        }
+        .logo-card.recommended::before {
+            content: "★ 推荐方案";
+            position: absolute;
+            top: -15px;
+            left: 30px;
+            background: linear-gradient(135deg, #4A90E2, #5BA0F2);
+            color: white;
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        }
+        .logo-title {
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .logo-preview {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        .logo-preview svg {
+            width: 200px;
+            height: 200px;
+        }
+        .design-concept {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        .design-concept h3 {
+            color: #4A90E2;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+        .design-concept p {
+            color: #555;
+            line-height: 1.8;
+            font-size: 14px;
+        }
+        .design-elements {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .element-tag {
+            background: #e8f4ff;
+            color: #4A90E2;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+        .color-palette {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .color-swatch {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .recommendation {
+            background: linear-gradient(135deg, #4A90E2, #5BA0F2);
+            border-radius: 16px;
+            padding: 40px;
+            color: white;
+            text-align: center;
+        }
+        .recommendation h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        .recommendation p {
+            font-size: 16px;
+            line-height: 1.8;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid #e0e0e0;
+            color: #999;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧭 北上周边行 Logo设计方案</h1>
+        <p class="subtitle">北京周边旅游小程序 · 找旅行伙伴，一起出发</p>
+        
+        <div class="brand-info">
+            <h2>📋 设计需求</h2>
+            <ul>
+                <li><strong>品牌名称：</strong>北上周边行</li>
+                <li><strong>品牌定位：</strong>北京周边旅游小程序，找旅行伙伴，一起出发</li>
+                <li><strong>目标用户：</strong>年轻人、户外爱好者</li>
+                <li><strong>设计要求：</strong>体现"北上""周边游""旅行"概念；不出现"北京"字样但能识别；主色调#4A90E2天蓝色；正方形适合小程序头像；现代简约风格</li>
+            </ul>
+        </div>
+
+        <div class="logo-grid">
+            <!-- 方案1：天坛指北针 -->
+            <div class="logo-card">
+                <div class="logo-title">方案一：天坛指北针</div>
+                <div class="logo-preview">
+                    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#5BA0F2;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="grad1b" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#3A80D2;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#4A90E2;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <!-- 背景圆 -->
+                        <circle cx="100" cy="100" r="90" fill="url(#grad1)" opacity="0.15"/>
+                        <circle cx="100" cy="100" r="75" fill="none" stroke="url(#grad1)" stroke-width="2" opacity="0.3"/>
+                        
+                        <!-- 天坛祈年殿剪影 -->
+                        <g transform="translate(65, 85)">
+                            <!-- 顶部圆球 -->
+                            <circle cx="35" cy="5" r="6" fill="url(#grad1)"/>
+                            <!-- 金顶 -->
+                            <path d="M20 12 Q35 8 50 12 L45 18 L25 18 Z" fill="url(#grad1)"/>
+                            <!-- 第一层屋檐 -->
+                            <path d="M12 22 Q35 16 58 22 L52 28 L18 28 Z" fill="url(#grad1b)"/>
+                            <!-- 第二层屋檐 -->
+                            <path d="M5 36 Q35 28 65 36 L58 44 L12 44 Z" fill="url(#grad1)"/>
+                            <!-- 第三层屋檐 -->
+                            <path d="M0 52 Q35 42 70 52 L62 62 L8 62 Z" fill="url(#grad1b)"/>
+                            <!-- 底座 -->
+                            <rect x="15" y="62" width="40" height="8" rx="2" fill="url(#grad1)"/>
+                        </g>
+                        
+                        <!-- 指北针 -->
+                        <g transform="translate(100, 50)">
+                            <polygon points="0,-20 -6,0 0,8 6,0" fill="url(#grad1)"/>
+                            <circle cx="0" cy="0" r="4" fill="#4A90E2"/>
+                        </g>
+                        <text x="100" y="38" text-anchor="middle" font-size="10" fill="#4A90E2" font-weight="bold">N</text>
+                        
+                        <!-- 路径曲线 -->
+                        <path d="M40 140 Q70 125 100 130 Q130 135 160 120" fill="none" stroke="url(#grad1)" stroke-width="3" stroke-linecap="round" stroke-dasharray="8,4"/>
+                        
+                        <!-- 小圆点装饰 -->
+                        <circle cx="40" cy="140" r="5" fill="#4A90E2"/>
+                        <circle cx="160" cy="120" r="5" fill="#4A90E2"/>
+                        <circle cx="100" cy="130" r="4" fill="#5BA0F2"/>
+                    </svg>
+                </div>
+                <div class="design-concept">
+                    <h3>💡 设计理念</h3>
+                    <p>
+                        <strong>天坛祈年殿剪影</strong>作为核心视觉元素，是北京最具辨识度的地标建筑之一，无需文字即可传达"北京"意象。<br><br>
+                        <strong>指北针</strong>置于顶部，巧妙体现"北上"的方向感和旅程起点，同时增添探索感。<br><br>
+                        <strong>虚线路径</strong>从起点延伸至终点，象征"周边游"的旅程轨迹，连接各个目的地。<br><br>
+                        采用<strong>单色渐变</strong>设计，现代简约，在深色/浅色背景下均能清晰识别。
+                    </p>
+                    <div class="design-elements">
+                        <span class="element-tag">天坛剪影</span>
+                        <span class="element-tag">指北针</span>
+                        <span class="element-tag">旅程路径</span>
+                        <span class="element-tag">渐变色</span>
+                    </div>
+                </div>
+                <div class="color-palette">
+                    <div class="color-swatch" style="background: #4A90E2;"></div>
+                    <div class="color-swatch" style="background: #5BA0F2;"></div>
+                    <div class="color-swatch" style="background: #3A80D2;"></div>
+                </div>
+            </div>
+
+            <!-- 方案2：长城山峦 -->
+            <div class="logo-card">
+                <div class="logo-title">方案二：长城探索路</div>
+                <div class="logo-preview">
+                    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#6BB3F9;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <!-- 背景圆 -->
+                        <circle cx="100" cy="100" r="90" fill="url(#grad2)" opacity="0.1"/>
+                        
+                        <!-- 山峦背景 -->
+                        <path d="M10 130 L40 100 L60 115 L90 80 L120 110 L145 85 L175 115 L190 130 L190 190 L10 190 Z" fill="url(#grad2)" opacity="0.2"/>
+                        
+                        <!-- 长城剪影 -->
+                        <g fill="url(#grad2)">
+                            <!-- 城墙主体 -->
+                            <path d="M25 125 L25 100 L30 100 L30 95 L35 95 L35 100 L45 100 L45 95 L50 95 L50 100 L55 100 L55 95 L60 95 L60 100 L65 100 L65 125 Z"/>
+                            <path d="M75 115 L75 90 L80 90 L80 85 L85 85 L85 90 L95 90 L95 85 L100 85 L100 90 L105 90 L105 85 L110 85 L110 90 L115 90 L115 115 Z"/>
+                            <path d="M135 120 L135 95 L140 95 L140 90 L145 90 L145 95 L155 95 L155 90 L160 90 L160 95 L165 95 L165 120 Z"/>
+                            <!-- 连接城墙 -->
+                            <rect x="65" y="110" width="10" height="15" rx="1"/>
+                            <rect x="115" y="105" width="20" height="15" rx="1"/>
+                        </g>
+                        
+                        <!-- 道路 -->
+                        <path d="M20 155 Q50 140 80 145 Q110 150 140 142 Q170 135 185 150" fill="none" stroke="url(#grad2)" stroke-width="4" stroke-linecap="round"/>
+                        
+                        <!-- 起点终点标记 -->
+                        <circle cx="20" cy="155" r="6" fill="#4A90E2"/>
+                        <circle cx="185" cy="150" r="6" fill="#4A90E2"/>
+                        
+                        <!-- 太阳 -->
+                        <circle cx="155" cy="55" r="18" fill="url(#grad2)" opacity="0.3"/>
+                        <circle cx="155" cy="55" r="12" fill="url(#grad2)" opacity="0.6"/>
+                        <circle cx="155" cy="55" r="7" fill="#4A90E2"/>
+                        
+                        <!-- N 标记 -->
+                        <g transform="translate(45, 55)">
+                            <polygon points="0,-12 -4,0 0,5 4,0" fill="url(#grad2)"/>
+                        </g>
+                        <text x="45" y="42" text-anchor="middle" font-size="8" fill="#4A90E2" font-weight="bold">N</text>
+                    </svg>
+                </div>
+                <div class="design-concept">
+                    <h3>💡 设计理念</h3>
+                    <p>
+                        <strong>长城剪影</strong>蜿蜒起伏，是北京最具代表性的符号，立即唤起用户对北京周边游的联想。<br><br>
+                        <strong>起伏山峦</strong>作为背景层次，体现"周边游"的户外属性，与长城共同构成探索场景。<br><br>
+                        <strong>阳光照耀</strong>在右上角，寓意美好的旅程和积极向上的生活态度。<br><br>
+                        <strong>蜿蜒道路</strong>贯穿底部，连接长城与远方，体现"一起出发"的旅程感。
+                    </p>
+                    <div class="design-elements">
+                        <span class="element-tag">长城剪影</span>
+                        <span class="element-tag">山峦层叠</span>
+                        <span class="element-tag">旅程道路</span>
+                        <span class="element-tag">阳光</span>
+                    </div>
+                </div>
+                <div class="color-palette">
+                    <div class="color-swatch" style="background: #4A90E2;"></div>
+                    <div class="color-swatch" style="background: #6BB3F9;"></div>
+                </div>
+            </div>
+
+            <!-- 方案3：山峰户外（推荐） -->
+            <div class="logo-card recommended">
+                <div class="logo-title">方案三：北峰探索（推荐）</div>
+                <div class="logo-preview">
+                    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#7CC4FF;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="grad3b" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#3A80D2;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <!-- 背景圆 -->
+                        <circle cx="100" cy="100" r="90" fill="url(#grad3)" opacity="0.08"/>
+                        <circle cx="100" cy="100" r="85" fill="none" stroke="url(#grad3)" stroke-width="1.5" opacity="0.2"/>
+                        
+                        <!-- 主山峰（"北"字抽象化） -->
+                        <path d="M100 35 L65 120 L75 120 L75 95 L85 95 L85 120 L100 105 L115 120 L115 95 L125 95 L125 120 L135 120 Z" 
+                              fill="url(#grad3)" opacity="0.9"/>
+                        
+                        <!-- 左侧山峰 -->
+                        <path d="M45 130 L70 85 L75 93 L60 130 Z" fill="url(#grad3)" opacity="0.5"/>
+                        
+                        <!-- 右侧山峰 -->
+                        <path d="M155 130 L130 85 L125 93 L140 130 Z" fill="url(#grad3)" opacity="0.5"/>
+                        
+                        <!-- 指北针 -->
+                        <g transform="translate(100, 25)">
+                            <circle cx="0" cy="0" r="15" fill="none" stroke="url(#grad3)" stroke-width="1.5" opacity="0.6"/>
+                            <polygon points="0,-10 -3,0 0,4 3,0" fill="url(#grad3)"/>
+                            <circle cx="0" cy="0" r="3" fill="white"/>
+                        </g>
+                        
+                        <!-- 路径曲线 -->
+                        <path d="M30 145 Q60 135 90 140 Q120 145 150 138 Q165 135 170 130" 
+                              fill="none" stroke="url(#grad3)" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
+                        
+                        <!-- 路径点 -->
+                        <circle cx="30" cy="145" r="4" fill="#4A90E2"/>
+                        <circle cx="90" cy="140" r="3" fill="#5BA0F2"/>
+                        <circle cx="150" cy="138" r="3" fill="#5BA0F2"/>
+                        <circle cx="170" cy="130" r="4" fill="#4A90E2"/>
+                        
+                        <!-- 装饰点 -->
+                        <circle cx="50" cy="110" r="2" fill="url(#grad3)" opacity="0.4"/>
+                        <circle cx="150" cy="115" r="2" fill="url(#grad3)" opacity="0.4"/>
+                    </svg>
+                </div>
+                <div class="design-concept">
+                    <h3>💡 设计理念</h3>
+                    <p>
+                        <strong>"北"字抽象山峰</strong>：将"北"字巧妙融入主山峰形态，中间的分叉代表"北"字特征笔画，实现"文字与图形的融合"，既体现"北上"方向感，又象征户外探索的山峰意象。<br><br>
+                        <strong>三峰构图</strong>：主峰居中，两座辅峰左右呼应，层次分明，体现"周边游"的多目的地特性。<br><br>
+                        <strong>顶部指北针</strong>：增强"北上"的方向语义，同时为整体设计增添专业感。<br><br>
+                        <strong>蜿蜒路径</strong>：连接起点与终点，体现"找旅行伙伴，一起出发"的核心诉求。<br><br>
+                        <strong>极简设计</strong>：单色渐变，几何化处理，现代简约，在小尺寸下依然清晰可辨，非常适合小程序头像使用。
+                    </p>
+                    <div class="design-elements">
+                        <span class="element-tag">"北"字山峰</span>
+                        <span class="element-tag">三峰构图</span>
+                        <span class="element-tag">指北针</span>
+                        <span class="element-tag">旅程路径</span>
+                        <span class="element-tag">极简设计</span>
+                    </div>
+                </div>
+                <div class="color-palette">
+                    <div class="color-swatch" style="background: #4A90E2;"></div>
+                    <div class="color-swatch" style="background: #7CC4FF;"></div>
+                    <div class="color-swatch" style="background: #3A80D2;"></div>
+                </div>
+            </div>
+
+            <!-- 方案4：故宫飞檐 -->
+            <div class="logo-card">
+                <div class="logo-title">方案四：故宫飞檐</div>
+                <div class="logo-preview">
+                    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#5BA0F2;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <!-- 背景圆 -->
+                        <circle cx="100" cy="100" r="90" fill="url(#grad4)" opacity="0.1"/>
+                        
+                        <!-- 故宫飞檐建筑剪影 -->
+                        <g fill="url(#grad4)" transform="translate(30, 60)">
+                            <!-- 顶部 -->
+                            <path d="M70 15 Q85 10 100 15 L95 25 L75 25 Z"/>
+                            <!-- 第一层檐 -->
+                            <path d="M45 35 Q70 25 95 35 Q120 25 145 35 L138 48 L52 48 Z"/>
+                            <!-- 第二层檐 -->
+                            <path d="M30 60 Q70 48 110 60 Q120 55 140 60 L132 75 L38 75 Z"/>
+                            <!-- 墙体 -->
+                            <rect x="50" y="75" width="70" height="40" rx="2"/>
+                            <!-- 门 -->
+                            <rect x="75" y="90" width="20" height="25" rx="2" fill="white" opacity="0.3"/>
+                        </g>
+                        
+                        <!-- 指北方向 -->
+                        <g transform="translate(155, 50)">
+                            <polygon points="0,-15 -5,0 0,6 5,0" fill="url(#grad4)"/>
+                            <circle cx="0" cy="0" r="3" fill="white"/>
+                        </g>
+                        <text x="155" y="30" text-anchor="middle" font-size="10" fill="#4A90E2" font-weight="bold">N</text>
+                        
+                        <!-- 云纹装饰 -->
+                        <path d="M25 55 Q35 50 45 55 Q40 48 50 52" fill="none" stroke="url(#grad4)" stroke-width="2" opacity="0.4"/>
+                        
+                        <!-- 路径 -->
+                        <path d="M35 155 Q65 145 100 148 Q135 150 165 140" fill="none" stroke="url(#grad4)" stroke-width="3" stroke-linecap="round" stroke-dasharray="6,4"/>
+                        
+                        <!-- 站点 -->
+                        <circle cx="35" cy="155" r="5" fill="#4A90E2"/>
+                        <circle cx="100" cy="148" r="4" fill="#5BA0F2"/>
+                        <circle cx="165" cy="140" r="5" fill="#4A90E2"/>
+                        
+                        <!-- 小人剪影 -->
+                        <g transform="translate(100, 168)" fill="url(#grad4)" opacity="0.6">
+                            <circle cx="0" cy="-8" r="4"/>
+                            <ellipse cx="0" cy="2" rx="6" ry="8"/>
+                        </g>
+                    </svg>
+                </div>
+                <div class="design-concept">
+                    <h3>💡 设计理念</h3>
+                    <p>
+                        <strong>故宫建筑剪影</strong>：采用故宫太和殿的经典飞檐造型，层叠的屋檐展现北京皇家建筑特色，典雅大气。<br><br>
+                        <strong>云纹装饰</strong>：点缀中式云纹元素，增添文化韵味，同时暗示"出行"的动感。<br><br>
+                        <strong>底部小人</strong>：位于路径中央，象征"找旅行伙伴"的社交属性，体现人文关怀。<br><br>
+                        <strong>渐变层次</strong>：通过透明度变化营造空间感，现代简约与传统元素的完美融合。
+                    </p>
+                    <div class="design-elements">
+                        <span class="element-tag">故宫飞檐</span>
+                        <span class="element-tag">云纹装饰</span>
+                        <span class="element-tag">旅行者剪影</span>
+                        <span class="element-tag">中式美学</span>
+                    </div>
+                </div>
+                <div class="color-palette">
+                    <div class="color-swatch" style="background: #4A90E2;"></div>
+                    <div class="color-swatch" style="background: #5BA0F2;"></div>
+                </div>
+            </div>
+
+            <!-- 方案5：山水旅程 -->
+            <div class="logo-card">
+                <div class="logo-title">方案五：山水旅程</div>
+                <div class="logo-preview">
+                    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="grad5" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#8ED1FC;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="grad5b" x1="0%" y1="100%" x2="0%" y2="0%">
+                                <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:0.3" />
+                                <stop offset="100%" style="stop-color:#4A90E2;stop-opacity:0" />
+                            </linearGradient>
+                        </defs>
+                        <!-- 背景圆 -->
+                        <circle cx="100" cy="100" r="90" fill="url(#grad5)" opacity="0.06"/>
+                        
+                        <!-- 水面 -->
+                        <ellipse cx="100" cy="155" rx="75" ry="20" fill="url(#grad5b)"/>
+                        
+                        <!-- 远山 -->
+                        <path d="M15 120 L45 85 L60 95 L85 70 L100 80 L115 65 L140 90 L160 75 L185 105 L185 130 L15 130 Z" 
+                              fill="url(#grad5)" opacity="0.25"/>
+                        
+                        <!-- 中景山 -->
+                        <path d="M30 130 L55 100 L70 110 L100 85 L130 105 L145 95 L170 120 L170 135 L30 135 Z" 
+                              fill="url(#grad5)" opacity="0.45"/>
+                        
+                        <!-- 近景山（主山，北字形态） -->
+                        <path d="M100 50 L70 130 L80 130 L80 100 L90 100 L90 130 L100 115 L110 130 L110 100 L120 100 L120 130 L130 130 Z" 
+                              fill="url(#grad5)" opacity="0.85"/>
+                        
+                        <!-- 山顶小旗 -->
+                        <line x1="100" y1="50" x2="100" y2="35" stroke="url(#grad5)" stroke-width="2"/>
+                        <path d="M100 35 L115 42 L100 49 Z" fill="url(#grad5)"/>
+                        
+                        <!-- 指北针 -->
+                        <g transform="translate(160, 50)">
+                            <circle cx="0" cy="0" r="12" fill="none" stroke="url(#grad5)" stroke-width="1.5"/>
+                            <polygon points="0,-8 -3,0 0,3 3,0" fill="url(#grad5)"/>
+                        </g>
+                        <text x="160" y="35" text-anchor="middle" font-size="8" fill="#4A90E2" font-weight="bold">N</text>
+                        
+                        <!-- 船 -->
+                        <g transform="translate(55, 145)">
+                            <path d="M0 8 Q10 12 20 8 L18 5 L2 5 Z" fill="url(#grad5)" opacity="0.7"/>
+                            <line x1="10" y1="5" x2="10" y2="-5" stroke="url(#grad5)" stroke-width="1.5"/>
+                            <path d="M10 -5 L18 0 L10 3 Z" fill="url(#grad5)" opacity="0.5"/>
+                        </g>
+                        
+                        <!-- 路径 -->
+                        <path d="M40 165 Q70 155 100 158 Q130 160 160 150" 
+                              fill="none" stroke="url(#grad5)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="5,3"/>
+                    </svg>
+                </div>
+                <div class="design-concept">
+                    <h3>💡 设计理念</h3>
+                    <p>
+                        <strong>山水意象</strong>：层叠的山峰与波光粼粼的水面，展现北京周边的自然风光，符合"周边游"的产品定位。<br><br>
+                        <strong>"北"字山峰</strong>：近景主峰融入"北"字结构，巧妙点题，形成品牌记忆点。<br><br>
+                        <strong>山顶旗帜</strong>：象征抵达目的地、征服高峰的成就感，激励用户探索。<br><br>
+                        <strong>小船元素</strong>：增添人文气息，暗示旅行的惬意与悠闲。<br><br>
+                        <strong>渐变层次</strong>：通过三层山的透明度变化，营造深远的空间感。
+                    </p>
+                    <div class="design-elements">
+                        <span class="element-tag">山水构图</span>
+                        <span class="element-tag">"北"字山峰</span>
+                        <span class="element-tag">登顶旗帜</span>
+                        <span class="element-tag">小船</span>
+                        <span class="element-tag">空间层次</span>
+                    </div>
+                </div>
+                <div class="color-palette">
+                    <div class="color-swatch" style="background: #4A90E2;"></div>
+                    <div class="color-swatch" style="background: #8ED1FC;"></div>
+                </div>
+            </div>
+
+            <!-- 方案6：简约北字 -->
+            <div class="logo-card">
+                <div class="logo-title">方案六：简约北字路</div>
+                <div class="logo-preview">
+                    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="grad6" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#7CC4FF;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <!-- 背景圆 -->
+                        <circle cx="100" cy="100" r="90" fill="url(#grad6)" opacity="0.08"/>
+                        
+                        <!-- "北"字艺术化 -->
+                        <g transform="translate(55, 45)">
+                            <!-- 左半部分 -->
+                            <path d="M20 0 L20 50 L5 50 L5 55 L25 55 L25 0 Z" fill="url(#grad6)"/>
+                            <rect x="0" y="60" width="30" height="55" rx="4" fill="url(#grad6)"/>
+                            <rect x="5" y="70" width="20" height="35" rx="2" fill="white" opacity="0.2"/>
+                            
+                            <!-- 右半部分 -->
+                            <path d="M60 0 L60 50 L45 50 L45 55 L65 55 L65 0 Z" fill="url(#grad6)"/>
+                            <rect x="40" y="60" width="30" height="55" rx="4" fill="url(#grad6)"/>
+                            <rect x="45" y="70" width="20" height="35" rx="2" fill="white" opacity="0.2"/>
+                            
+                            <!-- 连接横线 -->
+                            <rect x="30" y="35" width="10" height="5" rx="1" fill="url(#grad6)"/>
+                        </g>
+                        
+                        <!-- 指北针 -->
+                        <g transform="translate(100, 25)">
+                            <polygon points="0,-12 -4,0 0,5 4,0" fill="url(#grad6)"/>
+                            <circle cx="0" cy="0" r="3" fill="white"/>
+                        </g>
+                        <text x="100" y="8" text-anchor="middle" font-size="9" fill="#4A90E2" font-weight="bold">N</text>
+                        
+                        <!-- 路径装饰 -->
+                        <circle cx="70" cy="175" r="5" fill="#4A90E2"/>
+                        <circle cx="100" cy="175" r="4" fill="#5BA0F2"/>
+                        <circle cx="130" cy="175" r="5" fill="#4A90E2"/>
+                        <line x1="70" y1="175" x2="130" y2="175" stroke="url(#grad6)" stroke-width="2" stroke-dasharray="3,3"/>
+                    </svg>
+                </div>
+                <div class="design-concept">
+                    <h3>💡 设计理念</h3>
+                    <p>
+                        <strong>极简"北"字</strong>：将"北"字几何化、艺术化处理，两竖形似山峰或路标，形成强烈的视觉符号。<br><br>
+                        <strong>窗户意象</strong>：左右两个矩形内的半透明白色块，形似窗户，暗示"向外看""探索世界"。<br><br>
+                        <strong>顶部指北针</strong>：强化"北上"的方向感，指明旅行的起点和目标。<br><br>
+                        <strong>底部路径点</strong>：三个圆点与虚线连接，简洁地表达"周边游""一站站探索"的概念。<br><br>
+                        <strong>现代几何风格</strong>：极简主义设计，适合年轻用户审美，在小尺寸下清晰可辨。
+                    </p>
+                    <div class="design-elements">
+                        <span class="element-tag">"北"字艺术化</span>
+                        <span class="element-tag">几何山峰</span>
+                        <span class="element-tag">窗户意象</span>
+                        <span class="element-tag">极简设计</span>
+                    </div>
+                </div>
+                <div class="color-palette">
+                    <div class="color-swatch" style="background: #4A90E2;"></div>
+                    <div class="color-swatch" style="background: #7CC4FF;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 推荐说明 -->
+        <div class="recommendation">
+            <h2>⭐ 推荐方案：方案三「北峰探索」</h2>
+            <p>
+                <strong>推荐理由：</strong><br><br>
+                1. <strong>创意巧妙</strong>：将"北"字融入山峰形态，实现文字与图形的完美融合，既体现"北上"方向感，又符合户外旅游调性。<br><br>
+                2. <strong>识别度高</strong>：山峰 + 指北针的组合，立即传达"北方旅行""户外探索"的核心概念，无需过多解释。<br><br>
+                3. <strong>简约现代</strong>：单色渐变设计，几何化处理，符合年轻用户审美，在小程序头像（小尺寸）下依然清晰可辨。<br><br>
+                4. <strong>延展性强</strong>：该设计可轻松延展为App图标、启动页、宣传海报等多种应用场景，保持品牌一致性。<br><br>
+                5. <strong>差异化明显</strong>：区别于常见的天坛、长城等地标剪影，更具品牌个性，更容易形成记忆点。
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>北上周边行 Logo设计方案 | 设计日期：2024年</p>
+            <p>主色调：#4A90E2（天蓝色） | 风格：现代简约</p>
+        </div>
+    </div>
+</body>
+</html>
