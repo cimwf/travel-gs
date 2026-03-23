@@ -28,6 +28,12 @@ Page({
       'place_001': {
         _id: 'place_001',
         name: '东灵山',
+        images: [
+          'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800',
+          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
+          'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=800',
+          'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800'
+        ],
         description: '北京最高峰，海拔2303米，位于门头沟区。山顶有高山草甸，夏季野花遍地，秋季层林尽染。是北京驴友必打卡之地。登顶可俯瞰群山，天气好时能看到远处的城市轮廓。',
         category: '自然风光',
         distance: 150,

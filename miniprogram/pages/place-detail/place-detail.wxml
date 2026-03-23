@@ -11,37 +11,8 @@
       circular
       interval="4000"
     >
-      <swiper-item>
-        <view class="banner-image banner-1">
-          <view class="banner-placeholder">
-            <text class="placeholder-icon">🏔️</text>
-            <text class="placeholder-text">东灵山主峰</text>
-          </view>
-        </view>
-      </swiper-item>
-      <swiper-item>
-        <view class="banner-image banner-2">
-          <view class="banner-placeholder">
-            <text class="placeholder-icon">🌅</text>
-            <text class="placeholder-text">日出云海</text>
-          </view>
-        </view>
-      </swiper-item>
-      <swiper-item>
-        <view class="banner-image banner-3">
-          <view class="banner-placeholder">
-            <text class="placeholder-icon">🌿</text>
-            <text class="placeholder-text">高山草甸</text>
-          </view>
-        </view>
-      </swiper-item>
-      <swiper-item>
-        <view class="banner-image banner-4">
-          <view class="banner-placeholder">
-            <text class="placeholder-icon">🌌</text>
-            <text class="placeholder-text">星空露营</text>
-          </view>
-        </view>
+      <swiper-item wx:for="{{place.images}}" wx:key="*this">
+        <image class="banner-image" src="{{item}}" mode="aspectFill"></image>
       </swiper-item>
     </swiper>
     <!-- 渐变遮罩 -->
