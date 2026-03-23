@@ -30,11 +30,18 @@
       class="auth-btn" 
       open-type="getPhoneNumber" 
       bindgetphonenumber="onGetPhoneNumber"
-      bindtap="onAuthTap"
       loading="{{loading}}"
     >
       <text class="btn-icon">📱</text>
       <text>微信手机号一键登录</text>
+    </button>
+    
+    <!-- 测试按钮（模拟器用） -->
+    <button 
+      class="auth-btn test-btn" 
+      bindtap="onTestLogin"
+    >
+      <text>测试登录（模拟器）</text>
     </button>
     
     <!-- 协议 -->

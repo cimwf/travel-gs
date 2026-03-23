@@ -37,9 +37,13 @@ Page({
     }
   },
 
-  // 点击按钮（备用）
-  onAuthTap() {
-    console.log('按钮被点击');
+  // 测试登录（模拟器用）
+  onTestLogin() {
+    console.log('测试登录按钮被点击');
+    wx.showToast({ title: '测试登录中...', icon: 'loading', duration: 2000 });
+    
+    // 直接模拟登录成功
+    this.handleLoginSuccess('13800138000', 'test_openid_12345');
   },
 
   // 获取手机号
