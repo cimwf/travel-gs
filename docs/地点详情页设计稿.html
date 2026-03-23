@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>地点详情页设计稿 - 北上周边行</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-color: #4A90E2;
+      --primary-light: #6BA3E8;
+      --primary-dark: #3A7BC8;
+      --bg-color: #F5F7FA;
+      --card-bg: #FFFFFF;
+      --text-primary: #1A1A2E;
+      --text-secondary: #4A4A68;
+      --text-hint: #8E8EA0;
+      --border-color: #E8E8F0;
+      --success-color: #52C41A;
+      --warning-color: #FAAD14;
+      --danger-color: #FF4D4F;
+      --shadow-sm: 0 2rpx 8rpx rgba(0,0,0,0.04);
+      --shadow-md: 0 4rpx 16rpx rgba(0,0,0,0.08);
+      --shadow-lg: 0 8rpx 24rpx rgba(0,0,0,0.12);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: #E8E8F0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    /* 手机框架 */
+    .phone-frame {
+      width: 375px;
+      height: 812px;
+      background: var(--bg-color);
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      position: relative;
+    }
+
+    /* 状态栏 */
+    .status-bar {
+      height: 44px;
+      background: transparent;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+
+    .status-bar .time {
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .status-bar .icons {
+      display: flex;
+      gap: 4px;
+    }
+
+    .status-bar .icons svg {
+      width: 18px;
+      height: 18px;
+      fill: white;
+    }
+
+    /* 滚动容器 */
+    .scroll-container {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-bottom: 90px;
+      scroll-behavior: smooth;
+    }
+
+    .scroll-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* ========== 顶部轮播图区域 ========== */
+    .carousel-section {
+      position: relative;
+      height: 220px;
+      overflow: hidden;
+    }
+
+    .carousel-container {
+      display: flex;
+      width: 400%;
+      height: 100%;
+      transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .carousel-slide {
+      width: 25%;
+      height: 100%;
+      position: relative;
+    }
+
+    .carousel-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* 渐变遮罩 */
+    .carousel-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        180deg,
+        rgba(0,0,0,0.3) 0%,
+        rgba(0,0,0,0) 30%,
+        rgba(0,0,0,0) 60%,
+        rgba(0,0,0,0.6) 100%
+      );
+    }
+
+    /* 轮播指示点 */
+    .carousel-dots {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+      z-index: 10;
+    }
+
+    .carousel-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.5);
+      transition: all 0.3s ease;
+    }
+
+    .carousel-dot.active {
+      width: 18px;
+      border-radius: 3px;
+      background: white;
+    }
+
+    /* 返回按钮 */
+    .back-btn {
+      position: absolute;
+      top: 48px;
+      left: 16px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .back-btn:hover {
+      background: rgba(0,0,0,0.5);
+    }
+
+    .back-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: white;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    /* 分享按钮 */
+    .share-btn {
+      position: absolute;
+      top: 48px;
+      right: 16px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .share-btn:hover {
+      background: rgba(0,0,0,0.5);
+    }
+
+    .share-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: white;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    /* ========== 基本信息区域 ========== */
+    .info-section {
+      background: white;
+      margin: -20px 12px 12px;
+      border-radius: 16px;
+      padding: 20px;
+      position: relative;
+      z-index: 10;
+      box-shadow: var(--shadow-md);
+    }
+
+    .place-header {
+      margin-bottom: 16px;
+    }
+
+    .place-name {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .place-category {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      color: white;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    /* 数据指标 */
+    .stats-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .stat-item {
+      text-align: center;
+      flex: 1;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-hint);
+    }
+
+    /* 标签 */
+    .tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 12px;
+      background: rgba(74, 144, 226, 0.08);
+      color: var(--primary-color);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .tag:hover {
+      background: rgba(74, 144, 226, 0.15);
+    }
+
+    .tag svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* 地址和时间 */
+    .meta-info {
+      padding-top: 16px;
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .meta-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .meta-icon {
+      width: 18px;
+      height: 18px;
+      color: var(--primary-color);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .meta-content {
+      flex: 1;
+    }
+
+    .meta-label {
+      font-size: 11px;
+      color: var(--text-hint);
+      margin-bottom: 2px;
+    }
+
+    .meta-value {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    /* ========== 内容区域 ========== */
+    .content-card {
+      background: white;
+      margin: 12px;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .card-icon {
+      width: 24px;
+      height: 24px;
+      color: var(--primary-color);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* 地点介绍 */
+    .description-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      text-align: justify;
+    }
+
+    /* 温馨提示 */
+    .tips-card {
+      background: linear-gradient(135deg, rgba(250, 173, 20, 0.08), rgba(250, 173, 20, 0.03));
+      border-left: 3px solid var(--warning-color);
+    }
+
+    .tips-card .card-icon {
+      color: var(--warning-color);
+    }
+
+    .tips-list {
+      list-style: none;
+    }
+
+    .tips-list li {
+      position: relative;
+      padding-left: 16px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .tips-list li:last-child {
+      margin-bottom: 0;
+    }
+
+    .tips-list li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--warning-color);
+    }
+
+    /* ========== 行程列表 ========== */
+    .trip-section {
+      background: white;
+      margin: 12px;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .trip-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      background: var(--primary-color);
+      color: white;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .trip-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .trip-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px;
+      background: var(--bg-color);
+      border-radius: 12px;
+      transition: all 0.2s;
+    }
+
+    .trip-item:hover {
+      background: #EAEAF5;
+    }
+
+    .user-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    .user-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .trip-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .trip-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .trip-user {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .trip-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    .trip-status.has-car {
+      background: rgba(82, 196, 26, 0.1);
+      color: var(--success-color);
+    }
+
+    .trip-status.need-car {
+      background: rgba(74, 144, 226, 0.1);
+      color: var(--primary-color);
+    }
+
+    .trip-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .trip-meta span {
+      font-size: 12px;
+      color: var(--text-hint);
+    }
+
+    .trip-meta .separator {
+      color: var(--border-color);
+    }
+
+    .trip-remark {
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: white;
+      padding: 8px 10px;
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+
+    .trip-action {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      align-self: center;
+    }
+
+    .action-btn {
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .action-btn.primary {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .action-btn.primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .action-btn.outline {
+      background: white;
+      color: var(--primary-color);
+      border: 1px solid var(--primary-color);
+    }
+
+    .action-btn.outline:hover {
+      background: rgba(74, 144, 226, 0.05);
+    }
+
+    /* 空状态 */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-hint);
+    }
+
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      color: var(--border-color);
+      margin-bottom: 12px;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+    }
+
+    /* ========== 底部操作栏 ========== */
+    .footer-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px 24px;
+      background: white;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+    }
+
+    .favorite-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      background: var(--bg-color);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .favorite-btn:hover {
+      background: #EAEAF5;
+    }
+
+    .favorite-btn.active {
+      background: rgba(255, 77, 79, 0.1);
+    }
+
+    .favorite-btn svg {
+      width: 24px;
+      height: 24px;
+      color: var(--text-hint);
+      transition: all 0.2s;
+    }
+
+    .favorite-btn.active svg {
+      color: var(--danger-color);
+      fill: var(--danger-color);
+    }
+
+    .favorite-btn span {
+      font-size: 10px;
+      color: var(--text-hint);
+      margin-top: 2px;
+    }
+
+    .publish-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 54px;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      color: white;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4);
+    }
+
+    .publish-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(74, 144, 226, 0.5);
+    }
+
+    .publish-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* ========== 设计说明面板 ========== */
+    .design-panel {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 320px;
+      max-height: calc(100vh - 40px);
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      color: white;
+      padding: 20px;
+    }
+
+    .panel-header h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .panel-header p {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .panel-content {
+      padding: 20px;
+      max-height: calc(100vh - 140px);
+      overflow-y: auto;
+    }
+
+    .section-block {
+      margin-bottom: 20px;
+    }
+
+    .section-block:last-child {
+      margin-bottom: 0;
+    }
+
+    .section-block h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-block h3::before {
+      content: '';
+      width: 4px;
+      height: 16px;
+      background: var(--primary-color);
+      border-radius: 2px;
+    }
+
+    .feature-list {
+      list-style: none;
+    }
+
+    .feature-list li {
+      position: relative;
+      padding-left: 20px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .feature-list li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--success-color);
+      font-weight: 600;
+    }
+
+    .color-palette {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .color-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .color-swatch {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .color-name {
+      font-size: 10px;
+      color: var(--text-hint);
+    }
+
+    .color-code {
+      font-size: 9px;
+      color: var(--text-hint);
+      font-family: monospace;
+    }
+
+    /* 轮播动画 */
+    @keyframes slideCarousel {
+      0%, 25% { transform: translateX(0); }
+      30%, 55% { transform: translateX(-25%); }
+      60%, 85% { transform: translateX(-50%); }
+      90%, 100% { transform: translateX(-75%); }
+    }
+
+    .carousel-container.animated {
+      animation: slideCarousel 12s ease-in-out infinite;
+    }
+
+    /* 响应式 */
+    @media (max-width: 768px) {
+      .design-panel {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 手机框架预览 -->
+  <div class="phone-frame">
+    <!-- 状态栏 -->
+    <div class="status-bar">
+      <span class="time">21:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M12 3C6.95 3 3 6.95 3 12s3.95 9 9 9c.76 0 1.51-.09 2.23-.27C12.14 19.13 10 16.27 10 13c0-3.87 3.13-7 7-7 1.27 0 2.46.34 3.49.93C18.71 4.79 15.59 3 12 3z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+
+    <div class="scroll-container">
+      <!-- 顶部轮播图 -->
+      <div class="carousel-section">
+        <div class="carousel-container animated" id="carousel">
+          <div class="carousel-slide">
+            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop" alt="风景1">
+            <div class="carousel-overlay"></div>
+          </div>
+          <div class="carousel-slide">
+            <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&h=300&fit=crop" alt="风景2">
+            <div class="carousel-overlay"></div>
+          </div>
+          <div class="carousel-slide">
+            <img src="https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=400&h=300&fit=crop" alt="风景3">
+            <div class="carousel-overlay"></div>
+          </div>
+          <div class="carousel-slide">
+            <img src="https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=400&h=300&fit=crop" alt="风景4">
+            <div class="carousel-overlay"></div>
+          </div>
+        </div>
+
+        <!-- 轮播指示点 -->
+        <div class="carousel-dots" id="dots">
+          <div class="carousel-dot active"></div>
+          <div class="carousel-dot"></div>
+          <div class="carousel-dot"></div>
+          <div class="carousel-dot"></div>
+        </div>
+
+        <!-- 返回按钮 -->
+        <div class="back-btn">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </div>
+
+        <!-- 分享按钮 -->
+        <div class="share-btn">
+          <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        </div>
+      </div>
+
+      <!-- 基本信息卡片 -->
+      <div class="info-section">
+        <div class="place-header">
+          <h1 class="place-name">东灵山</h1>
+          <span class="place-category">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 21h8M12 21V11M12 11L7 6M12 11L17 6M17 6V3M17 6H20M7 6V3M7 6H4"/>
+            </svg>
+            山岳风光
+          </span>
+        </div>
+
+        <!-- 数据指标 -->
+        <div class="stats-row">
+          <div class="stat-item">
+            <div class="stat-value">150km</div>
+            <div class="stat-label">距北京市区</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">中等</div>
+            <div class="stat-label">难度等级</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">4.8</div>
+            <div class="stat-label">用户评分</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">1天</div>
+            <div class="stat-label">建议时长</div>
+          </div>
+        </div>
+
+        <!-- 标签 -->
+        <div class="tags-container">
+          <span class="tag">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 21V11M12 11L7 6M12 11L17 6"/></svg>
+            爬山
+          </span>
+          <span class="tag">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            看日出
+          </span>
+          <span class="tag">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            露营
+          </span>
+          <span class="tag">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            高山草甸
+          </span>
+        </div>
+
+        <!-- 地址和时间信息 -->
+        <div class="meta-info">
+          <div class="meta-item">
+            <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <div class="meta-content">
+              <div class="meta-label">详细地址</div>
+              <div class="meta-value">北京市门头沟区清水镇</div>
+            </div>
+          </div>
+          <div class="meta-item">
+            <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <div class="meta-content">
+              <div class="meta-label">开放时间</div>
+              <div class="meta-value">全天开放</div>
+            </div>
+          </div>
+          <div class="meta-item">
+            <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+            </svg>
+            <div class="meta-content">
+              <div class="meta-label">最佳季节</div>
+              <div class="meta-value">春夏秋 · 海拔 2303m</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 地点介绍 -->
+      <div class="content-card">
+        <div class="card-header">
+          <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <span class="card-title">地点介绍</span>
+        </div>
+        <p class="description-text">
+          东灵山位于北京市门头沟区清水镇，是北京最高峰，海拔2303米，被誉为"京西珠穆朗玛"。山顶有广阔的高山草甸，夏季野花遍地，色彩斑斓；秋季层林尽染，美不胜收。
+          <br><br>
+          这里是北京驴友必打卡之地，也是观赏日出、云海的绝佳地点。山顶气温较低，夏季凉爽宜人，是避暑胜地；秋冬季节则可欣赏壮观的日出和云海奇观。
+        </p>
+      </div>
+
+      <!-- 温馨提示 -->
+      <div class="content-card tips-card">
+        <div class="card-header">
+          <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <span class="card-title">温馨提示</span>
+        </div>
+        <ul class="tips-list">
+          <li>山顶气温较低，建议携带保暖衣物，即使是夏季也要准备外套</li>
+          <li>建议凌晨出发看日出，需要提前查看天气情况</li>
+          <li>山区信号较弱，建议提前下载离线地图</li>
+          <li>带足饮用水和食物，山上没有补给点</li>
+          <li>注意保护环境，带走自己的垃圾</li>
+        </ul>
+      </div>
+
+      <!-- 行程列表 -->
+      <div class="trip-section">
+        <div class="section-header">
+          <div class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            想去的人
+            <span class="trip-count">3</span>
+          </div>
+        </div>
+
+        <div class="trip-list">
+          <!-- 行程1 -->
+          <div class="trip-item">
+            <div class="user-avatar">
+              <img src="https://i.pravatar.cc/100?img=1" alt="用户头像">
+            </div>
+            <div class="trip-content">
+              <div class="trip-header">
+                <span class="trip-user">小王</span>
+                <span class="trip-status has-car">🚗 有车</span>
+              </div>
+              <div class="trip-meta">
+                <span>03月25日</span>
+                <span class="separator">·</span>
+                <span>已有2人求2人</span>
+              </div>
+              <div class="trip-remark">有车求队友，AA制，早上6点出发</div>
+            </div>
+            <div class="trip-action">
+              <div class="action-btn primary">申请加入</div>
+            </div>
+          </div>
+
+          <!-- 行程2 -->
+          <div class="trip-item">
+            <div class="user-avatar">
+              <img src="https://i.pravatar.cc/100?img=5" alt="用户头像">
+            </div>
+            <div class="trip-content">
+              <div class="trip-header">
+                <span class="trip-user">小李</span>
+                <span class="trip-status need-car">🚌 需拼车</span>
+              </div>
+              <div class="trip-meta">
+                <span>03月26日</span>
+                <span class="separator">·</span>
+                <span>已有1人求3人</span>
+              </div>
+              <div class="trip-remark">无车等拼车，可以分摊油费</div>
+            </div>
+            <div class="trip-action">
+              <div class="action-btn outline">邀请他</div>
+            </div>
+          </div>
+
+          <!-- 行程3 -->
+          <div class="trip-item">
+            <div class="user-avatar">
+              <img src="https://i.pravatar.cc/100?img=8" alt="用户头像">
+            </div>
+            <div class="trip-content">
+              <div class="trip-header">
+                <span class="trip-user">小张</span>
+                <span class="trip-status has-car">🚗 有车</span>
+              </div>
+              <div class="trip-meta">
+                <span>03月27日</span>
+                <span class="separator">·</span>
+                <span>已有1人求3人</span>
+              </div>
+              <div class="trip-remark">周末自驾，有车，求3人同行</div>
+            </div>
+            <div class="trip-action">
+              <div class="action-btn primary">申请加入</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部操作栏 -->
+    <div class="footer-bar">
+      <div class="favorite-btn" id="favoriteBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+        <span>收藏</span>
+      </div>
+      <div class="publish-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        发布我的行程
+      </div>
+    </div>
+  </div>
+
+  <!-- 设计说明面板 -->
+  <div class="design-panel">
+    <div class="panel-header">
+      <h2>🎨 设计说明</h2>
+      <p>北上周边行 · 地点详情页</p>
+    </div>
+    <div class="panel-content">
+      <div class="section-block">
+        <h3>顶部轮播图区域</h3>
+        <ul class="feature-list">
+          <li>支持多张风景图片自动轮播</li>
+          <li>高度 220px (约 400rpx)</li>
+          <li>底部带圆形指示点</li>
+          <li>渐变遮罩增强视觉层次</li>
+          <li>左上角返回、右上角分享</li>
+        </ul>
+      </div>
+
+      <div class="section-block">
+        <h3>基本信息区域</h3>
+        <ul class="feature-list">
+          <li>地点名称大标题突出显示</li>
+          <li>分类标签使用主色渐变</li>
+          <li>四宫格数据指标展示</li>
+          <li>标签采用圆角药丸样式</li>
+          <li>地址、时间等信息图标化</li>
+        </ul>
+      </div>
+
+      <div class="section-block">
+        <h3>详情内容区域</h3>
+        <ul class="feature-list">
+          <li>卡片式设计，圆角 16px</li>
+          <li>地点介绍图文并茂</li>
+          <li>温馨提示突出显示</li>
+          <li>行程列表用户头像+信息</li>
+        </ul>
+      </div>
+
+      <div class="section-block">
+        <h3>底部操作栏</h3>
+        <ul class="feature-list">
+          <li>收藏按钮支持状态切换</li>
+          <li>发布按钮主色渐变+阴影</li>
+          <li>固定底部，毛玻璃效果</li>
+        </ul>
+      </div>
+
+      <div class="section-block">
+        <h3>设计风格</h3>
+        <ul class="feature-list">
+          <li>主色：#4A90E2 天蓝色</li>
+          <li>卡片式设计，现代简约</li>
+          <li>适合年轻人群体</li>
+          <li>圆角、阴影、渐变点缀</li>
+        </ul>
+      </div>
+
+      <div class="section-block">
+        <h3>配色方案</h3>
+        <div class="color-palette">
+          <div class="color-item">
+            <div class="color-swatch" style="background: #4A90E2;"></div>
+            <span class="color-name">主色</span>
+            <span class="color-code">#4A90E2</span>
+          </div>
+          <div class="color-item">
+            <div class="color-swatch" style="background: #6BA3E8;"></div>
+            <span class="color-name">浅主色</span>
+            <span class="color-code">#6BA3E8</span>
+          </div>
+          <div class="color-item">
+            <div class="color-swatch" style="background: #1A1A2E;"></div>
+            <span class="color-name">主文字</span>
+            <span class="color-code">#1A1A2E</span>
+          </div>
+          <div class="color-item">
+            <div class="color-swatch" style="background: #4A4A68;"></div>
+            <span class="color-name">次文字</span>
+            <span class="color-code">#4A4A68</span>
+          </div>
+          <div class="color-item">
+            <div class="color-swatch" style="background: #F5F7FA;"></div>
+            <span class="color-name">背景色</span>
+            <span class="color-code">#F5F7FA</span>
+          </div>
+          <div class="color-item">
+            <div class="color-swatch" style="background: #52C41A;"></div>
+            <span class="color-name">成功色</span>
+            <span class="color-code">#52C41A</span>
+          </div>
+          <div class="color-item">
+            <div class="color-swatch" style="background: #FAAD14;"></div>
+            <span class="color-name">警告色</span>
+            <span class="color-code">#FAAD14</span>
+          </div>
+          <div class="color-item">
+            <div class="color-swatch" style="background: #FF4D4F;"></div>
+            <span class="color-name">危险色</span>
+            <span class="color-code">#FF4D4F</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 轮播图控制
+    const carousel = document.getElementById('carousel');
+    const dots = document.querySelectorAll('.carousel-dot');
+    let currentSlide = 0;
+    const totalSlides = 4;
+
+    // 自动轮播
+    function updateCarousel() {
+      currentSlide = (currentSlide + 1) % totalSlides;
+      carousel.style.transform = `translateX(-${currentSlide * 25}%)`;
+      updateDots();
+    }
+
+    // 更新指示点
+    function updateDots() {
+      dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === currentSlide);
+      });
+    }
+
+    // 每3秒切换
+    setInterval(updateCarousel, 3000);
+
+    // 点击指示点切换
+    dots.forEach((dot, index) => {
+      dot.addEventListener('click', () => {
+        currentSlide = index;
+        carousel.style.transform = `translateX(-${currentSlide * 25}%)`;
+        updateDots();
+      });
+    });
+
+    // 收藏按钮交互
+    const favoriteBtn = document.getElementById('favoriteBtn');
+    favoriteBtn.addEventListener('click', () => {
+      favoriteBtn.classList.toggle('active');
+    });
+
+    // 停止自动动画，使用JS控制
+    carousel.classList.remove('animated');
+  </script>
+</body>
+</html>
