@@ -1,52 +1,10 @@
-<!--pages/auth/auth.wxml-->
-<view class="auth-page">
-  <!-- 状态栏占位 -->
-  <view class="status-bar">
-    <text class="time">{{time}}</text>
-    <view class="icons">
-      <text>📶</text>
-      <text>🔋</text>
-    </view>
-  </view>
-  
-  <view class="auth-content">
-    <!-- Logo -->
-    <view class="auth-logo">🏔️</view>
-    
-    <!-- 品牌标题 -->
-    <view class="auth-title">北京去哪玩</view>
-    <view class="auth-subtitle">发现北京周边好玩的</view>
-    <view class="auth-subtitle">找旅行伙伴，一起出发</view>
-    
-    <!-- 价值引导 -->
-    <view class="auth-tagline">
-      <view class="tagline-item">✨ 发布行程找伙伴</view>
-      <view class="tagline-item">✨ 收藏喜欢的景点</view>
-      <view class="tagline-item">✨ 参与评论互动</view>
-    </view>
-    
-    <!-- 微信登录按钮 -->
-    <button 
-      class="auth-btn" 
-      open-type="getPhoneNumber" 
-      bindgetphonenumber="onGetPhoneNumber"
-      loading="{{loading}}"
-    >
-      <text class="btn-icon">📱</text>
-      <text>微信手机号一键登录</text>
-    </button>
-    
-    <!-- 协议 -->
-    <view class="auth-agreement">
-      登录即表示同意
-      <text class="link" bindtap="onOpenAgreement" data-type="user">《用户协议》</text>
-      和
-      <text class="link" bindtap="onOpenAgreement" data-type="privacy">《隐私政策》</text>
-    </view>
-  </view>
-  
-  <!-- 暂不登录 -->
-  <view class="auth-footer">
-    <view class="skip-btn" bindtap="onSkip">暂不登录，看看先</view>
-  </view>
-</view>
+<button 
+  class="auth-btn" 
+  open-type="getPhoneNumber" 
+  bindgetphonenumber="onGetPhoneNumber"
+  bindtap="onAuthTap"
+  loading="{{loading}}"
+>
+  <text class="btn-icon">📱</text>
+  <text>微信手机号一键登录</text>
+</button>
