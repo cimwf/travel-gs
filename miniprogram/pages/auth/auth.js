@@ -39,21 +39,31 @@ Page({
 
   // 获取手机号
   async onGetPhoneNumber(e) {
+    console.log('getPhoneNumber event:', e.detail);
+    
     if (e.detail.errMsg === 'getPhoneNumber:ok') {
       this.setData({ loading: true });
       
       try {
-        // 获取用户手机号加密数据
-        const phoneData = e.detail;
+        // 获取用户手机号 - 需要 code 参数
+        const code = e.detail.code;
+        
+        if (!code) {
+          wx.showToast({ title: '获取授权码失败', icon: 'none' });
+          this.setData({ loading: false });
+          return;
+        }
         
         // 调用云函数获取 openid 并解密手机号
         const loginRes = await wx.cloud.callFunction({
           name: 'login',
           data: {
             action: 'getPhoneNumber',
-            phoneData: phoneData
+            code: code
           }
         });
+
+        console.log('login result:', loginRes);
 
         if (loginRes.result.success) {
           const { phoneNumber, openid } = loginRes.result;
