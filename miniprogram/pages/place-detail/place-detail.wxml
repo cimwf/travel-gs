@@ -17,14 +17,9 @@
     </swiper>
     <!-- 渐变遮罩 -->
     <view class="banner-mask-top"></view>
-    <view class="banner-mask-bottom"></view>
     <!-- 导航按钮 -->
-    <view class="nav-back" bindtap="onBackTap">
-      <text>←</text>
-    </view>
-    <view class="nav-share" bindtap="onShareTap">
-      <text>⋯</text>
-    </view>
+    <view class="nav-back" bindtap="onBackTap">←</view>
+    <view class="nav-share" bindtap="onShareTap">⋯</view>
   </view>
 
   <!-- 基本信息区域 -->
@@ -35,93 +30,108 @@
       <view class="place-category">{{place.category || '自然风光'}}</view>
     </view>
     
-    <!-- 四宫格数据 -->
-    <view class="data-grid">
-      <view class="data-item">
-        <view class="data-icon">📍</view>
-        <view class="data-value">{{place.distance}}km</view>
-        <view class="data-label">距离</view>
+    <!-- 数据指标 -->
+    <view class="stats-row">
+      <view class="stat-item">
+        <view class="stat-icon">📍</view>
+        <view class="stat-value">{{place.distance}}km</view>
+        <view class="stat-label">距离</view>
       </view>
-      <view class="data-item">
-        <view class="data-icon">🏔️</view>
-        <view class="data-value">{{place.difficulty}}</view>
-        <view class="data-label">难度</view>
+      <view class="stat-item">
+        <view class="stat-icon">🏔️</view>
+        <view class="stat-value">{{place.difficulty}}</view>
+        <view class="stat-label">难度</view>
       </view>
-      <view class="data-item">
-        <view class="data-icon">⭐</view>
-        <view class="data-value">{{place.rating || '4.8'}}</view>
-        <view class="data-label">评分</view>
+      <view class="stat-item">
+        <view class="stat-icon">⭐</view>
+        <view class="stat-value">{{place.rating || '4.8'}}</view>
+        <view class="stat-label">评分</view>
       </view>
-      <view class="data-item">
-        <view class="data-icon">⏱️</view>
-        <view class="data-value">{{place.duration}}</view>
-        <view class="data-label">时长</view>
+      <view class="stat-item">
+        <view class="stat-icon">⏱️</view>
+        <view class="stat-value">{{place.duration}}</view>
+        <view class="stat-label">时长</view>
       </view>
     </view>
     
     <!-- 标签 -->
-    <view class="tags-row">
-      <text class="tag" wx:for="{{place.tags}}" wx:key="*this">{{item}}</text>
+    <view class="tags-container">
+      <view class="tag" wx:for="{{place.tags}}" wx:key="*this">{{item}}</view>
     </view>
     
     <!-- 元信息 -->
     <view class="meta-info">
       <view class="meta-item">
         <text class="meta-icon">📍</text>
-        <text class="meta-text">{{place.location}}</text>
+        <view class="meta-content">
+          <view class="meta-label">地址</view>
+          <view class="meta-value">{{place.location}}</view>
+        </view>
       </view>
       <view class="meta-item">
         <text class="meta-icon">🕐</text>
-        <text class="meta-text">{{place.openTime || '全天开放'}}</text>
+        <view class="meta-content">
+          <view class="meta-label">开放时间</view>
+          <view class="meta-value">{{place.openTime || '全天开放'}}</view>
+        </view>
       </view>
       <view class="meta-item">
         <text class="meta-icon">🌸</text>
-        <text class="meta-text">最佳季节：{{place.bestSeason}}</text>
+        <view class="meta-content">
+          <view class="meta-label">最佳季节</view>
+          <view class="meta-value">{{place.bestSeason}}</view>
+        </view>
       </view>
     </view>
   </view>
 
   <!-- 地点介绍卡片 -->
-  <view class="card-section">
-    <view class="card-title">📝 地点介绍</view>
-    <view class="card-content">{{place.description}}</view>
+  <view class="content-card">
+    <view class="card-header">
+      <text class="card-icon">📝</text>
+      <text class="card-title">地点介绍</text>
+    </view>
+    <view class="description-text">{{place.description}}</view>
   </view>
 
   <!-- 温馨提示卡片 -->
-  <view class="card-section tips-section" wx:if="{{place.tips}}">
-    <view class="card-title">💡 温馨提示</view>
-    <view class="tips-content">{{place.tips}}</view>
+  <view class="content-card tips-card" wx:if="{{place.tips}}">
+    <view class="card-header">
+      <text class="card-icon">💡</text>
+      <text class="card-title">温馨提示</text>
+    </view>
+    <view class="tips-list">
+      <view class="tips-item">{{place.tips}}</view>
+    </view>
   </view>
 
   <!-- 行程列表 -->
   <view class="trip-section">
     <view class="section-header">
-      <view class="section-title">👥 想去的人</view>
-      <view class="section-count">{{trips.length}}人</view>
+      <view class="section-title">
+        <text>👥 想去的人</text>
+        <view class="trip-count">{{trips.length}}</view>
+      </view>
     </view>
 
     <view class="trip-list" wx:if="{{trips.length > 0}}">
       <view class="trip-item" wx:for="{{trips}}" wx:key="_id">
-        <view class="trip-left">
-          <image class="trip-avatar" src="{{item.userAvatar || '/images/default-avatar.png'}}" mode="aspectFill"></image>
-          <view class="trip-info">
-            <view class="trip-header">
-              <text class="trip-user">{{item.userName}}</text>
-              <view class="trip-status {{item.status}}">{{item.status === 'open' ? '招募中' : '已满员'}}</view>
-            </view>
-            <view class="trip-meta">
-              <text>{{item.date}}</text>
-              <text class="dot">·</text>
-              <text>{{item.hasCar ? '有车' : '无车'}}</text>
-              <text class="dot">·</text>
-              <text>{{item.currentCount}}/{{item.needCount}}人</text>
-            </view>
-            <view class="trip-remark" wx:if="{{item.remark}}">{{item.remark}}</view>
+        <image class="user-avatar" src="{{item.userAvatar || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+        <view class="trip-info">
+          <view class="trip-header">
+            <text class="trip-user">{{item.userName}}</text>
+            <view class="trip-status {{item.status}}">{{item.status === 'open' ? '招募中' : '已满员'}}</view>
           </view>
+          <view class="trip-meta">
+            <text>{{item.date}}</text>
+            <text class="dot">·</text>
+            <text>{{item.hasCar ? '有车' : '无车'}}</text>
+            <text class="dot">·</text>
+            <text>{{item.currentCount}}/{{item.needCount}}人</text>
+          </view>
+          <view class="trip-remark" wx:if="{{item.remark}}">{{item.remark}}</view>
         </view>
-        <view class="trip-action">
-          <view class="btn-join" catchtap="onApplyTap" data-id="{{item._id}}" wx:if="{{item.status === 'open'}}">加入</view>
-        </view>
+        <view class="btn-join" catchtap="onApplyTap" data-id="{{item._id}}" wx:if="{{item.status === 'open'}}">加入</view>
       </view>
     </view>
 
