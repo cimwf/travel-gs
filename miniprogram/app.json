@@ -1,8 +1,8 @@
 {
   "pages": [
+    "pages/index/index",
     "pages/auth/auth",
     "pages/complete-info/complete-info",
-    "pages/index/index",
     "pages/place-detail/place-detail",
     "pages/trip-publish/trip-publish",
     "pages/trip-detail/trip-detail",
