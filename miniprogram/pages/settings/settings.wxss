@@ -1,0 +1,119 @@
+/* 设置页面样式 */
+
+.container {
+  min-height: 100vh;
+  background: #F5F7FA;
+  padding-bottom: 100rpx;
+}
+
+/* 设置分组 */
+.settings-group {
+  background: white;
+  margin: 24rpx 32rpx;
+  border-radius: 24rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+
+.group-title {
+  padding: 24rpx 32rpx 16rpx;
+  font-size: 28rpx;
+  color: #999999;
+  background: #F5F7FA;
+}
+
+/* 设置项 */
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 36rpx 32rpx;
+  border-bottom: 1rpx solid #F5F5F5;
+  background: white;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-left {
+  display: flex;
+  align-items: center;
+}
+
+.setting-icon {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  font-size: 36rpx;
+}
+
+.setting-text {
+  font-size: 32rpx;
+  color: #333333;
+}
+
+.setting-desc {
+  font-size: 28rpx;
+  color: #999999;
+  margin-left: 16rpx;
+}
+
+.setting-right {
+  display: flex;
+  align-items: center;
+}
+
+.setting-arrow {
+  font-size: 36rpx;
+  color: #CCCCCC;
+  margin-left: 16rpx;
+}
+
+/* Switch 开关样式 */
+switch {
+  transform: scale(0.8);
+}
+
+/* 缓存大小 */
+.cache-size {
+  font-size: 28rpx;
+  color: #999999;
+}
+
+/* 退出登录按钮 */
+.logout-section {
+  margin: 48rpx 32rpx;
+}
+
+.logout-btn {
+  background: white;
+  border: none;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  width: 100%;
+  text-align: center;
+  font-size: 32rpx;
+  color: #FF4D4F;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  line-height: 1;
+}
+
+.logout-btn::after {
+  border: none;
+}
+
+.logout-btn:active {
+  background: #F5F5F5;
+}
+
+/* 版本信息 */
+.version-info {
+  text-align: center;
+  padding: 48rpx 32rpx;
+  color: #CCCCCC;
+  font-size: 28rpx;
+}

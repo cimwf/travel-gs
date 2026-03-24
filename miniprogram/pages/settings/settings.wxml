@@ -2,19 +2,129 @@
   设置页面 (settings)
   ================================
   设计要点：
-  1. 分组设置项：消息通知、隐私、客服、关于
-  2. 开关控件：消息通知、深色模式等
-  3. 箭头导航：隐私政策、用户协议等
+  1. 分组设置项：消息通知、隐私、其他
+  2. 开关控件：消息通知设置
+  3. 箭头导航：隐私设置、其他设置
   4. 退出登录按钮（红色）
   5. 版本号显示
-
-  子页面：
-  - 消息通知设置
-  - 隐私设置
-
-  参考：E:\beijing-travel\docs\缺失页面设计方案.md
 -->
 
 <view class="container">
-  <!-- TODO: 实现设置页面 -->
+  <!-- 消息通知设置 -->
+  <view class="settings-group">
+    <view class="group-title">消息通知</view>
+
+    <view class="setting-item" bindtap="toggleNotification" data-key="newMessage">
+      <view class="setting-left">
+        <view class="setting-icon">💬</view>
+        <view class="setting-text">新消息通知</view>
+      </view>
+      <view class="setting-right">
+        <switch checked="{{settings.newMessage}}" color="#4A90E2" bindchange="onSwitchChange" data-key="newMessage"/>
+      </view>
+    </view>
+
+    <view class="setting-item">
+      <view class="setting-left">
+        <view class="setting-icon">🚗</view>
+        <view class="setting-text">行程变更通知</view>
+      </view>
+      <view class="setting-right">
+        <switch checked="{{settings.tripChange}}" color="#4A90E2" bindchange="onSwitchChange" data-key="tripChange"/>
+      </view>
+    </view>
+
+    <view class="setting-item">
+      <view class="setting-left">
+        <view class="setting-icon">📬</view>
+        <view class="setting-text">申请消息通知</view>
+      </view>
+      <view class="setting-right">
+        <switch checked="{{settings.applyMessage}}" color="#4A90E2" bindchange="onSwitchChange" data-key="applyMessage"/>
+      </view>
+    </view>
+  </view>
+
+  <!-- 隐私设置 -->
+  <view class="settings-group">
+    <view class="group-title">隐私</view>
+
+    <view class="setting-item" bindtap="goToVisibilitySetting">
+      <view class="setting-left">
+        <view class="setting-icon">👁️</view>
+        <view class="setting-text">谁可以看到我的行程</view>
+      </view>
+      <view class="setting-right">
+        <text class="setting-desc">{{visibilityOptions[settings.tripVisibility]}}</text>
+        <text class="setting-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="setting-item" bindtap="goToMessageSetting">
+      <view class="setting-left">
+        <view class="setting-icon">💬</view>
+        <view class="setting-text">谁可以向我发消息</view>
+      </view>
+      <view class="setting-right">
+        <text class="setting-desc">{{visibilityOptions[settings.messagePermission]}}</text>
+        <text class="setting-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 其他设置 -->
+  <view class="settings-group">
+    <view class="group-title">其他</view>
+
+    <view class="setting-item" bindtap="clearCache">
+      <view class="setting-left">
+        <view class="setting-icon">🗑️</view>
+        <view class="setting-text">清除缓存</view>
+      </view>
+      <view class="setting-right">
+        <text class="cache-size">{{cacheSize}}</text>
+        <text class="setting-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="setting-item" bindtap="goToUserAgreement">
+      <view class="setting-left">
+        <view class="setting-icon">📄</view>
+        <view class="setting-text">用户协议</view>
+      </view>
+      <view class="setting-right">
+        <text class="setting-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="setting-item" bindtap="goToPrivacyPolicy">
+      <view class="setting-left">
+        <view class="setting-icon">🔒</view>
+        <view class="setting-text">隐私政策</view>
+      </view>
+      <view class="setting-right">
+        <text class="setting-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="setting-item" bindtap="goToAbout">
+      <view class="setting-left">
+        <view class="setting-icon">ℹ️</view>
+        <view class="setting-text">关于我们</view>
+      </view>
+      <view class="setting-right">
+        <text class="setting-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 退出登录 -->
+  <view class="logout-section">
+    <button class="logout-btn" bindtap="handleLogout">退出登录</button>
+  </view>
+
+  <!-- 版本信息 -->
+  <view class="version-info">
+    北京去哪玩 v{{version}}
+  </view>
 </view>

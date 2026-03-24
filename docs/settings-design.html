@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>设置页面 - 北京去哪玩</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: #F5F7FA;
+      min-height: 100vh;
+      color: #333333;
+    }
+
+    /* 容器 */
+    .container {
+      min-height: 100vh;
+      padding-bottom: 100rpx;
+    }
+
+    /* 导航栏 */
+    .nav-bar {
+      background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+      padding: 80rpx 32rpx 40rpx;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-back {
+      width: 60rpx;
+      height: 60rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-back-icon {
+      color: white;
+      font-size: 40rpx;
+    }
+
+    .nav-title {
+      color: white;
+      font-size: 36rpx;
+      font-weight: 600;
+    }
+
+    .nav-placeholder {
+      width: 60rpx;
+    }
+
+    /* 设置分组 */
+    .settings-group {
+      background: white;
+      margin: 24rpx 32rpx;
+      border-radius: 24rpx;
+      overflow: hidden;
+      box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+    }
+
+    .group-title {
+      padding: 24rpx 32rpx 16rpx;
+      font-size: 28rpx;
+      color: #999999;
+      background: #F5F7FA;
+    }
+
+    /* 设置项 */
+    .setting-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 36rpx 32rpx;
+      border-bottom: 1rpx solid #F5F5F5;
+      background: white;
+    }
+
+    .setting-item:last-child {
+      border-bottom: none;
+    }
+
+    .setting-left {
+      display: flex;
+      align-items: center;
+    }
+
+    .setting-icon {
+      width: 48rpx;
+      height: 48rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 24rpx;
+      font-size: 36rpx;
+    }
+
+    .setting-text {
+      font-size: 32rpx;
+      color: #333333;
+    }
+
+    .setting-desc {
+      font-size: 28rpx;
+      color: #999999;
+      margin-left: 16rpx;
+    }
+
+    .setting-right {
+      display: flex;
+      align-items: center;
+    }
+
+    .setting-arrow {
+      font-size: 36rpx;
+      color: #CCCCCC;
+      margin-left: 16rpx;
+    }
+
+    /* Switch 开关 */
+    .switch {
+      width: 100rpx;
+      height: 56rpx;
+      background: #E5E5E5;
+      border-radius: 28rpx;
+      position: relative;
+      transition: background 0.3s;
+    }
+
+    .switch.active {
+      background: #4A90E2;
+    }
+
+    .switch-dot {
+      width: 48rpx;
+      height: 48rpx;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      top: 4rpx;
+      left: 4rpx;
+      transition: transform 0.3s;
+      box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
+    }
+
+    .switch.active .switch-dot {
+      transform: translateX(44rpx);
+    }
+
+    /* 缓存大小 */
+    .cache-size {
+      font-size: 28rpx;
+      color: #999999;
+    }
+
+    /* 退出登录按钮 */
+    .logout-section {
+      margin: 48rpx 32rpx;
+    }
+
+    .logout-btn {
+      background: white;
+      border: none;
+      border-radius: 24rpx;
+      padding: 32rpx;
+      width: 100%;
+      text-align: center;
+      font-size: 32rpx;
+      color: #FF4D4F;
+      box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+    }
+
+    .logout-btn:active {
+      background: #F5F5F5;
+    }
+
+    /* 版本信息 */
+    .version-info {
+      text-align: center;
+      padding: 48rpx 32rpx;
+      color: #CCCCCC;
+      font-size: 28rpx;
+    }
+
+    /* 分隔提示文字 */
+    .section-tip {
+      padding: 16rpx 32rpx 8rpx;
+      font-size: 24rpx;
+      color: #BBBBBB;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 导航栏 -->
+    <div class="nav-bar">
+      <div class="nav-content">
+        <div class="nav-back">
+          <span class="nav-back-icon">‹</span>
+        </div>
+        <div class="nav-title">设置</div>
+        <div class="nav-placeholder"></div>
+      </div>
+    </div>
+
+    <!-- 消息通知设置 -->
+    <div class="settings-group">
+      <div class="group-title">消息通知</div>
+
+      <div class="setting-item">
+        <div class="setting-left">
+          <div class="setting-icon">💬</div>
+          <div class="setting-text">新消息通知</div>
+        </div>
+        <div class="setting-right">
+          <div class="switch active">
+            <div class="switch-dot"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-left">
+          <div class="setting-icon">🚗</div>
+          <div class="setting-text">行程变更通知</div>
+        </div>
+        <div class="setting-right">
+          <div class="switch active">
+            <div class="switch-dot"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-left">
+          <div class="setting-icon">📬</div>
+          <div class="setting-text">申请消息通知</div>
+        </div>
+        <div class="setting-right">
+          <div class="switch active">
+            <div class="switch-dot"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 隐私设置 -->
+    <div class="settings-group">
+      <div class="group-title">隐私</div>
+
+      <div class="setting-item">
+        <div class="setting-left">
+          <div class="setting-icon">👁️</div>
+          <div class="setting-text">谁可以看到我的行程</div>
+        </div>
+        <div class="setting-right">
+          <span class="setting-desc">所有人</span>
+          <span class="setting-arrow">›</span>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-left">
+          <div class="setting-icon">💬</div>
+          <div class="setting-text">谁可以向我发消息</div>
+        </div>
+        <div class="setting-right">
+          <span class="setting-desc">所有人</span>
+          <span class="setting-arrow">›</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 其他设置 -->
+    <div class="settings-group">
+      <div class="group-title">其他</div>
+
+      <div class="setting-item">
+        <div class="setting-left">
+          <div class="setting-icon">🗑️</div>
+          <div class="setting-text">清除缓存</div>
+        </div>
+        <div class="setting-right">
+          <span class="cache-size">12.5 MB</span>
+          <span class="setting-arrow">›</span>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-left">
+          <div class="setting-icon">📄</div>
+          <div class="setting-text">用户协议</div>
+        </div>
+        <div class="setting-right">
+          <span class="setting-arrow">›</span>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-left">
+          <div class="setting-icon">🔒</div>
+          <div class="setting-text">隐私政策</div>
+        </div>
+        <div class="setting-right">
+          <span class="setting-arrow">›</span>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-left">
+          <div class="setting-icon">ℹ️</div>
+          <div class="setting-text">关于我们</div>
+        </div>
+        <div class="setting-right">
+          <span class="setting-arrow">›</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 退出登录 -->
+    <div class="logout-section">
+      <button class="logout-btn">退出登录</button>
+    </div>
+
+    <!-- 版本信息 -->
+    <div class="version-info">
+      北京去哪玩 v1.0.0
+    </div>
+  </div>
+
+  <script>
+    // Switch 开关交互
+    document.querySelectorAll('.switch').forEach(switchEl => {
+      switchEl.addEventListener('click', function() {
+        this.classList.toggle('active');
+      });
+    });
+
+    // 退出登录按钮
+    document.querySelector('.logout-btn').addEventListener('click', function() {
+      if (confirm('确定要退出登录吗？')) {
+        alert('已退出登录');
+      }
+    });
+  </script>
+</body>
+</html>
