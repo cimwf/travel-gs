@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>北京去哪玩 - 设计规范文档 v1.0.0</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary-color: #4A90E2;
+      --primary-light: #6BA3E8;
+      --primary-dark: #357ABD;
+      --text-primary: #1A1A2E;
+      --text-secondary: #4A4A68;
+      --text-hint: #8E8EA0;
+      --bg-color: #F5F7FA;
+      --card-bg: #FFFFFF;
+      --border-color: #E8E8F0;
+      --success-color: #52C41A;
+      --warning-color: #FAAD14;
+      --danger-color: #FF4D4F;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      background: #1a1a2e;
+      color: white;
+      line-height: 1.6;
+    }
+    
+    .container { max-width: 1400px; margin: 0 auto; padding: 40px 20px; }
+    
+    /* 头部 */
+    .header {
+      text-align: center;
+      padding: 60px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 24px;
+      margin-bottom: 40px;
+    }
+    
+    .header h1 { font-size: 48px; font-weight: 700; margin-bottom: 16px; }
+    .header p { font-size: 18px; opacity: 0.9; margin-bottom: 8px; }
+    .header .version { font-size: 14px; opacity: 0.7; }
+    
+    /* 导航 */
+    .nav-tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .nav-tab {
+      padding: 12px 24px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 24px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      color: white;
+    }
+    
+    .nav-tab:hover { background: rgba(255,255,255,0.2); }
+    .nav-tab.active { background: var(--primary-color); }
+    
+    /* 章节 */
+    .section {
+      background: rgba(255,255,255,0.05);
+      border-radius: 24px;
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+    
+    .section-title {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 28px;
+      background: var(--primary-color);
+      border-radius: 2px;
+    }
+    
+    /* 颜色规范 */
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+    }
+    
+    .color-item {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+    
+    .color-box {
+      height: 60px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .color-label { font-size: 12px; opacity: 0.7; margin-bottom: 4px; }
+    .color-value { font-size: 14px; font-weight: 600; font-family: monospace; }
+    
+    /* 屏幕展示 */
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 32px;
+      margin-top: 24px;
+    }
+    
+    .screen-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .screen-title {
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    
+    .phone-frame {
+      width: 375px;
+      height: 812px;
+      background: white;
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    
+    .status-bar {
+      height: 44px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+    
+    .home-indicator {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 134px;
+      height: 5px;
+      background: #1a1a1a;
+      border-radius: 3px;
+    }
+    
+    /* 按钮样式 */
+    .btn {
+      padding: 14px 32px;
+      border-radius: 24px;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+      color: white;
+    }
+    
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--primary-color);
+      color: var(--primary-color);
+    }
+    
+    .btn-danger {
+      background: var(--danger-color);
+      color: white;
+    }
+    
+    /* 输入框 */
+    .input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      font-size: 15px;
+      background: var(--bg-color);
+    }
+    
+    .input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+    }
+    
+    /* 搜索框 */
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: var(--bg-color);
+      border-radius: 24px;
+    }
+    
+    .search-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 15px;
+      color: var(--text-primary);
+    }
+    
+    .search-input::placeholder { color: var(--text-hint); }
+    
+    /* 标签 */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 14px;
+      background: rgba(74, 144, 226, 0.1);
+      color: var(--primary-color);
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    
+    /* 底部导航 */
+    .tab-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      background: white;
+      padding: 8px 0 24px;
+      border-top: 1px solid var(--border-color);
+    }
+    
+    .tab-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      color: #8E8EA0;
+    }
+    
+    .tab-item.active { color: var(--primary-color); }
+    .tab-icon { font-size: 24px; }
+    
+    /* 卡片 */
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      margin: 12px 16px;
+    }
+    
+    /* 消息卡片 */
+    .message-card {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      background: white;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .message-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+      font-weight: 600;
+      margin-right: 12px;
+    }
+    
+    .message-content { flex: 1; }
+    .message-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .message-name { font-size: 16px; font-weight: 600; color: #1a1a1a; }
+    .message-time { font-size: 12px; color: #8E8EA0; }
+    .message-text { font-size: 14px; color: #4A4A68; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    
+    .message-badge {
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      background: var(--danger-color);
+      color: white;
+      border-radius: 10px;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* 登录引导卡片 */
+    .login-guide {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 32px;
+      text-align: center;
+    }
+    
+    .login-guide-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      margin-bottom: 20px;
+    }
+    
+    .login-guide-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    
+    .login-guide-desc {
+      font-size: 14px;
+      color: var(--text-hint);
+      margin-bottom: 24px;
+    }
+    
+    /* 用户信息卡片 */
+    .user-profile-card {
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+      padding: 24px 16px;
+      color: white;
+    }
+    
+    .user-avatar-large {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+    
+    .user-stats {
+      display: flex;
+      justify-content: space-around;
+      padding: 16px 0;
+      border-top: 1px solid rgba(255,255,255,0.2);
+      margin-top: 16px;
+    }
+    
+    .user-stat-item {
+      text-align: center;
+    }
+    
+    .user-stat-value {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    
+    .user-stat-label {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+    
+    /* 功能入口 */
+    .menu-item {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      background: white;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .menu-item:last-child { border-bottom: none; }
+    
+    .menu-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-right: 12px;
+    }
+    
+    .menu-text { flex: 1; font-size: 15px; color: #1a1a1a; }
+    .menu-arrow { color: #CCC; font-size: 18px; }
+    
+    /* 响应式 */
+    @media (max-width: 768px) {
+      .header h1 { font-size: 32px; }
+      .phone-frame { width: 320px; height: 693px; }
+      .screens-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 头部 -->
+    <div class="header">
+      <h1>🏔️ 北京去哪玩</h1>
+      <p>微信小程序设计规范文档</p>
+      <p class="version">Version 1.0.0 | 2026-03-24</p>
+    </div>
+    
+    <!-- 导航 -->
+    <div class="nav-tabs">
+      <a href="#colors" class="nav-tab">颜色规范</a>
+      <a href="#components" class="nav-tab">组件库</a>
+      <a href="#public-pages" class="nav-tab active">公开页面</a>
+      <a href="#login-pages" class="nav-tab">登录相关</a>
+      <a href="#auth-pages" class="nav-tab">需登录页面</a>
+      <a href="#version-history" class="nav-tab">版本历史</a>
+    </div>
+    
+    <!-- 颜色规范 -->
+    <div class="section" id="colors">
+      <h2 class="section-title">颜色规范</h2>
+      
+      <h3 style="margin-bottom: 16px; font-size: 16px; opacity: 0.8;">主色调</h3>
+      <div class="color-grid">
+        <div class="color-item">
+          <div class="color-box" style="background: #4A90E2;"></div>
+          <div class="color-label">Primary</div>
+          <div class="color-value">#4A90E2</div>
+        </div>
+        <div class="color-item">
+          <div class="color-box" style="background: #6BA3E8;"></div>
+          <div class="color-label">Primary Light</div>
+          <div class="color-value">#6BA3E8</div>
+        </div>
+        <div class="color-item">
+          <div class="color-box" style="background: #357ABD;"></div>
+          <div class="color-label">Primary Dark</div>
+          <div class="color-value">#357ABD</div>
+        </div>
+      </div>
+      
+      <h3 style="margin: 24px 0 16px; font-size: 16px; opacity: 0.8;">文字颜色</h3>
+      <div class="color-grid">
+        <div class="color-item">
+          <div class="color-box" style="background: #1A1A2E;"></div>
+          <div class="color-label">Text Primary</div>
+          <div class="color-value">#1A1A2E</div>
+        </div>
+        <div class="color-item">
+          <div class="color-box" style="background: #4A4A68;"></div>
+          <div class="color-label">Text Secondary</div>
+          <div class="color-value">#4A4A68</div>
+        </div>
+        <div class="color-item">
+          <div class="color-box" style="background: #8E8EA0;"></div>
+          <div class="color-label">Text Hint</div>
+          <div class="color-value">#8E8EA0</div>
+        </div>
+      </div>
+      
+      <h3 style="margin: 24px 0 16px; font-size: 16px; opacity: 0.8;">功能色</h3>
+      <div class="color-grid">
+        <div class="color-item">
+          <div class="color-box" style="background: #52C41A;"></div>
+          <div class="color-label">Success</div>
+          <div class="color-value">#52C41A</div>
+        </div>
+        <div class="color-item">
+          <div class="color-box" style="background: #FAAD14;"></div>
+          <div class="color-label">Warning</div>
+          <div class="color-value">#FAAD14</div>
+        </div>
+        <div class="color-item">
+          <div class="color-box" style="background: #FF4D4F;"></div>
+          <div class="color-label">Danger</div>
+          <div class="color-value">#FF4D4F</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 组件库 -->
+    <div class="section" id="components">
+      <h2 class="section-title">组件库</h2>
+      
+      <h3 style="margin: 24px 0 16px; font-size: 18px;">按钮</h3>
+      <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+        <button class="btn btn-primary">主要按钮</button>
+        <button class="btn btn-outline">次要按钮</button>
+        <button class="btn btn-danger">危险按钮</button>
+      </div>
+      
+      <h3 style="margin: 24px 0 16px; font-size: 18px;">标签</h3>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <span class="tag">🏔️ 爬山</span>
+        <span class="tag">🌅 日出</span>
+        <span class="tag">🏕️ 露营</span>
+        <span class="tag">📷 摄影</span>
+      </div>
+      
+      <h3 style="margin: 24px 0 16px; font-size: 18px;">输入框</h3>
+      <div style="max-width: 300px;">
+        <input class="input" type="text" placeholder="请输入内容...">
+      </div>
+      
+      <h3 style="margin: 24px 0 16px; font-size: 18px;">搜索框</h3>
+      <div style="max-width: 300px;">
+        <div class="search-bar">
+          <span>🔍</span>
+          <input class="search-input" type="text" placeholder="搜索地点、行程、用户">
+        </div>
+      </div>
+    </div>
+    
+    <!-- 公开页面（Tab页面） -->
+    <div class="section" id="public-pages">
+      <h2 class="section-title">公开页面（Tab页面）</h2>
+      
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 24px; border-radius: 16px; margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 16px;">📱 底部导航栏结构</h4>
+        <div style="display: flex; gap: 16px;">
+          <div style="flex: 1; background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; text-align: center;">
+            <div style="font-size: 28px; margin-bottom: 8px;">🏠</div>
+            <div style="font-size: 14px; font-weight: 600;">首页</div>
+          </div>
+          <div style="flex: 1; background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; text-align: center;">
+            <div style="font-size: 28px; margin-bottom: 8px;">💬</div>
+            <div style="font-size: 14px; font-weight: 600;">消息</div>
+          </div>
+          <div style="flex: 1; background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; text-align: center;">
+            <div style="font-size: 28px; margin-bottom: 8px;">👤</div>
+            <div style="font-size: 14px; font-weight: 600;">我的</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 1. 首页 -->
+      <h3 style="margin: 32px 0 16px; font-size: 20px;">1. 首页 Tab</h3>
+      <p style="opacity: 0.7; margin-bottom: 16px;">✅ 无需登录 | 搜索框 + Banner轮播图 + 地点列表</p>
+      <div class="screens-grid">
+        <div class="screen-wrapper">
+          <div class="screen-title">首页</div>
+          <div class="phone-frame">
+            <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="padding: 16px; background: white;">
+              <!-- 搜索框 -->
+              <div class="search-bar">
+                <span>🔍</span>
+                <input class="search-input" type="text" placeholder="搜索地点、目的地">
+              </div>
+            </div>
+            <div style="padding: 0 16px; background: white;">
+              <!-- Banner轮播图 -->
+              <div style="position: relative; height: 120px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: 600;">
+                🏔️ 春季踏青推荐
+                <!-- 轮播指示点 -->
+                <div style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px;">
+                  <div style="width: 6px; height: 6px; background: white; border-radius: 50%;"></div>
+                  <div style="width: 6px; height: 6px; background: rgba(255,255,255,0.5); border-radius: 50%;"></div>
+                  <div style="width: 6px; height: 6px; background: rgba(255,255,255,0.5); border-radius: 50%;"></div>
+                </div>
+              </div>
+            </div>
+            <!-- 地点列表 -->
+            <div style="flex: 1; background: var(--bg-color); padding: 0 16px 16px; overflow-y: auto;">
+              <div style="background: white; border-radius: 16px; overflow: hidden; margin-bottom: 12px;">
+                <div style="display: flex;">
+                  <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; font-size: 40px;">🏔️</div>
+                  <div style="flex: 1; padding: 12px;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 4px;">灵山</div>
+                    <div style="font-size: 13px; color: #8E8EA0; margin-bottom: 8px;">北京最高峰，海拔2303米</div>
+                    <div style="display: flex; gap: 12px; font-size: 12px; color: #8E8EA0;">
+                      <span>📍 150km</span>
+                      <span>⚡ 中等</span>
+                      <span>⭐ 4.8</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div style="background: white; border-radius: 16px; overflow: hidden; margin-bottom: 12px;">
+                <div style="display: flex;">
+                  <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #56AB2F, #A8E6CF); display: flex; align-items: center; justify-content: center; font-size: 40px;">🌸</div>
+                  <div style="flex: 1; padding: 12px;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 4px;">百花山</div>
+                    <div style="font-size: 13px; color: #8E8EA0; margin-bottom: 8px;">夏季野花盛开，色彩斑斓</div>
+                    <div style="display: flex; gap: 12px; font-size: 12px; color: #8E8EA0;">
+                      <span>📍 95km</span>
+                      <span>⚡ 中等</span>
+                      <span>⭐ 4.6</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div style="background: white; border-radius: 16px; overflow: hidden; margin-bottom: 12px;">
+                <div style="display: flex;">
+                  <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #4facfe, #00f2fe); display: flex; align-items: center; justify-content: center; font-size: 40px;">💧</div>
+                  <div style="flex: 1; padding: 12px;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 4px;">龙庆峡</div>
+                    <div style="font-size: 13px; color: #8E8EA0; margin-bottom: 8px;">峡谷风光，冰灯艺术节</div>
+                    <div style="display: flex; gap: 12px; font-size: 12px; color: #8E8EA0;">
+                      <span>📍 85km</span>
+                      <span>⚡ 易</span>
+                      <span>⭐ 4.5</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div style="background: white; border-radius: 16px; overflow: hidden;">
+                <div style="display: flex;">
+                  <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #FA8C16, #FFC53D); display: flex; align-items: center; justify-content: center; font-size: 40px;">🍂</div>
+                  <div style="flex: 1; padding: 12px;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 4px;">香山</div>
+                    <div style="font-size: 13px; color: #8E8EA0; margin-bottom: 8px;">红叶胜地，秋季赏枫</div>
+                    <div style="display: flex; gap: 12px; font-size: 12px; color: #8E8EA0;">
+                      <span>📍 25km</span>
+                      <span>⚡ 易</span>
+                      <span>⭐ 4.7</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="tab-bar">
+              <div class="tab-item active"><span class="tab-icon">🏠</span><span>首页</span></div>
+              <div class="tab-item"><span class="tab-icon">💬</span><span>消息</span></div>
+              <div class="tab-item"><span class="tab-icon">👤</span><span>我的</span></div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 2. 消息 Tab -->
+      <h3 style="margin: 32px 0 16px; font-size: 20px;">2. 消息 Tab</h3>
+      <p style="opacity: 0.7; margin-bottom: 16px;">✅ 无需登录 | 未登录显示引导登录UI</p>
+      <div class="screens-grid">
+        <div class="screen-wrapper">
+          <div class="screen-title">消息（未登录状态）</div>
+          <div class="phone-frame">
+            <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="background: white; padding: 16px; text-align: center; border-bottom: 1px solid var(--border-color);">
+              <span style="font-size: 18px; font-weight: 600; color: #1a1a1a;">消息</span>
+            </div>
+            <div class="login-guide" style="flex: 1;">
+              <div class="login-guide-icon">💬</div>
+              <div class="login-guide-title">登录后查看消息</div>
+              <div class="login-guide-desc">登录后可以查看行程群聊、私聊消息和系统通知</div>
+              <button class="btn btn-primary" style="padding: 12px 48px;">立即登录</button>
+            </div>
+            <div class="tab-bar">
+              <div class="tab-item"><span class="tab-icon">🏠</span><span>首页</span></div>
+              <div class="tab-item active"><span class="tab-icon">💬</span><span>消息</span></div>
+              <div class="tab-item"><span class="tab-icon">👤</span><span>我的</span></div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+        
+        <div class="screen-wrapper">
+          <div class="screen-title">消息（已登录状态）</div>
+          <div class="phone-frame">
+            <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="background: white; padding: 16px; text-align: center; border-bottom: 1px solid var(--border-color);">
+              <span style="font-size: 18px; font-weight: 600; color: #1a1a1a;">消息</span>
+            </div>
+            <div style="flex: 1; overflow-y: auto; background: white;">
+              <!-- 行程群聊 -->
+              <div class="message-card">
+                <div class="message-avatar" style="background: linear-gradient(135deg, #4A90E2, #6BA3E8);">🏔️</div>
+                <div class="message-content">
+                  <div class="message-header">
+                    <span class="message-name">灵山踏青小队</span>
+                    <span class="message-time">刚刚</span>
+                  </div>
+                  <div class="message-text">小王: 明天几点出发？</div>
+                </div>
+                <div class="message-badge">3</div>
+              </div>
+              <!-- 私聊 -->
+              <div class="message-card">
+                <div class="message-avatar">李</div>
+                <div class="message-content">
+                  <div class="message-header">
+                    <span class="message-name">李明</span>
+                    <span class="message-time">10:30</span>
+                  </div>
+                  <div class="message-text">好的，那我们周末见！</div>
+                </div>
+              </div>
+              <!-- 系统通知 -->
+              <div class="message-card">
+                <div class="message-avatar" style="background: linear-gradient(135deg, #8E8EA0, #4A4A68);">🔔</div>
+                <div class="message-content">
+                  <div class="message-header">
+                    <span class="message-name">系统通知</span>
+                    <span class="message-time">昨天</span>
+                  </div>
+                  <div class="message-text">您的行程申请已通过</div>
+                </div>
+                <div class="message-badge">1</div>
+              </div>
+              <!-- 更多消息 -->
+              <div class="message-card">
+                <div class="message-avatar" style="background: linear-gradient(135deg, #56AB2F, #A8E6CF);">🌸</div>
+                <div class="message-content">
+                  <div class="message-header">
+                    <span class="message-name">百花山看花团</span>
+                    <span class="message-time">周二</span>
+                  </div>
+                  <div class="message-text">行程已结束，期待下次出行！</div>
+                </div>
+              </div>
+            </div>
+            <div class="tab-bar">
+              <div class="tab-item"><span class="tab-icon">🏠</span><span>首页</span></div>
+              <div class="tab-item active"><span class="tab-icon">💬</span><span>消息</span></div>
+              <div class="tab-item"><span class="tab-icon">👤</span><span>我的</span></div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 3. 我的 Tab -->
+      <h3 style="margin: 32px 0 16px; font-size: 20px;">3. 我的 Tab</h3>
+      <p style="opacity: 0.7; margin-bottom: 16px;">✅ 无需登录 | 未登录显示默认头像+登录提示，列表正常显示</p>
+      <div class="screens-grid">
+        <div class="screen-wrapper">
+          <div class="screen-title">我的（未登录状态）</div>
+          <div class="phone-frame">
+            <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+            <!-- 用户信息卡片 - 未登录状态 -->
+            <div style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); padding: 24px 16px; text-align: center;">
+              <div style="width: 72px; height: 72px; background: rgba(255,255,255,0.3); border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; border: 2px dashed rgba(255,255,255,0.5);">👤</div>
+              <p style="color: white; font-size: 16px; font-weight: 600; margin-bottom: 4px;">点击登录</p>
+              <p style="color: white; font-size: 13px; opacity: 0.8;">登录后查看个人信息</p>
+            </div>
+            <!-- 功能入口列表 - 未登录也显示 -->
+            <div style="flex: 1; background: var(--bg-color); padding: 16px;">
+              <div style="background: white; border-radius: 16px; overflow: hidden;">
+                <div class="menu-item">
+                  <div class="menu-icon" style="background: rgba(74, 144, 226, 0.1);">📅</div>
+                  <span class="menu-text">我的行程</span>
+                  <span class="menu-arrow">›</span>
+                </div>
+                <div class="menu-item">
+                  <div class="menu-icon" style="background: rgba(250, 173, 20, 0.1);">⭐</div>
+                  <span class="menu-text">我的收藏</span>
+                  <span class="menu-arrow">›</span>
+                </div>
+                <div class="menu-item">
+                  <div class="menu-icon" style="background: rgba(82, 196, 26, 0.1);">💬</div>
+                  <span class="menu-text">我的评论</span>
+                  <span class="menu-arrow">›</span>
+                </div>
+                <div class="menu-item">
+                  <div class="menu-icon" style="background: rgba(255, 77, 79, 0.1);">👥</div>
+                  <span class="menu-text">关注 / 粉丝</span>
+                  <span class="menu-arrow">›</span>
+                </div>
+              </div>
+              <div style="background: white; border-radius: 16px; overflow: hidden; margin-top: 16px;">
+                <div class="menu-item">
+                  <div class="menu-icon" style="background: rgba(142, 142, 160, 0.1);">⚙️</div>
+                  <span class="menu-text">设置</span>
+                  <span class="menu-arrow">›</span>
+                </div>
+              </div>
+            </div>
+            <div class="tab-bar">
+              <div class="tab-item"><span class="tab-icon">🏠</span><span>首页</span></div>
+              <div class="tab-item"><span class="tab-icon">💬</span><span>消息</span></div>
+              <div class="tab-item active"><span class="tab-icon">👤</span><span>我的</span></div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+        
+        <div class="screen-wrapper">
+          <div class="screen-title">我的（已登录状态）</div>
+          <div class="phone-frame">
+            <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+            <!-- 用户信息卡片 - 已登录状态 -->
+            <div class="user-profile-card">
+              <div style="display: flex; align-items: center;">
+                <div class="user-avatar-large">😊</div>
+                <div style="flex: 1;">
+                  <h3 style="font-size: 20px; margin-bottom: 4px;">旅行者小明</h3>
+                  <p style="font-size: 13px; opacity: 0.8;">喜欢户外运动，周末出游</p>
+                  <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <span style="background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px; font-size: 12px;">🚗 无车</span>
+                  </div>
+                </div>
+                <div style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 16px; font-size: 13px;">编辑 ›</div>
+              </div>
+              <div class="user-stats">
+                <div class="user-stat-item">
+                  <div class="user-stat-value">12</div>
+                  <div class="user-stat-label">关注</div>
+                </div>
+                <div class="user-stat-item">
+                  <div class="user-stat-value">28</div>
+                  <div class="user-stat-label">粉丝</div>
+                </div>
+                <div class="user-stat-item">
+                  <div class="user-stat-value">5</div>
+                  <div class="user-stat-label">行程</div>
+                </div>
+              </div>
+            </div>
+            <!-- 功能入口 -->
+            <div style="flex: 1; background: var(--bg-color); padding: 16px;">
+              <div style="background: white; border-radius: 16px; overflow: hidden;">
+                <div class="menu-item">
+                  <div class="menu-icon" style="background: rgba(74, 144, 226, 0.1);">📅</div>
+                  <span class="menu-text">我的行程</span>
+                  <span class="menu-arrow">›</span>
+                </div>
+                <div class="menu-item">
+                  <div class="menu-icon" style="background: rgba(250, 173, 20, 0.1);">⭐</div>
+                  <span class="menu-text">我的收藏</span>
+                  <span class="menu-arrow">›</span>
+                </div>
+                <div class="menu-item">
+                  <div class="menu-icon" style="background: rgba(82, 196, 26, 0.1);">💬</div>
+                  <span class="menu-text">我的评论</span>
+                  <span class="menu-arrow">›</span>
+                </div>
+                <div class="menu-item">
+                  <div class="menu-icon" style="background: rgba(255, 77, 79, 0.1);">👥</div>
+                  <span class="menu-text">关注 / 粉丝</span>
+                  <span class="menu-arrow">›</span>
+                </div>
+              </div>
+              <div style="background: white; border-radius: 16px; overflow: hidden; margin-top: 16px;">
+                <div class="menu-item">
+                  <div class="menu-icon" style="background: rgba(142, 142, 160, 0.1);">⚙️</div>
+                  <span class="menu-text">设置</span>
+                  <span class="menu-arrow">›</span>
+                </div>
+              </div>
+            </div>
+            <div class="tab-bar">
+              <div class="tab-item"><span class="tab-icon">🏠</span><span>首页</span></div>
+              <div class="tab-item"><span class="tab-icon">💬</span><span>消息</span></div>
+              <div class="tab-item active"><span class="tab-icon">👤</span><span>我的</span></div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 登录相关页面 -->
+    <div class="section" id="login-pages">
+      <h2 class="section-title">登录相关页面</h2>
+      
+      <!-- 1. 登录授权页 -->
+      <h3 style="margin: 32px 0 16px; font-size: 20px;">1. 登录授权页</h3>
+      <p style="opacity: 0.7; margin-bottom: 16px;">✅ 无需登录 | 微信手机号一键登录</p>
+      <div class="screens-grid">
+        <div class="screen-wrapper">
+          <div class="screen-title">登录授权页</div>
+          <div class="phone-frame">
+            <div style="height: 100%; display: flex; flex-direction: column; background: linear-gradient(180deg, #4A90E2 0%, #667eea 50%, #764ba2 100%);">
+              <div class="status-bar" style="background: transparent; color: white;">
+                <span>9:41</span>
+                <span>📶 🔋</span>
+              </div>
+              <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 30px; color: white; text-align: center;">
+                <div style="width: 80px; height: 80px; background: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">🏔️</div>
+                <h2 style="font-size: 28px; margin-bottom: 8px; font-weight: 700;">北京去哪玩</h2>
+                <p style="font-size: 14px; opacity: 0.9; margin-bottom: 30px;">发现北京周边好去处</p>
+                <div style="background: rgba(255,255,255,0.15); padding: 20px; border-radius: 16px; margin-bottom: 30px; backdrop-filter: blur(10px);">
+                  <p style="font-size: 14px; line-height: 2; text-align: left;">
+                    🚗 找搭子一起出行<br>
+                    📍 发现周边好玩地点<br>
+                    💬 行程沟通更便捷<br>
+                    ⭐ 收藏你的心动地点
+                  </p>
+                </div>
+                <button style="width: 100%; padding: 16px; background: white; border: none; border-radius: 50px; font-size: 17px; font-weight: 600; color: #4A90E2; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+                  📱 微信手机号登录
+                </button>
+                <button style="width: 100%; padding: 14px; background: transparent; border: 1px solid rgba(255,255,255,0.3); border-radius: 50px; font-size: 15px; color: white; margin-bottom: 12px;">
+                  暂不登录
+                </button>
+                <p style="font-size: 11px; opacity: 0.7; line-height: 1.6;">登录即表示同意<span style="text-decoration: underline;">《用户协议》</span>和<span style="text-decoration: underline;">《隐私政策》</span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 2. 个人信息编辑页 -->
+        <div class="screen-wrapper">
+          <div class="screen-title">个人信息编辑页 🔒</div>
+          <div class="phone-frame">
+            <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 24px; text-align: center;">
+              <h2 style="font-size: 20px; color: white; font-weight: 600;">完善个人信息</h2>
+            </div>
+            <div style="margin: -20px 16px 0; background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+              <div style="text-align: center; margin-bottom: 24px;">
+                <div style="width: 80px; height: 80px; background: #F5F7FA; border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 36px; border: 2px dashed #E8E8F0;">📷</div>
+                <p style="font-size: 13px; color: #8E8EA0;">点击上传头像</p>
+              </div>
+              <div style="margin-bottom: 16px;">
+                <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500;">昵称 <span style="color: #FF4D4F;">*</span></label>
+                <input class="input" type="text" placeholder="请输入昵称（2-12个字符）" value="旅行者小明">
+              </div>
+              <div style="margin-bottom: 16px;">
+                <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500;">性别 <span style="color: #FF4D4F;">*</span></label>
+                <div style="display: flex; gap: 12px;">
+                  <div style="flex: 1; padding: 14px; background: #4A90E2; color: white; border-radius: 12px; text-align: center; font-weight: 500; cursor: pointer;">男</div>
+                  <div style="flex: 1; padding: 14px; background: #F5F7FA; border-radius: 12px; text-align: center; font-weight: 500; cursor: pointer; color: #4A4A68;">女</div>
+                </div>
+              </div>
+              <div style="margin-bottom: 24px;">
+                <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500;">是否有车 <span style="color: #FF4D4F;">*</span></label>
+                <div style="display: flex; gap: 12px;">
+                  <div style="flex: 1; padding: 14px; background: #F5F7FA; border-radius: 12px; text-align: center; font-weight: 500; cursor: pointer; color: #4A4A68;">🚗 有车</div>
+                  <div style="flex: 1; padding: 14px; background: #4A90E2; color: white; border-radius: 12px; text-align: center; font-weight: 500; cursor: pointer;">无车</div>
+                </div>
+              </div>
+              <button class="btn btn-primary" style="width: 100%; font-size: 17px;">完成</button>
+              <p style="text-align: center; margin-top: 16px; font-size: 12px; color: #8E8EA0;">点击返回将回到首页</p>
+            </div>
+            <div style="flex: 1; background: var(--bg-color);"></div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 需登录页面 -->
+    <div class="section" id="auth-pages">
+      <h2 class="section-title">需登录页面</h2>
+      
+      <div class="alert" style="background: rgba(255, 77, 79, 0.1); border-left: 4px solid #FF4D4F; padding: 16px 20px; border-radius: 8px; margin-bottom: 24px;">
+        <span style="font-size: 20px; margin-right: 12px;">🔐</span>
+        <span>以下页面需要用户登录后才能访问，未登录用户点击将跳转到登录授权页</span>
+      </div>
+      
+      <!-- 地点列表 -->
+      <h3 style="margin: 32px 0 16px; font-size: 20px; color: #FF4D4F;">1. 地点列表页 🔒</h3>
+      <div class="screens-grid">
+        <div class="screen-wrapper">
+          <div class="screen-title">地点列表</div>
+          <div class="phone-frame">
+            <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="background: white; padding: 16px;">
+              <div class="search-bar">
+                <span>🔍</span>
+                <input class="search-input" type="text" placeholder="搜索地点">
+              </div>
+            </div>
+            <!-- 分类Tab -->
+            <div style="display: flex; gap: 8px; padding: 12px 16px; background: white; border-bottom: 1px solid var(--border-color);">
+              <div style="padding: 8px 16px; background: #4A90E2; color: white; border-radius: 20px; font-size: 13px; font-weight: 500;">全部</div>
+              <div style="padding: 8px 16px; background: var(--bg-color); border-radius: 20px; font-size: 13px; color: #4A4A68;">爬山</div>
+              <div style="padding: 8px 16px; background: var(--bg-color); border-radius: 20px; font-size: 13px; color: #4A4A68;">露营</div>
+              <div style="padding: 8px 16px; background: var(--bg-color); border-radius: 20px; font-size: 13px; color: #4A4A68;">骑行</div>
+            </div>
+            <!-- 地点卡片列表 -->
+            <div style="flex: 1; background: var(--bg-color); padding: 12px 16px; overflow-y: auto;">
+              <div style="background: white; border-radius: 16px; overflow: hidden; margin-bottom: 12px;">
+                <div style="display: flex;">
+                  <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; font-size: 40px;">🏔️</div>
+                  <div style="flex: 1; padding: 12px;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 4px;">灵山</div>
+                    <div style="font-size: 13px; color: #8E8EA0; margin-bottom: 8px;">北京最高峰，海拔2303米</div>
+                    <div style="display: flex; gap: 12px; font-size: 12px; color: #8E8EA0;">
+                      <span>📍 150km</span>
+                      <span>⚡ 中等</span>
+                      <span>⭐ 4.8</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div style="background: white; border-radius: 16px; overflow: hidden; margin-bottom: 12px;">
+                <div style="display: flex;">
+                  <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #56AB2F, #A8E6CF); display: flex; align-items: center; justify-content: center; font-size: 40px;">🌸</div>
+                  <div style="flex: 1; padding: 12px;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 4px;">百花山</div>
+                    <div style="font-size: 13px; color: #8E8EA0; margin-bottom: 8px;">夏季野花盛开，色彩斑斓</div>
+                    <div style="display: flex; gap: 12px; font-size: 12px; color: #8E8EA0;">
+                      <span>📍 95km</span>
+                      <span>⚡ 中等</span>
+                      <span>⭐ 4.6</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div style="background: white; border-radius: 16px; overflow: hidden;">
+                <div style="display: flex;">
+                  <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #4facfe, #00f2fe); display: flex; align-items: center; justify-content: center; font-size: 40px;">💧</div>
+                  <div style="flex: 1; padding: 12px;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 4px;">龙庆峡</div>
+                    <div style="font-size: 13px; color: #8E8EA0; margin-bottom: 8px;">峡谷风光，冰灯艺术节</div>
+                    <div style="display: flex; gap: 12px; font-size: 12px; color: #8E8EA0;">
+                      <span>📍 85km</span>
+                      <span>⚡ 易</span>
+                      <span>⭐ 4.5</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="tab-bar">
+              <div class="tab-item"><span class="tab-icon">🏠</span><span>首页</span></div>
+              <div class="tab-item"><span class="tab-icon">💬</span><span>消息</span></div>
+              <div class="tab-item"><span class="tab-icon">👤</span><span>我的</span></div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+        
+        <!-- 地点详情 -->
+        <div class="screen-wrapper">
+          <div class="screen-title">地点详情 🔒</div>
+          <div class="phone-frame">
+            <div class="status-bar" style="background: transparent; position: absolute; top: 0; left: 0; right: 0; color: white; z-index: 10;"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="height: 200px; background: linear-gradient(135deg, #667eea, #764ba2); position: relative; display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 80px;">🏔️</span>
+              <div style="position: absolute; top: 44px; left: 16px; width: 32px; height: 32px; background: rgba(0,0,0,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">‹</div>
+              <div style="position: absolute; top: 44px; right: 16px; width: 32px; height: 32px; background: rgba(0,0,0,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">♡</div>
+            </div>
+            <div style="flex: 1; background: var(--bg-color); overflow-y: auto;">
+              <div style="margin: -20px 12px 12px; background: white; border-radius: 16px; padding: 20px; position: relative; z-index: 5;">
+                <h2 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px;">灵山</h2>
+                <span class="tag" style="margin-bottom: 16px; display: inline-flex;">🏔️ 山峰景区</span>
+                <div style="display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid #E8E8F0;">
+                  <div style="text-align: center;"><div style="font-size: 20px; font-weight: 700; color: #4A90E2;">150km</div><div style="font-size: 11px; color: #8E8EA0;">距市中心</div></div>
+                  <div style="text-align: center;"><div style="font-size: 20px; font-weight: 700; color: #4A90E2;">中等</div><div style="font-size: 11px; color: #8E8EA0;">难度等级</div></div>
+                  <div style="text-align: center;"><div style="font-size: 20px; font-weight: 700; color: #4A90E2;">4.8</div><div style="font-size: 11px; color: #8E8EA0;">用户评分</div></div>
+                  <div style="text-align: center;"><div style="font-size: 20px; font-weight: 700; color: #4A90E2;">1天</div><div style="font-size: 11px; color: #8E8EA0;">游玩时间</div></div>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 0;">
+                  <span class="tag">🏔️ 爬山</span>
+                  <span class="tag">🌅 看日出</span>
+                  <span class="tag">🏕️ 露营</span>
+                  <span class="tag">📷 摄影</span>
+                </div>
+              </div>
+              <div style="background: white; border-radius: 16px; padding: 16px; margin: 0 12px 12px;">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">📝 地点简介</h3>
+                <p style="font-size: 14px; color: #4A4A68; line-height: 1.8;">灵山位于北京市门头沟区清水镇，是北京最高峰，海拔2303米，被誉为"北京屋脊"。</p>
+              </div>
+            </div>
+            <!-- 底部操作栏 -->
+            <div style="display: flex; gap: 12px; padding: 12px 16px 24px; background: white; border-top: 1px solid var(--border-color);">
+              <button style="flex: 1; padding: 14px; background: var(--bg-color); border: none; border-radius: 12px; font-size: 15px; font-weight: 600; color: #4A4A68;">♡ 收藏</button>
+              <button style="flex: 2; padding: 14px; background: #4A90E2; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; color: white;">发布行程</button>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 更多需登录页面说明 -->
+      <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 24px; margin-top: 24px;">
+        <h4 style="font-size: 18px; margin-bottom: 16px;">更多需登录页面</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+          <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px;">
+            <div style="font-size: 24px; margin-bottom: 8px;">📝</div>
+            <div style="font-weight: 600; margin-bottom: 4px;">发布行程</div>
+            <div style="font-size: 13px; opacity: 0.7;">选择地点、日期、人数</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px;">
+            <div style="font-size: 24px; margin-bottom: 8px;">🚗</div>
+            <div style="font-weight: 600; margin-bottom: 4px;">行程详情</div>
+            <div style="font-size: 13px; opacity: 0.7;">查看行程、申请加入</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px;">
+            <div style="font-size: 24px; margin-bottom: 8px;">📅</div>
+            <div style="font-weight: 600; margin-bottom: 4px;">我的行程</div>
+            <div style="font-size: 13px; opacity: 0.7;">我发起/参与的行程</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px;">
+            <div style="font-size: 24px; margin-bottom: 8px;">💭</div>
+            <div style="font-weight: 600; margin-bottom: 4px;">聊天详情</div>
+            <div style="font-size: 13px; opacity: 0.7;">行程群聊、私聊</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px;">
+            <div style="font-size: 24px; margin-bottom: 8px;">👥</div>
+            <div style="font-weight: 600; margin-bottom: 4px;">关注粉丝</div>
+            <div style="font-size: 13px; opacity: 0.7;">关注列表、粉丝列表</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px;">
+            <div style="font-size: 24px; margin-bottom: 8px;">⭐</div>
+            <div style="font-weight: 600; margin-bottom: 4px;">评论列表</div>
+            <div style="font-size: 13px; opacity: 0.7;">地点评论、评分</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px;">
+            <div style="font-size: 24px; margin-bottom: 8px;">⚙️</div>
+            <div style="font-weight: 600; margin-bottom: 4px;">设置</div>
+            <div style="font-size: 13px; opacity: 0.7;">通知、隐私、退出登录</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 版本历史 -->
+    <div class="section" id="version-history">
+      <h2 class="section-title">版本历史</h2>
+      <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <th style="padding: 12px 16px; text-align: left; color: rgba(255,255,255,0.6); font-weight: 500;">版本</th>
+            <th style="padding: 12px 16px; text-align: left; color: rgba(255,255,255,0.6); font-weight: 500;">日期</th>
+            <th style="padding: 12px 16px; text-align: left; color: rgba(255,255,255,0.6); font-weight: 500;">作者</th>
+            <th style="padding: 12px 16px; text-align: left; color: rgba(255,255,255,0.6); font-weight: 500;">变更内容</th>
+          </tr>
+          <tr>
+            <td style="padding: 12px 16px; font-weight: 600;">v1.0.0</td>
+            <td style="padding: 12px 16px; opacity: 0.8;">2026-03-24</td>
+            <td style="padding: 12px 16px; opacity: 0.8;">设计团队</td>
+            <td style="padding: 12px 16px; opacity: 0.8;">初版发布：颜色规范、组件库、14个页面设计稿</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    
+    <!-- 页脚 -->
+    <footer style="text-align: center; padding: 40px 20px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 40px;">
+      <p style="font-size: 14px; opacity: 0.6;">北京去哪玩 · 设计规范文档</p>
+      <p style="font-size: 12px; opacity: 0.4; margin-top: 8px;">Version 1.0.0 | 2026-03-24 | 设计团队</p>
+    </footer>
+  </div>
+</body>
+</html>

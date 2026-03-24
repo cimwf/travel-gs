@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>北京去哪玩 - 产品需求文档 v1.0.0</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary-color: #4A90E2;
+      --primary-light: #6BA3E8;
+      --text-primary: #1A1A2E;
+      --text-secondary: #4A4A68;
+      --text-hint: #8E8EA0;
+      --bg-color: #F5F7FA;
+      --border-color: #E8E8F0;
+      --success-color: #52C41A;
+      --warning-color: #FAAD14;
+      --danger-color: #FF4D4F;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      background: var(--bg-color);
+      color: var(--text-primary);
+      line-height: 1.8;
+    }
+    
+    .container { max-width: 1200px; margin: 0 auto; display: flex; }
+    
+    /* 侧边导航 */
+    .sidebar {
+      width: 280px;
+      background: white;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      overflow-y: auto;
+      border-right: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+    
+    .sidebar-header {
+      padding: 24px 20px;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      color: white;
+    }
+    
+    .sidebar-header h1 { font-size: 20px; margin-bottom: 8px; }
+    .sidebar-header p { font-size: 12px; opacity: 0.9; }
+    
+    .nav-menu { padding: 16px 0; }
+    
+    .nav-section { margin-bottom: 16px; }
+    
+    .nav-section-title {
+      padding: 8px 20px;
+      font-size: 11px;
+      color: var(--text-hint);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .nav-item {
+      display: block;
+      padding: 10px 20px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+    }
+    
+    .nav-item:hover { background: var(--bg-color); color: var(--primary-color); }
+    .nav-item.active { background: rgba(74, 144, 226, 0.1); color: var(--primary-color); border-left-color: var(--primary-color); }
+    
+    /* 主内容区 */
+    .main-content {
+      flex: 1;
+      padding: 40px 60px;
+      background: white;
+      min-height: 100vh;
+    }
+    
+    .page-header {
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .page-header h1 {
+      font-size: 32px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .page-header .meta {
+      display: flex;
+      gap: 24px;
+      color: var(--text-hint);
+      font-size: 14px;
+    }
+    
+    .page-header .meta span { display: flex; align-items: center; gap: 6px; }
+    
+    /* 章节 */
+    .section {
+      margin-bottom: 48px;
+    }
+    
+    .section-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--primary-color);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .subsection {
+      margin-bottom: 32px;
+    }
+    
+    .subsection-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text-primary);
+    }
+    
+    /* 内容卡片 */
+    .content-card {
+      background: var(--bg-color);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    
+    .content-card.white { background: white; border: 1px solid var(--border-color); }
+    
+    /* 页面卡片 */
+    .page-card {
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    
+    .page-card-header {
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      color: white;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .page-card-header h3 {
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .page-card-header .login-required {
+      background: rgba(255,255,255,0.2);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+    }
+    
+    .page-card-header .login-required.lock {
+      background: rgba(255,77,79,0.3);
+    }
+    
+    .page-card-body { padding: 24px; }
+    
+    .page-section {
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .page-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    
+    .page-section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-hint);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    /* 表格 */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+    
+    .data-table th {
+      background: var(--bg-color);
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-bottom: 2px solid var(--border-color);
+    }
+    
+    .data-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+    
+    .data-table tr:hover td { background: var(--bg-color); }
+    
+    /* 标签 */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 12px;
+      background: rgba(74, 144, 226, 0.1);
+      color: var(--primary-color);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .tag.success { background: rgba(82, 196, 26, 0.1); color: var(--success-color); }
+    .tag.warning { background: rgba(250, 173, 20, 0.1); color: var(--warning-color); }
+    .tag.danger { background: rgba(255, 77, 79, 0.1); color: var(--danger-color); }
+    
+    /* 列表 */
+    .feature-list { list-style: none; }
+    .feature-list li { padding: 8px 0; padding-left: 24px; position: relative; }
+    .feature-list li::before { content: '✓'; position: absolute; left: 0; color: var(--success-color); font-weight: bold; }
+    
+    /* 跳转关系 */
+    .nav-flow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 12px 0;
+    }
+    
+    .nav-flow-item {
+      background: var(--bg-color);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    
+    .nav-flow-item.current {
+      background: var(--primary-color);
+      color: white;
+    }
+    
+    .nav-flow-arrow {
+      color: var(--text-hint);
+      font-size: 16px;
+    }
+    
+    /* 流程图 */
+    .flow-chart {
+      background: var(--bg-color);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 16px 0;
+    }
+    
+    .flow-step {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+    
+    .flow-step:last-child { margin-bottom: 0; }
+    
+    .flow-number {
+      width: 32px;
+      height: 32px;
+      background: var(--primary-color);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    
+    .flow-content { flex: 1; }
+    .flow-content h4 { font-size: 15px; margin-bottom: 4px; }
+    .flow-content p { font-size: 13px; color: var(--text-hint); }
+    
+    .flow-arrow {
+      text-align: center;
+      color: var(--text-hint);
+      margin: 8px 0;
+      font-size: 20px;
+    }
+    
+    /* 统计卡片 */
+    .stat-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+    }
+    
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid var(--border-color);
+      text-align: center;
+    }
+    
+    .stat-card .stat-value { font-size: 32px; font-weight: 700; color: var(--primary-color); }
+    .stat-card .stat-label { font-size: 14px; color: var(--text-hint); margin-top: 8px; }
+    
+    /* 提示框 */
+    .alert {
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin: 16px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    
+    .alert.info { background: rgba(74, 144, 226, 0.1); border-left: 4px solid var(--primary-color); }
+    .alert.success { background: rgba(82, 196, 26, 0.1); border-left: 4px solid var(--success-color); }
+    .alert.warning { background: rgba(250, 173, 20, 0.1); border-left: 4px solid var(--warning-color); }
+    .alert.danger { background: rgba(255, 77, 79, 0.1); border-left: 4px solid var(--danger-color); }
+    
+    .alert-icon { font-size: 20px; }
+    .alert-content h4 { font-size: 14px; margin-bottom: 4px; }
+    .alert-content p { font-size: 13px; color: var(--text-hint); }
+    
+    /* Tab结构 */
+    .tab-structure {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 16px;
+      padding: 24px;
+      margin: 16px 0;
+      color: white;
+    }
+    
+    .tab-structure h4 { font-size: 16px; margin-bottom: 16px; }
+    
+    .tab-items {
+      display: flex;
+      gap: 16px;
+    }
+    
+    .tab-item-box {
+      flex: 1;
+      background: rgba(255,255,255,0.15);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+    
+    .tab-item-box .icon { font-size: 28px; margin-bottom: 8px; }
+    .tab-item-box .name { font-size: 14px; font-weight: 600; }
+    
+    /* 响应式 */
+    @media (max-width: 1024px) {
+      .sidebar { display: none; }
+      .main-content { padding: 24px; }
+    }
+    
+    @media print {
+      .sidebar { display: none; }
+      .main-content { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 侧边导航 -->
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h1>🏔️ 北京去哪玩</h1>
+        <p>产品需求文档 v1.0.0</p>
+      </div>
+      
+      <div class="nav-menu">
+        <div class="nav-section">
+          <div class="nav-section-title">概述</div>
+          <a href="#overview" class="nav-item active">产品概述</a>
+          <a href="#login-logic" class="nav-item">登录逻辑</a>
+          <a href="#tab-structure" class="nav-item">Tab结构</a>
+        </div>
+        
+        <div class="nav-section">
+          <div class="nav-section-title">公开页面（Tab）</div>
+          <a href="#page-home" class="nav-item">首页</a>
+          <a href="#page-messages" class="nav-item">消息</a>
+          <a href="#page-profile" class="nav-item">我的</a>
+        </div>
+        
+        <div class="nav-section">
+          <div class="nav-section-title">登录相关</div>
+          <a href="#page-login" class="nav-item">登录授权页</a>
+          <a href="#page-profile-edit" class="nav-item">个人信息编辑</a>
+        </div>
+        
+        <div class="nav-section">
+          <div class="nav-section-title">需登录页面</div>
+          <a href="#page-place-list" class="nav-item">地点列表</a>
+          <a href="#page-place-detail" class="nav-item">地点详情</a>
+          <a href="#page-trip-publish" class="nav-item">发布行程</a>
+          <a href="#page-trip-detail" class="nav-item">行程详情</a>
+          <a href="#page-my-trips" class="nav-item">我的行程</a>
+          <a href="#page-chat" class="nav-item">聊天详情</a>
+          <a href="#page-followers" class="nav-item">关注粉丝</a>
+          <a href="#page-comments" class="nav-item">评论列表</a>
+          <a href="#page-settings" class="nav-item">设置</a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">文档</div>
+          <a href="#version-history" class="nav-item">版本历史</a>
+        </div>
+      </div>
+    </nav>
+    
+    <!-- 主内容 -->
+    <main class="main-content">
+      <header class="page-header">
+        <h1>📋 产品需求文档</h1>
+        <div class="meta">
+          <span>📄 版本：v1.0.0</span>
+          <span>📅 日期：2026-03-24</span>
+          <span>👤 作者：产品团队</span>
+        </div>
+      </header>
+      
+      <!-- 1. 产品概述 -->
+      <section class="section" id="overview">
+        <h2 class="section-title">1. 产品概述</h2>
+        
+        <div class="content-card">
+          <p style="font-size: 16px; line-height: 1.8;">
+            <strong>北京去哪玩</strong> 是一款面向北京及周边地区的户外旅行社交小程序，帮助用户发现周边好玩的地方，找到志同道合的出行伙伴。
+          </p>
+        </div>
+        
+        <div class="stat-cards">
+          <div class="stat-card">
+            <div class="stat-value">📍</div>
+            <div class="stat-label">发现地点<br>收录北京周边户外地点</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">👥</div>
+            <div class="stat-label">找搭子<br>找到同行的伙伴</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">🚗</div>
+            <div class="stat-label">拼车出行<br>有车族提供座位</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">💬</div>
+            <div class="stat-label">即时沟通<br>行程群聊更便捷</div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- 2. 登录逻辑 -->
+      <section class="section" id="login-logic">
+        <h2 class="section-title">2. 登录逻辑</h2>
+        
+        <div class="alert danger">
+          <span class="alert-icon">🔐</span>
+          <div class="alert-content">
+            <h4>核心规则</h4>
+            <p>底部导航栏三个Tab（首页、消息、我的）可以直接访问，无需登录。其他所有页面进入前都要判断是否登录，未登录则跳转到登录页。</p>
+          </div>
+        </div>
+        
+        <div class="subsection">
+          <h3 class="subsection-title">2.1 页面访问权限</h3>
+          <table class="data-table">
+            <tr>
+              <th width="200">页面</th>
+              <th width="120">是否需要登录</th>
+              <th>说明</th>
+            </tr>
+            <tr>
+              <td><strong>首页</strong>（Tab）</td>
+              <td><span class="tag success">否</span></td>
+              <td>可直接访问，展示推荐内容</td>
+            </tr>
+            <tr>
+              <td><strong>消息</strong>（Tab）</td>
+              <td><span class="tag success">否</span></td>
+              <td>可直接访问，未登录显示引导登录</td>
+            </tr>
+            <tr>
+              <td><strong>我的</strong>（Tab）</td>
+              <td><span class="tag success">否</span></td>
+              <td>可直接访问，未登录显示引导登录</td>
+            </tr>
+            <tr>
+              <td><strong>登录授权页</strong></td>
+              <td><span class="tag success">否</span></td>
+              <td>未登录用户访问</td>
+            </tr>
+            <tr>
+              <td><strong>个人信息编辑</strong></td>
+              <td><span class="tag danger">是</span></td>
+              <td>登录成功后跳转</td>
+            </tr>
+            <tr>
+              <td><strong>地点列表</strong></td>
+              <td><span class="tag danger">是</span></td>
+              <td>需要登录才能浏览</td>
+            </tr>
+            <tr>
+              <td><strong>地点详情</strong></td>
+              <td><span class="tag danger">是</span></td>
+              <td>需要登录才能查看</td>
+            </tr>
+            <tr>
+              <td><strong>发布行程</strong></td>
+              <td><span class="tag danger">是</span></td>
+              <td>需要登录才能发布</td>
+            </tr>
+            <tr>
+              <td><strong>行程详情</strong></td>
+              <td><span class="tag danger">是</span></td>
+              <td>需要登录才能查看/申请</td>
+            </tr>
+            <tr>
+              <td><strong>我的行程</strong></td>
+              <td><span class="tag danger">是</span></td>
+              <td>需要登录查看自己的行程</td>
+            </tr>
+            <tr>
+              <td><strong>聊天详情</strong></td>
+              <td><span class="tag danger">是</span></td>
+              <td>需要登录才能聊天</td>
+            </tr>
+            <tr>
+              <td><strong>关注粉丝</strong></td>
+              <td><span class="tag danger">是</span></td>
+              <td>需要登录查看</td>
+            </tr>
+            <tr>
+              <td><strong>评论列表</strong></td>
+              <td><span class="tag danger">是</span></td>
+              <td>需要登录才能评论</td>
+            </tr>
+            <tr>
+              <td><strong>设置</strong></td>
+              <td><span class="tag danger">是</span></td>
+              <td>需要登录才能设置</td>
+            </tr>
+          </table>
+        </div>
+        
+        <div class="subsection">
+          <h3 class="subsection-title">2.2 登录流程</h3>
+          <div class="flow-chart">
+            <div class="flow-step">
+              <div class="flow-number">1</div>
+              <div class="flow-content">
+                <h4>用户访问需登录页面</h4>
+                <p>如：地点列表、地点详情、行程详情等</p>
+              </div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">
+              <div class="flow-number">2</div>
+              <div class="flow-content">
+                <h4>判断是否已登录</h4>
+                <p>检查本地是否有用户信息</p>
+              </div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">
+              <div class="flow-number">3</div>
+              <div class="flow-content">
+                <h4>未登录 → 跳转登录授权页</h4>
+                <p>记录来源页面，登录后返回</p>
+              </div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">
+              <div class="flow-number">4</div>
+              <div class="flow-content">
+                <h4>微信手机号授权</h4>
+                <p>获取用户手机号</p>
+              </div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">
+              <div class="flow-number">5</div>
+              <div class="flow-content">
+                <h4>登录成功 → 跳转个人信息编辑页</h4>
+                <p>首次登录填写昵称、性别、是否有车</p>
+              </div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-step">
+              <div class="flow-number">6</div>
+              <div class="flow-content">
+                <h4>点击返回 → 回到首页</h4>
+                <p>信息保存成功后返回首页</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="subsection">
+          <h3 class="subsection-title">2.3 登录成功跳转逻辑</h3>
+          <div class="content-card">
+            <table class="data-table">
+              <tr>
+                <th width="200">场景</th>
+                <th>跳转目标</th>
+              </tr>
+              <tr>
+                <td>首次登录</td>
+                <td>个人信息编辑页 → 保存后返回首页</td>
+              </tr>
+              <tr>
+                <td>已有账号登录</td>
+                <td>返回来源页面（如无来源则返回首页）</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </section>
+      
+      <!-- 3. Tab结构 -->
+      <section class="section" id="tab-structure">
+        <h2 class="section-title">3. 底部导航栏（Tab）结构</h2>
+        
+        <div class="tab-structure">
+          <h4>📱 小程序底部导航栏</h4>
+          <div class="tab-items">
+            <div class="tab-item-box">
+              <div class="icon">🏠</div>
+              <div class="name">首页</div>
+            </div>
+            <div class="tab-item-box">
+              <div class="icon">💬</div>
+              <div class="name">消息</div>
+            </div>
+            <div class="tab-item-box">
+              <div class="icon">👤</div>
+              <div class="name">我的</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="alert success">
+          <span class="alert-icon">✅</span>
+          <div class="alert-content">
+            <h4>公开页面</h4>
+            <p>三个Tab页面均为公开页面，用户无需登录即可访问。消息和我的页面在未登录状态下会显示引导登录的UI。</p>
+          </div>
+        </div>
+      </section>
+      
+      <!-- 4. 公开页面（Tab） -->
+      <section class="section" id="public-pages">
+        <h2 class="section-title">4. 公开页面（Tab页面）</h2>
+        
+        <!-- 4.1 首页 -->
+        <div class="page-card" id="page-home">
+          <div class="page-card-header">
+            <h3>🏠 首页</h3>
+            <span class="login-required">✅ 无需登录</span>
+          </div>
+          <div class="page-card-body">
+            <div class="page-section">
+              <div class="page-section-title">📄 页面展示内容</div>
+              <ul class="feature-list">
+                <li><strong>顶部搜索框</strong> - 点击跳转搜索结果页（需登录）</li>
+                <li><strong>Banner轮播图</strong> - 自动轮播展示热门活动/推荐地点，点击跳转对应页面</li>
+                <li><strong>地点列表</strong> - 纵向滚动卡片列表，展示地点信息，点击跳转地点详情（需登录）</li>
+                <li><strong>底部导航栏</strong> - 首页、消息、我的</li>
+              </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">👆 点击跳转</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">点击元素</th>
+                  <th>跳转页面</th>
+                  <th width="120">是否需要登录</th>
+                </tr>
+                <tr>
+                  <td>搜索框</td>
+                  <td>搜索结果页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>Banner</td>
+                  <td>对应地点详情页或活动页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>热门地点卡片</td>
+                  <td>地点详情页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>底部Tab「消息」</td>
+                  <td>消息Tab页</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
+                  <td>底部Tab「我的」</td>
+                  <td>我的Tab页</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+              </table>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">🔄 页面跳转流程</div>
+              <div class="nav-flow">
+                <span class="nav-flow-item current">首页</span>
+                <span class="nav-flow-arrow">→</span>
+                <span class="nav-flow-item">地点详情</span>
+                <span class="nav-flow-arrow">(需登录)</span>
+              </div>
+              <div class="nav-flow">
+                <span class="nav-flow-item current">首页</span>
+                <span class="nav-flow-arrow">→</span>
+                <span class="nav-flow-item">搜索结果</span>
+                <span class="nav-flow-arrow">(需登录)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 4.2 消息 -->
+        <div class="page-card" id="page-messages">
+          <div class="page-card-header">
+            <h3>💬 消息</h3>
+            <span class="login-required">✅ 无需登录</span>
+          </div>
+          <div class="page-card-body">
+            <div class="page-section">
+              <div class="page-section-title">📄 页面展示内容</div>
+              <div class="alert info" style="margin-bottom: 16px;">
+                <span class="alert-icon">ℹ️</span>
+                <div class="alert-content">
+                  <h4>未登录状态</h4>
+                  <p>显示引导登录UI，提示用户登录后查看消息列表</p>
+                </div>
+              </div>
+              <ul class="feature-list">
+                <li><strong>顶部标题</strong> - 消息</li>
+                <li><strong>消息列表</strong> - 头像、名称、最新消息、时间、未读数（已登录显示）</li>
+                <li><strong>消息类型</strong> - 行程群聊、私聊、系统通知（已登录显示）</li>
+              </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">👆 点击跳转</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">点击元素</th>
+                  <th>跳转页面</th>
+                  <th width="120">是否需要登录</th>
+                </tr>
+                <tr>
+                  <td>登录按钮（未登录状态）</td>
+                  <td>登录授权页</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
+                  <td>消息卡片（已登录状态）</td>
+                  <td>聊天详情页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>底部Tab「首页」</td>
+                  <td>首页Tab</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
+                  <td>底部Tab「我的」</td>
+                  <td>我的Tab</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 4.3 我的 -->
+        <div class="page-card" id="page-profile">
+          <div class="page-card-header">
+            <h3>👤 我的</h3>
+            <span class="login-required">✅ 无需登录</span>
+          </div>
+          <div class="page-card-body">
+            <div class="page-section">
+              <div class="page-section-title">📄 页面展示内容</div>
+              <div class="alert info" style="margin-bottom: 16px;">
+                <span class="alert-icon">ℹ️</span>
+                <div class="alert-content">
+                  <h4>未登录状态</h4>
+                  <p>头部显示默认头像，文字提示"点击登录"，下方正常显示功能入口列表</p>
+                </div>
+              </div>
+              <ul class="feature-list">
+                <li><strong>用户信息</strong> - 头像、昵称、简介、是否有车（已登录显示真实信息，未登录显示默认头像+登录提示）</li>
+                <li><strong>统计数据</strong> - 关注数、粉丝数、行程数（已登录显示）</li>
+                <li><strong>功能入口</strong> - 我的行程、我的收藏、我的评论、关注/粉丝（无论登录状态都显示，未登录点击跳转登录）</li>
+                <li><strong>设置入口</strong> - 设置按钮（无论登录状态都显示）</li>
+              </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">👆 点击跳转</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">点击元素</th>
+                  <th>跳转页面</th>
+                  <th width="120">是否需要登录</th>
+                </tr>
+                <tr>
+                  <td>登录按钮（未登录状态）</td>
+                  <td>登录授权页</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
+                  <td>编辑资料</td>
+                  <td>个人信息编辑页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>关注数</td>
+                  <td>关注粉丝页（关注Tab）</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>粉丝数</td>
+                  <td>关注粉丝页（粉丝Tab）</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>我的行程</td>
+                  <td>我的行程页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>我的收藏</td>
+                  <td>我的收藏页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>设置按钮</td>
+                  <td>设置页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>底部Tab「首页」</td>
+                  <td>首页Tab</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
+                  <td>底部Tab「消息」</td>
+                  <td>消息Tab</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- 5. 登录相关页面 -->
+      <section class="section" id="login-pages">
+        <h2 class="section-title">5. 登录相关页面</h2>
+        
+        <!-- 5.1 登录授权页 -->
+        <div class="page-card" id="page-login">
+          <div class="page-card-header">
+            <h3>🔐 登录授权页</h3>
+            <span class="login-required">✅ 无需登录</span>
+          </div>
+          <div class="page-card-body">
+            <div class="page-section">
+              <div class="page-section-title">📄 页面展示内容</div>
+              <ul class="feature-list">
+                <li><strong>Logo和名称</strong> - 小程序Logo + "北京去哪玩"</li>
+                <li><strong>宣传文案</strong> - 产品特点介绍</li>
+                <li><strong>微信手机号登录按钮</strong> - 主操作按钮，白色背景蓝色文字</li>
+                <li><strong>暂不登录按钮</strong> - 次要操作，透明背景带边框，点击返回首页</li>
+                <li><strong>用户协议和隐私政策</strong> - 底部文字链接</li>
+              </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">👆 点击跳转</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">点击元素</th>
+                  <th>跳转页面</th>
+                  <th width="120">是否需要登录</th>
+                </tr>
+                <tr>
+                  <td>微信手机号登录</td>
+                  <td>个人信息编辑页（首次登录）或来源页（已有账号）</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
+                  <td>暂不登录</td>
+                  <td>返回首页</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
+                  <td>用户协议</td>
+                  <td>用户协议页（WebView）</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
+                  <td>隐私政策</td>
+                  <td>隐私政策页（WebView）</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+              </table>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">🔄 登录成功跳转逻辑</div>
+              <div class="flow-chart">
+                <div class="flow-step">
+                  <div class="flow-number">1</div>
+                  <div class="flow-content">
+                    <h4>点击「微信手机号登录」</h4>
+                    <p>弹出微信授权确认框</p>
+                  </div>
+                </div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step">
+                  <div class="flow-number">2</div>
+                  <div class="flow-content">
+                    <h4>授权成功，判断是否首次登录</h4>
+                    <p>查询用户信息是否完整</p>
+                  </div>
+                </div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step">
+                  <div class="flow-number">3</div>
+                  <div class="flow-content">
+                    <h4>首次登录 → 个人信息编辑页</h4>
+                    <p>填写昵称、性别、是否有车</p>
+                  </div>
+                </div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step">
+                  <div class="flow-number">4</div>
+                  <div class="flow-content">
+                    <h4>保存信息 → 返回首页</h4>
+                    <p>点击返回按钮回到首页</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 5.2 个人信息编辑页 -->
+        <div class="page-card" id="page-profile-edit">
+          <div class="page-card-header">
+            <h3>✏️ 个人信息编辑页</h3>
+            <span class="login-required lock">🔒 需要登录</span>
+          </div>
+          <div class="page-card-body">
+            <div class="page-section">
+              <div class="page-section-title">📄 页面展示内容</div>
+              <ul class="feature-list">
+                <li><strong>头像上传</strong> - 点击上传头像，默认使用微信头像</li>
+                <li><strong>昵称输入框</strong> - 2-12个字符</li>
+                <li><strong>性别选择</strong> - 男/女 单选</li>
+                <li><strong>是否有车</strong> - 有车/无车 单选</li>
+                <li><strong>保存按钮</strong> - 保存个人信息</li>
+              </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">👆 点击跳转</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">点击元素</th>
+                  <th>跳转页面</th>
+                  <th width="120">是否需要登录</th>
+                </tr>
+                <tr>
+                  <td>保存按钮</td>
+                  <td>保存成功后返回首页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>返回按钮</td>
+                  <td>返回首页（放弃编辑）</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+              </table>
+            </div>
+            
+            <div class="alert info">
+              <span class="alert-icon">ℹ️</span>
+              <div class="alert-content">
+                <h4>特殊说明</h4>
+                <p>此页面是登录成功后的必经页面，首次登录必须填写信息，点击返回直接回到首页。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- 6. 需登录页面 -->
+      <section class="section" id="auth-pages">
+        <h2 class="section-title">6. 需登录页面</h2>
+        
+        <!-- 6.1 地点列表页 -->
+        <div class="page-card" id="page-place-list">
+          <div class="page-card-header">
+            <h3>📍 地点列表页</h3>
+            <span class="login-required lock">🔒 需要登录</span>
+          </div>
+          <div class="page-card-body">
+            <div class="page-section">
+              <div class="page-section-title">📄 页面展示内容</div>
+              <ul class="feature-list">
+                <li><strong>顶部搜索框</strong> - 输入关键词搜索地点</li>
+                <li><strong>分类Tab</strong> - 全部、爬山、露营、骑行、徒步、滑雪等</li>
+                <li><strong>筛选栏</strong> - 距离、热度、难度筛选</li>
+                <li><strong>地点卡片列表</strong> - 图片、名称、距离、难度、热度、标签</li>
+                <li><strong>下拉刷新</strong> - 刷新地点列表</li>
+                <li><strong>上拉加载更多</strong> - 无限滚动加载</li>
+              </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">👆 点击跳转</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">点击元素</th>
+                  <th>跳转页面</th>
+                  <th width="120">是否需要登录</th>
+                </tr>
+                <tr>
+                  <td>地点卡片</td>
+                  <td>地点详情页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>分类Tab</td>
+                  <td>当前页切换分类</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>搜索框</td>
+                  <td>搜索结果页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>返回按钮</td>
+                  <td>上一页或首页</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 6.2 地点详情页 -->
+        <div class="page-card" id="page-place-detail">
+          <div class="page-card-header">
+            <h3>🏞️ 地点详情页</h3>
+            <span class="login-required lock">🔒 需要登录</span>
+          </div>
+          <div class="page-card-body">
+            <div class="page-section">
+              <div class="page-section-title">📄 页面展示内容</div>
+              <ul class="feature-list">
+                <li><strong>轮播图</strong> - 地点图片，最多10张</li>
+                <li><strong>基本信息</strong> - 名称、分类、距离、难度、评分、游玩时间</li>
+                <li><strong>标签列表</strong> - 爬山、看日出、露营等标签</li>
+                <li><strong>地址信息</strong> - 详细地址、开放时间</li>
+                <li><strong>地点简介</strong> - 文字描述</li>
+                <li><strong>登山提示</strong> - 注意事项、装备建议</li>
+                <li><strong>正在招募的行程</strong> - 展示该地点的行程列表</li>
+                <li><strong>用户评论</strong> - 评分、评论内容、图片</li>
+                <li><strong>底部操作栏</strong> - 收藏按钮、发布行程按钮</li>
+              </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">👆 点击跳转</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">点击元素</th>
+                  <th>跳转页面</th>
+                  <th width="120">是否需要登录</th>
+                </tr>
+                <tr>
+                  <td>收藏按钮</td>
+                  <td>收藏/取消收藏（当前页操作）</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>发布行程按钮</td>
+                  <td>发布行程页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>行程卡片</td>
+                  <td>行程详情页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>评论区域</td>
+                  <td>评论列表页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>返回按钮</td>
+                  <td>上一页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 6.3 发布行程页 -->
+        <div class="page-card" id="page-trip-publish">
+          <div class="page-card-header">
+            <h3>📝 发布行程页</h3>
+            <span class="login-required lock">🔒 需要登录</span>
+          </div>
+          <div class="page-card-body">
+            <div class="page-section">
+              <div class="page-section-title">📄 页面展示内容</div>
+              <ul class="feature-list">
+                <li><strong>地点选择</strong> - 搜索或选择已发布的地点</li>
+                <li><strong>日期选择</strong> - 日历选择器，选择出行日期</li>
+                <li><strong>人数设置</strong> - 滑动选择1-20人</li>
+                <li><strong>是否有车</strong> - 开关选择</li>
+                <li><strong>座位数</strong> - 有车时显示，填写可拼车座位数</li>
+                <li><strong>备注说明</strong> - 文本输入框，最多200字</li>
+                <li><strong>发布按钮</strong> - 提交发布行程</li>
+              </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">👆 点击跳转</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">点击元素</th>
+                  <th>跳转页面</th>
+                  <th width="120">是否需要登录</th>
+                </tr>
+                <tr>
+                  <td>地点选择</td>
+                  <td>地点搜索页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>发布按钮</td>
+                  <td>发布成功 → 行程详情页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>返回按钮</td>
+                  <td>上一页（询问是否放弃）</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 6.4 行程详情页 -->
+        <div class="page-card" id="page-trip-detail">
+          <div class="page-card-header">
+            <h3>🚗 行程详情页</h3>
+            <span class="login-required lock">🔒 需要登录</span>
+          </div>
+          <div class="page-card-body">
+            <div class="page-section">
+              <div class="page-section-title">📄 页面展示内容</div>
+              <ul class="feature-list">
+                <li><strong>地点信息</strong> - 地点名称、图片，点击可跳转地点详情</li>
+                <li><strong>行程信息</strong> - 出行日期、出发时间、人数</li>
+                <li><strong>发布者信息</strong> - 头像、昵称、是否有车</li>
+                <li><strong>参与成员</strong> - 头像列表</li>
+                <li><strong>备注说明</strong> - 行程详情描述</li>
+                <li><strong>申请加入按钮</strong> - 非发布者显示</li>
+                <li><strong>编辑按钮</strong> - 发布者显示</li>
+              </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">👆 点击跳转</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">点击元素</th>
+                  <th>跳转页面</th>
+                  <th width="120">是否需要登录</th>
+                </tr>
+                <tr>
+                  <td>地点信息</td>
+                  <td>地点详情页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>申请加入</td>
+                  <td>提交申请 → 等待审核</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>编辑按钮</td>
+                  <td>编辑行程页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>成员头像</td>
+                  <td>该用户个人主页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>返回按钮</td>
+                  <td>上一页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 6.5 我的行程页 -->
+        <div class="page-card" id="page-my-trips">
+          <div class="page-card-header">
+            <h3>📅 我的行程页</h3>
+            <span class="login-required lock">🔒 需要登录</span>
+          </div>
+          <div class="page-card-body">
+            <div class="page-section">
+              <div class="page-section-title">📄 页面展示内容</div>
+              <ul class="feature-list">
+                <li><strong>Tab切换</strong> - 我发起的、我参与的、已结束</li>
+                <li><strong>行程卡片列表</strong> - 地点名称、日期、人数、状态</li>
+                <li><strong>发布行程按钮</strong> - 右下角浮动按钮</li>
+              </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">👆 点击跳转</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">点击元素</th>
+                  <th>跳转页面</th>
+                  <th width="120">是否需要登录</th>
+                </tr>
+                <tr>
+                  <td>行程卡片</td>
+                  <td>行程详情页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>发布行程按钮</td>
+                  <td>发布行程页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>返回按钮</td>
+                  <td>上一页或我的Tab</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 6.6 聊天详情页 -->
+        <div class="page-card" id="page-chat">
+          <div class="page-card-header">
+            <h3>💭 聊天详情页</h3>
+            <span class="login-required lock">🔒 需要登录</span>
+          </div>
+          <div class="page-card-body">
+            <div class="page-section">
+              <div class="page-section-title">📄 页面展示内容</div>
+              <ul class="feature-list">
+                <li><strong>导航栏</strong> - 对方/群名称、更多按钮</li>
+                <li><strong>消息列表</strong> - 时间分割线、消息气泡</li>
+                <li><strong>消息类型</strong> - 文字、图片、位置</li>
+                <li><strong>输入框</strong> - 文字输入、表情、图片按钮</li>
+                <li><strong>发送按钮</strong> - 发送消息</li>
+              </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">👆 点击跳转</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">点击元素</th>
+                  <th>跳转页面</th>
+                  <th width="120">是否需要登录</th>
+                </tr>
+                <tr>
+                  <td>对方头像/名称</td>
+                  <td>对方个人主页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>更多按钮</td>
+                  <td>聊天设置页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>图片消息</td>
+                  <td>图片预览</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>返回按钮</td>
+                  <td>消息Tab</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 6.7 关注粉丝页 -->
+        <div class="page-card" id="page-followers">
+          <div class="page-card-header">
+            <h3>👥 关注粉丝页</h3>
+            <span class="login-required lock">🔒 需要登录</span>
+          </div>
+          <div class="page-card-body">
+            <div class="page-section">
+              <div class="page-section-title">📄 页面展示内容</div>
+              <ul class="feature-list">
+                <li><strong>Tab切换</strong> - 关注、粉丝</li>
+                <li><strong>用户列表</strong> - 头像、昵称、简介、关注按钮</li>
+                <li><strong>关注状态</strong> - 已关注、互相关注、关注按钮</li>
+              </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">👆 点击跳转</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">点击元素</th>
+                  <th>跳转页面</th>
+                  <th width="120">是否需要登录</th>
+                </tr>
+                <tr>
+                  <td>用户卡片</td>
+                  <td>该用户个人主页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>返回按钮</td>
+                  <td>上一页或我的Tab</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 6.8 评论列表页 -->
+        <div class="page-card" id="page-comments">
+          <div class="page-card-header">
+            <h3>⭐ 评论列表页</h3>
+            <span class="login-required lock">🔒 需要登录</span>
+          </div>
+          <div class="page-card-body">
+            <div class="page-section">
+              <div class="page-section-title">📄 页面展示内容</div>
+              <ul class="feature-list">
+                <li><strong>排序Tab</strong> - 最新、最热</li>
+                <li><strong>评论卡片</strong> - 用户头像、昵称、评分、内容、图片、时间</li>
+                <li><strong>点赞按钮</strong> - 点赞/取消点赞</li>
+                <li><strong>底部输入框</strong> - 发表评论</li>
+              </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">👆 点击跳转</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">点击元素</th>
+                  <th>跳转页面</th>
+                  <th width="120">是否需要登录</th>
+                </tr>
+                <tr>
+                  <td>用户头像/昵称</td>
+                  <td>该用户个人主页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>评论图片</td>
+                  <td>图片预览</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>返回按钮</td>
+                  <td>地点详情页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 6.9 设置页 -->
+        <div class="page-card" id="page-settings">
+          <div class="page-card-header">
+            <h3>⚙️ 设置页</h3>
+            <span class="login-required lock">🔒 需要登录</span>
+          </div>
+          <div class="page-card-body">
+            <div class="page-section">
+              <div class="page-section-title">📄 页面展示内容</div>
+              <ul class="feature-list">
+                <li><strong>消息通知</strong> - 新消息通知、行程变更通知、申请消息通知（开关）</li>
+                <li><strong>隐私设置</strong> - 谁可以看到我的行程、谁可以向我发消息</li>
+                <li><strong>其他设置</strong> - 清除缓存、用户协议、隐私政策、关于我们</li>
+                <li><strong>退出登录按钮</strong> - 红色按钮</li>
+                <li><strong>版本号</strong> - 底部显示</li>
+              </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">👆 点击跳转</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">点击元素</th>
+                  <th>跳转页面</th>
+                  <th width="120">是否需要登录</th>
+                </tr>
+                <tr>
+                  <td>隐私设置项</td>
+                  <td>隐私设置选择页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>清除缓存</td>
+                  <td>当前页操作（确认弹窗）</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>用户协议</td>
+                  <td>用户协议页（WebView）</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
+                  <td>隐私政策</td>
+                  <td>隐私政策页（WebView）</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
+                  <td>关于我们</td>
+                  <td>关于我们页</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
+                  <td>退出登录</td>
+                  <td>确认后返回登录页</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
+                  <td>返回按钮</td>
+                  <td>上一页或我的Tab</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- 页面跳转总览 -->
+      <section class="section" id="navigation-overview">
+        <h2 class="section-title">7. 页面跳转总览</h2>
+        
+        <div class="content-card">
+          <h4 style="margin-bottom: 16px;">📱 底部Tab切换（无需登录）</h4>
+          <div style="background: var(--bg-color); padding: 20px; border-radius: 8px; font-size: 14px; line-height: 2;">
+            <div><strong>首页Tab</strong> ↔ 消息Tab ↔ 我的Tab <span style="color: var(--success-color);">（随意切换，无需登录）</span></div>
+          </div>
+        </div>
+        
+        <div class="content-card">
+          <h4 style="margin-bottom: 16px;">🏠 从首页出发的跳转链路</h4>
+          <div style="background: var(--bg-color); padding: 20px; border-radius: 8px; font-size: 14px; line-height: 2;">
+            <div><strong>首页</strong> → 地点详情 <span style="color: var(--danger-color);">（需登录）</span></div>
+            <div><strong>首页</strong> → 搜索结果 <span style="color: var(--danger-color);">（需登录）</span></div>
+          </div>
+        </div>
+        
+        <div class="content-card">
+          <h4 style="margin-bottom: 16px;">💬 从消息Tab出发的跳转链路</h4>
+          <div style="background: var(--bg-color); padding: 20px; border-radius: 8px; font-size: 14px; line-height: 2;">
+            <div><strong>消息Tab</strong> → 聊天详情 <span style="color: var(--danger-color);">（需登录）</span></div>
+          </div>
+        </div>
+        
+        <div class="content-card">
+          <h4 style="margin-bottom: 16px;">👤 从我的Tab出发的跳转链路</h4>
+          <div style="background: var(--bg-color); padding: 20px; border-radius: 8px; font-size: 14px; line-height: 2;">
+            <div><strong>我的Tab</strong> → 编辑资料</div>
+            <div><strong>我的Tab</strong> → 我的行程</div>
+            <div><strong>我的Tab</strong> → 关注粉丝</div>
+            <div><strong>我的Tab</strong> → 设置</div>
+          </div>
+        </div>
+        
+        <div class="content-card">
+          <h4 style="margin-bottom: 16px;">🔐 登录流程跳转链路</h4>
+          <div style="background: var(--bg-color); padding: 20px; border-radius: 8px; font-size: 14px; line-height: 2;">
+            <div><strong>需登录页面</strong> → 登录授权页 → 个人信息编辑页 → <strong>首页Tab</strong></div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- 版本历史 -->
+      <section class="section" id="version-history">
+        <h2 class="section-title">版本历史</h2>
+        <table class="data-table">
+          <tr>
+            <th width="100">版本</th>
+            <th width="120">日期</th>
+            <th width="100">作者</th>
+            <th>变更内容</th>
+          </tr>
+          <tr>
+            <td><strong>v1.0.0</strong></td>
+            <td>2026-03-24</td>
+            <td>产品团队</td>
+            <td>初版发布：定义14个页面、登录逻辑、Tab结构、页面跳转关系</td>
+          </tr>
+        </table>
+      </section>
+      
+      <!-- 页脚 -->
+      <footer style="text-align: center; padding: 40px 0; border-top: 1px solid var(--border-color); margin-top: 40px; color: var(--text-hint); font-size: 14px;">
+        <p>北京去哪玩 · 产品需求文档</p>
+        <p style="margin-top: 8px;">Version 1.0.0 | 2026-03-24 | 产品团队</p>
+      </footer>
+    </main>
+  </div>
+  
+  <script>
+    // 导航高亮
+    const navItems = document.querySelectorAll('.nav-item');
+    const sections = document.querySelectorAll('.section, .page-card');
+    
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        if (pageYOffset >= sectionTop - 100) {
+          current = section.getAttribute('id');
+        }
+      });
+      
+      navItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('href') === '#' + current) {
+          item.classList.add('active');
+        }
+      });
+    });
+    
+    // 平滑滚动
+    navItems.forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetId = item.getAttribute('href');
+        document.querySelector(targetId).scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+  </script>
+</body>
+</html>
