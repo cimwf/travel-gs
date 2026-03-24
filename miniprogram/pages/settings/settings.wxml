@@ -14,7 +14,7 @@
   <view class="settings-group">
     <view class="group-title">消息通知</view>
 
-    <view class="setting-item" bindtap="toggleNotification" data-key="newMessage">
+    <view class="setting-item">
       <view class="setting-left">
         <view class="setting-icon">💬</view>
         <view class="setting-text">新消息通知</view>
