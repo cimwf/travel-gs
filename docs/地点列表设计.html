@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>地点列表设计 - 北京去哪玩</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    
+    .design-container { max-width: 1400px; margin: 0 auto; }
+    
+    .design-header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+    
+    .design-header h1 { font-size: 36px; font-weight: 700; margin-bottom: 10px; }
+    .design-header p { font-size: 16px; opacity: 0.9; }
+    
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(375px, 1fr));
+      gap: 40px;
+      justify-items: center;
+    }
+    
+    .screen-wrapper {
+      background: white;
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    .screen-title {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 16px;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    .phone-frame {
+      width: 375px;
+      height: 812px;
+      background: #F5F7FA;
+      border-radius: 40px;
+      overflow: hidden;
+      position: relative;
+      border: 8px solid #1a1a1a;
+    }
+    
+    .status-bar {
+      height: 44px;
+      background: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      color: #1a1a1a;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .nav-header {
+      background: white;
+      padding: 8px 16px 12px;
+      border-bottom: 1px solid #F0F0F5;
+    }
+    
+    .nav-top {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .nav-back { font-size: 20px; color: #1a1a1a; margin-right: 12px; }
+    .nav-title { font-size: 18px; font-weight: 600; color: #1a1a1a; }
+    
+    .search-bar {
+      display: flex;
+      align-items: center;
+      background: #F5F7FA;
+      border-radius: 20px;
+      padding: 10px 16px;
+      gap: 8px;
+    }
+    
+    .search-icon { font-size: 16px; }
+    .search-input { flex: 1; font-size: 14px; color: #8E8EA0; border: none; background: transparent; }
+    
+    .filter-tabs {
+      display: flex;
+      padding: 12px 16px;
+      gap: 12px;
+      background: white;
+      border-bottom: 1px solid #F0F0F5;
+      overflow-x: auto;
+    }
+    
+    .filter-tab {
+      padding: 6px 14px;
+      border-radius: 16px;
+      font-size: 13px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    
+    .filter-tab.active {
+      background: #4A90E2;
+      color: white;
+    }
+    
+    .filter-tab:not(.active) {
+      background: #F5F7FA;
+      color: #4A4A68;
+    }
+    
+    .content {
+      padding: 16px;
+      height: calc(100% - 180px);
+      overflow-y: auto;
+    }
+    
+    /* 地点卡片 */
+    .place-card {
+      display: flex;
+      background: white;
+      border-radius: 16px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    
+    .place-img {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+    }
+    
+    .place-info {
+      flex: 1;
+      padding: 12px;
+    }
+    
+    .place-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+    
+    .place-desc {
+      font-size: 13px;
+      color: #8E8EA0;
+      margin-bottom: 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .place-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+    }
+    
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #8E8EA0;
+    }
+    
+    .meta-hot { color: #FF6B6B; }
+    
+    .difficulty-tag {
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+    }
+    
+    .difficulty-easy { background: #E8F5E9; color: #52C41A; }
+    .difficulty-medium { background: #FFF3E0; color: #FA8C16; }
+    .difficulty-hard { background: #FFEBEE; color: #FF5252; }
+    
+    .home-indicator {
+      width: 134px;
+      height: 5px;
+      background: #1a1a1a;
+      border-radius: 3px;
+      margin: 8px auto;
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  </style>
+</head>
+<body>
+  <div class="design-container">
+    <div class="design-header">
+      <h1>🏔️ 地点列表设计</h1>
+      <p>北京去哪玩 - 分类浏览地点</p>
+    </div>
+    
+    <div class="screens-grid">
+      <!-- 爬山分类 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">爬山地点列表</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+          </div>
+          
+          <div class="nav-header">
+            <div class="nav-top">
+              <span class="nav-back">←</span>
+              <span class="nav-title">爬山</span>
+            </div>
+            <div class="search-bar">
+              <span class="search-icon">🔍</span>
+              <input class="search-input" placeholder="搜索爬山地点...">
+            </div>
+          </div>
+          
+          <div class="filter-tabs">
+            <div class="filter-tab active">综合</div>
+            <div class="filter-tab">距离</div>
+            <div class="filter-tab">热度</div>
+            <div class="filter-tab">难度</div>
+            <div class="filter-tab">筛选</div>
+          </div>
+          
+          <div class="content">
+            <div class="place-card">
+              <div class="place-img">🏔️</div>
+              <div class="place-info">
+                <div class="place-name">东灵山</div>
+                <div class="place-desc">北京最高峰，海拔2303米，可观云海日出</div>
+                <div class="place-meta">
+                  <span class="meta-item">📍 120km</span>
+                  <span class="difficulty-tag difficulty-medium">中等</span>
+                  <span class="meta-item meta-hot">🔥 256人想去</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="place-card">
+              <div class="place-img" style="background: linear-gradient(135deg, #56AB2F, #A8E6CF);">🌲</div>
+              <div class="place-info">
+                <div class="place-name">百花山</div>
+                <div class="place-desc">高山草甸，夏季野花盛开，景色宜人</div>
+                <div class="place-meta">
+                  <span class="meta-item">📍 95km</span>
+                  <span class="difficulty-tag difficulty-medium">中等</span>
+                  <span class="meta-item meta-hot">🔥 189人想去</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="place-card">
+              <div class="place-img" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">🌊</div>
+              <div class="place-info">
+                <div class="place-name">海坨山</div>
+                <div class="place-desc">北京第二高峰，适合露营观星</div>
+                <div class="place-meta">
+                  <span class="meta-item">📍 150km</span>
+                  <span class="difficulty-tag difficulty-hard">困难</span>
+                  <span class="meta-item meta-hot">🔥 145人想去</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="place-card">
+              <div class="place-img" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">🌄</div>
+              <div class="place-info">
+                <div class="place-name">香山</div>
+                <div class="place-desc">红叶胜地，秋季登山首选</div>
+                <div class="place-meta">
+                  <span class="meta-item">📍 25km</span>
+                  <span class="difficulty-tag difficulty-easy">简单</span>
+                  <span class="meta-item meta-hot">🔥 523人想去</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="place-card">
+              <div class="place-img" style="background: linear-gradient(135deg, #f093fb, #f5576c);">🌸</div>
+              <div class="place-info">
+                <div class="place-name">妙峰山</div>
+                <div class="place-desc">古道古刹，春季赏花胜地</div>
+                <div class="place-meta">
+                  <span class="meta-item">📍 45km</span>
+                  <span class="difficulty-tag difficulty-easy">简单</span>
+                  <span class="meta-item meta-hot">🔥 98人想去</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+      
+      <!-- 筛选面板 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">筛选面板</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+          </div>
+          
+          <div class="nav-header">
+            <div class="nav-top">
+              <span class="nav-back">←</span>
+              <span class="nav-title">爬山</span>
+            </div>
+            <div class="search-bar">
+              <span class="search-icon">🔍</span>
+              <input class="search-input" placeholder="搜索爬山地点...">
+            </div>
+          </div>
+          
+          <div style="position: absolute; bottom: 0; left: 0; right: 0; background: white; border-radius: 24px 24px 0 0; padding: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+              <span style="font-size: 18px; font-weight: 600;">筛选</span>
+              <span style="font-size: 14px; color: #4A90E2;">重置</span>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+              <div style="font-size: 14px; color: #8E8EA0; margin-bottom: 12px;">距离</div>
+              <div style="display: flex; gap: 8px;">
+                <div style="flex: 1; padding: 10px; background: #F5F7FA; border-radius: 12px; text-align: center; font-size: 14px;">不限</div>
+                <div style="flex: 1; padding: 10px; background: #4A90E2; color: white; border-radius: 12px; text-align: center; font-size: 14px;">50km内</div>
+                <div style="flex: 1; padding: 10px; background: #F5F7FA; border-radius: 12px; text-align: center; font-size: 14px;">100km内</div>
+              </div>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+              <div style="font-size: 14px; color: #8E8EA0; margin-bottom: 12px;">难度</div>
+              <div style="display: flex; gap: 8px;">
+                <div style="flex: 1; padding: 10px; background: #E8F5E9; color: #52C41A; border-radius: 12px; text-align: center; font-size: 14px;">简单</div>
+                <div style="flex: 1; padding: 10px; background: #FFF3E0; color: #FA8C16; border-radius: 12px; text-align: center; font-size: 14px;">中等</div>
+                <div style="flex: 1; padding: 10px; background: #FFEBEE; color: #FF5252; border-radius: 12px; text-align: center; font-size: 14px;">困难</div>
+              </div>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+              <div style="font-size: 14px; color: #8E8EA0; margin-bottom: 12px;">标签</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <div style="padding: 8px 16px; background: #4A90E2; color: white; border-radius: 20px; font-size: 14px;">日出</div>
+                <div style="padding: 8px 16px; background: #F5F7FA; border-radius: 20px; font-size: 14px; color: #4A4A68;">云海</div>
+                <div style="padding: 8px 16px; background: #4A90E2; color: white; border-radius: 20px; font-size: 14px;">露营</div>
+                <div style="padding: 8px 16px; background: #F5F7FA; border-radius: 20px; font-size: 14px; color: #4A4A68;">瀑布</div>
+                <div style="padding: 8px 16px; background: #F5F7FA; border-radius: 20px; font-size: 14px; color: #4A4A68;">古寺</div>
+              </div>
+            </div>
+            
+            <div style="padding: 16px; background: #4A90E2; color: white; border-radius: 24px; text-align: center; font-size: 16px; font-weight: 500;">
+              确定
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

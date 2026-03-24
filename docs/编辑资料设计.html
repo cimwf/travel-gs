@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>编辑资料设计 - 北京去哪玩</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    
+    .design-container { max-width: 1400px; margin: 0 auto; }
+    
+    .design-header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+    
+    .design-header h1 { font-size: 36px; font-weight: 700; margin-bottom: 10px; }
+    .design-header p { font-size: 16px; opacity: 0.9; }
+    
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(375px, 1fr));
+      gap: 40px;
+      justify-items: center;
+    }
+    
+    .screen-wrapper {
+      background: white;
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    .screen-title {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 16px;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    .phone-frame {
+      width: 375px;
+      height: 812px;
+      background: #F5F7FA;
+      border-radius: 40px;
+      overflow: hidden;
+      position: relative;
+      border: 8px solid #1a1a1a;
+    }
+    
+    .status-bar {
+      height: 44px;
+      background: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      color: #1a1a1a;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .nav-header {
+      background: white;
+      padding: 8px 16px 16px;
+      border-bottom: 1px solid #F0F0F5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .nav-cancel { font-size: 16px; color: #4A4A68; }
+    .nav-title { font-size: 17px; font-weight: 600; color: #1a1a1a; }
+    .nav-save { font-size: 16px; color: #4A90E2; font-weight: 500; }
+    
+    .content {
+      padding: 20px 16px;
+      height: calc(100% - 68px);
+      overflow-y: auto;
+    }
+    
+    /* 头像区域 */
+    .avatar-section {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    
+    .avatar {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      color: white;
+      font-weight: 600;
+      position: relative;
+    }
+    
+    .avatar-edit {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 28px;
+      height: 28px;
+      background: #4A90E2;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      border: 2px solid white;
+    }
+    
+    .avatar-tip {
+      font-size: 13px;
+      color: #8E8EA0;
+      margin-top: 8px;
+    }
+    
+    /* 表单 */
+    .form-group {
+      background: white;
+      border-radius: 16px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    
+    .form-item {
+      padding: 16px;
+      border-bottom: 1px solid #F0F0F5;
+    }
+    
+    .form-item:last-child { border-bottom: none; }
+    
+    .form-label {
+      font-size: 13px;
+      color: #8E8EA0;
+      margin-bottom: 8px;
+    }
+    
+    .form-input {
+      width: 100%;
+      font-size: 16px;
+      color: #1a1a1a;
+      border: none;
+      outline: none;
+      background: transparent;
+    }
+    
+    .form-input::placeholder { color: #C0C0C0; }
+    
+    .form-textarea {
+      width: 100%;
+      min-height: 80px;
+      font-size: 16px;
+      color: #1a1a1a;
+      border: none;
+      outline: none;
+      background: transparent;
+      resize: none;
+      font-family: inherit;
+    }
+    
+    .form-count {
+      text-align: right;
+      font-size: 12px;
+      color: #8E8EA0;
+      margin-top: 4px;
+    }
+    
+    /* 性别选择 */
+    .gender-options {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    
+    .gender-option {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #E8E8F0;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 15px;
+      color: #4A4A68;
+      cursor: pointer;
+    }
+    
+    .gender-option.selected {
+      border-color: #4A90E2;
+      background: rgba(74, 144, 226, 0.08);
+      color: #4A90E2;
+    }
+    
+    /* 标签 */
+    .tags-section {
+      margin-top: 8px;
+    }
+    
+    .tags-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    
+    .tag {
+      padding: 8px 16px;
+      background: #F5F7FA;
+      border-radius: 20px;
+      font-size: 14px;
+      color: #4A4A68;
+    }
+    
+    .tag.selected {
+      background: #4A90E2;
+      color: white;
+    }
+    
+    .tag-add {
+      padding: 8px 16px;
+      background: white;
+      border: 1px dashed #E8E8F0;
+      border-radius: 20px;
+      font-size: 14px;
+      color: #8E8EA0;
+    }
+    
+    /* 是否有车 */
+    .car-options {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    
+    .car-option {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #E8E8F0;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 15px;
+      color: #4A4A68;
+      cursor: pointer;
+    }
+    
+    .car-option.selected {
+      border-color: #4A90E2;
+      background: rgba(74, 144, 226, 0.08);
+      color: #4A90E2;
+    }
+    
+    .home-indicator {
+      width: 134px;
+      height: 5px;
+      background: #1a1a1a;
+      border-radius: 3px;
+      margin: 8px auto;
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  </style>
+</head>
+<body>
+  <div class="design-container">
+    <div class="design-header">
+      <h1>✏️ 编辑资料设计</h1>
+      <p>北京去哪玩 - 个人信息编辑</p>
+    </div>
+    
+    <div class="screens-grid">
+      <!-- 编辑资料主页面 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">编辑个人资料</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+          </div>
+          
+          <div class="nav-header">
+            <span class="nav-cancel">取消</span>
+            <span class="nav-title">编辑资料</span>
+            <span class="nav-save">保存</span>
+          </div>
+          
+          <div class="content">
+            <div class="avatar-section">
+              <div class="avatar">
+                旅
+                <div class="avatar-edit">📷</div>
+              </div>
+              <div class="avatar-tip">点击更换头像</div>
+            </div>
+            
+            <div class="form-group">
+              <div class="form-item">
+                <div class="form-label">昵称</div>
+                <input class="form-input" type="text" value="旅行达人" placeholder="请输入昵称">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <div class="form-item">
+                <div class="form-label">性别</div>
+                <div class="gender-options">
+                  <div class="gender-option selected">男</div>
+                  <div class="gender-option">女</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <div class="form-item">
+                <div class="form-label">简介</div>
+                <textarea class="form-textarea" placeholder="介绍一下自己吧...">热爱户外，喜欢探索北京的每一个角落。周末不是在爬山，就是在去爬山的路上！</textarea>
+                <div class="form-count">45/100</div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <div class="form-item">
+                <div class="form-label">标签</div>
+                <div class="tags-section">
+                  <div class="tags-list">
+                    <div class="tag selected">户外</div>
+                    <div class="tag selected">爬山</div>
+                    <div class="tag selected">摄影</div>
+                    <div class="tag">自驾</div>
+                    <div class="tag">露营</div>
+                    <div class="tag-add">+ 添加</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <div class="form-item">
+                <div class="form-label">是否有车</div>
+                <div class="car-options">
+                  <div class="car-option selected">有车</div>
+                  <div class="car-option">无车</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+      
+      <!-- 标签选择弹窗 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">选择标签</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+          </div>
+          
+          <div class="nav-header">
+            <span class="nav-cancel">取消</span>
+            <span class="nav-title">选择标签</span>
+            <span class="nav-save">完成</span>
+          </div>
+          
+          <div class="content">
+            <div class="form-group">
+              <div class="form-item">
+                <div class="form-label">推荐标签</div>
+                <div class="tags-section">
+                  <div class="tags-list">
+                    <div class="tag selected">户外</div>
+                    <div class="tag selected">爬山</div>
+                    <div class="tag">徒步</div>
+                    <div class="tag selected">摄影</div>
+                    <div class="tag">自驾</div>
+                    <div class="tag">露营</div>
+                    <div class="tag">骑行</div>
+                    <div class="tag">钓鱼</div>
+                    <div class="tag">滑雪</div>
+                    <div class="tag">潜水</div>
+                    <div class="tag">美食</div>
+                    <div class="tag">博物馆</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <div class="form-item">
+                <div class="form-label">已选标签 (3/5)</div>
+                <div class="tags-section">
+                  <div class="tags-list">
+                    <div class="tag selected">户外 ✕</div>
+                    <div class="tag selected">爬山 ✕</div>
+                    <div class="tag selected">摄影 ✕</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div style="padding: 16px; font-size: 13px; color: #8E8EA0; text-align: center;">
+              最多选择5个标签，点击可取消选择
+            </div>
+          </div>
+          
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

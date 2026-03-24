@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>评论列表设计 - 北京去哪玩</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    
+    .design-container { max-width: 1400px; margin: 0 auto; }
+    
+    .design-header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+    
+    .design-header h1 { font-size: 36px; font-weight: 700; margin-bottom: 10px; }
+    .design-header p { font-size: 16px; opacity: 0.9; }
+    
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(375px, 1fr));
+      gap: 40px;
+      justify-items: center;
+    }
+    
+    .screen-wrapper {
+      background: white;
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    .screen-title {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 16px;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    .phone-frame {
+      width: 375px;
+      height: 812px;
+      background: #F5F7FA;
+      border-radius: 40px;
+      overflow: hidden;
+      position: relative;
+      border: 8px solid #1a1a1a;
+    }
+    
+    .status-bar {
+      height: 44px;
+      background: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      color: #1a1a1a;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .nav-header {
+      background: white;
+      padding: 8px 16px 16px;
+      border-bottom: 1px solid #F0F0F5;
+      display: flex;
+      align-items: center;
+    }
+    
+    .nav-back { font-size: 20px; color: #1a1a1a; margin-right: 12px; }
+    .nav-title { font-size: 18px; font-weight: 600; color: #1a1a1a; }
+    
+    .filter-tabs {
+      display: flex;
+      padding: 12px 16px;
+      gap: 16px;
+      background: white;
+      border-bottom: 1px solid #F0F0F5;
+    }
+    
+    .filter-tab {
+      font-size: 14px;
+      color: #8E8EA0;
+      cursor: pointer;
+    }
+    
+    .filter-tab.active {
+      color: #4A90E2;
+      font-weight: 500;
+    }
+    
+    .content {
+      padding: 16px;
+      height: calc(100% - 180px);
+      overflow-y: auto;
+    }
+    
+    /* 评论卡片 */
+    .comment-card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    
+    .comment-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .comment-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      margin-right: 12px;
+    }
+    
+    .comment-user {
+      flex: 1;
+    }
+    
+    .comment-name {
+      font-size: 15px;
+      font-weight: 500;
+      color: #1a1a1a;
+      margin-bottom: 2px;
+    }
+    
+    .comment-time {
+      font-size: 12px;
+      color: #8E8EA0;
+    }
+    
+    .comment-rating {
+      font-size: 14px;
+    }
+    
+    .comment-text {
+      font-size: 15px;
+      color: #1a1a1a;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    
+    .comment-images {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .comment-img {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+    }
+    
+    .comment-actions {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    
+    .action-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 14px;
+      color: #8E8EA0;
+      cursor: pointer;
+    }
+    
+    .action-item.liked {
+      color: #FF6B6B;
+    }
+    
+    /* 底部输入 */
+    .input-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #F0F0F5;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .input-field {
+      flex: 1;
+      height: 40px;
+      background: #F5F7FA;
+      border-radius: 20px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      color: #8E8EA0;
+    }
+    
+    .send-btn {
+      padding: 8px 20px;
+      background: #4A90E2;
+      color: white;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    /* 写评论弹窗 */
+    .write-modal {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-radius: 24px 24px 0 0;
+      padding: 20px;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .modal-title { font-size: 16px; font-weight: 600; }
+    .modal-publish { font-size: 16px; color: #4A90E2; font-weight: 500; }
+    
+    .rating-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .rating-label { font-size: 14px; color: #8E8EA0; margin-right: 12px; }
+    .rating-stars { font-size: 24px; }
+    .rating-stars span { margin-right: 4px; }
+    
+    .modal-textarea {
+      width: 100%;
+      min-height: 100px;
+      background: #F5F7FA;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 15px;
+      color: #1a1a1a;
+      border: none;
+      resize: none;
+      font-family: inherit;
+      margin-bottom: 16px;
+    }
+    
+    .add-images {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .add-img-btn {
+      width: 60px;
+      height: 60px;
+      background: #F5F7FA;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #8E8EA0;
+      border: 1px dashed #E8E8F0;
+    }
+    
+    .add-img-preview {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      position: relative;
+    }
+    
+    .add-img-preview .remove {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 18px;
+      height: 18px;
+      background: #FF4D4F;
+      border-radius: 50%;
+      color: white;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .home-indicator {
+      width: 134px;
+      height: 5px;
+      background: #1a1a1a;
+      border-radius: 3px;
+      margin: 8px auto;
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  </style>
+</head>
+<body>
+  <div class="design-container">
+    <div class="design-header">
+      <h1>💬 评论列表设计</h1>
+      <p>北京去哪玩 - 地点评论功能</p>
+    </div>
+    
+    <div class="screens-grid">
+      <!-- 评论列表 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">评论列表页</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+          </div>
+          
+          <div class="nav-header">
+            <span class="nav-back">←</span>
+            <span class="nav-title">东灵山 · 评论 (128)</span>
+          </div>
+          
+          <div class="filter-tabs">
+            <div class="filter-tab active">最新</div>
+            <div class="filter-tab">最热</div>
+          </div>
+          
+          <div class="content">
+            <div class="comment-card">
+              <div class="comment-header">
+                <div class="comment-avatar">小</div>
+                <div class="comment-user">
+                  <div class="comment-name">小明</div>
+                  <div class="comment-time">3天前</div>
+                </div>
+                <div class="comment-rating">⭐⭐⭐⭐⭐</div>
+              </div>
+              <div class="comment-text">风景太美了！日出和云海都看到了，强烈推荐大家来！记得带件厚衣服，山顶很冷。</div>
+              <div class="comment-images">
+                <div class="comment-img"></div>
+                <div class="comment-img" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);"></div>
+              </div>
+              <div class="comment-actions">
+                <div class="action-item liked">👍 12</div>
+                <div class="action-item">💬 回复</div>
+              </div>
+            </div>
+            
+            <div class="comment-card">
+              <div class="comment-header">
+                <div class="comment-avatar" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">红</div>
+                <div class="comment-user">
+                  <div class="comment-name">小红</div>
+                  <div class="comment-time">1周前</div>
+                </div>
+                <div class="comment-rating">⭐⭐⭐⭐</div>
+              </div>
+              <div class="comment-text">爬升有点累，但登顶的那一刻一切都值了！下山腿都软了😂</div>
+              <div class="comment-actions">
+                <div class="action-item">👍 8</div>
+                <div class="action-item">💬 回复</div>
+              </div>
+            </div>
+            
+            <div class="comment-card">
+              <div class="comment-header">
+                <div class="comment-avatar" style="background: linear-gradient(135deg, #56AB2F, #A8E6CF);">王</div>
+                <div class="comment-user">
+                  <div class="comment-name">户外老王</div>
+                  <div class="comment-time">2周前</div>
+                </div>
+                <div class="comment-rating">⭐⭐⭐⭐⭐</div>
+              </div>
+              <div class="comment-text">这是我第10次来东灵山了，每次都有不同的感受。建议夏天来，草甸上的野花特别美。</div>
+              <div class="comment-images">
+                <div class="comment-img" style="background: linear-gradient(135deg, #56AB2F, #A8E6CF);"></div>
+              </div>
+              <div class="comment-actions">
+                <div class="action-item liked">👍 23</div>
+                <div class="action-item">💬 回复</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="input-bar">
+            <div class="input-field">写评论...</div>
+            <div class="send-btn">发送</div>
+          </div>
+          
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+      
+      <!-- 写评论弹窗 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">写评论</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+          </div>
+          
+          <div class="nav-header">
+            <span class="nav-back">←</span>
+            <span class="nav-title">东灵山 · 评论 (128)</span>
+          </div>
+          
+          <div class="filter-tabs">
+            <div class="filter-tab active">最新</div>
+            <div class="filter-tab">最热</div>
+          </div>
+          
+          <div style="padding: 16px; height: 300px; overflow: hidden;">
+            <div class="comment-card" style="opacity: 0.5;">
+              <div class="comment-header">
+                <div class="comment-avatar">小</div>
+                <div class="comment-user">
+                  <div class="comment-name">小明</div>
+                  <div class="comment-time">3天前</div>
+                </div>
+                <div class="comment-rating">⭐⭐⭐⭐⭐</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="write-modal">
+            <div class="modal-header">
+              <span class="modal-title">写评论</span>
+              <span class="modal-publish">发布</span>
+            </div>
+            
+            <div class="rating-row">
+              <span class="rating-label">评分</span>
+              <div class="rating-stars">
+                <span>⭐</span>
+                <span>⭐</span>
+                <span>⭐</span>
+                <span>⭐</span>
+                <span style="opacity: 0.3;">⭐</span>
+              </div>
+            </div>
+            
+            <textarea class="modal-textarea" placeholder="分享你的体验...">风景太美了！日出和云海都看到了，强烈推荐大家来！</textarea>
+            
+            <div class="add-images">
+              <div class="add-img-preview">
+                <div class="remove">✕</div>
+              </div>
+              <div class="add-img-preview" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">
+                <div class="remove">✕</div>
+              </div>
+              <div class="add-img-btn">+</div>
+            </div>
+            
+            <div style="font-size: 12px; color: #8E8EA0; margin-top: 12px;">最多上传9张图片</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

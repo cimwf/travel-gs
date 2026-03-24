@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设置页面设计 - 北京去哪玩</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      background: linear-gradient(135deg, #4A4A68 0%, #1A1A2E 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    
+    .design-container { max-width: 1400px; margin: 0 auto; }
+    
+    .design-header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+    
+    .design-header h1 { font-size: 36px; font-weight: 700; margin-bottom: 10px; }
+    .design-header p { font-size: 16px; opacity: 0.9; }
+    
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(375px, 1fr));
+      gap: 40px;
+      justify-items: center;
+    }
+    
+    .screen-wrapper {
+      background: white;
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    .screen-title {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 16px;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    .phone-frame {
+      width: 375px;
+      height: 812px;
+      background: #F5F7FA;
+      border-radius: 40px;
+      overflow: hidden;
+      position: relative;
+      border: 8px solid #1a1a1a;
+    }
+    
+    .status-bar {
+      height: 44px;
+      background: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      color: #1a1a1a;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .nav-header {
+      background: white;
+      padding: 8px 16px 16px;
+      border-bottom: 1px solid #F0F0F5;
+      display: flex;
+      align-items: center;
+    }
+    
+    .nav-back { font-size: 20px; color: #1a1a1a; margin-right: 12px; }
+    .nav-title { font-size: 18px; font-weight: 600; color: #1a1a1a; }
+    
+    .content {
+      padding: 16px;
+      height: calc(100% - 68px);
+      overflow-y: auto;
+    }
+    
+    /* 设置组 */
+    .settings-group {
+      background: white;
+      border-radius: 16px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    
+    .settings-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      border-bottom: 1px solid #F0F0F5;
+      cursor: pointer;
+    }
+    
+    .settings-item:last-child { border-bottom: none; }
+    
+    .settings-item:active { background: #F5F7FA; }
+    
+    .settings-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .settings-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: #F5F7FA;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    
+    .settings-label {
+      font-size: 16px;
+      color: #1a1a1a;
+    }
+    
+    .settings-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .settings-arrow {
+      color: #C0C0C0;
+      font-size: 14px;
+    }
+    
+    /* 开关 */
+    .switch {
+      width: 50px;
+      height: 30px;
+      background: #E8E8F0;
+      border-radius: 15px;
+      position: relative;
+      transition: background 0.3s;
+    }
+    
+    .switch.on { background: #4A90E2; }
+    
+    .switch::after {
+      content: '';
+      position: absolute;
+      width: 26px;
+      height: 26px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.3s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .switch.on::after { transform: translateX(20px); }
+    
+    /* 退出按钮 */
+    .logout-btn {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+      color: #FF4D4F;
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 16px;
+      cursor: pointer;
+    }
+    
+    .logout-btn:active { background: #FFF5F5; }
+    
+    /* 版本号 */
+    .version {
+      text-align: center;
+      font-size: 13px;
+      color: #8E8EA0;
+      padding: 20px;
+    }
+    
+    .home-indicator {
+      width: 134px;
+      height: 5px;
+      background: #1a1a1a;
+      border-radius: 3px;
+      margin: 8px auto;
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  </style>
+</head>
+<body>
+  <div class="design-container">
+    <div class="design-header">
+      <h1>⚙️ 设置页面设计</h1>
+      <p>北京去哪玩 - 个人设置中心</p>
+    </div>
+    
+    <div class="screens-grid">
+      <!-- 设置主页 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">设置主页</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+          </div>
+          
+          <div class="nav-header">
+            <span class="nav-back">←</span>
+            <span class="nav-title">设置</span>
+          </div>
+          
+          <div class="content">
+            <!-- 第一组 -->
+            <div class="settings-group">
+              <div class="settings-item">
+                <div class="settings-left">
+                  <div class="settings-icon">🔔</div>
+                  <span class="settings-label">消息通知</span>
+                </div>
+                <div class="settings-right">
+                  <span class="settings-arrow">›</span>
+                </div>
+              </div>
+              <div class="settings-item">
+                <div class="settings-left">
+                  <div class="settings-icon">🔒</div>
+                  <span class="settings-label">隐私设置</span>
+                </div>
+                <div class="settings-right">
+                  <span class="settings-arrow">›</span>
+                </div>
+              </div>
+              <div class="settings-item">
+                <div class="settings-left">
+                  <div class="settings-icon">🌙</div>
+                  <span class="settings-label">深色模式</span>
+                </div>
+                <div class="settings-right">
+                  <div class="switch"></div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 第二组 -->
+            <div class="settings-group">
+              <div class="settings-item">
+                <div class="settings-left">
+                  <div class="settings-icon">📞</div>
+                  <span class="settings-label">联系客服</span>
+                </div>
+                <div class="settings-right">
+                  <span class="settings-arrow">›</span>
+                </div>
+              </div>
+              <div class="settings-item">
+                <div class="settings-left">
+                  <div class="settings-icon">⭐</div>
+                  <span class="settings-label">评价小程序</span>
+                </div>
+                <div class="settings-right">
+                  <span class="settings-arrow">›</span>
+                </div>
+              </div>
+              <div class="settings-item">
+                <div class="settings-left">
+                  <div class="settings-icon">📖</div>
+                  <span class="settings-label">使用帮助</span>
+                </div>
+                <div class="settings-right">
+                  <span class="settings-arrow">›</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 第三组 -->
+            <div class="settings-group">
+              <div class="settings-item">
+                <div class="settings-left">
+                  <div class="settings-icon">📄</div>
+                  <span class="settings-label">用户协议</span>
+                </div>
+                <div class="settings-right">
+                  <span class="settings-arrow">›</span>
+                </div>
+              </div>
+              <div class="settings-item">
+                <div class="settings-left">
+                  <div class="settings-icon">🔐</div>
+                  <span class="settings-label">隐私政策</span>
+                </div>
+                <div class="settings-right">
+                  <span class="settings-arrow">›</span>
+                </div>
+              </div>
+              <div class="settings-item">
+                <div class="settings-left">
+                  <div class="settings-icon">ℹ️</div>
+                  <span class="settings-label">关于我们</span>
+                </div>
+                <div class="settings-right">
+                  <span class="settings-arrow">›</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="logout-btn">退出登录</div>
+            <div class="version">版本号 v1.0.0</div>
+          </div>
+          
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+      
+      <!-- 消息通知设置 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">消息通知设置</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+          </div>
+          
+          <div class="nav-header">
+            <span class="nav-back">←</span>
+            <span class="nav-title">消息通知</span>
+          </div>
+          
+          <div class="content">
+            <div class="settings-group">
+              <div class="settings-item">
+                <div class="settings-left">
+                  <span class="settings-label">行程提醒</span>
+                </div>
+                <div class="settings-right">
+                  <div class="switch on"></div>
+                </div>
+              </div>
+              <div class="settings-item">
+                <div class="settings-left">
+                  <span class="settings-label">申请通知</span>
+                </div>
+                <div class="settings-right">
+                  <div class="switch on"></div>
+                </div>
+              </div>
+              <div class="settings-item">
+                <div class="settings-left">
+                  <span class="settings-label">聊天消息</span>
+                </div>
+                <div class="settings-right">
+                  <div class="switch on"></div>
+                </div>
+              </div>
+              <div class="settings-item">
+                <div class="settings-left">
+                  <span class="settings-label">系统通知</span>
+                </div>
+                <div class="settings-right">
+                  <div class="switch"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="version">关闭后将不再收到相关推送</div>
+          </div>
+          
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+      
+      <!-- 隐私设置 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">隐私设置</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+          </div>
+          
+          <div class="nav-header">
+            <span class="nav-back">←</span>
+            <span class="nav-title">隐私设置</span>
+          </div>
+          
+          <div class="content">
+            <div class="settings-group">
+              <div class="settings-item">
+                <div class="settings-left">
+                  <span class="settings-label">公开我的行程</span>
+                </div>
+                <div class="settings-right">
+                  <div class="switch on"></div>
+                </div>
+              </div>
+              <div class="settings-item">
+                <div class="settings-left">
+                  <span class="settings-label">公开我的想去</span>
+                </div>
+                <div class="settings-right">
+                  <div class="switch on"></div>
+                </div>
+              </div>
+              <div class="settings-item">
+                <div class="settings-left">
+                  <span class="settings-label">允许他人查看主页</span>
+                </div>
+                <div class="settings-right">
+                  <div class="switch on"></div>
+                </div>
+              </div>
+              <div class="settings-item">
+                <div class="settings-left">
+                  <span class="settings-label">黑名单管理</span>
+                </div>
+                <div class="settings-right">
+                  <span class="settings-arrow">›</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="version">关闭后，其他人将无法查看相关信息</div>
+          </div>
+          
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

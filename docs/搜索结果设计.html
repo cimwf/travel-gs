@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>搜索结果设计 - 北京去哪玩</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    
+    .design-container { max-width: 1400px; margin: 0 auto; }
+    
+    .design-header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+    
+    .design-header h1 { font-size: 36px; font-weight: 700; margin-bottom: 10px; }
+    .design-header p { font-size: 16px; opacity: 0.9; }
+    
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(375px, 1fr));
+      gap: 40px;
+      justify-items: center;
+    }
+    
+    .screen-wrapper {
+      background: white;
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    .screen-title {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 16px;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    .phone-frame {
+      width: 375px;
+      height: 812px;
+      background: #F5F7FA;
+      border-radius: 40px;
+      overflow: hidden;
+      position: relative;
+      border: 8px solid #1a1a1a;
+    }
+    
+    .status-bar {
+      height: 44px;
+      background: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      color: #1a1a1a;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .search-header {
+      background: white;
+      padding: 8px 16px 16px;
+      border-bottom: 1px solid #F0F0F5;
+    }
+    
+    .search-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .nav-back { font-size: 20px; color: #1a1a1a; }
+    
+    .search-box {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: #F5F7FA;
+      border-radius: 20px;
+      padding: 10px 16px;
+      gap: 8px;
+    }
+    
+    .search-icon { font-size: 16px; }
+    .search-input { flex: 1; font-size: 15px; color: #1a1a1a; border: none; background: transparent; }
+    .search-clear { font-size: 14px; color: #8E8EA0; }
+    
+    .cancel-btn { font-size: 15px; color: #4A4A68; }
+    
+    .tabs {
+      display: flex;
+      padding: 12px 16px;
+      gap: 24px;
+      background: white;
+      border-bottom: 1px solid #F0F0F5;
+    }
+    
+    .tab {
+      font-size: 15px;
+      color: #8E8EA0;
+      position: relative;
+      padding-bottom: 12px;
+    }
+    
+    .tab.active { color: #4A90E2; font-weight: 500; }
+    
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: #4A90E2;
+      border-radius: 2px;
+    }
+    
+    .tab-count { font-size: 12px; margin-left: 4px; }
+    
+    .content {
+      padding: 16px;
+      height: calc(100% - 140px);
+      overflow-y: auto;
+    }
+    
+    /* 结果分组 */
+    .result-group { margin-bottom: 24px; }
+    
+    .group-title {
+      font-size: 14px;
+      color: #8E8EA0;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .group-more { color: #4A90E2; }
+    
+    /* 地点结果 */
+    .place-result {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      background: white;
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+    
+    .result-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-right: 12px;
+    }
+    
+    .result-info { flex: 1; }
+    
+    .result-name {
+      font-size: 15px;
+      font-weight: 500;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+    
+    .result-name em {
+      color: #4A90E2;
+      font-style: normal;
+      font-weight: 600;
+    }
+    
+    .result-meta {
+      font-size: 13px;
+      color: #8E8EA0;
+    }
+    
+    .result-arrow { color: #C0C0C0; font-size: 14px; }
+    
+    /* 行程结果 */
+    .trip-result {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      background: white;
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+    
+    .trip-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #56AB2F, #A8E6CF);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-right: 12px;
+    }
+    
+    /* 用户结果 */
+    .user-result {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      background: white;
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+    
+    .user-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: white;
+      font-weight: 600;
+      margin-right: 12px;
+    }
+    
+    /* 搜索历史 */
+    .history-section {
+      padding: 16px;
+    }
+    
+    .history-title {
+      font-size: 14px;
+      color: #8E8EA0;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .history-clear { color: #4A90E2; }
+    
+    .history-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    
+    .history-tag {
+      padding: 8px 16px;
+      background: white;
+      border-radius: 20px;
+      font-size: 14px;
+      color: #4A4A68;
+    }
+    
+    .home-indicator {
+      width: 134px;
+      height: 5px;
+      background: #1a1a1a;
+      border-radius: 3px;
+      margin: 8px auto;
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  </style>
+</head>
+<body>
+  <div class="design-container">
+    <div class="design-header">
+      <h1>🔍 搜索结果设计</h1>
+      <p>北京去哪玩 - 全局搜索功能</p>
+    </div>
+    
+    <div class="screens-grid">
+      <!-- 搜索结果 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">搜索结果页</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+          </div>
+          
+          <div class="search-header">
+            <div class="search-row">
+              <span class="nav-back">←</span>
+              <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input class="search-input" type="text" value="东灵山">
+                <span class="search-clear">✕</span>
+              </div>
+              <span class="cancel-btn">取消</span>
+            </div>
+          </div>
+          
+          <div class="tabs">
+            <div class="tab active">全部</div>
+            <div class="tab">地点<span class="tab-count">3</span></div>
+            <div class="tab">行程<span class="tab-count">5</span></div>
+            <div class="tab">用户<span class="tab-count">2</span></div>
+          </div>
+          
+          <div class="content">
+            <div class="result-group">
+              <div class="group-title">
+                <span>地点 (3)</span>
+                <span class="group-more">查看更多 ›</span>
+              </div>
+              
+              <div class="place-result">
+                <div class="result-icon">🏔️</div>
+                <div class="result-info">
+                  <div class="result-name"><em>东灵山</em></div>
+                  <div class="result-meta">门头沟区 · 120km · 中等难度</div>
+                </div>
+                <span class="result-arrow">›</span>
+              </div>
+              
+              <div class="place-result">
+                <div class="result-icon" style="background: linear-gradient(135deg, #56AB2F, #A8E6CF);">🌲</div>
+                <div class="result-info">
+                  <div class="result-name"><em>东灵山</em>露营基地</div>
+                  <div class="result-meta">门头沟区 · 可搭帐篷</div>
+                </div>
+                <span class="result-arrow">›</span>
+              </div>
+            </div>
+            
+            <div class="result-group">
+              <div class="group-title">
+                <span>行程 (5)</span>
+                <span class="group-more">查看更多 ›</span>
+              </div>
+              
+              <div class="trip-result">
+                <div class="trip-icon">🚗</div>
+                <div class="result-info">
+                  <div class="result-name"><em>东灵山</em>日出一日游</div>
+                  <div class="result-meta">3月26日 · 还差2人</div>
+                </div>
+                <span class="result-arrow">›</span>
+              </div>
+              
+              <div class="trip-result">
+                <div class="trip-icon" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">🏔️</div>
+                <div class="result-info">
+                  <div class="result-name"><em>东灵山</em>挑战之旅</div>
+                  <div class="result-meta">3月30日 · 已满员</div>
+                </div>
+                <span class="result-arrow">›</span>
+              </div>
+            </div>
+            
+            <div class="result-group">
+              <div class="group-title">
+                <span>用户 (2)</span>
+              </div>
+              
+              <div class="user-result">
+                <div class="user-avatar">东</div>
+                <div class="result-info">
+                  <div class="result-name"><em>东灵山</em>老玩家</div>
+                  <div class="result-meta">去过15次东灵山</div>
+                </div>
+                <span class="result-arrow">›</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+      
+      <!-- 搜索历史 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">搜索历史</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+          </div>
+          
+          <div class="search-header">
+            <div class="search-row">
+              <span class="nav-back">←</span>
+              <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input class="search-input" type="text" placeholder="搜索地点、行程、用户">
+              </div>
+              <span class="cancel-btn">取消</span>
+            </div>
+          </div>
+          
+          <div class="history-section">
+            <div class="history-title">
+              <span>搜索历史</span>
+              <span class="history-clear">清空</span>
+            </div>
+            
+            <div class="history-tags">
+              <div class="history-tag">东灵山</div>
+              <div class="history-tag">百花山</div>
+              <div class="history-tag">密云水库</div>
+              <div class="history-tag">颐和园</div>
+              <div class="history-tag">故宫</div>
+              <div class="history-tag">香山</div>
+            </div>
+          </div>
+          
+          <div style="padding: 0 16px;">
+            <div class="history-title">
+              <span>热门搜索</span>
+            </div>
+            
+            <div class="history-tags">
+              <div class="history-tag">🔥 周末去哪玩</div>
+              <div class="history-tag">🔥 爬山</div>
+              <div class="history-tag">🔥 露营</div>
+              <div class="history-tag">🔥 自驾游</div>
+            </div>
+          </div>
+          
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

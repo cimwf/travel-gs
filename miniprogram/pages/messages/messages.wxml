@@ -2,51 +2,210 @@
 <view class="container">
   <!-- 未登录状态 -->
   <view class="not-login" wx:if="{{!isLoggedIn}}">
-    <view class="not-login-icon">💬</view>
-    <view class="not-login-text">登录后查看消息</view>
-    <view class="login-btn" bindtap="onTapLogin">立即登录</view>
+    <view class="not-login-content">
+      <view class="not-login-icon">💬</view>
+      <view class="not-login-title">登录后查看消息</view>
+      <view class="not-login-desc">与旅行伙伴聊天，接收行程通知</view>
+      <view class="login-btn" bindtap="onTapLogin">
+        <text>立即登录</text>
+      </view>
+    </view>
   </view>
 
   <!-- 已登录状态 -->
   <block wx:else>
-    <!-- 通知列表 -->
-    <view class="section">
-      <view class="section-title">通知</view>
-      <view class="notice-list" wx:if="{{notifications.length > 0}}">
-        <view class="notice-item" wx:for="{{notifications}}" wx:key="_id">
-          <view class="notice-icon">{{item.type === 'apply' ? '📬' : '🔔'}}</view>
-          <view class="notice-content">
-            <view class="notice-text">{{item.content}}</view>
-            <view class="notice-time">{{item.time}}</view>
+    <!-- 顶部导航 -->
+    <view class="nav-header">
+      <view class="nav-top">
+        <view class="nav-title">消息</view>
+        <view class="nav-actions">
+          <view class="nav-action-btn" bindtap="onTapSearch">
+            <text class="action-icon">🔍</text>
+          </view>
+          <view class="nav-action-btn" bindtap="onTapSettings">
+            <text class="action-icon">⚙️</text>
           </view>
         </view>
       </view>
-      <view class="empty-state" wx:else>
-        <text>暂无通知</text>
+      <view class="nav-tabs">
+        <view class="nav-tab {{currentTab === 'all' ? 'active' : ''}}" bindtap="onSwitchTab" data-tab="all">
+          <text>全部</text>
+          <view class="tab-badge" wx:if="{{unreadCount > 0}}">{{unreadCount}}</view>
+        </view>
+        <view class="nav-tab {{currentTab === 'notifications' ? 'active' : ''}}" bindtap="onSwitchTab" data-tab="notifications">
+          <text>通知</text>
+          <view class="tab-badge" wx:if="{{notificationsUnread > 0}}">{{notificationsUnread}}</view>
+        </view>
+        <view class="nav-tab {{currentTab === 'chats' ? 'active' : ''}}" bindtap="onSwitchTab" data-tab="chats">
+          <text>聊天</text>
+          <view class="tab-badge" wx:if="{{chatsUnread > 0}}">{{chatsUnread}}</view>
+        </view>
       </view>
     </view>
 
-    <!-- 会话列表 -->
-    <view class="section">
-      <view class="section-title">会话</view>
-      <view class="conversation-list" wx:if="{{conversations.length > 0}}">
-        <view class="conversation-item" wx:for="{{conversations}}" wx:key="_id" bindtap="onTapConversation" data-id="{{item._id}}">
-          <view class="avatar-wrap">
-            <image class="avatar" src="{{item.avatar}}" mode="aspectFill"></image>
-            <view class="unread-dot" wx:if="{{item.unreadCount > 0}}">{{item.unreadCount}}</view>
-          </view>
-          <view class="conversation-content">
-            <view class="conversation-header">
-              <view class="conversation-name">{{item.name}}</view>
-              <view class="conversation-time">{{item.lastTime}}</view>
-            </view>
-            <view class="conversation-preview">{{item.lastMessage}}</view>
-          </view>
+    <!-- 加载中 -->
+    <view class="loading-state" wx:if="{{loading}}">
+      <view class="loading-spinner"></view>
+      <text>加载中...</text>
+    </view>
+
+    <!-- 消息内容 -->
+    <scroll-view class="content-scroll" scroll-y enhanced show-scrollbar="{{false}}" wx:else>
+      <!-- 快捷入口 -->
+      <view class="quick-actions" wx:if="{{currentTab === 'all'}}">
+        <view class="quick-action-item" bindtap="onTapTripNotices">
+          <view class="quick-icon trip">🚗</view>
+          <text class="quick-label">行程通知</text>
+          <view class="quick-badge" wx:if="{{tripNoticesCount > 0}}">{{tripNoticesCount}}</view>
+        </view>
+        <view class="quick-action-item" bindtap="onTapApplyNotices">
+          <view class="quick-icon apply">📬</view>
+          <text class="quick-label">申请消息</text>
+          <view class="quick-badge" wx:if="{{applyNoticesCount > 0}}">{{applyNoticesCount}}</view>
+        </view>
+        <view class="quick-action-item" bindtap="onTapSystemNotices">
+          <view class="quick-icon system">📢</view>
+          <text class="quick-label">系统通知</text>
+          <view class="quick-badge" wx:if="{{systemNoticesCount > 0}}">{{systemNoticesCount}}</view>
+        </view>
+        <view class="quick-action-item" bindtap="onTapMyGroups">
+          <view class="quick-icon group">👥</view>
+          <text class="quick-label">我的群聊</text>
+          <view class="quick-badge" wx:if="{{myGroupsCount > 0}}">{{myGroupsCount}}</view>
         </view>
       </view>
-      <view class="empty-state" wx:else>
-        <text>暂无会话</text>
+
+      <!-- 通知区域 -->
+      <view class="section" wx:if="{{currentTab === 'all' || currentTab === 'notifications'}}">
+        <view class="section-header">
+          <view class="section-title">
+            <text class="section-icon">🔔</text>
+            <text>通知</text>
+          </view>
+          <view class="section-action" bindtap="onReadAllNotifications" wx:if="{{notificationsUnread > 0}}">
+            <text>全部已读</text>
+          </view>
+        </view>
+
+        <view class="notice-list" wx:if="{{notifications.length > 0}}">
+          <view
+            class="notice-item {{item.read ? '' : 'unread'}}"
+            wx:for="{{notifications}}"
+            wx:key="_id"
+            bindtap="onTapNotification"
+            data-id="{{item._id}}"
+          >
+            <view class="notice-icon-wrap {{item.type}}">
+              <text class="notice-icon">{{item.type === 'apply' ? '📬' : item.type === 'trip' ? '🚗' : '📢'}}</text>
+            </view>
+            <view class="notice-content">
+              <view class="notice-header">
+                <view class="notice-title-row">
+                  <text class="notice-title">{{item.title}}</text>
+                  <view class="notice-tag {{item.type}}" wx:if="{{item.type === 'apply'}}">待处理</view>
+                </view>
+                <text class="notice-time">{{item.time}}</text>
+              </view>
+              <view class="notice-text">{{item.content}}</view>
+              <!-- 行程申请操作按钮 -->
+              <view class="notice-actions" wx:if="{{item.type === 'apply' && !item.handled}}">
+                <view class="notice-btn reject" catchtap="onRejectApply" data-id="{{item._id}}">拒绝</view>
+                <view class="notice-btn accept" catchtap="onAcceptApply" data-id="{{item._id}}">同意</view>
+              </view>
+            </view>
+            <view class="unread-dot" wx:if="{{!item.read}}"></view>
+          </view>
+        </view>
+
+        <view class="empty-card" wx:else>
+          <view class="empty-illustration">📭</view>
+          <text class="empty-text">暂无通知</text>
+          <text class="empty-tip">参与行程后会有消息通知哦</text>
+        </view>
+      </view>
+
+      <!-- 会话区域 -->
+      <view class="section" wx:if="{{currentTab === 'all' || currentTab === 'chats'}}">
+        <view class="section-header">
+          <view class="section-title">
+            <text class="section-icon">💭</text>
+            <text>会话</text>
+          </view>
+          <view class="section-action" bindtap="onStartNewChat">
+            <text>+ 发起聊天</text>
+          </view>
+        </view>
+
+        <view class="conversation-list" wx:if="{{conversations.length > 0}}">
+          <view
+            class="conversation-item"
+            wx:for="{{conversations}}"
+            wx:key="_id"
+            bindtap="onTapConversation"
+            data-id="{{item._id}}"
+          >
+            <view class="avatar-wrap">
+              <view class="avatar" style="background: {{item.avatarBg}}">
+                <text>{{item.avatarText || item.name[0]}}</text>
+              </view>
+              <view class="online-dot" wx:if="{{item.online}}"></view>
+              <view class="unread-badge" wx:if="{{item.unreadCount > 0}}">
+                <text>{{item.unreadCount > 99 ? '99+' : item.unreadCount}}</text>
+              </view>
+            </view>
+            <view class="conversation-content">
+              <view class="conversation-header">
+                <view class="conversation-name-row">
+                  <text class="conversation-name">{{item.name}}</text>
+                  <view class="group-icon" wx:if="{{item.isGroup}}">👥</view>
+                </view>
+                <text class="conversation-time">{{item.lastTime}}</text>
+              </view>
+              <view class="conversation-preview">
+                <text class="preview-type" wx:if="{{item.lastMessageType === 'image'}}">[图片]</text>
+                <text class="preview-type" wx:elif="{{item.lastMessageType === 'location'}}">[位置]</text>
+                <text class="preview-type" wx:elif="{{item.lastMessageType === 'trip'}}">[行程卡片]</text>
+                <text wx:else>{{item.lastMessage}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view class="empty-card" wx:else>
+          <view class="empty-illustration">💬</view>
+          <text class="empty-text">暂无会话</text>
+          <text class="empty-tip">参与行程后可与其他伙伴聊天</text>
+          <view class="empty-action" bindtap="onExploreTrips">发现行程</view>
+        </view>
+      </view>
+
+      <!-- 底部安全区 -->
+      <view class="safe-bottom"></view>
+    </scroll-view>
+  </block>
+</view>
+
+<!-- 搜索弹窗 -->
+<view class="search-modal" wx:if="{{showSearch}}" bindtap="onCloseSearch">
+  <view class="search-content" catchtap="">
+    <view class="search-input-wrap">
+      <text class="search-icon">🔍</text>
+      <input 
+        class="search-input" 
+        placeholder="搜索消息、联系人" 
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+        focus="{{showSearch}}"
+      />
+      <text class="search-clear" wx:if="{{searchKeyword}}" bindtap="onClearSearch">✕</text>
+    </view>
+    <view class="search-results" wx:if="{{searchResults.length > 0}}">
+      <view class="search-result-item" wx:for="{{searchResults}}" wx:key="_id">
+        <text>{{item.name}}</text>
       </view>
     </view>
-  </block>
+    <view class="search-empty" wx:elif="{{searchKeyword}}">
+      <text>未找到相关消息</text>
+    </view>
+  </view>
 </view>

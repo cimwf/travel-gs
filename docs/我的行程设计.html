@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的行程设计 - 北京去哪玩</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      background: linear-gradient(135deg, #56AB2F 0%, #A8E6CF 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    
+    .design-container { max-width: 1400px; margin: 0 auto; }
+    
+    .design-header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+    
+    .design-header h1 { font-size: 36px; font-weight: 700; margin-bottom: 10px; }
+    .design-header p { font-size: 16px; opacity: 0.9; }
+    
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(375px, 1fr));
+      gap: 40px;
+      justify-items: center;
+    }
+    
+    .screen-wrapper {
+      background: white;
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    .screen-title {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 16px;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    .phone-frame {
+      width: 375px;
+      height: 812px;
+      background: #F5F7FA;
+      border-radius: 40px;
+      overflow: hidden;
+      position: relative;
+      border: 8px solid #1a1a1a;
+    }
+    
+    .status-bar {
+      height: 44px;
+      background: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      color: #1a1a1a;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .nav-header {
+      background: white;
+      padding: 8px 16px 16px;
+      border-bottom: 1px solid #F0F0F5;
+    }
+    
+    .nav-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    
+    .nav-back { font-size: 20px; color: #1a1a1a; }
+    .nav-title { font-size: 20px; font-weight: 700; color: #1a1a1a; }
+    .nav-right { width: 20px; }
+    
+    .tabs {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .tab {
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .tab.active {
+      background: #4A90E2;
+      color: white;
+    }
+    
+    .tab:not(.active) {
+      background: #F5F7FA;
+      color: #4A4A68;
+    }
+    
+    .content {
+      padding: 16px;
+      height: calc(100% - 120px);
+      overflow-y: auto;
+    }
+    
+    /* 行程卡片 */
+    .trip-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    
+    .trip-header {
+      display: flex;
+      padding: 16px;
+      gap: 12px;
+    }
+    
+    .trip-img {
+      width: 80px;
+      height: 80px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+    }
+    
+    .trip-info { flex: 1; }
+    
+    .trip-name {
+      font-size: 17px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+    
+    .trip-date {
+      font-size: 14px;
+      color: #4A90E2;
+      margin-bottom: 4px;
+    }
+    
+    .trip-count {
+      font-size: 13px;
+      color: #8E8EA0;
+    }
+    
+    .trip-status {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .status-open { background: #E8F5E9; color: #52C41A; }
+    .status-full { background: #FFF3E0; color: #FA8C16; }
+    .status-ended { background: #F5F5F5; color: #8E8EA0; }
+    
+    .trip-participants {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      border-top: 1px solid #F0F0F5;
+      gap: 8px;
+    }
+    
+    .participant {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4A90E2, #6BA3E8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: -8px;
+      border: 2px solid white;
+    }
+    
+    .participant:first-child { margin-left: 0; }
+    
+    .participant-creator {
+      background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+    }
+    
+    .trip-actions {
+      display: flex;
+      gap: 12px;
+      padding: 12px 16px;
+      border-top: 1px solid #F0F0F5;
+    }
+    
+    .action-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 20px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    
+    .action-btn.primary {
+      background: #4A90E2;
+      color: white;
+    }
+    
+    .action-btn.secondary {
+      background: #F5F7FA;
+      color: #4A4A68;
+    }
+    
+    /* 悬浮按钮 */
+    .fab {
+      position: absolute;
+      bottom: 100px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #4A90E2, #6BA3E8);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 28px;
+      box-shadow: 0 4px 20px rgba(74, 144, 226, 0.4);
+      cursor: pointer;
+    }
+    
+    /* 空状态 */
+    .empty-state {
+      text-align: center;
+      padding: 60px 40px;
+    }
+    
+    .empty-icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+    }
+    
+    .empty-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 8px;
+    }
+    
+    .empty-desc {
+      font-size: 14px;
+      color: #8E8EA0;
+      margin-bottom: 24px;
+    }
+    
+    .empty-btn {
+      display: inline-block;
+      padding: 12px 32px;
+      background: #4A90E2;
+      color: white;
+      border-radius: 24px;
+      font-size: 15px;
+      font-weight: 500;
+    }
+    
+    .home-indicator {
+      width: 134px;
+      height: 5px;
+      background: #1a1a1a;
+      border-radius: 3px;
+      margin: 8px auto;
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  </style>
+</head>
+<body>
+  <div class="design-container">
+    <div class="design-header">
+      <h1>🚗 我的行程设计</h1>
+      <p>北京去哪玩 - 行程管理中心</p>
+    </div>
+    
+    <div class="screens-grid">
+      <!-- 我发起的 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">我发起的行程</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+          </div>
+          
+          <div class="nav-header">
+            <div class="nav-top">
+              <span class="nav-back">←</span>
+              <span class="nav-title">我的行程</span>
+              <span class="nav-right"></span>
+            </div>
+            <div class="tabs">
+              <div class="tab active">我发起的</div>
+              <div class="tab">我参与的</div>
+              <div class="tab">已结束</div>
+            </div>
+          </div>
+          
+          <div class="content">
+            <!-- 招募中 -->
+            <div class="trip-card">
+              <div class="trip-header">
+                <div class="trip-img">🏔️</div>
+                <div class="trip-info">
+                  <div class="trip-name">东灵山日出</div>
+                  <div class="trip-date">📅 3月26日 周二</div>
+                  <div class="trip-count">👥 已3人 · 还需2人</div>
+                </div>
+                <div class="trip-status status-open">招募中</div>
+              </div>
+              <div class="trip-participants">
+                <div class="participant participant-creator">我</div>
+                <div class="participant">小</div>
+                <div class="participant">红</div>
+              </div>
+              <div class="trip-actions">
+                <div class="action-btn secondary">管理</div>
+                <div class="action-btn primary">查看详情</div>
+              </div>
+            </div>
+            
+            <!-- 已满员 -->
+            <div class="trip-card">
+              <div class="trip-header">
+                <div class="trip-img" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">🌊</div>
+                <div class="trip-info">
+                  <div class="trip-name">密云水库</div>
+                  <div class="trip-date">📅 3月30日 周六</div>
+                  <div class="trip-count">👥 已5人 · 已满员</div>
+                </div>
+                <div class="trip-status status-full">已满员</div>
+              </div>
+              <div class="trip-participants">
+                <div class="participant participant-creator">我</div>
+                <div class="participant">王</div>
+                <div class="participant">李</div>
+                <div class="participant">张</div>
+                <div class="participant">赵</div>
+              </div>
+              <div class="trip-actions">
+                <div class="action-btn primary">查看详情</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fab">+</div>
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+      
+      <!-- 我参与的 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">我参与的行程</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+          </div>
+          
+          <div class="nav-header">
+            <div class="nav-top">
+              <span class="nav-back">←</span>
+              <span class="nav-title">我的行程</span>
+              <span class="nav-right"></span>
+            </div>
+            <div class="tabs">
+              <div class="tab">我发起的</div>
+              <div class="tab active">我参与的</div>
+              <div class="tab">已结束</div>
+            </div>
+          </div>
+          
+          <div class="content">
+            <div class="trip-card">
+              <div class="trip-header">
+                <div class="trip-img" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">🏯</div>
+                <div class="trip-info">
+                  <div class="trip-name">故宫博物院</div>
+                  <div class="trip-date">📅 4月2日 周二</div>
+                  <div class="trip-count">👥 已4人 · 还需1人</div>
+                </div>
+                <div class="trip-status status-open">招募中</div>
+              </div>
+              <div class="trip-participants">
+                <div class="participant">大</div>
+                <div class="participant">山</div>
+                <div class="participant">我</div>
+                <div class="participant">李</div>
+              </div>
+              <div class="trip-actions">
+                <div class="action-btn secondary">退出</div>
+                <div class="action-btn primary">查看详情</div>
+              </div>
+            </div>
+            
+            <div class="trip-card">
+              <div class="trip-header">
+                <div class="trip-img" style="background: linear-gradient(135deg, #f093fb, #f5576c);">🌸</div>
+                <div class="trip-info">
+                  <div class="trip-name">玉渊潭樱花</div>
+                  <div class="trip-date">📅 4月5日 清明节</div>
+                  <div class="trip-count">👥 已8人 · 已满员</div>
+                </div>
+                <div class="trip-status status-full">已满员</div>
+              </div>
+              <div class="trip-participants">
+                <div class="participant">林</div>
+                <div class="participant">我</div>
+                <div class="participant">+6</div>
+              </div>
+              <div class="trip-actions">
+                <div class="action-btn primary">查看详情</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fab">+</div>
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+      
+      <!-- 空状态 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">空状态</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+          </div>
+          
+          <div class="nav-header">
+            <div class="nav-top">
+              <span class="nav-back">←</span>
+              <span class="nav-title">我的行程</span>
+              <span class="nav-right"></span>
+            </div>
+            <div class="tabs">
+              <div class="tab active">我发起的</div>
+              <div class="tab">我参与的</div>
+              <div class="tab">已结束</div>
+            </div>
+          </div>
+          
+          <div class="content">
+            <div class="empty-state">
+              <div class="empty-icon">🗺️</div>
+              <div class="empty-title">还没有发起过行程</div>
+              <div class="empty-desc">快去发现有趣的地方吧！</div>
+              <div class="empty-btn">发现周边好去处</div>
+            </div>
+          </div>
+          
+          <div class="fab">+</div>
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

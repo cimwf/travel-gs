@@ -4,10 +4,18 @@
     "pages/auth/auth",
     "pages/complete-info/complete-info",
     "pages/place-detail/place-detail",
+    "pages/place-list/place-list",
     "pages/trip-publish/trip-publish",
     "pages/trip-detail/trip-detail",
+    "pages/my-trips/my-trips",
     "pages/messages/messages",
+    "pages/chat/chat",
+    "pages/comments/comments",
     "pages/profile/profile",
+    "pages/edit-profile/edit-profile",
+    "pages/followers/followers",
+    "pages/settings/settings",
+    "pages/search/search",
     "pages/agreement/agreement"
   ],
   "window": {

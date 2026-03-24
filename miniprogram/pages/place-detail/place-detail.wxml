@@ -2,12 +2,12 @@
 <view class="container">
   <!-- 顶部轮播图区域 -->
   <view class="header">
-    <swiper 
-      class="banner-swiper" 
-      indicator-dots 
-      indicator-color="rgba(255,255,255,0.4)" 
+    <swiper
+      class="banner-swiper"
+      indicator-dots
+      indicator-color="rgba(255,255,255,0.4)"
       indicator-active-color="#ffffff"
-      autoplay 
+      autoplay
       circular
       interval="4000"
     >
@@ -16,10 +16,10 @@
       </swiper-item>
     </swiper>
     <!-- 渐变遮罩 -->
-    <view class="banner-mask-top"></view>
+    <view class="banner-overlay"></view>
     <!-- 导航按钮 -->
-    <view class="nav-back" bindtap="onBackTap">←</view>
-    <view class="nav-share" bindtap="onShareTap">⋯</view>
+    <view class="nav-btn nav-back" bindtap="onBackTap">←</view>
+    <view class="nav-btn nav-share" bindtap="onShareTap">⋯</view>
   </view>
 
   <!-- 基本信息区域 -->
@@ -27,44 +27,43 @@
     <!-- 地点名称 -->
     <view class="place-header">
       <view class="place-name">{{place.name}}</view>
-      <view class="place-category">{{place.category || '自然风光'}}</view>
+      <view class="place-category">
+        <text class="category-icon">🏔️</text>
+        <text>{{place.category || '山岳风光'}}</text>
+      </view>
     </view>
-    
+
     <!-- 数据指标 -->
     <view class="stats-row">
       <view class="stat-item">
-        <view class="stat-icon">📍</view>
         <view class="stat-value">{{place.distance}}km</view>
-        <view class="stat-label">距离</view>
+        <view class="stat-label">距北京市区</view>
       </view>
       <view class="stat-item">
-        <view class="stat-icon">🏔️</view>
         <view class="stat-value">{{place.difficulty}}</view>
-        <view class="stat-label">难度</view>
+        <view class="stat-label">难度等级</view>
       </view>
       <view class="stat-item">
-        <view class="stat-icon">⭐</view>
         <view class="stat-value">{{place.rating || '4.8'}}</view>
-        <view class="stat-label">评分</view>
+        <view class="stat-label">用户评分</view>
       </view>
       <view class="stat-item">
-        <view class="stat-icon">⏱️</view>
         <view class="stat-value">{{place.duration}}</view>
-        <view class="stat-label">时长</view>
+        <view class="stat-label">建议时长</view>
       </view>
     </view>
-    
+
     <!-- 标签 -->
     <view class="tags-container">
       <view class="tag" wx:for="{{place.tags}}" wx:key="*this">{{item}}</view>
     </view>
-    
+
     <!-- 元信息 -->
     <view class="meta-info">
       <view class="meta-item">
         <text class="meta-icon">📍</text>
         <view class="meta-content">
-          <view class="meta-label">地址</view>
+          <view class="meta-label">详细地址</view>
           <view class="meta-value">{{place.location}}</view>
         </view>
       </view>
@@ -76,10 +75,10 @@
         </view>
       </view>
       <view class="meta-item">
-        <text class="meta-icon">🌸</text>
+        <text class="meta-icon">☀️</text>
         <view class="meta-content">
           <view class="meta-label">最佳季节</view>
-          <view class="meta-value">{{place.bestSeason}}</view>
+          <view class="meta-value">{{place.bestSeason}} · 海拔 {{place.altitude}}</view>
         </view>
       </view>
     </view>
@@ -95,12 +94,14 @@
   </view>
 
   <!-- 温馨提示卡片 -->
-  <view class="content-card tips-card" wx:if="{{place.tips}}">
+  <view class="content-card tips-card" wx:if="{{place.tipsList.length > 0}}">
     <view class="card-header">
       <text class="card-icon">💡</text>
       <text class="card-title">温馨提示</text>
     </view>
-    <view class="tips-list">{{place.tips}}</view>
+    <view class="tips-list">
+      <view class="tip-item" wx:for="{{place.tipsList}}" wx:key="*this">{{item}}</view>
+    </view>
   </view>
 
   <!-- 行程列表 -->
@@ -114,22 +115,24 @@
 
     <view class="trip-list" wx:if="{{trips.length > 0}}">
       <view class="trip-item" wx:for="{{trips}}" wx:key="_id">
-        <view class="user-avatar" style="background: linear-gradient(135deg, {{item.avatarColor || '#667eea'}}, {{item.avatarColor2 || '#764ba2'}});"></view>
+        <view class="user-avatar" style="background: {{item.avatarBg}}"></view>
         <view class="trip-info">
           <view class="trip-header">
             <text class="trip-user">{{item.userName}}</text>
-            <view class="trip-status {{item.status}}">{{item.status === 'open' ? '招募中' : '已满员'}}</view>
+            <view class="trip-status {{item.hasCar ? 'has-car' : 'need-car'}}">
+              <text>{{item.hasCar ? '🚗 有车' : '🚌 需拼车'}}</text>
+            </view>
           </view>
           <view class="trip-meta">
             <text>{{item.date}}</text>
             <text class="dot">·</text>
-            <text>{{item.hasCar ? '有车' : '无车'}}</text>
-            <text class="dot">·</text>
-            <text>{{item.currentCount}}/{{item.needCount}}人</text>
+            <text>已有{{item.currentCount}}人求{{item.needCount}}人</text>
           </view>
           <view class="trip-remark" wx:if="{{item.remark}}">{{item.remark}}</view>
         </view>
-        <view class="btn-join" catchtap="onApplyTap" data-id="{{item._id}}" wx:if="{{item.status === 'open'}}">加入</view>
+        <view class="btn-join {{item.hasCar ? 'btn-primary' : 'btn-outline'}}" catchtap="onApplyTap" data-id="{{item._id}}">
+          {{item.hasCar ? '申请加入' : '邀请他'}}
+        </view>
       </view>
     </view>
 
@@ -141,14 +144,13 @@
 
   <!-- 底部操作栏 -->
   <view class="footer-bar">
-    <view class="footer-left">
-      <view class="collect-btn {{isCollected ? 'collected' : ''}}" bindtap="onCollectTap">
-        <text class="collect-icon">{{isCollected ? '❤️' : '🤍'}}</text>
-        <text class="collect-text">{{isCollected ? '已收藏' : '收藏'}}</text>
-      </view>
+    <view class="collect-btn {{isCollected ? 'collected' : ''}}" bindtap="onCollectTap">
+      <text class="collect-icon">{{isCollected ? '❤️' : '🤍'}}</text>
+      <text class="collect-text">{{isCollected ? '已收藏' : '收藏'}}</text>
     </view>
-    <view class="footer-right">
-      <view class="publish-btn" bindtap="onPublishTrip">发布我的行程</view>
+    <view class="publish-btn" bindtap="onPublishTrip">
+      <text class="publish-icon">+</text>
+      <text>发布我的行程</text>
     </view>
   </view>
 </view>

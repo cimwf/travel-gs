@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>聊天详情页设计 - 北京去哪玩</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    
+    .design-container { max-width: 1400px; margin: 0 auto; }
+    
+    .design-header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+    
+    .design-header h1 { font-size: 36px; font-weight: 700; margin-bottom: 10px; }
+    .design-header p { font-size: 16px; opacity: 0.9; }
+    
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(375px, 1fr));
+      gap: 40px;
+      justify-items: center;
+    }
+    
+    .screen-wrapper {
+      background: white;
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    .screen-title {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 16px;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    .phone-frame {
+      width: 375px;
+      height: 812px;
+      background: #F5F7FA;
+      border-radius: 40px;
+      overflow: hidden;
+      position: relative;
+      border: 8px solid #1a1a1a;
+    }
+    
+    .status-bar {
+      height: 44px;
+      background: linear-gradient(135deg, #4A90E2, #6BA3E8);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .nav-header {
+      background: linear-gradient(135deg, #4A90E2, #6BA3E8);
+      padding: 12px 16px 16px;
+      color: white;
+    }
+    
+    .nav-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .nav-back {
+      font-size: 20px;
+      cursor: pointer;
+    }
+    
+    .nav-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .nav-status {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-top: 4px;
+    }
+    
+    .nav-menu {
+      font-size: 20px;
+    }
+    
+    /* 消息区域 */
+    .messages-area {
+      height: 600px;
+      overflow-y: auto;
+      padding: 16px;
+      background: #F5F7FA;
+    }
+    
+    .message-row {
+      display: flex;
+      margin-bottom: 16px;
+    }
+    
+    .message-row.left { justify-content: flex-start; }
+    .message-row.right { justify-content: flex-end; }
+    
+    .message-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    
+    .message-content {
+      max-width: 260px;
+      margin: 0 12px;
+    }
+    
+    .message-bubble {
+      padding: 12px 16px;
+      border-radius: 20px;
+      font-size: 15px;
+      line-height: 1.5;
+      position: relative;
+    }
+    
+    .message-row.left .message-bubble {
+      background: white;
+      color: #1a1a1a;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    
+    .message-row.right .message-bubble {
+      background: #4A90E2;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    
+    .message-time {
+      font-size: 11px;
+      color: #8E8EA0;
+      margin-top: 4px;
+      text-align: right;
+    }
+    
+    .message-row.left .message-time { text-align: left; }
+    
+    /* 行程卡片消息 */
+    .trip-card-message {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      width: 240px;
+    }
+    
+    .trip-card-img {
+      width: 100%;
+      height: 100px;
+      background: linear-gradient(135deg, #56AB2F, #A8E6CF);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+    }
+    
+    .trip-card-info {
+      padding: 12px;
+    }
+    
+    .trip-card-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+    
+    .trip-card-meta {
+      font-size: 13px;
+      color: #8E8EA0;
+    }
+    
+    /* 输入区域 */
+    .input-area {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #E8E8F0;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    
+    .input-row {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      gap: 12px;
+    }
+    
+    .input-plus {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #F5F7FA;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #4A4A68;
+      cursor: pointer;
+    }
+    
+    .input-field {
+      flex: 1;
+      height: 40px;
+      background: #F5F7FA;
+      border-radius: 20px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      font-size: 15px;
+      color: #8E8EA0;
+    }
+    
+    .input-send {
+      padding: 8px 20px;
+      background: #4A90E2;
+      color: white;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .input-send.disabled {
+      background: #E8E8F0;
+      color: #8E8EA0;
+    }
+    
+    /* 工具栏 */
+    .toolbar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 16px;
+      border-top: 1px solid #F0F0F5;
+    }
+    
+    .toolbar-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+      cursor: pointer;
+    }
+    
+    .toolbar-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: #F5F7FA;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    
+    .toolbar-label {
+      font-size: 12px;
+      color: #4A4A68;
+    }
+    
+    .home-indicator {
+      width: 134px;
+      height: 5px;
+      background: #1a1a1a;
+      border-radius: 3px;
+      margin: 8px auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="design-container">
+    <div class="design-header">
+      <h1>💬 聊天详情页设计</h1>
+      <p>北京去哪玩 - 消息聊天功能</p>
+    </div>
+    
+    <div class="screens-grid">
+      <!-- 聊天主界面 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">聊天主界面</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+          </div>
+          
+          <div class="nav-header">
+            <div class="nav-top">
+              <span class="nav-back">←</span>
+              <div style="text-align: center;">
+                <div class="nav-title">颐和园行程群</div>
+                <div class="nav-status">5位成员</div>
+              </div>
+              <span class="nav-menu">⋮</span>
+            </div>
+          </div>
+          
+          <div class="messages-area">
+            <!-- 对方消息 -->
+            <div class="message-row left">
+              <div class="message-avatar">小</div>
+              <div class="message-content">
+                <div class="message-bubble">大家好！明天早上几点集合？</div>
+                <div class="message-time">上午 10:30</div>
+              </div>
+            </div>
+            
+            <!-- 我的消息 -->
+            <div class="message-row right">
+              <div class="message-content">
+                <div class="message-bubble">我提议8点出发，避开早高峰</div>
+                <div class="message-time">上午 10:32</div>
+              </div>
+              <div class="message-avatar" style="background: linear-gradient(135deg, #4A90E2, #6BA3E8);">我</div>
+            </div>
+            
+            <!-- 对方消息 -->
+            <div class="message-row left">
+              <div class="message-avatar" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">红</div>
+              <div class="message-content">
+                <div class="message-bubble">好的，8点没问题！我开车去，可以带3个人</div>
+                <div class="message-time">上午 10:35</div>
+              </div>
+            </div>
+            
+            <!-- 行程卡片消息 -->
+            <div class="message-row left">
+              <div class="message-avatar">小</div>
+              <div class="message-content">
+                <div class="trip-card-message">
+                  <div class="trip-card-img">🚗</div>
+                  <div class="trip-card-info">
+                    <div class="trip-card-name">颐和园一日游</div>
+                    <div class="trip-card-meta">3月26日 · 还差2人</div>
+                  </div>
+                </div>
+                <div class="message-time">上午 10:40</div>
+              </div>
+            </div>
+            
+            <!-- 我的消息 -->
+            <div class="message-row right">
+              <div class="message-content">
+                <div class="message-bubble">太棒了！那我坐你的车吧 😊</div>
+                <div class="message-time">上午 10:42</div>
+              </div>
+              <div class="message-avatar" style="background: linear-gradient(135deg, #4A90E2, #6BA3E8);">我</div>
+            </div>
+            
+            <!-- 对方消息 -->
+            <div class="message-row left">
+              <div class="message-avatar" style="background: linear-gradient(135deg, #56AB2F, #A8E6CF);">王</div>
+              <div class="message-content">
+                <div class="message-bubble">我也想加入，还有位置吗？</div>
+                <div class="message-time">上午 11:05</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="input-area">
+            <div class="input-row">
+              <div class="input-plus">+</div>
+              <div class="input-field">输入消息...</div>
+              <div class="input-send disabled">发送</div>
+            </div>
+            <div class="toolbar">
+              <div class="toolbar-item">
+                <div class="toolbar-icon">📷</div>
+                <div class="toolbar-label">图片</div>
+              </div>
+              <div class="toolbar-item">
+                <div class="toolbar-icon">📍</div>
+                <div class="toolbar-label">位置</div>
+              </div>
+              <div class="toolbar-item">
+                <div class="toolbar-icon">🚗</div>
+                <div class="toolbar-label">行程</div>
+              </div>
+              <div class="toolbar-item">
+                <div class="toolbar-icon">😊</div>
+                <div class="toolbar-label">表情</div>
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 私聊界面 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">私聊界面</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+          </div>
+          
+          <div class="nav-header">
+            <div class="nav-top">
+              <span class="nav-back">←</span>
+              <div style="text-align: center;">
+                <div class="nav-title">小红</div>
+                <div class="nav-status" style="color: #52C41A;">● 在线</div>
+              </div>
+              <span class="nav-menu">⋮</span>
+            </div>
+          </div>
+          
+          <div class="messages-area">
+            <div class="message-row left">
+              <div class="message-avatar" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">红</div>
+              <div class="message-content">
+                <div class="message-bubble">你好！看到你也喜欢户外，想问下有什么推荐的地方吗？</div>
+                <div class="message-time">昨天 20:30</div>
+              </div>
+            </div>
+            
+            <div class="message-row right">
+              <div class="message-content">
+                <div class="message-bubble">嗨！我最近去了东灵山，风景特别棒，推荐你去看看</div>
+                <div class="message-time">昨天 20:35</div>
+              </div>
+              <div class="message-avatar" style="background: linear-gradient(135deg, #4A90E2, #6BA3E8);">我</div>
+            </div>
+            
+            <div class="message-row left">
+              <div class="message-avatar" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">红</div>
+              <div class="message-content">
+                <div class="message-bubble">哇，听起来不错！难度大吗？</div>
+                <div class="message-time">昨天 20:38</div>
+              </div>
+            </div>
+            
+            <div class="message-row right">
+              <div class="message-content">
+                <div class="message-bubble">中等难度吧，我发个行程卡片给你看看</div>
+                <div class="message-time">昨天 20:40</div>
+              </div>
+              <div class="message-avatar" style="background: linear-gradient(135deg, #4A90E2, #6BA3E8);">我</div>
+            </div>
+            
+            <!-- 发送行程卡片 -->
+            <div class="message-row right">
+              <div class="message-content">
+                <div class="trip-card-message">
+                  <div class="trip-card-img" style="background: linear-gradient(135deg, #667eea, #764ba2);">🏔️</div>
+                  <div class="trip-card-info">
+                    <div class="trip-card-name">东灵山日出</div>
+                    <div class="trip-card-meta">北京最高峰 · 中等难度</div>
+                  </div>
+                </div>
+                <div class="message-time">昨天 20:41</div>
+              </div>
+              <div class="message-avatar" style="background: linear-gradient(135deg, #4A90E2, #6BA3E8);">我</div>
+            </div>
+            
+            <div class="message-row left">
+              <div class="message-avatar" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">红</div>
+              <div class="message-content">
+                <div class="message-bubble">太好了！我想参加，怎么报名呢？</div>
+                <div class="message-time">昨天 20:45</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="input-area">
+            <div class="input-row">
+              <div class="input-plus">+</div>
+              <div class="input-field">回复小红...</div>
+              <div class="input-send">发送</div>
+            </div>
+            <div class="toolbar">
+              <div class="toolbar-item">
+                <div class="toolbar-icon">📷</div>
+                <div class="toolbar-label">图片</div>
+              </div>
+              <div class="toolbar-item">
+                <div class="toolbar-icon">📍</div>
+                <div class="toolbar-label">位置</div>
+              </div>
+              <div class="toolbar-item">
+                <div class="toolbar-icon">🚗</div>
+                <div class="toolbar-label">行程</div>
+              </div>
+              <div class="toolbar-item">
+                <div class="toolbar-icon">😊</div>
+                <div class="toolbar-label">表情</div>
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

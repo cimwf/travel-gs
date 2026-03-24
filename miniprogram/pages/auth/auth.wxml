@@ -33,12 +33,12 @@
     </view>
     
     <!-- 测试按钮（模拟器用） -->
-    <!-- <button 
+    <button 
       class="auth-btn test-btn" 
       bindtap="onTestLogin"
     >
       <text>测试登录（模拟器）</text>
-    </button> -->
+    </button>
     
     <!-- 协议 -->
     <view class="auth-agreement">
