@@ -1,22 +1,96 @@
 <!--
-  编辑个人资料 (edit-profile)
+  个人信息编辑页 (edit-profile)
   ================================
   设计要点：
-  1. 头像区域：大头像+点击更换
-  2. 表单项：昵称、性别、简介、标签、是否有车
-  3. 标签选择：推荐标签+自定义+最多5个
-  4. 字数限制：简介100字
-  5. 保存按钮：导航栏右侧
+  1. 头像上传 - 点击上传头像，默认使用微信头像
+  2. 昵称输入框 - 2-12个字符
+  3. 性别选择 - 男/女 单选
+  4. 是否有车 - 有车/无车 单选
+  5. 保存按钮 - 保存个人信息
 
-  组件结构：
-  - 头像上传
-  - 输入框
-  - 性别选择器
-  - 标签选择弹窗
-
-  参考：E:\beijing-travel\docs\缺失页面设计方案.md
+  参考：E:\beijing-travel\docs\design-spec.html
 -->
 
 <view class="container">
-  <!-- TODO: 实现编辑个人资料页面 -->
+  <!-- 顶部导航 -->
+  <view class="nav-header">
+    <view class="nav-back" bindtap="onBack">
+      <text class="back-icon">‹</text>
+    </view>
+    <view class="nav-title">完善个人信息</view>
+    <view class="nav-placeholder"></view>
+  </view>
+
+  <!-- 表单内容 -->
+  <view class="form-content">
+    <!-- 头像上传 -->
+    <view class="avatar-section">
+      <view class="avatar-upload" bindtap="onChooseAvatar">
+        <image class="avatar-image" src="{{userInfo.avatar || defaultAvatar}}" mode="aspectFill" wx:if="{{userInfo.avatar}}"></image>
+        <view class="avatar-placeholder" wx:else>
+          <text class="avatar-icon">📷</text>
+        </view>
+        <view class="avatar-tip">点击上传头像</view>
+      </view>
+    </view>
+
+    <!-- 表单卡片 -->
+    <view class="form-card">
+      <!-- 昵称 -->
+      <view class="form-item">
+        <view class="form-label">
+          <text>昵称</text>
+          <text class="required">*</text>
+        </view>
+        <input class="form-input" placeholder="请输入昵称（2-12个字符）" value="{{userInfo.nickname}}" maxlength="12" bindinput="onNicknameInput" />
+      </view>
+
+      <!-- 性别 -->
+      <view class="form-item">
+        <view class="form-label">
+          <text>性别</text>
+          <text class="required">*</text>
+        </view>
+        <view class="form-options">
+          <view class="option-item {{userInfo.gender === 'male' ? 'active' : ''}}" data-value="male" bindtap="onGenderChange">
+            <text>男</text>
+          </view>
+          <view class="option-item {{userInfo.gender === 'female' ? 'active' : ''}}" data-value="female" bindtap="onGenderChange">
+            <text>女</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 是否有车 -->
+      <view class="form-item">
+        <view class="form-label">
+          <text>是否有车</text>
+          <text class="required">*</text>
+        </view>
+        <view class="form-options">
+          <view class="option-item {{userInfo.hasCar === true ? 'active' : ''}}" data-value="true" bindtap="onCarChange">
+            <text>🚗 有车</text>
+          </view>
+          <view class="option-item {{userInfo.hasCar === false ? 'active' : ''}}" data-value="false" bindtap="onCarChange">
+            <text>无车</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 简介（可选） -->
+      <view class="form-item">
+        <view class="form-label">
+          <text>个人简介</text>
+        </view>
+        <textarea class="form-textarea" placeholder="介绍一下自己吧（选填，最多100字）" value="{{userInfo.bio}}" maxlength="100" bindinput="onBioInput" />
+        <view class="textarea-count">{{userInfo.bio.length || 0}}/100</view>
+      </view>
+    </view>
+
+    <!-- 保存按钮 -->
+    <view class="save-section">
+      <button class="save-btn" bindtap="onSave" loading="{{saving}}">完成</button>
+      <view class="save-tip" wx:if="{{isFirstLogin}}">点击返回将回到首页</view>
+    </view>
+  </view>
 </view>

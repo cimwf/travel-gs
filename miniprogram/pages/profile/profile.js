@@ -7,22 +7,11 @@ Page({
   data: {
     userInfo: null,
     isLoggedIn: false,
-    showLoginModal: false,
     stats: {
-      published: 0,
-      wanted: 0,
-      completed: 0
-    },
-    menuList: [
-      { icon: '📝', text: '我发布的行程', key: 'published' },
-      { icon: '📬', text: '我收到的申请', key: 'received' },
-      { icon: '📤', text: '我发起的申请', key: 'applied' }
-    ],
-    settingsList: [
-      { icon: '⚙️', text: '设置', key: 'settings' },
-      { icon: '❓', text: '帮助与反馈', key: 'help' },
-      { icon: 'ℹ️', text: '关于我们', key: 'about' }
-    ]
+      following: 0,
+      followers: 0,
+      trips: 0
+    }
   },
 
   onLoad: function () {
@@ -40,24 +29,25 @@ Page({
   checkLogin: function () {
     const isLoggedIn = app.globalData.isLoggedIn;
     const userInfo = app.globalData.userInfo;
-    this.setData({ isLoggedIn, userInfo });
+
+    // 获取存储的用户信息
+    const storedUserInfo = wx.getStorageSync('userInfo');
+
+    this.setData({
+      isLoggedIn,
+      userInfo: userInfo || storedUserInfo
+    });
   },
 
   // 加载用户统计
   loadUserStats: async function () {
     try {
-      // 获取我的行程
-      const tripsRes = await api.tripMy();
-      const published = tripsRes.trips.filter(t => t.creatorId === app.globalData.openid).length;
-      
-      // 获取想去的地方
-      const wantsRes = await api.wantList();
-      
+      // 模拟数据
       this.setData({
         stats: {
-          published,
-          wanted: wantsRes.wants.length,
-          completed: 0
+          following: 12,
+          followers: 28,
+          trips: 5
         }
       });
     } catch (err) {
@@ -70,46 +60,98 @@ Page({
     auth.goToLogin('/pages/profile/profile');
   },
 
-  // 菜单点击（检查登录）
-  onMenuTap: function (e) {
-    // 检查是否需要登录
+  // 编辑资料
+  onEditProfile: function () {
     if (!auth.checkNeedLogin()) {
-      // 已登录，执行实际操作
-      this.doMenuAction(e.currentTarget.dataset.key);
+      wx.navigateTo({
+        url: '/pages/edit-profile/edit-profile'
+      });
     } else {
-      // 未登录，跳转到登录页
       auth.goToLogin('/pages/profile/profile');
     }
   },
 
-  // 实际菜单操作
-  doMenuAction: function (key) {
-    switch (key) {
-      case 'published':
-        wx.showToast({ title: '我发布的行程', icon: 'none' });
-        break;
-      case 'received':
-        wx.showToast({ title: '我收到的申请', icon: 'none' });
-        break;
-      case 'applied':
-        wx.showToast({ title: '我发起的申请', icon: 'none' });
-        break;
-      case 'settings':
-        wx.showToast({ title: '设置', icon: 'none' });
-        break;
-      case 'help':
-        wx.showToast({ title: '帮助与反馈', icon: 'none' });
-        break;
-      case 'about':
-        wx.showToast({ title: '北京去哪玩 v1.0', icon: 'none' });
-        break;
+  // 我的行程
+  onTapMyTrips: function () {
+    if (!auth.checkNeedLogin()) {
+      wx.navigateTo({
+        url: '/pages/my-trips/my-trips'
+      });
+    } else {
+      auth.goToLogin('/pages/profile/profile');
     }
   },
 
-  // 保留原有方法兼容性
-  onEditProfile: function () {
+  // 我的收藏
+  onTapCollections: function () {
     if (!auth.checkNeedLogin()) {
       wx.showToast({ title: '功能开发中', icon: 'none' });
+    } else {
+      auth.goToLogin('/pages/profile/profile');
+    }
+  },
+
+  // 我的评论
+  onTapComments: function () {
+    if (!auth.checkNeedLogin()) {
+      wx.navigateTo({
+        url: '/pages/comments/comments'
+      });
+    } else {
+      auth.goToLogin('/pages/profile/profile');
+    }
+  },
+
+  // 关注/粉丝
+  onTapFollow: function () {
+    if (!auth.checkNeedLogin()) {
+      wx.navigateTo({
+        url: '/pages/followers/followers'
+      });
+    } else {
+      auth.goToLogin('/pages/profile/profile');
+    }
+  },
+
+  // 点击关注数
+  onTapFollowing: function () {
+    if (!auth.checkNeedLogin()) {
+      wx.navigateTo({
+        url: '/pages/followers/followers?tab=following'
+      });
+    } else {
+      auth.goToLogin('/pages/profile/profile');
+    }
+  },
+
+  // 点击粉丝数
+  onTapFollowers: function () {
+    if (!auth.checkNeedLogin()) {
+      wx.navigateTo({
+        url: '/pages/followers/followers?tab=followers'
+      });
+    } else {
+      auth.goToLogin('/pages/profile/profile');
+    }
+  },
+
+  // 点击行程数
+  onTapTrips: function () {
+    if (!auth.checkNeedLogin()) {
+      wx.navigateTo({
+        url: '/pages/my-trips/my-trips'
+      });
+    } else {
+      auth.goToLogin('/pages/profile/profile');
+    }
+  },
+
+  // 设置
+  onTapSettings: function () {
+    if (!auth.checkNeedLogin()) {
+      wx.navigateTo({
+        url: '/pages/settings/settings'
+      });
     } else {
       auth.goToLogin('/pages/profile/profile');
     }

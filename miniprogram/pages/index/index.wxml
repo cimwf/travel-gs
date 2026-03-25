@@ -1,4 +1,15 @@
-<!--pages/index/index.wxml-->
+<!--
+  首页 (index)
+  ================================
+  设计要点：
+  1. 搜索框 - 点击跳转搜索页
+  2. Banner轮播图 - 自动轮播展示热门活动/推荐地点
+  3. 地点列表 - 纵向滚动卡片列表
+  4. 无需登录即可访问
+
+  参考：E:\beijing-travel\docs\design-spec.html
+-->
+
 <view class="container">
   <!-- 顶部导航栏 -->
   <view class="nav-header">
@@ -8,17 +19,34 @@
 
   <!-- 搜索栏 -->
   <view class="search-bar">
-    <view class="search-input">
+    <view class="search-input" bindtap="onSearchTap">
       <text class="search-icon">🔍</text>
-      <input placeholder="搜索目的地..." bindconfirm="onSearch" confirm-type="search" />
+      <text class="search-placeholder">搜索目的地...</text>
     </view>
     <view class="publish-btn" bindtap="onPublishTap">
       <text>+</text>
     </view>
   </view>
 
+  <!-- Banner轮播图 -->
+  <view class="banner-section">
+    <swiper class="banner-swiper" indicator-dots="{{true}}" autoplay="{{true}}" interval="4000" duration="500" indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#FFFFFF">
+      <swiper-item wx:for="{{banners}}" wx:key="id">
+        <view class="banner-item" style="background: {{item.bgColor}};" data-id="{{item.id}}" data-type="{{item.type}}" bindtap="onBannerTap">
+          <view class="banner-content">
+            <view class="banner-icon">{{item.icon}}</view>
+            <view class="banner-text">
+              <view class="banner-title">{{item.title}}</view>
+              <view class="banner-desc">{{item.desc}}</view>
+            </view>
+          </view>
+        </view>
+      </swiper-item>
+    </swiper>
+  </view>
+
   <!-- 分类标签 -->
-  <scroll-view class="category-scroll" scroll-x>
+  <scroll-view class="category-scroll" scroll-x enhanced show-scrollbar="{{false}}">
     <view class="category-list">
       <view
         wx:for="{{categories}}"
@@ -33,7 +61,7 @@
   </scroll-view>
 
   <!-- 地点列表 -->
-  <scroll-view class="place-list" scroll-y>
+  <scroll-view class="place-list" scroll-y enhanced show-scrollbar="{{false}}" refresher-enabled="{{true}}" refresher-triggered="{{refreshing}}" bindrefresherrefresh="onPullDownRefresh">
     <block wx:if="{{!loading && places.length > 0}}">
       <view
         class="place-card"
@@ -45,18 +73,11 @@
         <image class="place-image" src="{{item.image}}" mode="aspectFill"></image>
         <view class="place-info">
           <view class="place-name">{{item.name}}</view>
+          <view class="place-desc">{{item.desc || '暂无简介'}}</view>
           <view class="place-meta">
-            <text class="distance">{{item.distance}}km</text>
-            <text class="difficulty">{{item.difficulty}}</text>
-          </view>
-          <view class="place-tags">
-            <text class="tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
-          </view>
-          <view class="place-footer">
-            <view class="want-count">
-              <text>❤️</text>
-              <text>{{item.wantCount}}人想去</text>
-            </view>
+            <text class="meta-item">📍 {{item.distance}}km</text>
+            <text class="meta-item">⚡ {{item.difficulty}}</text>
+            <text class="meta-item">⭐ {{item.rating || '4.5'}}</text>
           </view>
         </view>
       </view>
@@ -64,13 +85,17 @@
 
     <!-- 加载中 -->
     <view class="loading" wx:if="{{loading}}">
+      <view class="loading-spinner"></view>
       <text>加载中...</text>
     </view>
 
     <!-- 空状态 -->
     <view class="empty-state" wx:if="{{!loading && places.length === 0}}">
       <text class="empty-icon">📭</text>
-      <text>暂无地点数据</text>
+      <text class="empty-text">暂无地点数据</text>
     </view>
+
+    <!-- 底部安全区 -->
+    <view class="safe-bottom"></view>
   </scroll-view>
 </view>

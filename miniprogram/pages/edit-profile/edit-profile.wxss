@@ -1,0 +1,239 @@
+/* pages/edit-profile/edit-profile.wxss */
+
+/* ========================================
+   设计系统 - Design Token System
+   ======================================== */
+page {
+  --primary-color: #4A90E2;
+  --primary-light: #6BA3E8;
+  --primary-dark: #357ABD;
+  --primary-bg: rgba(74, 144, 226, 0.08);
+
+  --bg-color: #F5F7FA;
+  --card-bg: #FFFFFF;
+
+  --text-primary: #1A1A2E;
+  --text-secondary: #4A4A68;
+  --text-hint: #8E8EA0;
+
+  --border-color: #E8E8F0;
+  --divider-color: #F0F0F5;
+
+  --danger-color: #FF4D4F;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+
+  --radius-lg: 24rpx;
+  --radius-full: 9999rpx;
+}
+
+.container {
+  min-height: 100vh;
+  background: var(--bg-color);
+}
+
+/* 顶部导航 */
+.nav-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 48rpx 32rpx 32rpx;
+}
+
+.nav-back {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-icon {
+  font-size: 48rpx;
+  color: white;
+  font-weight: 300;
+}
+
+.nav-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: white;
+}
+
+.nav-placeholder {
+  width: 64rpx;
+}
+
+/* 表单内容 */
+.form-content {
+  padding: 32rpx;
+  margin-top: -16rpx;
+}
+
+/* 头像上传 */
+.avatar-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 32rpx;
+}
+
+.avatar-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.avatar-image, .avatar-placeholder {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  border: 4rpx dashed var(--border-color);
+  overflow: hidden;
+}
+
+.avatar-image {
+  border: none;
+}
+
+.avatar-icon {
+  font-size: 72rpx;
+}
+
+.avatar-tip {
+  font-size: 26rpx;
+  color: var(--text-hint);
+  margin-top: 16rpx;
+}
+
+/* 表单卡片 */
+.form-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 32rpx;
+  box-shadow: var(--shadow-sm);
+}
+
+.form-item {
+  margin-bottom: 32rpx;
+}
+
+.form-item:last-child {
+  margin-bottom: 0;
+}
+
+.form-label {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  margin-bottom: 16rpx;
+  font-weight: 500;
+}
+
+.required {
+  color: var(--danger-color);
+  margin-left: 8rpx;
+}
+
+.form-input {
+  width: 100%;
+  padding: 28rpx;
+  background: var(--bg-color);
+  border-radius: var(--radius-lg);
+  font-size: 32rpx;
+  color: var(--text-primary);
+  border: 2rpx solid transparent;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  border-color: var(--primary-color);
+  background: white;
+}
+
+/* 选项按钮 */
+.form-options {
+  display: flex;
+  gap: 24rpx;
+}
+
+.option-item {
+  flex: 1;
+  padding: 28rpx;
+  background: var(--bg-color);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  font-size: 32rpx;
+  color: var(--text-secondary);
+  font-weight: 500;
+  border: 2rpx solid transparent;
+  transition: all 0.2s ease;
+}
+
+.option-item.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+/* 文本域 */
+.form-textarea {
+  width: 100%;
+  height: 200rpx;
+  padding: 28rpx;
+  background: var(--bg-color);
+  border-radius: var(--radius-lg);
+  font-size: 30rpx;
+  color: var(--text-primary);
+  border: 2rpx solid transparent;
+  box-sizing: border-box;
+}
+
+.form-textarea:focus {
+  border-color: var(--primary-color);
+  background: white;
+}
+
+.textarea-count {
+  text-align: right;
+  font-size: 24rpx;
+  color: var(--text-hint);
+  margin-top: 8rpx;
+}
+
+/* 保存按钮 */
+.save-section {
+  margin-top: 48rpx;
+}
+
+.save-btn {
+  width: 100%;
+  padding: 32rpx;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  color: white;
+  font-size: 34rpx;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-full);
+  box-shadow: 0 8rpx 24rpx rgba(74, 144, 226, 0.35);
+}
+
+.save-btn::after {
+  border: none;
+}
+
+.save-btn[loading] {
+  opacity: 0.8;
+}
+
+.save-tip {
+  text-align: center;
+  font-size: 26rpx;
+  color: var(--text-hint);
+  margin-top: 24rpx;
+}
