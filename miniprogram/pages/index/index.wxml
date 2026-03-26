@@ -6,25 +6,17 @@
   2. Banner轮播图 - 自动轮播展示热门活动/推荐地点
   3. 地点列表 - 纵向滚动卡片列表
   4. 无需登录即可访问
+  5. 底部Tab Bar
 
   参考：E:\beijing-travel\docs\design-spec.html
 -->
 
 <view class="container">
-  <!-- 顶部导航栏 -->
-  <view class="nav-header">
-    <view class="nav-title">北京去哪玩</view>
-    <view class="nav-subtitle">发现周边好去处</view>
-  </view>
-
   <!-- 搜索栏 -->
-  <view class="search-bar">
-    <view class="search-input" bindtap="onSearchTap">
+  <view class="search-section">
+    <view class="search-bar" bindtap="onSearchTap">
       <text class="search-icon">🔍</text>
-      <text class="search-placeholder">搜索目的地...</text>
-    </view>
-    <view class="publish-btn" bindtap="onPublishTap">
-      <text>+</text>
+      <text class="search-placeholder">搜索地点、目的地</text>
     </view>
   </view>
 
@@ -33,32 +25,11 @@
     <swiper class="banner-swiper" indicator-dots="{{true}}" autoplay="{{true}}" interval="4000" duration="500" indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#FFFFFF">
       <swiper-item wx:for="{{banners}}" wx:key="id">
         <view class="banner-item" style="background: {{item.bgColor}};" data-id="{{item.id}}" data-type="{{item.type}}" bindtap="onBannerTap">
-          <view class="banner-content">
-            <view class="banner-icon">{{item.icon}}</view>
-            <view class="banner-text">
-              <view class="banner-title">{{item.title}}</view>
-              <view class="banner-desc">{{item.desc}}</view>
-            </view>
-          </view>
+          <text class="banner-title">{{item.icon}} {{item.title}}</text>
         </view>
       </swiper-item>
     </swiper>
   </view>
-
-  <!-- 分类标签 -->
-  <scroll-view class="category-scroll" scroll-x enhanced show-scrollbar="{{false}}">
-    <view class="category-list">
-      <view
-        wx:for="{{categories}}"
-        wx:key="index"
-        class="category-item {{currentCategory === index ? 'active' : ''}}"
-        data-index="{{index}}"
-        bindtap="onCategoryChange"
-      >
-        {{item}}
-      </view>
-    </view>
-  </scroll-view>
 
   <!-- 地点列表 -->
   <scroll-view class="place-list" scroll-y enhanced show-scrollbar="{{false}}" refresher-enabled="{{true}}" refresher-triggered="{{refreshing}}" bindrefresherrefresh="onPullDownRefresh">
@@ -70,7 +41,9 @@
         data-id="{{item._id}}"
         bindtap="onPlaceTap"
       >
-        <image class="place-image" src="{{item.image}}" mode="aspectFill"></image>
+        <view class="place-image" style="background: {{item.bgColor || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}};">
+          <text class="place-icon">{{item.icon || '🏔️'}}</text>
+        </view>
         <view class="place-info">
           <view class="place-name">{{item.name}}</view>
           <view class="place-desc">{{item.desc || '暂无简介'}}</view>
