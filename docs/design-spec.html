@@ -887,10 +887,10 @@
       
       <!-- 1. 登录授权页 -->
       <h3 style="margin: 32px 0 16px; font-size: 20px;">1. 登录授权页</h3>
-      <p style="opacity: 0.7; margin-bottom: 16px;">✅ 无需登录 | 微信手机号一键登录</p>
+      <p style="opacity: 0.7; margin-bottom: 16px;">✅ 无需登录 | 手机号验证码登录</p>
       <div class="screens-grid">
         <div class="screen-wrapper">
-          <div class="screen-title">登录授权页</div>
+          <div class="screen-title">登录授权页 - 初始状态</div>
           <div class="phone-frame">
             <div style="height: 100%; display: flex; flex-direction: column; background: linear-gradient(180deg, #4A90E2 0%, #667eea 50%, #764ba2 100%);">
               <div class="status-bar" style="background: transparent; color: white;">
@@ -901,17 +901,77 @@
                 <div style="width: 80px; height: 80px; background: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">🏔️</div>
                 <h2 style="font-size: 28px; margin-bottom: 8px; font-weight: 700;">北京去哪玩</h2>
                 <p style="font-size: 14px; opacity: 0.9; margin-bottom: 30px;">发现北京周边好去处</p>
-                <div style="background: rgba(255,255,255,0.15); padding: 20px; border-radius: 16px; margin-bottom: 30px; backdrop-filter: blur(10px);">
-                  <p style="font-size: 14px; line-height: 2; text-align: left;">
-                    🚗 找搭子一起出行<br>
-                    📍 发现周边好玩地点<br>
-                    💬 行程沟通更便捷<br>
-                    ⭐ 收藏你的心动地点
-                  </p>
+                
+                <!-- 手机号输入区 -->
+                <div style="width: 100%; background: white; border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+                  <div style="margin-bottom: 16px;">
+                    <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500; text-align: left;">手机号</label>
+                    <div style="display: flex; align-items: center; background: #F5F7FA; border-radius: 12px; padding: 0 16px;">
+                      <span style="font-size: 15px; color: #1A1A2E; font-weight: 500;">+86</span>
+                      <span style="margin: 0 8px; color: #E8E8F0;">|</span>
+                      <input type="text" placeholder="请输入手机号" style="flex: 1; border: none; background: transparent; font-size: 16px; color: #1A1A2E; outline: none; padding: 14px 0;" />
+                    </div>
+                  </div>
+                  
+                  <div style="margin-bottom: 20px;">
+                    <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500; text-align: left;">验证码</label>
+                    <div style="display: flex; gap: 12px;">
+                      <input type="text" placeholder="请输入验证码" style="flex: 1; border: 1px solid #E8E8F0; border-radius: 12px; padding: 14px 16px; font-size: 16px; background: #F5F7FA; outline: none;" />
+                      <button style="padding: 14px 20px; background: #4A90E2; color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: 500; white-space: nowrap;">获取验证码</button>
+                    </div>
+                  </div>
+                  
+                  <button style="width: 100%; padding: 16px; background: #4A90E2; border: none; border-radius: 50px; font-size: 17px; font-weight: 600; color: white; opacity: 0.5; cursor: not-allowed;">
+                    登录
+                  </button>
                 </div>
-                <button style="width: 100%; padding: 16px; background: white; border: none; border-radius: 50px; font-size: 17px; font-weight: 600; color: #4A90E2; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
-                  📱 微信手机号登录
+                
+                <button style="width: 100%; padding: 14px; background: transparent; border: 1px solid rgba(255,255,255,0.3); border-radius: 50px; font-size: 15px; color: white; margin-bottom: 12px;">
+                  暂不登录
                 </button>
+                <p style="font-size: 11px; opacity: 0.7; line-height: 1.6;">登录即表示同意<span style="text-decoration: underline;">《用户协议》</span>和<span style="text-decoration: underline;">《隐私政策》</span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="screen-wrapper">
+          <div class="screen-title">登录授权页 - 输入中</div>
+          <div class="phone-frame">
+            <div style="height: 100%; display: flex; flex-direction: column; background: linear-gradient(180deg, #4A90E2 0%, #667eea 50%, #764ba2 100%);">
+              <div class="status-bar" style="background: transparent; color: white;">
+                <span>9:41</span>
+                <span>📶 🔋</span>
+              </div>
+              <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 30px; color: white; text-align: center;">
+                <div style="width: 80px; height: 80px; background: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">🏔️</div>
+                <h2 style="font-size: 28px; margin-bottom: 8px; font-weight: 700;">北京去哪玩</h2>
+                <p style="font-size: 14px; opacity: 0.9; margin-bottom: 30px;">发现北京周边好去处</p>
+                
+                <!-- 手机号输入区 - 已输入 -->
+                <div style="width: 100%; background: white; border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+                  <div style="margin-bottom: 16px;">
+                    <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500; text-align: left;">手机号</label>
+                    <div style="display: flex; align-items: center; background: #F5F7FA; border-radius: 12px; padding: 0 16px;">
+                      <span style="font-size: 15px; color: #1A1A2E; font-weight: 500;">+86</span>
+                      <span style="margin: 0 8px; color: #E8E8F0;">|</span>
+                      <input type="text" value="138****8888" style="flex: 1; border: none; background: transparent; font-size: 16px; color: #1A1A2E; outline: none; padding: 14px 0;" />
+                    </div>
+                  </div>
+                  
+                  <div style="margin-bottom: 20px;">
+                    <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500; text-align: left;">验证码</label>
+                    <div style="display: flex; gap: 12px;">
+                      <input type="text" value="123" placeholder="请输入验证码" style="flex: 1; border: 1px solid #4A90E2; border-radius: 12px; padding: 14px 16px; font-size: 16px; background: #F5F7FA; outline: none;" />
+                      <button style="padding: 14px 20px; background: #8E8EA0; color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: 500; white-space: nowrap;">59秒后重发</button>
+                    </div>
+                  </div>
+                  
+                  <button style="width: 100%; padding: 16px; background: #4A90E2; border: none; border-radius: 50px; font-size: 17px; font-weight: 600; color: white;">
+                    登录
+                  </button>
+                </div>
+                
                 <button style="width: 100%; padding: 14px; background: transparent; border: 1px solid rgba(255,255,255,0.3); border-radius: 50px; font-size: 15px; color: white; margin-bottom: 12px;">
                   暂不登录
                 </button>
@@ -1140,6 +1200,12 @@
             <th style="padding: 12px 16px; text-align: left; color: rgba(255,255,255,0.6); font-weight: 500;">日期</th>
             <th style="padding: 12px 16px; text-align: left; color: rgba(255,255,255,0.6); font-weight: 500;">作者</th>
             <th style="padding: 12px 16px; text-align: left; color: rgba(255,255,255,0.6); font-weight: 500;">变更内容</th>
+          </tr>
+          <tr>
+            <td style="padding: 12px 16px; font-weight: 600;">v1.0.1</td>
+            <td style="padding: 12px 16px; opacity: 0.8;">2026-03-29</td>
+            <td style="padding: 12px 16px; opacity: 0.8;">设计团队</td>
+            <td style="padding: 12px 16px; opacity: 0.8;">登录页面重设计：从微信一键登录改为手机号验证码登录</td>
           </tr>
           <tr>
             <td style="padding: 12px 16px; font-weight: 600;">v1.0.0</td>

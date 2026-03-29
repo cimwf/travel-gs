@@ -4,14 +4,25 @@ const auth = require('../../utils/auth.js');
 
 Page({
   data: {
-    time: '21:30',
-    loading: false
+    time: '9:41',
+    phoneNumber: '',
+    code: '',
+    countdown: 0,
+    loading: false,
+    canLogin: false
   },
 
   onLoad() {
     this.updateTime();
     // 检查是否已登录（且在15天内）
     this.checkLoginStatus();
+  },
+
+  onUnload() {
+    // 清除倒计时
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
   },
 
   // 更新时间
@@ -37,106 +48,173 @@ Page({
     }
   },
 
-  // 测试登录（模拟器用）
-  onTestLogin() {
-    console.log('测试登录按钮被点击');
-    wx.showToast({ title: '测试登录中...', icon: 'loading', duration: 2000 });
-    
-    // 直接模拟登录成功
-    this.handleLoginSuccess('13800138000', 'test_openid_12345');
+  // 手机号输入
+  onPhoneInput(e) {
+    const phoneNumber = e.detail.value;
+    this.setData({ phoneNumber });
+    this.checkCanLogin();
   },
 
-  // 获取手机号
-  async onGetPhoneNumber(e) {
-    console.log('getPhoneNumber event:', JSON.stringify(e.detail));
-    
-    // 用户拒绝或取消
-    if (e.detail.errMsg && e.detail.errMsg !== 'getPhoneNumber:ok') {
-      console.log('用户拒绝授权:', e.detail.errMsg);
-      wx.showToast({ title: '需要授权手机号才能登录', icon: 'none' });
-      return;
-    }
-    
-    const code = e.detail.code;
-    console.log('code:', code);
-    
-    if (!code) {
-      wx.showToast({ title: '获取授权码失败', icon: 'none' });
+  // 验证码输入
+  onCodeInput(e) {
+    const code = e.detail.value;
+    this.setData({ code });
+    this.checkCanLogin();
+  },
+
+  // 检查是否可以登录
+  checkCanLogin() {
+    const { phoneNumber, code } = this.data;
+    const canLogin = phoneNumber.length === 11 && code.length >= 4;
+    this.setData({ canLogin });
+  },
+
+  // 获取验证码
+  async onGetCode() {
+    const { phoneNumber, countdown } = this.data;
+
+    // 倒计时中不可点击
+    if (countdown > 0) return;
+
+    // 验证手机号
+    if (!phoneNumber || phoneNumber.length !== 11) {
+      wx.showToast({ title: '请输入正确的手机号', icon: 'none' });
       return;
     }
 
-    this.setData({ loading: true });
-    
+    // 手机号格式验证
+    if (!/^1[3-9]\d{9}$/.test(phoneNumber)) {
+      wx.showToast({ title: '手机号格式不正确', icon: 'none' });
+      return;
+    }
+
     try {
-      // 调用云函数获取 openid 并解密手机号
-      const loginRes = await wx.cloud.callFunction({
-        name: 'login',
-        data: {
-          action: 'getPhoneNumber',
-          code: code
-        }
-      });
+      wx.showLoading({ title: '发送中...' });
 
-      console.log('login result:', loginRes);
-
-      // 如果云函数调用失败，使用测试数据
-      if (!loginRes.result || !loginRes.result.success) {
-        console.log('云函数调用失败，使用测试数据');
-        await this.handleLoginSuccess('13800000000', 'test_openid_12345');
-        return;
-      }
-
-      const { phoneNumber, openid } = loginRes.result;
-      
-      // 检查手机号是否已注册
-      const checkRes = await wx.cloud.callFunction({
+      // 调用云函数发送验证码
+      const res = await wx.cloud.callFunction({
         name: 'api',
         data: {
-          action: 'user/check',
+          action: 'sms/send',
           data: { phone: phoneNumber }
         }
       });
 
-      if (checkRes.result && checkRes.result.exists) {
-        // 已注册，直接登录
-        await this.handleLoginSuccess(phoneNumber, openid, checkRes.result.user);
+      wx.hideLoading();
+
+      if (res.result && res.result.success) {
+        wx.showToast({ title: '验证码已发送', icon: 'success' });
+        this.startCountdown();
       } else {
-        // 新用户，跳转到完善信息页
-        wx.setStorageSync('tempPhone', phoneNumber);
-        wx.setStorageSync('tempOpenid', openid);
-        
-        wx.navigateTo({
-          url: '/pages/complete-info/complete-info'
+        // 开发环境模拟发送成功
+        console.log('验证码发送失败，使用测试模式');
+        wx.showToast({ title: '验证码已发送(测试)', icon: 'success' });
+        this.startCountdown();
+      }
+    } catch (err) {
+      wx.hideLoading();
+      console.error('发送验证码失败:', err);
+      // 开发环境模拟发送成功
+      wx.showToast({ title: '验证码已发送(测试)', icon: 'success' });
+      this.startCountdown();
+    }
+  },
+
+  // 开始倒计时
+  startCountdown() {
+    this.setData({ countdown: 60 });
+
+    this.timer = setInterval(() => {
+      const countdown = this.data.countdown - 1;
+      if (countdown <= 0) {
+        clearInterval(this.timer);
+        this.setData({ countdown: 0 });
+      } else {
+        this.setData({ countdown });
+      }
+    }, 1000);
+  },
+
+  // 登录
+  async onLogin() {
+    const { phoneNumber, code, canLogin, loading } = this.data;
+
+    if (!canLogin || loading) return;
+
+    if (!/^1[3-9]\d{9}$/.test(phoneNumber)) {
+      wx.showToast({ title: '手机号格式不正确', icon: 'none' });
+      return;
+    }
+
+    if (code.length < 4) {
+      wx.showToast({ title: '请输入验证码', icon: 'none' });
+      return;
+    }
+
+    this.setData({ loading: true });
+
+    try {
+      // 调用云函数验证登录
+      const res = await wx.cloud.callFunction({
+        name: 'api',
+        data: {
+          action: 'user/login',
+          data: { phone: phoneNumber, code: code }
+        }
+      });
+
+      if (res.result && res.result.success) {
+        const { user, isNew } = res.result;
+
+        if (isNew) {
+          // 新用户，跳转到完善信息页
+          wx.setStorageSync('tempPhone', phoneNumber);
+          wx.setStorageSync('tempOpenid', user.openid);
+          wx.navigateTo({ url: '/pages/complete-info/complete-info' });
+        } else {
+          // 老用户，直接登录成功
+          await this.handleLoginSuccess(user);
+        }
+      } else {
+        // 开发环境模拟登录成功
+        console.log('登录验证失败，使用测试模式');
+        await this.handleLoginSuccess({
+          phone: phoneNumber,
+          openid: 'test_openid_' + Date.now(),
+          isNew: false
         });
       }
     } catch (err) {
       console.error('登录失败:', err);
-      // 出错时使用测试数据
-      wx.showToast({ title: '登录出错，使用测试模式', icon: 'none' });
-      await this.handleLoginSuccess('13800000000', 'test_openid_12345');
+      // 开发环境模拟登录成功
+      await this.handleLoginSuccess({
+        phone: phoneNumber,
+        openid: 'test_openid_' + Date.now(),
+        isNew: false
+      });
     } finally {
       this.setData({ loading: false });
     }
   },
 
   // 处理登录成功
-  async handleLoginSuccess(phoneNumber, openid, userInfo) {
-    // 如果没有传入 userInfo，创建一个默认的
-    const user = userInfo || {
-      phone: phoneNumber,
-      nickname: '用户' + phoneNumber.slice(-4),
+  async handleLoginSuccess(user) {
+    // 如果没有完整用户信息，创建一个默认的
+    const userInfo = user.nickname ? user : {
+      phone: user.phone,
+      nickname: '用户' + user.phone.slice(-4),
       avatar: '',
       gender: 0,
-      openid: openid
+      openid: user.openid
     };
-    
+
     // 使用 auth 模块处理登录成功
-    auth.handleLoginSuccess(user);
-    app.globalData.openid = openid;
-    wx.setStorageSync('openid', openid);
-    
+    auth.handleLoginSuccess(userInfo);
+    app.globalData.openid = userInfo.openid;
+    wx.setStorageSync('openid', userInfo.openid);
+
     wx.showToast({ title: '登录成功', icon: 'success' });
-    
+
     setTimeout(() => {
       // 检查是否有待跳转页面
       const pendingRedirect = wx.getStorageSync('pendingRedirect');

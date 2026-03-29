@@ -8,6 +8,8 @@ page {
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #4A90E2 0%, #667eea 50%, #764ba2 100%);
+  padding-left: 40rpx;
+  padding-right: 40rpx;
 }
 
 /* 状态栏 */
@@ -16,10 +18,9 @@ page {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 24px;
   color: white;
   font-size: 14px;
-  font-weight: 500;
 }
 
 .status-bar .time {
@@ -37,115 +38,168 @@ page {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   padding: 40px 30px;
+  color: white;
+  text-align: center;
 }
 
 /* Logo */
 .auth-logo {
-  width: 100px;
-  height: 100px;
+  width: 80px;
+  height: 80px;
   background: white;
-  border-radius: 24px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 48px;
-  margin-bottom: 24px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  font-size: 40px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
 }
 
 /* 标题 */
 .auth-title {
   font-size: 28px;
   font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.auth-subtitle {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: 30px;
+}
+
+/* 登录表单卡片 */
+.auth-form-card {
+  width: 100%;
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+/* 表单项 */
+.form-item {
+  margin-bottom: 16px;
+}
+
+.form-item:last-of-type {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  font-size: 13px;
+  color: #4A4A68;
+  margin-bottom: 8px;
+  font-weight: 500;
+  text-align: left;
+}
+
+/* 手机号输入 */
+.phone-input-wrap {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  background: #F5F7FA;
+  border-radius: 12px;
+  padding: 0 16px;
+}
+
+.phone-prefix {
+  font-size: 15px;
+  color: #1A1A2E;
+  font-weight: 500;
+}
+
+.phone-divider {
+  margin: 0 8px;
+  color: #E8E8F0;
+}
+
+.phone-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  color: #1A1A2E;
+  padding: 14px 0;
+  text-align: left;
+}
+
+/* 验证码输入 */
+.code-input-wrap {
+  display: flex;
+  gap: 12px;
+}
+
+.code-input {
+  flex: 1;
+  border: 1px solid #E8E8F0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 16px;
+  background: #F5F7FA;
+  text-align: left;
+}
+
+.code-input:focus {
+  border-color: #4A90E2;
+}
+
+.code-btn {
+  padding: 14px 20px;
+  background: #4A90E2;
+  color: white;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.code-btn.disabled {
+  background: #8E8EA0;
+}
+
+/* 登录按钮 */
+.login-btn {
+  width: 100%;
+  background: #4A90E2;
+  border: none;
+  border-radius: 50px;
+  font-size: 17px;
+}
+
+.login-btn button {
+  background: #4A90E2;
+  color: white;
+}
+
+.login-btn.disabled {
+  opacity: 0.5;
+}
+
+/* 暂不登录按钮 */
+.skip-btn {
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 50px;
+  font-size: 15px;
   color: white;
   margin-bottom: 12px;
 }
 
-.auth-subtitle {
-  font-size: 15px;
-  color: rgba(255,255,255,0.9);
-  margin-bottom: 4px;
-}
-
-/* 价值引导 */
-.auth-tagline {
-  background: rgba(255,255,255,0.15);
-  padding: 20px 28px;
-  border-radius: 12px;
-  margin: 32px 0;
-  width: 100%;
-}
-
-.tagline-item {
-  font-size: 14px;
-  color: rgba(255,255,255,0.95);
-  line-height: 2;
-  text-align: center;
-}
-
-/* 登录按钮 */
-.auth-btn {
-  width: 100%;
-  background: white;
-  border: none;
-  border-radius: 30px;
-  font-size: 17px;
-  color: #4A90E2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-  overflow: hidden;
-}
-
-.auth-btn button {
-  width: 100%;
-  height: 100%;
-  background: white;
-}
-
-.auth-btn::after {
-  border: none;
-}
-
-.auth-btn[loading] {
-  opacity: 0.7;
-}
-
-.test-btn {
-  margin-top: 20px;
-  background: rgba(255,255,255,0.2) !important;
-  color: white !important;
-  border: 1px solid rgba(255,255,255,0.5);
-}
-
-.btn-icon {
-  font-size: 20px;
-}
-
 /* 协议 */
 .auth-agreement {
-  margin-top: 24px;
-  text-align: center;
-  font-size: 12px;
-  color: rgba(255,255,255,0.8);
-  line-height: 1.8;
+  font-size: 11px;
+  opacity: 0.7;
+  line-height: 1.6;
 }
 
 .auth-agreement .link {
   text-decoration: underline;
-}
-
-/* 底部 */
-.auth-footer {
-  padding: 20px 30px 40px;
-  text-align: center;
-}
-
-.skip-btn {
-  font-size: 14px;
-  color: rgba(255,255,255,0.8);
-  padding: 12px;
 }
