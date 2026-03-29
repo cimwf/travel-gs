@@ -887,10 +887,10 @@
       
       <!-- 1. 登录授权页 -->
       <h3 style="margin: 32px 0 16px; font-size: 20px;">1. 登录授权页</h3>
-      <p style="opacity: 0.7; margin-bottom: 16px;">✅ 无需登录 | 手机号验证码登录</p>
+      <p style="opacity: 0.7; margin-bottom: 16px;">✅ 无需登录 | 账号密码登录</p>
       <div class="screens-grid">
         <div class="screen-wrapper">
-          <div class="screen-title">登录授权页 - 初始状态</div>
+          <div class="screen-title">登录页 - 初始状态</div>
           <div class="phone-frame">
             <div style="height: 100%; display: flex; flex-direction: column; background: linear-gradient(180deg, #4A90E2 0%, #667eea 50%, #764ba2 100%);">
               <div class="status-bar" style="background: transparent; color: white;">
@@ -902,28 +902,44 @@
                 <h2 style="font-size: 28px; margin-bottom: 8px; font-weight: 700;">北京去哪玩</h2>
                 <p style="font-size: 14px; opacity: 0.9; margin-bottom: 30px;">发现北京周边好去处</p>
                 
-                <!-- 手机号输入区 -->
-                <div style="width: 100%; background: white; border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+                <!-- 账号密码登录区 -->
+                <div style="width: 100%; background: white; border-radius: 16px; padding: 24px; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
                   <div style="margin-bottom: 16px;">
-                    <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500; text-align: left;">手机号</label>
+                    <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500; text-align: left;">账号</label>
                     <div style="display: flex; align-items: center; background: #F5F7FA; border-radius: 12px; padding: 0 16px;">
-                      <span style="font-size: 15px; color: #1A1A2E; font-weight: 500;">+86</span>
-                      <span style="margin: 0 8px; color: #E8E8F0;">|</span>
-                      <input type="text" placeholder="请输入手机号" style="flex: 1; border: none; background: transparent; font-size: 16px; color: #1A1A2E; outline: none; padding: 14px 0;" />
+                      <span style="font-size: 18px; margin-right: 10px;">👤</span>
+                      <input type="text" placeholder="请输入手机号/用户名" style="flex: 1; border: none; background: transparent; font-size: 16px; color: #1A1A2E; outline: none; padding: 14px 0;" />
                     </div>
                   </div>
                   
-                  <div style="margin-bottom: 20px;">
-                    <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500; text-align: left;">验证码</label>
-                    <div style="display: flex; gap: 12px;">
-                      <input type="text" placeholder="请输入验证码" style="flex: 1; border: 1px solid #E8E8F0; border-radius: 12px; padding: 14px 16px; font-size: 16px; background: #F5F7FA; outline: none;" />
-                      <button style="padding: 14px 20px; background: #4A90E2; color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: 500; white-space: nowrap;">获取验证码</button>
+                  <div style="margin-bottom: 12px;">
+                    <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500; text-align: left;">密码</label>
+                    <div style="display: flex; align-items: center; background: #F5F7FA; border-radius: 12px; padding: 0 16px;">
+                      <span style="font-size: 18px; margin-right: 10px;">🔒</span>
+                      <input type="password" placeholder="请输入密码" style="flex: 1; border: none; background: transparent; font-size: 16px; color: #1A1A2E; outline: none; padding: 14px 0;" />
+                      <!-- 密码可见切换按钮 - 闭眼状态 -->
+                      <div style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 8px; transition: background 0.2s;" onmouseover="this.style.background='rgba(74,144,226,0.1)'" onmouseout="this.style.background='transparent'">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 4.5C7 4.5 2.73 7.61 1 12C2.73 16.39 7 19.5 12 19.5C17 19.5 21.27 16.39 23 12C21.27 7.61 17 4.5 12 4.5Z" stroke="#8E8EA0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          <path d="M12 15C13.66 15 15 13.66 15 12C15 10.34 13.66 9 12 9C10.34 9 9 10.34 9 12C9 13.66 10.34 15 12 15Z" stroke="#8E8EA0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          <line x1="3" y1="3" x2="21" y2="21" stroke="#8E8EA0" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                      </div>
                     </div>
                   </div>
                   
-                  <button style="width: 100%; padding: 16px; background: #4A90E2; border: none; border-radius: 50px; font-size: 17px; font-weight: 600; color: white; opacity: 0.5; cursor: not-allowed;">
+                  <div style="text-align: right; margin-bottom: 20px;">
+                    <a href="#" style="font-size: 13px; color: #4A90E2; text-decoration: none;">忘记密码？</a>
+                  </div>
+                  
+                  <button style="width: 100%; padding: 16px; background: #4A90E2; border: none; border-radius: 50px; font-size: 17px; font-weight: 600; color: white;">
                     登录
                   </button>
+                </div>
+                
+                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px;">
+                  <span style="font-size: 14px; opacity: 0.8;">还没有账号？</span>
+                  <a href="#" style="font-size: 14px; color: white; font-weight: 600; text-decoration: underline;">立即注册</a>
                 </div>
                 
                 <button style="width: 100%; padding: 14px; background: transparent; border: 1px solid rgba(255,255,255,0.3); border-radius: 50px; font-size: 15px; color: white; margin-bottom: 12px;">
@@ -936,7 +952,7 @@
         </div>
         
         <div class="screen-wrapper">
-          <div class="screen-title">登录授权页 - 输入中</div>
+          <div class="screen-title">登录页 - 密码可见状态</div>
           <div class="phone-frame">
             <div style="height: 100%; display: flex; flex-direction: column; background: linear-gradient(180deg, #4A90E2 0%, #667eea 50%, #764ba2 100%);">
               <div class="status-bar" style="background: transparent; color: white;">
@@ -948,28 +964,43 @@
                 <h2 style="font-size: 28px; margin-bottom: 8px; font-weight: 700;">北京去哪玩</h2>
                 <p style="font-size: 14px; opacity: 0.9; margin-bottom: 30px;">发现北京周边好去处</p>
                 
-                <!-- 手机号输入区 - 已输入 -->
-                <div style="width: 100%; background: white; border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+                <!-- 账号密码登录区 -->
+                <div style="width: 100%; background: white; border-radius: 16px; padding: 24px; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
                   <div style="margin-bottom: 16px;">
-                    <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500; text-align: left;">手机号</label>
+                    <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500; text-align: left;">账号</label>
                     <div style="display: flex; align-items: center; background: #F5F7FA; border-radius: 12px; padding: 0 16px;">
-                      <span style="font-size: 15px; color: #1A1A2E; font-weight: 500;">+86</span>
-                      <span style="margin: 0 8px; color: #E8E8F0;">|</span>
+                      <span style="font-size: 18px; margin-right: 10px;">👤</span>
                       <input type="text" value="138****8888" style="flex: 1; border: none; background: transparent; font-size: 16px; color: #1A1A2E; outline: none; padding: 14px 0;" />
                     </div>
                   </div>
                   
-                  <div style="margin-bottom: 20px;">
-                    <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500; text-align: left;">验证码</label>
-                    <div style="display: flex; gap: 12px;">
-                      <input type="text" value="123" placeholder="请输入验证码" style="flex: 1; border: 1px solid #4A90E2; border-radius: 12px; padding: 14px 16px; font-size: 16px; background: #F5F7FA; outline: none;" />
-                      <button style="padding: 14px 20px; background: #8E8EA0; color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: 500; white-space: nowrap;">59秒后重发</button>
+                  <div style="margin-bottom: 12px;">
+                    <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500; text-align: left;">密码</label>
+                    <div style="display: flex; align-items: center; background: #F5F7FA; border-radius: 12px; padding: 0 16px;">
+                      <span style="font-size: 18px; margin-right: 10px;">🔓</span>
+                      <input type="text" value="Abc@123456" style="flex: 1; border: none; background: transparent; font-size: 16px; color: #1A1A2E; outline: none; padding: 14px 0;" />
+                      <!-- 密码可见切换按钮 - 睁眼状态 -->
+                      <div style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 8px; transition: background 0.2s;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="#8E8EA0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          <circle cx="12" cy="12" r="3" stroke="#8E8EA0" stroke-width="2"/>
+                        </svg>
+                      </div>
                     </div>
+                  </div>
+                  
+                  <div style="text-align: right; margin-bottom: 20px;">
+                    <a href="#" style="font-size: 13px; color: #4A90E2; text-decoration: none;">忘记密码？</a>
                   </div>
                   
                   <button style="width: 100%; padding: 16px; background: #4A90E2; border: none; border-radius: 50px; font-size: 17px; font-weight: 600; color: white;">
                     登录
                   </button>
+                </div>
+                
+                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px;">
+                  <span style="font-size: 14px; opacity: 0.8;">还没有账号？</span>
+                  <a href="#" style="font-size: 14px; color: white; font-weight: 600; text-decoration: underline;">立即注册</a>
                 </div>
                 
                 <button style="width: 100%; padding: 14px; background: transparent; border: 1px solid rgba(255,255,255,0.3); border-radius: 50px; font-size: 15px; color: white; margin-bottom: 12px;">
@@ -980,6 +1011,166 @@
             </div>
           </div>
         </div>
+        
+        <div class="screen-wrapper">
+          <div class="screen-title">注册页</div>
+          <div class="phone-frame">
+            <div style="height: 100%; display: flex; flex-direction: column; background: linear-gradient(180deg, #4A90E2 0%, #667eea 50%, #764ba2 100%);">
+              <div class="status-bar" style="background: transparent; color: white;">
+                <span>9:41</span>
+                <span>📶 🔋</span>
+              </div>
+              <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 30px; color: white; text-align: center;">
+                <h2 style="font-size: 24px; margin-bottom: 30px; font-weight: 700;">创建账号</h2>
+                
+                <!-- 注册表单 -->
+                <div style="width: 100%; background: white; border-radius: 16px; padding: 24px; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+                  <div style="margin-bottom: 16px;">
+                    <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500; text-align: left;">手机号</label>
+                    <div style="display: flex; align-items: center; background: #F5F7FA; border-radius: 12px; padding: 0 16px;">
+                      <span style="font-size: 18px; margin-right: 10px;">📱</span>
+                      <input type="text" placeholder="请输入手机号" style="flex: 1; border: none; background: transparent; font-size: 16px; color: #1A1A2E; outline: none; padding: 14px 0;" />
+                    </div>
+                  </div>
+                  
+                  <div style="margin-bottom: 16px;">
+                    <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500; text-align: left;">设置密码</label>
+                    <div style="display: flex; align-items: center; background: #F5F7FA; border-radius: 12px; padding: 0 16px;">
+                      <span style="font-size: 18px; margin-right: 10px;">🔒</span>
+                      <input type="password" placeholder="8-20位，含字母和数字" style="flex: 1; border: none; background: transparent; font-size: 16px; color: #1A1A2E; outline: none; padding: 14px 0;" />
+                      <!-- 密码可见切换按钮 - 闭眼状态 -->
+                      <div style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 8px; transition: background 0.2s;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 4.5C7 4.5 2.73 7.61 1 12C2.73 16.39 7 19.5 12 19.5C17 19.5 21.27 16.39 23 12C21.27 7.61 17 4.5 12 4.5Z" stroke="#8E8EA0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          <path d="M12 15C13.66 15 15 13.66 15 12C15 10.34 13.66 9 12 9C10.34 9 9 10.34 9 12C9 13.66 10.34 15 12 15Z" stroke="#8E8EA0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          <line x1="3" y1="3" x2="21" y2="21" stroke="#8E8EA0" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                      <div style="flex: 1; height: 4px; background: #FF4D4F; border-radius: 2px;"></div>
+                      <div style="flex: 1; height: 4px; background: #FAAD14; border-radius: 2px;"></div>
+                      <div style="flex: 1; height: 4px; background: #E8E8F0; border-radius: 2px;"></div>
+                    </div>
+                    <p style="font-size: 11px; color: #8E8EA0; text-align: left; margin-top: 4px;">密码强度：中等</p>
+                  </div>
+                  
+                  <div style="margin-bottom: 20px;">
+                    <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500; text-align: left;">确认密码</label>
+                    <div style="display: flex; align-items: center; background: #F5F7FA; border-radius: 12px; padding: 0 16px;">
+                      <span style="font-size: 18px; margin-right: 10px;">🔒</span>
+                      <input type="password" placeholder="请再次输入密码" style="flex: 1; border: none; background: transparent; font-size: 16px; color: #1A1A2E; outline: none; padding: 14px 0;" />
+                      <!-- 密码可见切换按钮 -->
+                      <div style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 8px; transition: background 0.2s;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 4.5C7 4.5 2.73 7.61 1 12C2.73 16.39 7 19.5 12 19.5C17 19.5 21.27 16.39 23 12C21.27 7.61 17 4.5 12 4.5Z" stroke="#8E8EA0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          <path d="M12 15C13.66 15 15 13.66 15 12C15 10.34 13.66 9 12 9C10.34 9 9 10.34 9 12C9 13.66 10.34 15 12 15Z" stroke="#8E8EA0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          <line x1="3" y1="3" x2="21" y2="21" stroke="#8E8EA0" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 20px; text-align: left;">
+                    <input type="checkbox" checked style="margin-top: 3px;" />
+                    <p style="font-size: 12px; color: #4A4A68; line-height: 1.5;">我已阅读并同意<span style="color: #4A90E2;">《用户协议》</span>和<span style="color: #4A90E2;">《隐私政策》</span></p>
+                  </div>
+                  
+                  <button style="width: 100%; padding: 16px; background: #4A90E2; border: none; border-radius: 50px; font-size: 17px; font-weight: 600; color: white;">
+                    注册
+                  </button>
+                </div>
+                
+                <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                  <span style="font-size: 14px; opacity: 0.8;">已有账号？</span>
+                  <a href="#" style="font-size: 14px; color: white; font-weight: 600; text-decoration: underline;">立即登录</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 密码可见切换图标设计说明 -->
+      <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 24px; margin-top: 24px;">
+        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px;">👁️ 密码可见切换图标设计</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+          <!-- 闭眼状态 -->
+          <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; text-align: center;">
+            <div style="background: #F5F7FA; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 4.5C7 4.5 2.73 7.61 1 12C2.73 16.39 7 19.5 12 19.5C17 19.5 21.27 16.39 23 12C21.27 7.61 17 4.5 12 4.5Z" stroke="#8E8EA0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 15C13.66 15 15 13.66 15 12C15 10.34 13.66 9 12 9C10.34 9 9 10.34 9 12C9 13.66 10.34 15 12 15Z" stroke="#8E8EA0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <line x1="3" y1="3" x2="21" y2="21" stroke="#8E8EA0" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">🔒 密码隐藏状态</h4>
+            <p style="font-size: 13px; opacity: 0.7; margin-bottom: 12px;">闭眼 + 斜线 = 密码不可见</p>
+            <div style="text-align: left; font-size: 12px; opacity: 0.6;">
+              <p>• 图标颜色：#8E8EA0（灰色）</p>
+              <p>• 点击区域：32×32px</p>
+              <p>• Hover 背景变浅蓝</p>
+            </div>
+          </div>
+          
+          <!-- 睁眼状态 -->
+          <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; text-align: center;">
+            <div style="background: #F5F7FA; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="#8E8EA0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="12" r="3" stroke="#8E8EA0" stroke-width="2"/>
+              </svg>
+            </div>
+            <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">🔓 密码可见状态</h4>
+            <p style="font-size: 13px; opacity: 0.7; margin-bottom: 12px;">睁眼 + 瞳孔 = 密码可见</p>
+            <div style="text-align: left; font-size: 12px; opacity: 0.6;">
+              <p>• 图标颜色：#8E8EA0（与闭眼一致）</p>
+              <p>• 无斜线 = 可以查看</p>
+              <p>• 圆形瞳孔增加辨识度</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 设计要点 -->
+        <div style="margin-top: 24px; padding: 20px; background: rgba(74, 144, 226, 0.1); border-radius: 12px;">
+          <h4 style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">💡 设计要点</h4>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; font-size: 13px;">
+            <div>
+              <p style="font-weight: 500; margin-bottom: 4px;">统一配色</p>
+              <p style="opacity: 0.7;">两种状态颜色一致 (#8E8EA0)</p>
+            </div>
+            <div>
+              <p style="font-weight: 500; margin-bottom: 4px;">形态区分</p>
+              <p style="opacity: 0.7;">闭眼有斜线，睁眼有瞳孔</p>
+            </div>
+            <div>
+              <p style="font-weight: 500; margin-bottom: 4px;">视觉简洁</p>
+              <p style="opacity: 0.7;">线条风格，与输入框协调</p>
+            </div>
+            <div>
+              <p style="font-weight: 500; margin-bottom: 4px;">交互反馈</p>
+              <p style="opacity: 0.7;">Hover 背景变浅灰</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- SVG 代码参考 -->
+        <div style="margin-top: 20px; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px;">
+          <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">📝 SVG 图标代码</h4>
+          <pre style="margin: 0; font-size: 11px; color: #E8E8F0; white-space: pre-wrap; word-break: break-all;"><code>&lt;!-- 闭眼图标 - 密码隐藏 --&gt;
+&lt;svg width="22" height="22" viewBox="0 0 24 24" fill="none"&gt;
+  &lt;path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="#8E8EA0" stroke-width="2" stroke-linecap="round"/&gt;
+  &lt;line x1="1" y1="1" x2="23" y2="23" stroke="#8E8EA0" stroke-width="2" stroke-linecap="round"/&gt;
+&lt;/svg&gt;
+
+&lt;!-- 睁眼图标 - 密码可见 --&gt;
+&lt;svg width="22" height="22" viewBox="0 0 24 24" fill="none"&gt;
+  &lt;path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="#8E8EA0" stroke-width="2" stroke-linecap="round"/&gt;
+  &lt;circle cx="12" cy="12" r="3" stroke="#8E8EA0" stroke-width="2"/&gt;
+&lt;/svg&gt;</code></pre>
+        </div>
+      </div>
         
         <!-- 2. 个人信息编辑页 -->
         <div class="screen-wrapper">
@@ -1200,6 +1391,24 @@
             <th style="padding: 12px 16px; text-align: left; color: rgba(255,255,255,0.6); font-weight: 500;">日期</th>
             <th style="padding: 12px 16px; text-align: left; color: rgba(255,255,255,0.6); font-weight: 500;">作者</th>
             <th style="padding: 12px 16px; text-align: left; color: rgba(255,255,255,0.6); font-weight: 500;">变更内容</th>
+          </tr>
+          <tr>
+            <td style="padding: 12px 16px; font-weight: 600;">v1.0.4</td>
+            <td style="padding: 12px 16px; opacity: 0.8;">2026-03-29</td>
+            <td style="padding: 12px 16px; opacity: 0.8;">设计团队</td>
+            <td style="padding: 12px 16px; opacity: 0.8;">密码可见切换图标优化：睁眼/闭眼状态统一使用灰色(#8E8EA0)，新增SVG代码参考</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 16px; font-weight: 600;">v1.0.3</td>
+            <td style="padding: 12px 16px; opacity: 0.8;">2026-03-29</td>
+            <td style="padding: 12px 16px; opacity: 0.8;">设计团队</td>
+            <td style="padding: 12px 16px; opacity: 0.8;">密码可见切换图标设计：SVG矢量图标 + 闭眼/睁眼状态 + 交互效果</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 16px; font-weight: 600;">v1.0.2</td>
+            <td style="padding: 12px 16px; opacity: 0.8;">2026-03-29</td>
+            <td style="padding: 12px 16px; opacity: 0.8;">设计团队</td>
+            <td style="padding: 12px 16px; opacity: 0.8;">登录页面重设计：从验证码登录改为账号密码登录，新增注册页设计</td>
           </tr>
           <tr>
             <td style="padding: 12px 16px; font-weight: 600;">v1.0.1</td>

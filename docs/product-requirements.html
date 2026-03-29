@@ -909,10 +909,12 @@
               <ul class="feature-list">
                 <li><strong>Logo和名称</strong> - 小程序Logo + "北京去哪玩"</li>
                 <li><strong>宣传文案</strong> - 产品特点介绍</li>
-                <li><strong>手机号输入框</strong> - 输入11位手机号码，带格式校验</li>
-                <li><strong>验证码输入区</strong> - 6位验证码输入框 + 获取验证码按钮（60秒倒计时）</li>
-                <li><strong>登录按钮</strong> - 主操作按钮，验证码输入后可点击</li>
-                <li><strong>暂不登录按钮</strong> - 次要操作，透明背景带边框，点击返回首页</li>
+                <li><strong>账号输入框</strong> - 输入手机号/用户名作为登录账号</li>
+                <li><strong>密码输入框</strong> - 输入登录密码，支持显示/隐藏密码</li>
+                <li><strong>忘记密码链接</strong> - 跳转密码找回页面</li>
+                <li><strong>登录按钮</strong> - 主操作按钮，账号密码填写后可点击</li>
+                <li><strong>注册入口</strong> - 底部文字链接"没有账号？立即注册"</li>
+                <li><strong>暂不登录按钮</strong> - 次要操作，点击返回首页</li>
                 <li><strong>用户协议和隐私政策</strong> - 底部文字链接</li>
               </ul>
             </div>
@@ -926,13 +928,18 @@
                   <th width="120">是否需要登录</th>
                 </tr>
                 <tr>
-                  <td>获取验证码</td>
-                  <td>发送验证码到手机（当前页操作）</td>
+                  <td>登录按钮</td>
+                  <td>个人信息编辑页（首次登录）或来源页（已有账号）</td>
                   <td><span class="tag success">否</span></td>
                 </tr>
                 <tr>
-                  <td>登录按钮</td>
-                  <td>个人信息编辑页（首次登录）或来源页（已有账号）</td>
+                  <td>忘记密码</td>
+                  <td>密码找回页</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
+                  <td>立即注册</td>
+                  <td>注册页</td>
                   <td><span class="tag success">否</span></td>
                 </tr>
                 <tr>
@@ -959,37 +966,29 @@
                 <div class="flow-step">
                   <div class="flow-number">1</div>
                   <div class="flow-content">
-                    <h4>输入手机号</h4>
-                    <p>用户输入11位手机号码</p>
+                    <h4>输入账号</h4>
+                    <p>用户输入手机号或用户名</p>
                   </div>
                 </div>
                 <div class="flow-arrow">↓</div>
                 <div class="flow-step">
                   <div class="flow-number">2</div>
                   <div class="flow-content">
-                    <h4>点击「获取验证码」</h4>
-                    <p>发送6位验证码到手机，按钮开始60秒倒计时</p>
+                    <h4>输入密码</h4>
+                    <p>用户输入登录密码</p>
                   </div>
                 </div>
                 <div class="flow-arrow">↓</div>
                 <div class="flow-step">
                   <div class="flow-number">3</div>
                   <div class="flow-content">
-                    <h4>输入验证码</h4>
-                    <p>用户输入收到的6位验证码</p>
+                    <h4>点击「登录」按钮</h4>
+                    <p>前端加密密码后提交，后端验证</p>
                   </div>
                 </div>
                 <div class="flow-arrow">↓</div>
                 <div class="flow-step">
                   <div class="flow-number">4</div>
-                  <div class="flow-content">
-                    <h4>点击「登录」按钮</h4>
-                    <p>验证码校验通过后登录</p>
-                  </div>
-                </div>
-                <div class="flow-arrow">↓</div>
-                <div class="flow-step">
-                  <div class="flow-number">5</div>
                   <div class="flow-content">
                     <h4>判断是否首次登录</h4>
                     <p>查询用户信息是否完整</p>
@@ -997,7 +996,7 @@
                 </div>
                 <div class="flow-arrow">↓</div>
                 <div class="flow-step">
-                  <div class="flow-number">6</div>
+                  <div class="flow-number">5</div>
                   <div class="flow-content">
                     <h4>首次登录 → 个人信息编辑页</h4>
                     <p>填写昵称、性别、是否有车</p>
@@ -1007,7 +1006,7 @@
             </div>
             
             <div class="page-section">
-              <div class="page-section-title">⚠️ 验证规则</div>
+              <div class="page-section-title">⚠️ 输入验证规则</div>
               <div class="content-card">
                 <table class="data-table">
                   <tr>
@@ -1015,18 +1014,117 @@
                     <th>验证规则</th>
                   </tr>
                   <tr>
-                    <td>手机号</td>
-                    <td>必须为11位数字，符合中国大陆手机号格式</td>
+                    <td>账号</td>
+                    <td>手机号（11位数字）或用户名（4-20位字母数字下划线）</td>
                   </tr>
                   <tr>
-                    <td>验证码</td>
-                    <td>必须为6位数字，5分钟内有效</td>
+                    <td>密码</td>
+                    <td>8-20位，至少包含字母和数字，支持特殊字符</td>
                   </tr>
                   <tr>
-                    <td>获取验证码按钮</td>
-                    <td>点击后60秒内不可再次点击，显示倒计时</td>
+                    <td>登录失败</td>
+                    <td>显示错误提示，连续失败5次后锁定账号15分钟</td>
                   </tr>
                 </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 5.1.1 注册页 -->
+        <div class="page-card" id="page-register">
+          <div class="page-card-header">
+            <h3>📝 注册页</h3>
+            <span class="login-required">✅ 无需登录</span>
+          </div>
+          <div class="page-card-body">
+            <div class="page-section">
+              <div class="page-section-title">📄 页面展示内容</div>
+              <ul class="feature-list">
+                <li><strong>手机号输入框</strong> - 输入11位手机号作为账号</li>
+                <li><strong>密码设置框</strong> - 设置登录密码，实时显示强度</li>
+                <li><strong>确认密码框</strong> - 再次输入密码确认</li>
+                <li><strong>用户协议勾选</strong> - 必须勾选同意才能注册</li>
+                <li><strong>注册按钮</strong> - 主操作按钮</li>
+                <li><strong>登录入口</strong> - 底部文字链接"已有账号？立即登录"</li>
+              </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">👆 点击跳转</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">点击元素</th>
+                  <th>跳转页面</th>
+                  <th width="120">是否需要登录</th>
+                </tr>
+                <tr>
+                  <td>注册按钮</td>
+                  <td>注册成功 → 个人信息编辑页</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
+                  <td>立即登录</td>
+                  <td>登录页</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 5.1.2 密码找回页 -->
+        <div class="page-card" id="page-forgot-password">
+          <div class="page-card-header">
+            <h3>🔑 密码找回页</h3>
+            <span class="login-required">✅ 无需登录</span>
+          </div>
+          <div class="page-card-body">
+            <div class="page-section">
+              <div class="page-section-title">📄 页面展示内容</div>
+              <ul class="feature-list">
+                <li><strong>手机号输入框</strong> - 输入注册时的手机号</li>
+                <li><strong>验证码输入框</strong> - 输入短信验证码</li>
+                <li><strong>新密码设置框</strong> - 设置新密码</li>
+                <li><strong>确认新密码框</strong> - 再次输入确认</li>
+                <li><strong>重置按钮</strong> - 提交重置密码</li>
+              </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">🔄 找回流程</div>
+              <div class="flow-chart">
+                <div class="flow-step">
+                  <div class="flow-number">1</div>
+                  <div class="flow-content">
+                    <h4>输入手机号</h4>
+                    <p>输入注册时使用的手机号</p>
+                  </div>
+                </div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step">
+                  <div class="flow-number">2</div>
+                  <div class="flow-content">
+                    <h4>获取验证码</h4>
+                    <p>发送短信验证码到手机</p>
+                  </div>
+                </div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step">
+                  <div class="flow-number">3</div>
+                  <div class="flow-content">
+                    <h4>设置新密码</h4>
+                    <p>输入并确认新密码</p>
+                  </div>
+                </div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step">
+                  <div class="flow-number">4</div>
+                  <div class="flow-content">
+                    <h4>重置成功</h4>
+                    <p>跳转登录页重新登录</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1603,6 +1701,12 @@
             <th width="120">日期</th>
             <th width="100">作者</th>
             <th>变更内容</th>
+          </tr>
+          <tr>
+            <td><strong>v1.0.2</strong></td>
+            <td>2026-03-29</td>
+            <td>产品团队</td>
+            <td>登录方式调整：从手机号验证码登录改为账号密码登录，新增注册页、密码找回页</td>
           </tr>
           <tr>
             <td><strong>v1.0.1</strong></td>

@@ -1,9 +1,9 @@
-/* pages/auth/auth.wxss */
+/* pages/register/register.wxss */
 page {
   height: 100%;
 }
 
-.auth-page {
+.register-page {
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -12,7 +12,7 @@ page {
 }
 
 /* 内容区域 */
-.auth-content {
+.register-content {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -23,35 +23,15 @@ page {
   text-align: center;
 }
 
-/* Logo */
-.auth-logo {
-  width: 80px;
-  height: 80px;
-  background: white;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px;
-  margin-bottom: 20px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-}
-
 /* 标题 */
-.auth-title {
-  font-size: 28px;
+.register-title {
+  font-size: 24px;
   font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.auth-subtitle {
-  font-size: 14px;
-  opacity: 0.9;
   margin-bottom: 30px;
 }
 
-/* 登录表单卡片 */
-.auth-form-card {
+/* 注册表单卡片 */
+.register-form-card {
   width: 100%;
   background: white;
   border-radius: 16px;
@@ -112,19 +92,79 @@ page {
   font-size: 20px;
 }
 
-/* 忘记密码 */
-.forget-password {
-  text-align: right;
-  margin-bottom: 20px;
+/* 密码强度 */
+.password-strength {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
 }
 
-.forget-password text {
-  font-size: 13px;
+.strength-bar {
+  flex: 1;
+  height: 4px;
+  background: #E8E8F0;
+  border-radius: 2px;
+}
+
+.strength-bar.active-weak {
+  background: #FF4D4F;
+}
+
+.strength-bar.active-medium {
+  background: #FAAD14;
+}
+
+.strength-bar.active-strong {
+  background: #52C41A;
+}
+
+.strength-text {
+  font-size: 11px;
+  color: #8E8EA0;
+  text-align: left;
+  margin-top: 4px;
+}
+
+/* 协议勾选 */
+.agreement-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #E8E8F0;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.checkbox.checked {
+  background: #4A90E2;
+  border-color: #4A90E2;
+  color: white;
+  font-size: 12px;
+}
+
+.agreement-text {
+  font-size: 12px;
+  color: #4A4A68;
+  line-height: 1.5;
+}
+
+.agreement-text .link {
   color: #4A90E2;
 }
 
-/* 登录按钮 */
-.login-btn {
+/* 注册按钮 */
+.register-btn {
   width: 100%;
   padding: 16px;
   background: #4A90E2;
@@ -135,17 +175,16 @@ page {
   color: white;
 }
 
-.login-btn.disabled {
+.register-btn.disabled {
   opacity: 0.5;
 }
 
-/* 注册引导 */
-.register-guide {
+/* 登录引导 */
+.login-guide {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-bottom: 16px;
 }
 
 .guide-text {
@@ -156,29 +195,5 @@ page {
 .guide-link {
   font-size: 14px;
   font-weight: 600;
-  text-decoration: underline;
-}
-
-/* 暂不登录按钮 */
-.skip-btn {
-  width: 100%;
-  padding: 14px;
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.3);
-  border-radius: 50px;
-  font-size: 15px;
-  color: white;
-  margin-bottom: 12px;
-  text-align: center;
-}
-
-/* 协议 */
-.auth-agreement {
-  font-size: 11px;
-  opacity: 0.7;
-  line-height: 1.6;
-}
-
-.auth-agreement .link {
   text-decoration: underline;
 }

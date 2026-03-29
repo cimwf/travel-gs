@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>北京去哪玩 - 账号安全与加密策略 v1.0.0</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #E8E8F0;
+      line-height: 1.8;
+      min-height: 100vh;
+    }
+    
+    .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+    
+    .header {
+      text-align: center;
+      padding: 60px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 24px;
+      margin-bottom: 40px;
+    }
+    
+    .header h1 { font-size: 36px; font-weight: 700; margin-bottom: 12px; }
+    .header p { font-size: 16px; opacity: 0.9; }
+    .header .version { font-size: 14px; opacity: 0.7; margin-top: 8px; }
+    
+    .nav-tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .nav-tab {
+      padding: 12px 24px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 24px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      color: white;
+    }
+    
+    .nav-tab:hover { background: rgba(255,255,255,0.2); }
+    .nav-tab.active { background: #4A90E2; }
+    
+    .section {
+      background: rgba(255,255,255,0.05);
+      border-radius: 24px;
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+    
+    .section-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 24px;
+      background: #4A90E2;
+      border-radius: 2px;
+    }
+    
+    .sub-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 24px 0 16px;
+      color: #6BA3E8;
+    }
+    
+    .info-card {
+      background: rgba(74, 144, 226, 0.1);
+      border: 1px solid rgba(74, 144, 226, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 16px 0;
+    }
+    
+    .warning-card {
+      background: rgba(255, 77, 79, 0.1);
+      border: 1px solid rgba(255, 77, 79, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 16px 0;
+    }
+    
+    .success-card {
+      background: rgba(82, 196, 26, 0.1);
+      border: 1px solid rgba(82, 196, 26, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 16px 0;
+    }
+    
+    code {
+      background: rgba(0,0,0,0.3);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'Fira Code', 'Consolas', monospace;
+      font-size: 14px;
+      color: #FFD93D;
+    }
+    
+    pre {
+      background: rgba(0,0,0,0.4);
+      padding: 20px;
+      border-radius: 12px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+    
+    pre code {
+      background: transparent;
+      padding: 0;
+      color: #E8E8F0;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+    
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    th {
+      background: rgba(74, 144, 226, 0.2);
+      font-weight: 600;
+      color: #6BA3E8;
+    }
+    
+    td code {
+      font-size: 13px;
+    }
+    
+    .tag {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .tag-required { background: #FF4D4F; color: white; }
+    .tag-recommended { background: #FAAD14; color: #1a1a1a; }
+    .tag-optional { background: #52C41A; color: white; }
+    
+    .flow-step {
+      display: flex;
+      gap: 16px;
+      margin: 16px 0;
+      padding: 16px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+    }
+    
+    .flow-number {
+      width: 32px;
+      height: 32px;
+      background: #4A90E2;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    
+    .flow-content h4 { font-size: 16px; margin-bottom: 4px; }
+    .flow-content p { font-size: 14px; opacity: 0.8; margin: 0; }
+    
+    .checklist {
+      list-style: none;
+    }
+    
+    .checklist li {
+      padding: 8px 0;
+      padding-left: 28px;
+      position: relative;
+    }
+    
+    .checklist li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: #52C41A;
+      font-weight: bold;
+    }
+    
+    .api-section {
+      border-left: 3px solid #4A90E2;
+      padding-left: 20px;
+      margin: 24px 0;
+    }
+    
+    .method-tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 8px;
+    }
+    
+    .method-post { background: #52C41A; color: white; }
+    .method-get { background: #4A90E2; color: white; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 头部 -->
+    <div class="header">
+      <h1>🔐 账号安全与加密策略</h1>
+      <p>北京去哪玩 · 技术团队实施文档</p>
+      <p class="version">Version 1.0.0 | 2026-03-29</p>
+    </div>
+    
+    <!-- 导航 -->
+    <div class="nav-tabs">
+      <a href="#overview" class="nav-tab active">概述</a>
+      <a href="#password" class="nav-tab">密码策略</a>
+      <a href="#encryption" class="nav-tab">加密方案</a>
+      <a href="#transmission" class="nav-tab">传输安全</a>
+      <a href="#storage" class="nav-tab">存储安全</a>
+      <a href="#api" class="nav-tab">API安全</a>
+      <a href="#implementation" class="nav-tab">实施清单</a>
+    </div>
+    
+    <!-- 概述 -->
+    <div class="section" id="overview">
+      <h2 class="section-title">📋 概述</h2>
+      
+      <p style="margin-bottom: 20px;">本文档定义了「北京去哪玩」小程序账号密码登录系统的安全策略和加密方案，供技术团队实施参考。</p>
+      
+      <div class="info-card">
+        <strong>🎯 目标</strong>
+        <ul style="margin: 12px 0 0 20px;">
+          <li>保护用户账号安全，防止密码泄露</li>
+          <li>防止中间人攻击和数据窃取</li>
+          <li>符合国家网络安全法律法规要求</li>
+          <li>提供安全可靠的用户认证机制</li>
+        </ul>
+      </div>
+      
+      <div class="warning-card">
+        <strong>⚠️ 重要提示</strong>
+        <p style="margin-top: 8px;">本文档包含敏感的安全策略信息，请勿对外公开。所有技术实现需经过安全评审后方可上线。</p>
+      </div>
+      
+      <h3 class="sub-title">安全架构总览</h3>
+      <table>
+        <tr>
+          <th>层级</th>
+          <th>安全措施</th>
+          <th>技术方案</th>
+        </tr>
+        <tr>
+          <td>前端</td>
+          <td>密码加密传输</td>
+          <td>RSA + AES 混合加密</td>
+        </tr>
+        <tr>
+          <td>传输层</td>
+          <td>数据加密通道</td>
+          <td>HTTPS (TLS 1.2+)</td>
+        </tr>
+        <tr>
+          <td>后端</td>
+          <td>密码哈希存储</td>
+          <td>bcrypt / Argon2</td>
+        </tr>
+        <tr>
+          <td>数据库</td>
+          <td>敏感字段加密</td>
+          <td>AES-256</td>
+        </tr>
+      </table>
+    </div>
+    
+    <!-- 密码策略 -->
+    <div class="section" id="password">
+      <h2 class="section-title">🔑 密码策略</h2>
+      
+      <h3 class="sub-title">用户密码规则</h3>
+      <table>
+        <tr>
+          <th>规则</th>
+          <th>要求</th>
+          <th>级别</th>
+        </tr>
+        <tr>
+          <td>最小长度</td>
+          <td>8位</td>
+          <td><span class="tag tag-required">必须</span></td>
+        </tr>
+        <tr>
+          <td>最大长度</td>
+          <td>20位</td>
+          <td><span class="tag tag-required">必须</span></td>
+        </tr>
+        <tr>
+          <td>包含数字</td>
+          <td>至少1位数字</td>
+          <td><span class="tag tag-required">必须</span></td>
+        </tr>
+        <tr>
+          <td>包含字母</td>
+          <td>至少1位字母（大小写均可）</td>
+          <td><span class="tag tag-required">必须</span></td>
+        </tr>
+        <tr>
+          <td>特殊字符</td>
+          <td>支持 !@#$%^&*()_+-=</td>
+          <td><span class="tag tag-optional">可选</span></td>
+        </tr>
+        <tr>
+          <td>禁止空格</td>
+          <td>密码中不允许包含空格</td>
+          <td><span class="tag tag-required">必须</span></td>
+        </tr>
+        <tr>
+          <td>禁止与账号相同</td>
+          <td>密码不能与账号相同或包含账号</td>
+          <td><span class="tag tag-recommended">推荐</span></td>
+        </tr>
+      </table>
+      
+      <h3 class="sub-title">密码强度等级</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 16px 0;">
+        <div class="warning-card" style="text-align: center;">
+          <div style="font-size: 24px; margin-bottom: 8px;">弱</div>
+          <p style="font-size: 14px;">仅字母+数字<br>8-10位</p>
+        </div>
+        <div class="info-card" style="text-align: center;">
+          <div style="font-size: 24px; margin-bottom: 8px; color: #FAAD14;">中</div>
+          <p style="font-size: 14px;">字母+数字<br>11-15位</p>
+        </div>
+        <div class="success-card" style="text-align: center;">
+          <div style="font-size: 24px; margin-bottom: 8px; color: #52C41A;">强</div>
+          <p style="font-size: 14px;">字母+数字+特殊字符<br>16-20位</p>
+        </div>
+      </div>
+      
+      <h3 class="sub-title">密码安全策略</h3>
+      <ul class="checklist">
+        <li>用户注册时必须设置符合规则的密码</li>
+        <li>密码强度实时显示，引导用户设置强密码</li>
+        <li>禁止使用常见弱密码（如 123456、password 等）</li>
+        <li>密码修改后需重新登录所有设备</li>
+        <li>密码错误5次后锁定账号15分钟</li>
+        <li>敏感操作（修改密码、绑定手机）需验证原密码</li>
+      </ul>
+    </div>
+    
+    <!-- 加密方案 -->
+    <div class="section" id="encryption">
+      <h2 class="section-title">🔒 加密方案</h2>
+      
+      <h3 class="sub-title">前端加密流程</h3>
+      <div class="flow-step">
+        <div class="flow-number">1</div>
+        <div class="flow-content">
+          <h4>获取服务器公钥</h4>
+          <p>前端请求后端获取 RSA 公钥（每次登录获取新的公钥）</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-number">2</div>
+        <div class="flow-content">
+          <h4>生成临时 AES 密钥</h4>
+          <p>前端生成随机 256 位 AES 密钥和 IV</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-number">3</div>
+        <div class="flow-content">
+          <h4>AES 加密密码</h4>
+          <p>使用 AES-256-CBC 加密用户密码</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-number">4</div>
+        <div class="flow-content">
+          <h4>RSA 加密 AES 密钥</h4>
+          <p>使用服务器公钥加密 AES 密钥和 IV</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-number">5</div>
+        <div class="flow-content">
+          <h4>发送加密数据</h4>
+          <p>发送：加密后的密码 + 加密后的 AES 密钥 + 加密后的 IV</p>
+        </div>
+      </div>
+      
+      <h3 class="sub-title">前端加密代码示例</h3>
+      <pre><code>// 1. 获取服务器公钥
+const { publicKey, keyId } = await fetchPublicKey();
+
+// 2. 生成临时 AES 密钥
+const aesKey = crypto.randomBytes(32); // 256-bit
+const iv = crypto.randomBytes(16);
+
+// 3. AES 加密密码
+const cipher = crypto.createCipheriv('aes-256-cbc', aesKey, iv);
+let encryptedPassword = cipher.update(password, 'utf8', 'base64');
+encryptedPassword += cipher.final('base64');
+
+// 4. RSA 加密 AES 密钥和 IV
+const encryptedKey = crypto.publicEncrypt(publicKey, aesKey).toString('base64');
+const encryptedIv = crypto.publicEncrypt(publicKey, iv).toString('base64');
+
+// 5. 发送请求
+await login({
+  account: account,
+  password: encryptedPassword,
+  key: encryptedKey,
+  iv: encryptedIv,
+  keyId: keyId
+});</code></pre>
+      
+      <h3 class="sub-title">后端解密流程</h3>
+      <div class="flow-step">
+        <div class="flow-number">1</div>
+        <div class="flow-content">
+          <h4>验证 keyId</h4>
+          <p>检查 keyId 是否有效且未过期（有效期5分钟）</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-number">2</div>
+        <div class="flow-content">
+          <h4>RSA 解密 AES 密钥</h4>
+          <p>使用服务器私钥解密 AES 密钥和 IV</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-number">3</div>
+        <div class="flow-content">
+          <h4>AES 解密密码</h4>
+          <p>使用解密得到的 AES 密钥解密用户密码</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-number">4</div>
+        <div class="flow-content">
+          <h4>验证密码</h4>
+          <p>使用 bcrypt 比对密码哈希</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-number">5</div>
+        <div class="flow-content">
+          <h4>销毁密钥</h4>
+          <p>解密完成后立即销毁 AES 密钥，确保不落盘</p>
+        </div>
+      </div>
+      
+      <h3 class="sub-title">后端密码存储方案</h3>
+      <table>
+        <tr>
+          <th>方案</th>
+          <th>算法</th>
+          <th>说明</th>
+          <th>推荐度</th>
+        </tr>
+        <tr>
+          <td>bcrypt</td>
+          <td>Blowfish</td>
+          <td>内置盐值，计算成本可调，业界标准</td>
+          <td><span class="tag tag-required">推荐</span></td>
+        </tr>
+        <tr>
+          <td>Argon2</td>
+          <td>Argon2id</td>
+          <td>密码哈希竞赛冠军，抗GPU/ASIC攻击</td>
+          <td><span class="tag tag-recommended">推荐</span></td>
+        </tr>
+        <tr>
+          <td>PBKDF2</td>
+          <td>SHA-256</td>
+          <td>NIST 推荐，计算成本可调</td>
+          <td><span class="tag tag-optional">备选</span></td>
+        </tr>
+      </table>
+      
+      <div class="warning-card">
+        <strong>🚫 禁止使用的存储方式</strong>
+        <ul style="margin: 8px 0 0 20px;">
+          <li>明文存储密码</li>
+          <li>MD5 哈希（已被破解）</li>
+          <li>SHA-1 哈希（已被破解）</li>
+          <li>简单 SHA-256（无盐值，易被彩虹表攻击）</li>
+        </ul>
+      </div>
+      
+      <h3 class="sub-title">bcrypt 配置参数</h3>
+      <pre><code>// bcrypt 配置
+const SALT_ROUNDS = 12; // 计算成本因子，推荐 10-12
+
+// 密码哈希
+const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
+// 密码验证
+const isMatch = await bcrypt.compare(inputPassword, hashedPassword);</code></pre>
+      
+      <div class="info-card">
+        <strong>💡 成本因子选择</strong>
+        <p style="margin-top: 8px;">成本因子每增加1，计算时间翻倍。建议根据服务器性能选择：</p>
+        <ul style="margin: 8px 0 0 20px;">
+          <li><code>cost=10</code>：约 100ms，适合普通应用</li>
+          <li><code>cost=12</code>：约 400ms，推荐值，安全与性能平衡</li>
+          <li><code>cost=14</code>：约 1.5s，高安全要求场景</li>
+        </ul>
+      </div>
+    </div>
+    
+    <!-- 传输安全 -->
+    <div class="section" id="transmission">
+      <h2 class="section-title">🌐 传输安全</h2>
+      
+      <h3 class="sub-title">HTTPS 配置要求</h3>
+      <table>
+        <tr>
+          <th>配置项</th>
+          <th>要求</th>
+          <th>说明</th>
+        </tr>
+        <tr>
+          <td>协议版本</td>
+          <td>TLS 1.2+</td>
+          <td>禁用 SSLv3、TLS 1.0、TLS 1.1</td>
+        </tr>
+        <tr>
+          <td>证书类型</td>
+          <td>OV/EV 证书</td>
+          <td>生产环境建议使用企业级证书</td>
+        </tr>
+        <tr>
+          <td>HSTS</td>
+          <td>必须启用</td>
+          <td>强制 HTTPS 访问</td>
+        </tr>
+        <tr>
+          <td>证书有效期</td>
+          <td>≤1年</td>
+          <td>定期更新证书</td>
+        </tr>
+      </table>
+      
+      <h3 class="sub-title">请求安全头</h3>
+      <pre><code>// HTTP 安全响应头配置
+{
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "X-XSS-Protection": "1; mode=block",
+  "Content-Security-Policy": "default-src 'self'",
+  "Referrer-Policy": "strict-origin-when-cross-origin"
+}</code></pre>
+      
+      <h3 class="sub-title">请求防重放攻击</h3>
+      <ul class="checklist">
+        <li>每个请求携带时间戳，服务器验证时间差（≤5分钟）</li>
+        <li>每个请求携带随机 nonce，服务器缓存已用 nonce（防重放）</li>
+        <li>关键操作（登录、修改密码）必须携带请求签名</li>
+      </ul>
+      
+      <pre><code>// 请求签名生成
+const timestamp = Date.now();
+const nonce = uuid.v4();
+const signString = `${method}${path}${timestamp}${nonce}${body}`;
+const signature = hmacSha256(signString, appSecret);
+
+// 请求头
+{
+  "X-Timestamp": timestamp,
+  "X-Nonce": nonce,
+  "X-Signature": signature
+}</code></pre>
+    </div>
+    
+    <!-- 存储安全 -->
+    <div class="section" id="storage">
+      <h2 class="section-title">💾 存储安全</h2>
+      
+      <h3 class="sub-title">数据库字段加密</h3>
+      <table>
+        <tr>
+          <th>字段类型</th>
+          <th>示例字段</th>
+          <th>加密方式</th>
+          <th>说明</th>
+        </tr>
+        <tr>
+          <td>密码</td>
+          <td>password_hash</td>
+          <td>bcrypt</td>
+          <td>单向哈希，不可逆</td>
+        </tr>
+        <tr>
+          <td>手机号</td>
+          <td>phone</td>
+          <td>AES-256 加密存储</td>
+          <td>可逆加密，显示时脱敏</td>
+        </tr>
+        <tr>
+          <td>身份证</td>
+          <td>id_card</td>
+          <td>AES-256 加密存储</td>
+          <td>敏感信息，必须加密</td>
+        </tr>
+        <tr>
+          <td>会话Token</td>
+          <td>session_token</td>
+          <td>SHA-256 哈希</td>
+          <td>不存储明文</td>
+        </tr>
+      </table>
+      
+      <h3 class="sub-title">数据库安全配置</h3>
+      <ul class="checklist">
+        <li>数据库账号最小权限原则，应用账号禁止 DROP/TRUNCATE</li>
+        <li>数据库连接使用 SSL 加密</li>
+        <li>敏感表启用行级审计日志</li>
+        <li>定期备份数据，备份文件加密存储</li>
+        <li>数据库服务器禁止外网访问</li>
+      </ul>
+      
+      <h3 class="sub-title">敏感信息脱敏显示</h3>
+      <table>
+        <tr>
+          <th>信息类型</th>
+          <th>原始值</th>
+          <th>脱敏后</th>
+        </tr>
+        <tr>
+          <td>手机号</td>
+          <td>13812345678</td>
+          <td>138****5678</td>
+        </tr>
+        <tr>
+          <td>身份证</td>
+          <td>110101199001011234</td>
+          <td>110101********1234</td>
+        </tr>
+        <tr>
+          <td>密码</td>
+          <td>••••••••</td>
+          <td>不显示，修改时需输入原密码</td>
+        </tr>
+      </table>
+    </div>
+    
+    <!-- API安全 -->
+    <div class="section" id="api">
+      <h2 class="section-title">🔌 API安全</h2>
+      
+      <h3 class="sub-title">登录接口</h3>
+      <div class="api-section">
+        <span class="method-tag method-post">POST</span>
+        <code>/api/v1/auth/login</code>
+        <pre><code>// 请求体
+{
+  "account": "user123",           // 账号（手机号/用户名）
+  "password": "U2FsdGVkX1...",    // AES 加密后的密码
+  "key": "encryptedAesKey",       // RSA 加密后的 AES 密钥
+  "iv": "encryptedIv",            // RSA 加密后的 IV
+  "keyId": "key_123456",          // 公钥 ID
+  "deviceId": "device_uuid",      // 设备标识
+  "timestamp": 1711683600000,     // 时间戳
+  "nonce": "abc123",              // 随机数
+  "signature": "hmac_signature"   // 请求签名
+}
+
+// 成功响应
+{
+  "code": 0,
+  "data": {
+    "token": "jwt_token",
+    "refreshToken": "refresh_token",
+    "expiresIn": 7200
+  }
+}
+
+// 失败响应
+{
+  "code": 1001,
+  "message": "账号或密码错误",
+  "data": {
+    "remainAttempts": 3   // 剩余尝试次数
+  }
+}</code></pre>
+      </div>
+      
+      <h3 class="sub-title">获取公钥接口</h3>
+      <div class="api-section">
+        <span class="method-tag method-get">GET</span>
+        <code>/api/v1/auth/public-key</code>
+        <pre><code>// 响应
+{
+  "code": 0,
+  "data": {
+    "keyId": "key_123456",
+    "publicKey": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBg...",
+    "expiresIn": 300   // 有效期（秒）
+  }
+}</code></pre>
+      </div>
+      
+      <h3 class="sub-title">错误码定义</h3>
+      <table>
+        <tr>
+          <th>错误码</th>
+          <th>错误信息</th>
+          <th>处理建议</th>
+        </tr>
+        <tr>
+          <td>1001</td>
+          <td>账号或密码错误</td>
+          <td>提示用户重新输入</td>
+        </tr>
+        <tr>
+          <td>1002</td>
+          <td>账号不存在</td>
+          <td>引导用户注册</td>
+        </tr>
+        <tr>
+          <td>1003</td>
+          <td>账号已被锁定</td>
+          <td>提示等待解锁或联系客服</td>
+        </tr>
+        <tr>
+          <td>1004</td>
+          <td>登录已过期</td>
+          <td>跳转登录页</td>
+        </tr>
+        <tr>
+          <td>1005</td>
+          <td>设备不信任</td>
+          <td>需要二次验证</td>
+        </tr>
+      </table>
+      
+      <h3 class="sub-title">Token 安全策略</h3>
+      <table>
+        <tr>
+          <th>策略</th>
+          <th>配置</th>
+          <th>说明</th>
+        </tr>
+        <tr>
+          <td>Token 类型</td>
+          <td>JWT</td>
+          <td>无状态，易于扩展</td>
+        </tr>
+        <tr>
+          <td>有效期</td>
+          <td>2小时</td>
+          <td>短期有效，降低风险</td>
+        </tr>
+        <tr>
+          <td>Refresh Token</td>
+          <td>7天</td>
+          <td>用于刷新 Access Token</td>
+        </tr>
+        <tr>
+          <td>存储位置</td>
+          <td>内存/SecureStorage</td>
+          <td>禁止 localStorage</td>
+        </tr>
+        <tr>
+          <td>传输方式</td>
+          <td>Header</td>
+          <td>Authorization: Bearer {token}</td>
+        </tr>
+      </table>
+    </div>
+    
+    <!-- 实施清单 -->
+    <div class="section" id="implementation">
+      <h2 class="section-title">✅ 实施清单</h2>
+      
+      <h3 class="sub-title">前端实施项</h3>
+      <ul class="checklist">
+        <li>实现密码输入框的显示/隐藏切换</li>
+        <li>实现密码强度实时检测和显示</li>
+        <li>集成 RSA + AES 混合加密库</li>
+        <li>实现请求签名生成逻辑</li>
+        <li>Token 安全存储（使用 SecureStorage）</li>
+        <li>登录失败次数限制提示</li>
+        <li>敏感信息输入框禁止截图（Android）</li>
+      </ul>
+      
+      <h3 class="sub-title">后端实施项</h3>
+      <ul class="checklist">
+        <li>实现 RSA 密钥对动态生成和缓存</li>
+        <li>实现密码 bcrypt 哈希存储</li>
+        <li>实现登录失败次数限制和账号锁定</li>
+        <li>实现请求签名验证</li>
+        <li>实现 JWT Token 生成和验证</li>
+        <li>配置 HTTPS 安全头</li>
+        <li>配置数据库字段加密</li>
+        <li>实现敏感操作审计日志</li>
+      </ul>
+      
+      <h3 class="sub-title">运维实施项</h3>
+      <ul class="checklist">
+        <li>配置 HTTPS 证书（TLS 1.2+）</li>
+        <li>配置 HSTS 策略</li>
+        <li>配置 WAF 防护规则</li>
+        <li>配置数据库访问白名单</li>
+        <li>配置敏感操作告警通知</li>
+        <li>制定安全应急响应流程</li>
+      </ul>
+      
+      <h3 class="sub-title">安全测试项</h3>
+      <ul class="checklist">
+        <li>密码强度测试（弱密码拒绝）</li>
+        <li>暴力破解防护测试（锁定机制）</li>
+        <li>SQL 注入测试</li>
+        <li>XSS 攻击测试</li>
+        <li>CSRF 攻击测试</li>
+        <li>中间人攻击测试（HTTPS 验证）</li>
+        <li>重放攻击测试</li>
+        <li>Token 有效期和刷新测试</li>
+      </ul>
+      
+      <div class="success-card">
+        <strong>📚 参考标准</strong>
+        <ul style="margin: 8px 0 0 20px;">
+          <li>OWASP Top 10 Web Application Security Risks</li>
+          <li>NIST SP 800-63B Digital Identity Guidelines</li>
+          <li>《中华人民共和国网络安全法》</li>
+          <li>《个人信息保护法》</li>
+          <li>GB/T 35273《个人信息安全规范》</li>
+        </ul>
+      </div>
+    </div>
+    
+    <!-- 页脚 -->
+    <footer style="text-align: center; padding: 40px 20px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 40px;">
+      <p style="font-size: 14px; opacity: 0.6;">北京去哪玩 · 技术团队安全文档</p>
+      <p style="font-size: 12px; opacity: 0.4; margin-top: 8px;">Version 1.0.0 | 2026-03-29 | 仅供内部使用</p>
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/auth/auth",
+    "pages/register/register",
     "pages/index/index",
     "pages/complete-info/complete-info",
     "pages/place-detail/place-detail",
