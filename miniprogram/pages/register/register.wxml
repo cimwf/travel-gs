@@ -29,13 +29,13 @@
           <text class="input-icon">🔒</text>
           <input
             class="form-input"
-            type="{{showPassword ? 'text' : 'password'}}"
+            password="{{!showPassword}}"
             placeholder="8-20位，含字母和数字"
             value="{{password}}"
             bindinput="onPasswordInput"
           />
           <view class="eye-icon" bindtap="onTogglePassword">
-            <text>{{showPassword ? '👁️' : '🙈'}}</text>
+            <text>{{showPassword ? '🙈' : '👁️'}}</text>
           </view>
         </view>
         <!-- 密码强度 -->
@@ -54,13 +54,13 @@
           <text class="input-icon">🔒</text>
           <input
             class="form-input"
-            type="{{showConfirmPassword ? 'text' : 'password'}}"
+            password="{{!showConfirmPassword}}"
             placeholder="请再次输入密码"
             value="{{confirmPassword}}"
             bindinput="onConfirmPasswordInput"
           />
           <view class="eye-icon" bindtap="onToggleConfirmPassword">
-            <text>{{showConfirmPassword ? '👁️' : '🙈'}}</text>
+            <text>{{showConfirmPassword ? '🙈' : '👁️' }}</text>
           </view>
         </view>
       </view>
@@ -70,22 +70,15 @@
         <view class="checkbox {{agreed ? 'checked' : ''}}" bindtap="onToggleAgree">
           <text wx:if="{{agreed}}">✓</text>
         </view>
-        <text class="agreement-text">
-          我已阅读并同意
-          <text class="link" bindtap="onOpenAgreement" data-type="user">《用户协议》</text>
-          和
-          <text class="link" bindtap="onOpenAgreement" data-type="privacy">《隐私政策》</text>
-        </text>
+        <view class="agreement-text-view">
+          <text class="agreement-text">我已阅读并同意<text class="link" bindtap="onOpenAgreement" data-type="user">《用户协议》</text>和<text class="link" bindtap="onOpenAgreement" data-type="privacy">《隐私政策》</text></text>
+        </view>
       </view>
 
       <!-- 注册按钮 -->
-      <button
-        class="register-btn {{canRegister ? '' : 'disabled'}}"
-        bindtap="onRegister"
-        loading="{{loading}}"
-      >
-        注册
-      </button>
+      <view class="register-btn {{canRegister ? '' : 'disabled'}}">
+        <button bindtap="onRegister" loading="{{loading}}">注册</button>
+      </view>
     </view>
 
     <!-- 登录引导 -->

@@ -32,13 +32,13 @@
           <text class="input-icon">🔒</text>
           <input
             class="form-input"
-            type="{{showPassword ? 'text' : 'password'}}"
+            password="{{!showPassword}}"
             placeholder="请输入密码"
             value="{{password}}"
             bindinput="onPasswordInput"
           />
           <view class="eye-icon" bindtap="onTogglePassword">
-            <text>{{showPassword ? '👁️' : '🙈'}}</text>
+            <text>{{showPassword ? '🙈' : '👁️'}}</text>
           </view>
         </view>
       </view>
@@ -49,13 +49,15 @@
       </view>
 
       <!-- 登录按钮 -->
-      <button
-        class="login-btn {{canLogin ? '' : 'disabled'}}"
-        bindtap="onLogin"
-        loading="{{loading}}"
-      >
-        登录
-      </button>
+      <view class="login-btn">
+        <button
+          class="{{canLogin ? '' : 'disabled'}}"
+          bindtap="onLogin"
+          loading="{{loading}}"
+        >
+          登录
+        </button>
+      </view>
     </view>
 
     <!-- 注册引导 -->

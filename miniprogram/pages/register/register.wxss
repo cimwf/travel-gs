@@ -32,7 +32,6 @@ page {
 
 /* 注册表单卡片 */
 .register-form-card {
-  width: 100%;
   background: white;
   border-radius: 16px;
   padding: 24px;
@@ -127,8 +126,9 @@ page {
 
 /* 协议勾选 */
 .agreement-check {
+  width: 100%;
   display: flex;
-  align-items: flex-start;
+  flex-direction: row;
   gap: 10px;
   margin-bottom: 20px;
   text-align: left;
@@ -144,6 +144,10 @@ page {
   justify-content: center;
   margin-top: 2px;
   flex-shrink: 0;
+}
+
+.agreement-text-view {
+  flex: 1;
 }
 
 .checkbox.checked {
@@ -165,13 +169,16 @@ page {
 
 /* 注册按钮 */
 .register-btn {
-  width: 100%;
-  padding: 16px;
+  padding: 6px;
   background: #4A90E2;
   border: none;
   border-radius: 50px;
   font-size: 17px;
   font-weight: 600;
+}
+
+.register-btn button {
+  background: #4A90E2;
   color: white;
 }
 

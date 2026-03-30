@@ -9,6 +9,7 @@ page {
   flex-direction: column;
   background: linear-gradient(180deg, #4A90E2 0%, #667eea 50%, #764ba2 100%);
   padding: 0 40rpx;
+  box-sizing: border-box;
 }
 
 /* 内容区域 */
@@ -52,7 +53,6 @@ page {
 
 /* 登录表单卡片 */
 .auth-form-card {
-  width: 100%;
   background: white;
   border-radius: 16px;
   padding: 24px;
@@ -125,13 +125,16 @@ page {
 
 /* 登录按钮 */
 .login-btn {
-  width: 100%;
-  padding: 16px;
+  padding: 6px;
   background: #4A90E2;
   border: none;
   border-radius: 50px;
   font-size: 17px;
   font-weight: 600;
+}
+
+.login-btn button {
+  background: #4A90E2;
   color: white;
 }
 
@@ -161,7 +164,7 @@ page {
 
 /* 暂不登录按钮 */
 .skip-btn {
-  width: 100%;
+  width: 82%;
   padding: 14px;
   background: transparent;
   border: 1px solid rgba(255,255,255,0.3);
