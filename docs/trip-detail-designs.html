@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>行程详情页 - 多方案设计稿</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-color: #4A90E2;
+      --primary-light: #6BA3E8;
+      --text-primary: #1A1A2E;
+      --text-secondary: #4A4A68;
+      --text-hint: #9999AA;
+      --bg-color: #F5F7FA;
+      --border-color: #E8E8F0;
+      --success-color: #52C41A;
+      --warning-color: #FAAD14;
+      --danger-color: #FF4D4F;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      background: #E8E8F0;
+      padding: 40px 20px;
+      min-height: 100vh;
+    }
+
+    .page-title {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 40px;
+    }
+
+    .designs-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 40px;
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+
+    .design-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .design-label {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      padding: 8px 20px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .phone-frame {
+      width: 375px;
+      height: 750px;
+      background: white;
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      position: relative;
+    }
+
+    .status-bar {
+      height: 44px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .status-bar svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .back-btn, .share-btn {
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(10px);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .back-btn svg, .share-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .scroll-container {
+      overflow-y: auto;
+      height: calc(100% - 44px);
+    }
+
+    .content-card {
+      background: white;
+      margin: 12px;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .card-icon {
+      width: 24px;
+      height: 24px;
+      color: var(--primary-color);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .footer-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px 24px;
+      background: white;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+    }
+
+    .action-btn-primary {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 54px;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      color: white;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4);
+    }
+
+    /* 方案说明 */
+    .design-note {
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: rgba(74, 144, 226, 0.08);
+      border-radius: 12px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      max-width: 375px;
+    }
+  </style>
+</head>
+<body>
+  <h1 class="page-title">🎨 行程详情页设计方案</h1>
+  
+  <div class="designs-container">
+    
+    <!-- 方案A：列表式信息流 -->
+    <div class="design-item">
+      <div class="design-label">方案A：列表式信息流（推荐）</div>
+      <div class="phone-frame">
+        <!-- 状态栏 -->
+        <div class="status-bar" style="background: transparent; position: absolute; top: 0; left: 0; right: 0; color: white; z-index: 10;">
+          <span>21:41</span>
+          <div style="display: flex; gap: 6px;">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.95 3 3 6.95 3 12s3.95 9 9 9c.76 0 1.51-.09 2.23-.27C12.14 19.13 10 16.27 10 13c0-3.87 3.13-7 7-7 1.27 0 2.46.34 3.49.93C18.71 4.79 15.59 3 12 3z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+          </div>
+        </div>
+
+        <!-- 顶部图片 -->
+        <div style="position: relative; height: 220px;">
+          <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop" style="width: 100%; height: 100%; object-fit: cover;">
+          <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.7) 100%);"></div>
+          
+          <div class="back-btn" style="position: absolute; top: 44px; left: 16px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </div>
+          
+          <div class="share-btn" style="position: absolute; top: 44px; right: 16px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+          </div>
+          
+          <div style="position: absolute; bottom: 16px; left: 16px; right: 16px;">
+            <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+              <span style="padding: 4px 10px; background: #52C41A; color: white; border-radius: 12px; font-size: 11px; font-weight: 500;">招募中</span>
+              <span style="padding: 4px 10px; background: rgba(255,255,255,0.25); color: white; border-radius: 12px; font-size: 11px;">还剩2个名额</span>
+            </div>
+            <h1 style="font-size: 24px; font-weight: 700; color: white; margin-bottom: 4px;">周六灵山徒步</h1>
+            <div style="font-size: 13px; color: rgba(255,255,255,0.9);">🏔️ 东灵山 · 北京最高峰</div>
+          </div>
+        </div>
+
+        <div class="scroll-container" style="padding-bottom: 100px; background: var(--bg-color);">
+          <!-- 列表式信息 -->
+          <div class="content-card" style="margin: 16px 12px 12px; padding: 18px 20px;">
+            <div style="display: flex; flex-direction: column; gap: 18px;">
+              <div style="display: flex; align-items: center; gap: 14px; padding-bottom: 18px; border-bottom: 1px solid var(--bg-color);">
+                <div style="font-size: 26px; line-height: 1;">📅</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 13px; color: var(--text-hint); margin-bottom: 4px;">出发日期</div>
+                  <div style="font-size: 17px; font-weight: 600; color: var(--text-primary);">4月5日 周六</div>
+                </div>
+              </div>
+              
+              <div style="display: flex; align-items: center; gap: 14px; padding-bottom: 18px; border-bottom: 1px solid var(--bg-color);">
+                <div style="font-size: 26px; line-height: 1;">📍</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 13px; color: var(--text-hint); margin-bottom: 4px;">出发地点</div>
+                  <div style="font-size: 17px; font-weight: 600; color: var(--text-primary);">海淀区集合</div>
+                </div>
+              </div>
+              
+              <div style="display: flex; align-items: center; gap: 14px; padding-bottom: 18px; border-bottom: 1px solid var(--bg-color);">
+                <div style="font-size: 26px; line-height: 1;">👥</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 13px; color: var(--text-hint); margin-bottom: 4px;">招募情况</div>
+                  <div style="font-size: 17px; font-weight: 600; color: var(--text-primary);">已有2人，还差2人</div>
+                </div>
+              </div>
+              
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <div style="font-size: 26px; line-height: 1;">🚗</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 13px; color: var(--text-hint); margin-bottom: 4px;">交通方式</div>
+                  <div style="font-size: 17px; font-weight: 600; color: var(--text-primary);">自驾前往，有车可拼</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 发起人 -->
+          <div class="content-card">
+            <div class="card-header">
+              <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span class="card-title">发起人</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <div style="width: 52px; height: 52px; border-radius: 50%; overflow: hidden;">
+                <img src="https://i.pravatar.cc/100?img=1" style="width: 100%; height: 100%; object-fit: cover;">
+              </div>
+              <div style="flex: 1;">
+                <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">张伟</div>
+                <div style="font-size: 12px; color: var(--text-hint); margin-top: 4px;">已发起 5 次 · ★ 98% 好评</div>
+              </div>
+              <div style="padding: 8px 16px; background: rgba(74, 144, 226, 0.1); color: var(--primary-color); border-radius: 20px; font-size: 13px; font-weight: 500;">关注</div>
+            </div>
+          </div>
+
+          <!-- 行程说明 -->
+          <div class="content-card">
+            <div class="card-header">
+              <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
+              <span class="card-title">行程说明</span>
+            </div>
+            <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.8;">周六早上8点在海淀黄庄地铁站B口集合，自驾前往灵山，预计10:30到达。下午4点返程。费用AA，油费+门票约150元/人。</p>
+          </div>
+
+          <!-- 已加入成员 -->
+          <div class="content-card">
+            <div style="display: flex; align-items: center; margin-bottom: 14px;">
+              <span class="card-title">已加入成员</span>
+              <span style="margin-left: auto; font-size: 13px; color: var(--primary-color); font-weight: 500;">2/4人</span>
+            </div>
+            <div style="display: flex; gap: 14px;">
+              <div style="text-align: center;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; margin: 0 auto 6px;">
+                  <img src="https://i.pravatar.cc/100?img=1" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="font-size: 12px; color: var(--text-primary); font-weight: 500;">张伟</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; margin: 0 auto 6px;">
+                  <img src="https://i.pravatar.cc/100?img=5" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="font-size: 12px; color: var(--text-primary); font-weight: 500;">李明</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="width: 48px; height: 48px; background: var(--bg-color); border: 2px dashed var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; color: var(--text-hint); font-size: 20px;">+</div>
+                <div style="font-size: 12px; color: var(--text-hint);">待加入</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="width: 48px; height: 48px; background: var(--bg-color); border: 2px dashed var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; color: var(--text-hint); font-size: 20px;">+</div>
+                <div style="font-size: 12px; color: var(--text-hint);">待加入</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 底部按钮 -->
+        <div class="footer-bar">
+          <div class="action-btn-primary">申请加入</div>
+        </div>
+      </div>
+      <div class="design-note">
+        <strong>设计特点：</strong><br>
+        • 列表式信息流，每行一个核心信息<br>
+        • 阅读自然，信息层级清晰<br>
+        • emoji + 文字组合，视觉友好
+      </div>
+    </div>
+
+    <!-- 方案B：横滑卡片 -->
+    <div class="design-item">
+      <div class="design-label">方案B：横滑卡片</div>
+      <div class="phone-frame">
+        <!-- 状态栏 -->
+        <div class="status-bar" style="background: transparent; position: absolute; top: 0; left: 0; right: 0; color: white; z-index: 10;">
+          <span>21:41</span>
+          <div style="display: flex; gap: 6px;">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.95 3 3 6.95 3 12s3.95 9 9 9c.76 0 1.51-.09 2.23-.27C12.14 19.13 10 16.27 10 13c0-3.87 3.13-7 7-7 1.27 0 2.46.34 3.49.93C18.71 4.79 15.59 3 12 3z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+          </div>
+        </div>
+
+        <!-- 顶部图片 -->
+        <div style="position: relative; height: 220px;">
+          <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop" style="width: 100%; height: 100%; object-fit: cover;">
+          <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.7) 100%);"></div>
+          
+          <div class="back-btn" style="position: absolute; top: 44px; left: 16px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </div>
+          
+          <div class="share-btn" style="position: absolute; top: 44px; right: 16px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+          </div>
+          
+          <div style="position: absolute; bottom: 16px; left: 16px; right: 16px;">
+            <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+              <span style="padding: 4px 10px; background: #52C41A; color: white; border-radius: 12px; font-size: 11px; font-weight: 500;">招募中</span>
+              <span style="padding: 4px 10px; background: rgba(255,255,255,0.25); color: white; border-radius: 12px; font-size: 11px;">还剩2个名额</span>
+            </div>
+            <h1 style="font-size: 24px; font-weight: 700; color: white; margin-bottom: 4px;">周六灵山徒步</h1>
+            <div style="font-size: 13px; color: rgba(255,255,255,0.9);">🏔️ 东灵山 · 北京最高峰</div>
+          </div>
+        </div>
+
+        <div class="scroll-container" style="padding-bottom: 100px; background: var(--bg-color);">
+          <!-- 横滑卡片 -->
+          <div style="margin: -20px 0 12px; padding: 0 12px; overflow-x: auto;">
+            <div style="display: flex; gap: 10px; padding: 8px 0;">
+              <div style="min-width: 100px; padding: 14px 16px; background: white; border-radius: 14px; box-shadow: var(--shadow-sm); text-align: center;">
+                <div style="font-size: 22px; margin-bottom: 6px;">📅</div>
+                <div style="font-size: 15px; font-weight: 600; color: var(--text-primary);">4/5</div>
+                <div style="font-size: 11px; color: var(--text-hint);">周六</div>
+              </div>
+              <div style="min-width: 100px; padding: 14px 16px; background: white; border-radius: 14px; box-shadow: var(--shadow-sm); text-align: center;">
+                <div style="font-size: 22px; margin-bottom: 6px;">📍</div>
+                <div style="font-size: 15px; font-weight: 600; color: var(--text-primary);">海淀区</div>
+                <div style="font-size: 11px; color: var(--text-hint);">出发地</div>
+              </div>
+              <div style="min-width: 100px; padding: 14px 16px; background: white; border-radius: 14px; box-shadow: var(--shadow-sm); text-align: center;">
+                <div style="font-size: 22px; margin-bottom: 6px;">👥</div>
+                <div style="font-size: 15px; font-weight: 600; color: var(--text-primary);">差2人</div>
+                <div style="font-size: 11px; color: var(--text-hint);">4人招募</div>
+              </div>
+              <div style="min-width: 100px; padding: 14px 16px; background: white; border-radius: 14px; box-shadow: var(--shadow-sm); text-align: center;">
+                <div style="font-size: 22px; margin-bottom: 6px;">🚗</div>
+                <div style="font-size: 15px; font-weight: 600; color: var(--text-primary);">自驾</div>
+                <div style="font-size: 11px; color: var(--text-hint);">有车</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 发起人 -->
+          <div class="content-card">
+            <div class="card-header">
+              <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span class="card-title">发起人</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <div style="width: 52px; height: 52px; border-radius: 50%; overflow: hidden;">
+                <img src="https://i.pravatar.cc/100?img=1" style="width: 100%; height: 100%; object-fit: cover;">
+              </div>
+              <div style="flex: 1;">
+                <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">张伟</div>
+                <div style="font-size: 12px; color: var(--text-hint); margin-top: 4px;">已发起 5 次 · ★ 98% 好评</div>
+              </div>
+              <div style="padding: 8px 16px; background: rgba(74, 144, 226, 0.1); color: var(--primary-color); border-radius: 20px; font-size: 13px; font-weight: 500;">关注</div>
+            </div>
+          </div>
+
+          <!-- 行程说明 -->
+          <div class="content-card">
+            <div class="card-header">
+              <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
+              <span class="card-title">行程说明</span>
+            </div>
+            <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.8;">周六早上8点在海淀黄庄地铁站B口集合，自驾前往灵山，预计10:30到达。下午4点返程。费用AA，油费+门票约150元/人。</p>
+          </div>
+
+          <!-- 已加入成员 -->
+          <div class="content-card">
+            <div style="display: flex; align-items: center; margin-bottom: 14px;">
+              <span class="card-title">已加入成员</span>
+              <span style="margin-left: auto; font-size: 13px; color: var(--primary-color); font-weight: 500;">2/4人</span>
+            </div>
+            <div style="display: flex; gap: 14px;">
+              <div style="text-align: center;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; margin: 0 auto 6px;">
+                  <img src="https://i.pravatar.cc/100?img=1" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="font-size: 12px; color: var(--text-primary); font-weight: 500;">张伟</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; margin: 0 auto 6px;">
+                  <img src="https://i.pravatar.cc/100?img=5" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="font-size: 12px; color: var(--text-primary); font-weight: 500;">李明</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="width: 48px; height: 48px; background: var(--bg-color); border: 2px dashed var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; color: var(--text-hint); font-size: 20px;">+</div>
+                <div style="font-size: 12px; color: var(--text-hint);">待加入</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="width: 48px; height: 48px; background: var(--bg-color); border: 2px dashed var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; color: var(--text-hint); font-size: 20px;">+</div>
+                <div style="font-size: 12px; color: var(--text-hint);">待加入</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 底部按钮 -->
+        <div class="footer-bar">
+          <div class="action-btn-primary">申请加入</div>
+        </div>
+      </div>
+      <div class="design-note">
+        <strong>设计特点：</strong><br>
+        • 小卡片横向滑动，节省垂直空间<br>
+        • 可扩展更多信息卡片<br>
+        • 交互感强，适合信息较多时
+      </div>
+    </div>
+
+    <!-- 方案C：紧凑标签 -->
+    <div class="design-item">
+      <div class="design-label">方案C：紧凑标签</div>
+      <div class="phone-frame">
+        <!-- 状态栏 -->
+        <div class="status-bar" style="background: transparent; position: absolute; top: 0; left: 0; right: 0; color: white; z-index: 10;">
+          <span>21:41</span>
+          <div style="display: flex; gap: 6px;">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.95 3 3 6.95 3 12s3.95 9 9 9c.76 0 1.51-.09 2.23-.27C12.14 19.13 10 16.27 10 13c0-3.87 3.13-7 7-7 1.27 0 2.46.34 3.49.93C18.71 4.79 15.59 3 12 3z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+          </div>
+        </div>
+
+        <!-- 顶部图片 -->
+        <div style="position: relative; height: 220px;">
+          <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop" style="width: 100%; height: 100%; object-fit: cover;">
+          <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.7) 100%);"></div>
+          
+          <div class="back-btn" style="position: absolute; top: 44px; left: 16px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </div>
+          
+          <div class="share-btn" style="position: absolute; top: 44px; right: 16px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+          </div>
+          
+          <div style="position: absolute; bottom: 16px; left: 16px; right: 16px;">
+            <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+              <span style="padding: 4px 10px; background: #52C41A; color: white; border-radius: 12px; font-size: 11px; font-weight: 500;">招募中</span>
+              <span style="padding: 4px 10px; background: rgba(255,255,255,0.25); color: white; border-radius: 12px; font-size: 11px;">还剩2个名额</span>
+            </div>
+            <h1 style="font-size: 24px; font-weight: 700; color: white; margin-bottom: 4px;">周六灵山徒步</h1>
+            <div style="font-size: 13px; color: rgba(255,255,255,0.9);">🏔️ 东灵山 · 北京最高峰</div>
+          </div>
+        </div>
+
+        <div class="scroll-container" style="padding-bottom: 100px; background: var(--bg-color);">
+          <!-- 紧凑标签 -->
+          <div class="content-card" style="margin-top: -20px;">
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              <div style="padding: 10px 16px; background: rgba(74, 144, 226, 0.1); color: var(--primary-color); border-radius: 20px; font-size: 14px; font-weight: 500;">📅 4/5 周六</div>
+              <div style="padding: 10px 16px; background: rgba(82, 196, 26, 0.1); color: #52C41A; border-radius: 20px; font-size: 14px; font-weight: 500;">📍 海淀区</div>
+              <div style="padding: 10px 16px; background: rgba(255, 107, 107, 0.1); color: #FF6B6B; border-radius: 20px; font-size: 14px; font-weight: 500;">👥 差2人</div>
+              <div style="padding: 10px 16px; background: rgba(250, 173, 20, 0.1); color: #FAAD14; border-radius: 20px; font-size: 14px; font-weight: 500;">🚗 自驾 · 有车</div>
+            </div>
+          </div>
+
+          <!-- 发起人 -->
+          <div class="content-card">
+            <div class="card-header">
+              <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span class="card-title">发起人</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <div style="width: 52px; height: 52px; border-radius: 50%; overflow: hidden;">
+                <img src="https://i.pravatar.cc/100?img=1" style="width: 100%; height: 100%; object-fit: cover;">
+              </div>
+              <div style="flex: 1;">
+                <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">张伟</div>
+                <div style="font-size: 12px; color: var(--text-hint); margin-top: 4px;">已发起 5 次 · ★ 98% 好评</div>
+              </div>
+              <div style="padding: 8px 16px; background: rgba(74, 144, 226, 0.1); color: var(--primary-color); border-radius: 20px; font-size: 13px; font-weight: 500;">关注</div>
+            </div>
+          </div>
+
+          <!-- 行程说明 -->
+          <div class="content-card">
+            <div class="card-header">
+              <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
+              <span class="card-title">行程说明</span>
+            </div>
+            <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.8;">周六早上8点在海淀黄庄地铁站B口集合，自驾前往灵山，预计10:30到达。下午4点返程。费用AA，油费+门票约150元/人。</p>
+          </div>
+
+          <!-- 已加入成员 -->
+          <div class="content-card">
+            <div style="display: flex; align-items: center; margin-bottom: 14px;">
+              <span class="card-title">已加入成员</span>
+              <span style="margin-left: auto; font-size: 13px; color: var(--primary-color); font-weight: 500;">2/4人</span>
+            </div>
+            <div style="display: flex; gap: 14px;">
+              <div style="text-align: center;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; margin: 0 auto 6px;">
+                  <img src="https://i.pravatar.cc/100?img=1" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="font-size: 12px; color: var(--text-primary); font-weight: 500;">张伟</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; margin: 0 auto 6px;">
+                  <img src="https://i.pravatar.cc/100?img=5" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="font-size: 12px; color: var(--text-primary); font-weight: 500;">李明</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="width: 48px; height: 48px; background: var(--bg-color); border: 2px dashed var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; color: var(--text-hint); font-size: 20px;">+</div>
+                <div style="font-size: 12px; color: var(--text-hint);">待加入</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="width: 48px; height: 48px; background: var(--bg-color); border: 2px dashed var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; color: var(--text-hint); font-size: 20px;">+</div>
+                <div style="font-size: 12px; color: var(--text-hint);">待加入</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 底部按钮 -->
+        <div class="footer-bar">
+          <div class="action-btn-primary">申请加入</div>
+        </div>
+      </div>
+      <div class="design-note">
+        <strong>设计特点：</strong><br>
+        • 药丸形状标签，紧凑美观<br>
+        • 彩色背景区分不同类型<br>
+        • 信息一目了然
+      </div>
+    </div>
+
+    <!-- 方案D：单行信息 -->
+    <div class="design-item">
+      <div class="design-label">方案D：单行信息</div>
+      <div class="phone-frame">
+        <!-- 状态栏 -->
+        <div class="status-bar" style="background: transparent; position: absolute; top: 0; left: 0; right: 0; color: white; z-index: 10;">
+          <span>21:41</span>
+          <div style="display: flex; gap: 6px;">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.95 3 3 6.95 3 12s3.95 9 9 9c.76 0 1.51-.09 2.23-.27C12.14 19.13 10 16.27 10 13c0-3.87 3.13-7 7-7 1.27 0 2.46.34 3.49.93C18.71 4.79 15.59 3 12 3z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+          </div>
+        </div>
+
+        <!-- 顶部图片 -->
+        <div style="position: relative; height: 220px;">
+          <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop" style="width: 100%; height: 100%; object-fit: cover;">
+          <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.7) 100%);"></div>
+          
+          <div class="back-btn" style="position: absolute; top: 44px; left: 16px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </div>
+          
+          <div class="share-btn" style="position: absolute; top: 44px; right: 16px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+          </div>
+          
+          <div style="position: absolute; bottom: 16px; left: 16px; right: 16px;">
+            <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+              <span style="padding: 4px 10px; background: #52C41A; color: white; border-radius: 12px; font-size: 11px; font-weight: 500;">招募中</span>
+              <span style="padding: 4px 10px; background: rgba(255,255,255,0.25); color: white; border-radius: 12px; font-size: 11px;">还剩2个名额</span>
+            </div>
+            <h1 style="font-size: 24px; font-weight: 700; color: white; margin-bottom: 4px;">周六灵山徒步</h1>
+            <div style="font-size: 13px; color: rgba(255,255,255,0.9);">🏔️ 东灵山 · 北京最高峰</div>
+          </div>
+        </div>
+
+        <div class="scroll-container" style="padding-bottom: 100px; background: var(--bg-color);">
+          <!-- 单行信息 -->
+          <div class="content-card" style="margin-top: -20px; text-align: center; padding: 16px;">
+            <div style="font-size: 15px; color: var(--text-primary); line-height: 1.8;">
+              <span style="color: var(--primary-color); font-weight: 600;">4/5 周六</span>
+              <span style="color: var(--border-color); margin: 0 8px;">·</span>
+              <span style="color: #52C41A; font-weight: 600;">海淀区</span>
+              <span style="color: var(--border-color); margin: 0 8px;">·</span>
+              <span style="color: #FF6B6B; font-weight: 600;">还差2人</span>
+              <span style="color: var(--border-color); margin: 0 8px;">·</span>
+              <span style="color: #FAAD14; font-weight: 600;">自驾有车</span>
+            </div>
+          </div>
+
+          <!-- 发起人 -->
+          <div class="content-card">
+            <div class="card-header">
+              <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span class="card-title">发起人</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <div style="width: 52px; height: 52px; border-radius: 50%; overflow: hidden;">
+                <img src="https://i.pravatar.cc/100?img=1" style="width: 100%; height: 100%; object-fit: cover;">
+              </div>
+              <div style="flex: 1;">
+                <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">张伟</div>
+                <div style="font-size: 12px; color: var(--text-hint); margin-top: 4px;">已发起 5 次 · ★ 98% 好评</div>
+              </div>
+              <div style="padding: 8px 16px; background: rgba(74, 144, 226, 0.1); color: var(--primary-color); border-radius: 20px; font-size: 13px; font-weight: 500;">关注</div>
+            </div>
+          </div>
+
+          <!-- 行程说明 -->
+          <div class="content-card">
+            <div class="card-header">
+              <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
+              <span class="card-title">行程说明</span>
+            </div>
+            <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.8;">周六早上8点在海淀黄庄地铁站B口集合，自驾前往灵山，预计10:30到达。下午4点返程。费用AA，油费+门票约150元/人。</p>
+          </div>
+
+          <!-- 已加入成员 -->
+          <div class="content-card">
+            <div style="display: flex; align-items: center; margin-bottom: 14px;">
+              <span class="card-title">已加入成员</span>
+              <span style="margin-left: auto; font-size: 13px; color: var(--primary-color); font-weight: 500;">2/4人</span>
+            </div>
+            <div style="display: flex; gap: 14px;">
+              <div style="text-align: center;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; margin: 0 auto 6px;">
+                  <img src="https://i.pravatar.cc/100?img=1" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="font-size: 12px; color: var(--text-primary); font-weight: 500;">张伟</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; margin: 0 auto 6px;">
+                  <img src="https://i.pravatar.cc/100?img=5" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="font-size: 12px; color: var(--text-primary); font-weight: 500;">李明</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="width: 48px; height: 48px; background: var(--bg-color); border: 2px dashed var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; color: var(--text-hint); font-size: 20px;">+</div>
+                <div style="font-size: 12px; color: var(--text-hint);">待加入</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="width: 48px; height: 48px; background: var(--bg-color); border: 2px dashed var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; color: var(--text-hint); font-size: 20px;">+</div>
+                <div style="font-size: 12px; color: var(--text-hint);">待加入</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 底部按钮 -->
+        <div class="footer-bar">
+          <div class="action-btn-primary">申请加入</div>
+        </div>
+      </div>
+      <div class="design-note">
+        <strong>设计特点：</strong><br>
+        • 极简单行，所有信息一目了然<br>
+        • 彩色关键词突出重点<br>
+        • 最省空间
+      </div>
+    </div>
+
+  </div>
+
+  <div style="max-width: 1200px; margin: 60px auto 0; padding: 0 20px;">
+    <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: var(--shadow-md);">
+      <h2 style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">💡 方案对比</h2>
+      <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+        <thead>
+          <tr style="background: var(--bg-color);">
+            <th style="padding: 12px; text-align: left; border-radius: 8px 0 0 8px;">方案</th>
+            <th style="padding: 12px; text-align: left;">优点</th>
+            <th style="padding: 12px; text-align: left;">缺点</th>
+            <th style="padding: 12px; text-align: left; border-radius: 0 8px 8px 0;">适用场景</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding: 12px; font-weight: 600; color: var(--primary-color);">A: 列表式</td>
+            <td style="padding: 12px; color: var(--text-secondary);">信息清晰，阅读自然</td>
+            <td style="padding: 12px; color: var(--text-secondary);">占用空间较多</td>
+            <td style="padding: 12px; color: var(--text-secondary);">信息需要详细展示时</td>
+          </tr>
+          <tr style="background: var(--bg-color);">
+            <td style="padding: 12px; font-weight: 600; color: var(--primary-color);">B: 横滑卡片</td>
+            <td style="padding: 12px; color: var(--text-secondary);">节省空间，可扩展</td>
+            <td style="padding: 12px; color: var(--text-secondary);">需要滑动操作</td>
+            <td style="padding: 12px; color: var(--text-secondary);">信息较多时</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px; font-weight: 600; color: var(--primary-color);">C: 紧凑标签</td>
+            <td style="padding: 12px; color: var(--text-secondary);">美观紧凑，视觉友好</td>
+            <td style="padding: 12px; color: var(--text-secondary);">信息展示有限</td>
+            <td style="padding: 12px; color: var(--text-secondary);">信息精简时</td>
+          </tr>
+          <tr style="background: var(--bg-color);">
+            <td style="padding: 12px; font-weight: 600; color: var(--primary-color);">D: 单行信息</td>
+            <td style="padding: 12px; color: var(--text-secondary);">极简，最省空间</td>
+            <td style="padding: 12px; color: var(--text-secondary);">信息密度高</td>
+            <td style="padding: 12px; color: var(--text-secondary);">快速浏览时</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</body>
+</html>

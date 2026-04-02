@@ -434,7 +434,7 @@
     <div class="header">
       <h1>🏔️ 北京去哪玩</h1>
       <p>微信小程序设计规范文档</p>
-      <p class="version">Version 1.0.0 | 2026-03-24</p>
+      <p class="version">Version 1.1.0 | 2026-04-02 | UI Team</p>
     </div>
     
     <!-- 导航 -->
@@ -444,6 +444,7 @@
       <a href="#public-pages" class="nav-tab active">公开页面</a>
       <a href="#login-pages" class="nav-tab">登录相关</a>
       <a href="#auth-pages" class="nav-tab">需登录页面</a>
+      <a href="#trip-pages" class="nav-tab">行程相关</a>
       <a href="#version-history" class="nav-tab">版本历史</a>
     </div>
     
@@ -1222,160 +1223,713 @@
         <span>以下页面需要用户登录后才能访问，未登录用户点击将跳转到登录授权页</span>
       </div>
       
-      <!-- 地点列表 -->
-      <h3 style="margin: 32px 0 16px; font-size: 20px; color: #FF4D4F;">1. 地点列表页 🔒</h3>
+      <!-- 1. 地点详情页 -->
+      <h3 style="margin: 32px 0 16px; font-size: 20px; color: #FF4D4F;">1. 地点详情页 🔒</h3>
+      <p style="opacity: 0.7; margin-bottom: 16px;">展示地点完整信息、想去的人列表，支持收藏和发布行程</p>
       <div class="screens-grid">
         <div class="screen-wrapper">
-          <div class="screen-title">地点列表</div>
-          <div class="phone-frame">
-            <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
-            <div style="background: white; padding: 16px;">
-              <div class="search-bar">
-                <span>🔍</span>
-                <input class="search-input" type="text" placeholder="搜索地点">
-              </div>
-            </div>
-            <!-- 分类Tab -->
-            <div style="display: flex; gap: 8px; padding: 12px 16px; background: white; border-bottom: 1px solid var(--border-color);">
-              <div style="padding: 8px 16px; background: #4A90E2; color: white; border-radius: 20px; font-size: 13px; font-weight: 500;">全部</div>
-              <div style="padding: 8px 16px; background: var(--bg-color); border-radius: 20px; font-size: 13px; color: #4A4A68;">爬山</div>
-              <div style="padding: 8px 16px; background: var(--bg-color); border-radius: 20px; font-size: 13px; color: #4A4A68;">露营</div>
-              <div style="padding: 8px 16px; background: var(--bg-color); border-radius: 20px; font-size: 13px; color: #4A4A68;">骑行</div>
-            </div>
-            <!-- 地点卡片列表 -->
-            <div style="flex: 1; background: var(--bg-color); padding: 12px 16px; overflow-y: auto;">
-              <div style="background: white; border-radius: 16px; overflow: hidden; margin-bottom: 12px;">
-                <div style="display: flex;">
-                  <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; font-size: 40px;">🏔️</div>
-                  <div style="flex: 1; padding: 12px;">
-                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 4px;">灵山</div>
-                    <div style="font-size: 13px; color: #8E8EA0; margin-bottom: 8px;">北京最高峰，海拔2303米</div>
-                    <div style="display: flex; gap: 12px; font-size: 12px; color: #8E8EA0;">
-                      <span>📍 150km</span>
-                      <span>⚡ 中等</span>
-                      <span>⭐ 4.8</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div style="background: white; border-radius: 16px; overflow: hidden; margin-bottom: 12px;">
-                <div style="display: flex;">
-                  <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #56AB2F, #A8E6CF); display: flex; align-items: center; justify-content: center; font-size: 40px;">🌸</div>
-                  <div style="flex: 1; padding: 12px;">
-                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 4px;">百花山</div>
-                    <div style="font-size: 13px; color: #8E8EA0; margin-bottom: 8px;">夏季野花盛开，色彩斑斓</div>
-                    <div style="display: flex; gap: 12px; font-size: 12px; color: #8E8EA0;">
-                      <span>📍 95km</span>
-                      <span>⚡ 中等</span>
-                      <span>⭐ 4.6</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div style="background: white; border-radius: 16px; overflow: hidden;">
-                <div style="display: flex;">
-                  <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #4facfe, #00f2fe); display: flex; align-items: center; justify-content: center; font-size: 40px;">💧</div>
-                  <div style="flex: 1; padding: 12px;">
-                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 4px;">龙庆峡</div>
-                    <div style="font-size: 13px; color: #8E8EA0; margin-bottom: 8px;">峡谷风光，冰灯艺术节</div>
-                    <div style="display: flex; gap: 12px; font-size: 12px; color: #8E8EA0;">
-                      <span>📍 85km</span>
-                      <span>⚡ 易</span>
-                      <span>⭐ 4.5</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="tab-bar">
-              <div class="tab-item"><span class="tab-icon">🏠</span><span>首页</span></div>
-              <div class="tab-item"><span class="tab-icon">💬</span><span>消息</span></div>
-              <div class="tab-item"><span class="tab-icon">👤</span><span>我的</span></div>
-            </div>
-            <div class="home-indicator"></div>
-          </div>
-        </div>
-        
-        <!-- 地点详情 -->
-        <div class="screen-wrapper">
-          <div class="screen-title">地点详情 🔒</div>
+          <div class="screen-title">地点详情页</div>
           <div class="phone-frame">
             <div class="status-bar" style="background: transparent; position: absolute; top: 0; left: 0; right: 0; color: white; z-index: 10;"><span>9:41</span><span>📶 🔋</span></div>
-            <div style="height: 200px; background: linear-gradient(135deg, #667eea, #764ba2); position: relative; display: flex; align-items: center; justify-content: center;">
+            <div style="height: 220px; background: linear-gradient(135deg, #667eea, #764ba2); position: relative; display: flex; align-items: center; justify-content: center;">
               <span style="font-size: 80px;">🏔️</span>
-              <div style="position: absolute; top: 44px; left: 16px; width: 32px; height: 32px; background: rgba(0,0,0,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">‹</div>
-              <div style="position: absolute; top: 44px; right: 16px; width: 32px; height: 32px; background: rgba(0,0,0,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">♡</div>
+              <!-- 轮播指示点 -->
+              <div style="position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px;">
+                <div style="width: 18px; height: 6px; background: white; border-radius: 3px;"></div>
+                <div style="width: 6px; height: 6px; background: rgba(255,255,255,0.5); border-radius: 50%;"></div>
+                <div style="width: 6px; height: 6px; background: rgba(255,255,255,0.5); border-radius: 50%;"></div>
+                <div style="width: 6px; height: 6px; background: rgba(255,255,255,0.5); border-radius: 50%;"></div>
+              </div>
+              <div style="position: absolute; top: 48px; left: 16px; width: 32px; height: 32px; background: rgba(0,0,0,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">‹</div>
+              <div style="position: absolute; top: 48px; right: 16px; width: 32px; height: 32px; background: rgba(0,0,0,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">↗</div>
             </div>
-            <div style="flex: 1; background: var(--bg-color); overflow-y: auto;">
-              <div style="margin: -20px 12px 12px; background: white; border-radius: 16px; padding: 20px; position: relative; z-index: 5;">
-                <h2 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px;">灵山</h2>
-                <span class="tag" style="margin-bottom: 16px; display: inline-flex;">🏔️ 山峰景区</span>
+            <div style="flex: 1; background: var(--bg-color); overflow-y: auto; padding-bottom: 80px;">
+              <!-- 基本信息卡片 -->
+              <div style="margin: -20px 12px 12px; background: white; border-radius: 16px; padding: 20px; position: relative; z-index: 5; box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+                <h2 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px;">东灵山</h2>
+                <span class="tag" style="margin-bottom: 16px; display: inline-flex; background: linear-gradient(135deg, #4A90E2, #6BA3E8); color: white;">🏔️ 山岳风光</span>
                 <div style="display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid #E8E8F0;">
-                  <div style="text-align: center;"><div style="font-size: 20px; font-weight: 700; color: #4A90E2;">150km</div><div style="font-size: 11px; color: #8E8EA0;">距市中心</div></div>
+                  <div style="text-align: center;"><div style="font-size: 20px; font-weight: 700; color: #4A90E2;">150km</div><div style="font-size: 11px; color: #8E8EA0;">距北京市区</div></div>
                   <div style="text-align: center;"><div style="font-size: 20px; font-weight: 700; color: #4A90E2;">中等</div><div style="font-size: 11px; color: #8E8EA0;">难度等级</div></div>
                   <div style="text-align: center;"><div style="font-size: 20px; font-weight: 700; color: #4A90E2;">4.8</div><div style="font-size: 11px; color: #8E8EA0;">用户评分</div></div>
-                  <div style="text-align: center;"><div style="font-size: 20px; font-weight: 700; color: #4A90E2;">1天</div><div style="font-size: 11px; color: #8E8EA0;">游玩时间</div></div>
+                  <div style="text-align: center;"><div style="font-size: 20px; font-weight: 700; color: #4A90E2;">1天</div><div style="font-size: 11px; color: #8E8EA0;">建议时长</div></div>
                 </div>
-                <div style="display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 0;">
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 0; border-bottom: 1px solid #E8E8F0;">
                   <span class="tag">🏔️ 爬山</span>
                   <span class="tag">🌅 看日出</span>
                   <span class="tag">🏕️ 露营</span>
                   <span class="tag">📷 摄影</span>
                 </div>
+                <div style="padding-top: 16px;">
+                  <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px;">
+                    <span style="font-size: 16px;">📍</span>
+                    <div><div style="font-size: 11px; color: #8E8EA0;">详细地址</div><div style="font-size: 14px; color: #4A4A68;">北京市门头沟区清水镇</div></div>
+                  </div>
+                  <div style="display: flex; align-items: flex-start; gap: 10px;">
+                    <span style="font-size: 16px;">🕐</span>
+                    <div><div style="font-size: 11px; color: #8E8EA0;">开放时间</div><div style="font-size: 14px; color: #4A4A68;">全天开放</div></div>
+                  </div>
+                </div>
               </div>
+              
+              <!-- 地点介绍 -->
               <div style="background: white; border-radius: 16px; padding: 16px; margin: 0 12px 12px;">
-                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">📝 地点简介</h3>
-                <p style="font-size: 14px; color: #4A4A68; line-height: 1.8;">灵山位于北京市门头沟区清水镇，是北京最高峰，海拔2303米，被誉为"北京屋脊"。</p>
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">📝 地点介绍</h3>
+                <p style="font-size: 14px; color: #4A4A68; line-height: 1.8;">东灵山位于北京市门头沟区清水镇，是北京最高峰，海拔2303米，被誉为"京西珠穆朗玛"。山顶有广阔的高山草甸，夏季野花遍地。</p>
+              </div>
+              
+              <!-- 温馨提示 -->
+              <div style="background: linear-gradient(135deg, rgba(250, 173, 20, 0.08), rgba(250, 173, 20, 0.03)); border-left: 3px solid #FAAD14; border-radius: 16px; padding: 16px; margin: 0 12px 12px;">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px; color: #FAAD14;">⚠️ 温馨提示</h3>
+                <ul style="list-style: none; font-size: 13px; color: #4A4A68; line-height: 1.8;">
+                  <li style="margin-bottom: 8px; padding-left: 16px; position: relative;">• 山顶气温较低，建议携带保暖衣物</li>
+                  <li style="margin-bottom: 8px; padding-left: 16px; position: relative;">• 建议凌晨出发看日出</li>
+                  <li style="padding-left: 16px; position: relative;">• 带足饮用水和食物</li>
+                </ul>
+              </div>
+              
+              <!-- 想去的人 -->
+              <div style="background: white; border-radius: 16px; padding: 16px; margin: 0 12px 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                  <h3 style="font-size: 16px; font-weight: 600;">👥 想去的人 <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; background: #4A90E2; color: white; border-radius: 10px; font-size: 11px; font-weight: 600;">3</span></h3>
+                  <span style="font-size: 13px; color: #4A90E2;">查看全部 ›</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                  <div style="display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--bg-color); border-radius: 12px;">
+                    <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #FF6B6B, #FF8E53); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">王</div>
+                    <div style="flex: 1;">
+                      <div style="font-size: 14px; font-weight: 600; color: #1a1a1a;">小王</div>
+                      <div style="font-size: 12px; color: #8E8EA0;">03月25日 · 已有2人求2人</div>
+                      <div style="font-size: 12px; color: #4A4A68; margin-top: 4px; background: white; padding: 6px 8px; border-radius: 6px;">有车求队友，AA制</div>
+                    </div>
+                    <button style="padding: 8px 14px; background: #4A90E2; color: white; border: none; border-radius: 20px; font-size: 12px; font-weight: 500;">申请加入</button>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--bg-color); border-radius: 12px;">
+                    <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #56AB2F, #A8E6CF); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">李</div>
+                    <div style="flex: 1;">
+                      <div style="font-size: 14px; font-weight: 600; color: #1a1a1a;">小李</div>
+                      <div style="font-size: 12px; color: #8E8EA0;">03月26日 · 已有1人求3人</div>
+                      <div style="font-size: 12px; color: #4A4A68; margin-top: 4px; background: white; padding: 6px 8px; border-radius: 6px;">无车等拼车，可分摊油费</div>
+                    </div>
+                    <button style="padding: 8px 14px; background: white; color: #4A90E2; border: 1px solid #4A90E2; border-radius: 20px; font-size: 12px; font-weight: 500;">邀请他</button>
+                  </div>
+                </div>
               </div>
             </div>
             <!-- 底部操作栏 -->
-            <div style="display: flex; gap: 12px; padding: 12px 16px 24px; background: white; border-top: 1px solid var(--border-color);">
-              <button style="flex: 1; padding: 14px; background: var(--bg-color); border: none; border-radius: 12px; font-size: 15px; font-weight: 600; color: #4A4A68;">♡ 收藏</button>
-              <button style="flex: 2; padding: 14px; background: #4A90E2; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; color: white;">发布行程</button>
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; display: flex; gap: 12px; padding: 12px 16px 24px; background: white; border-top: 1px solid var(--border-color);">
+              <button style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 54px; height: 54px; background: var(--bg-color); border-radius: 16px; border: none;">
+                <span style="font-size: 20px;">🤍</span>
+                <span style="font-size: 10px; color: #8E8EA0;">收藏</span>
+              </button>
+              <button style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; height: 54px; background: linear-gradient(135deg, #4A90E2, #6BA3E8); color: white; border-radius: 16px; border: none; font-size: 16px; font-weight: 600; box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4);">
+                <span>+</span> 发布我的行程
+              </button>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+        
+        <!-- 邀请弹窗 -->
+        <div class="screen-wrapper">
+          <div class="screen-title">邀请弹窗</div>
+          <div class="phone-frame">
+            <div class="status-bar" style="background: transparent; position: absolute; top: 0; left: 0; right: 0; color: white; z-index: 10;"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="height: 220px; background: linear-gradient(135deg, #667eea, #764ba2); filter: brightness(0.3);"></div>
+            <div style="flex: 1; background: var(--bg-color); filter: brightness(0.3);"></div>
+            <!-- 弹窗 -->
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 320px; background: white; border-radius: 20px; padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #56AB2F, #A8E6CF); border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 600;">李</div>
+                <h3 style="font-size: 18px; font-weight: 600; color: #1a1a1a;">邀请 小李 一起游玩</h3>
+                <p style="font-size: 13px; color: #8E8EA0; margin-top: 4px;">请留下您的联系方式</p>
+              </div>
+              <div style="margin-bottom: 16px;">
+                <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500;">联系方式类型</label>
+                <div style="display: flex; gap: 8px;">
+                  <div style="flex: 1; padding: 12px; background: #4A90E2; color: white; border-radius: 10px; text-align: center; font-size: 14px; font-weight: 500;">📱 手机号</div>
+                  <div style="flex: 1; padding: 12px; background: #F5F7FA; border-radius: 10px; text-align: center; font-size: 14px; font-weight: 500; color: #4A4A68;">💬 微信号</div>
+                </div>
+              </div>
+              <div style="margin-bottom: 16px;">
+                <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500;">手机号码</label>
+                <input type="text" placeholder="请输入您的手机号" style="width: 100%; padding: 14px 16px; border: 1px solid #E8E8F0; border-radius: 12px; font-size: 15px; background: #F5F7FA;">
+              </div>
+              <div style="margin-bottom: 20px;">
+                <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500;">留言（选填）</label>
+                <textarea placeholder="简单介绍一下自己或行程..." style="width: 100%; padding: 14px 16px; border: 1px solid #E8E8F0; border-radius: 12px; font-size: 15px; background: #F5F7FA; resize: none; height: 80px;"></textarea>
+              </div>
+              <div style="display: flex; gap: 12px;">
+                <button style="flex: 1; padding: 14px; background: #F5F7FA; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; color: #4A4A68;">取消</button>
+                <button style="flex: 2; padding: 14px; background: #4A90E2; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; color: white;">发送邀请</button>
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+        
+        <!-- 申请加入弹窗 -->
+        <div class="screen-wrapper">
+          <div class="screen-title">申请加入弹窗</div>
+          <div class="phone-frame">
+            <div class="status-bar" style="background: transparent; position: absolute; top: 0; left: 0; right: 0; color: white; z-index: 10;"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="height: 220px; background: linear-gradient(135deg, #667eea, #764ba2); filter: brightness(0.3);"></div>
+            <div style="flex: 1; background: var(--bg-color); filter: brightness(0.3);"></div>
+            <div style="position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); width: 320px; background: white; border-radius: 20px; padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 16px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 28px;">🏔️</div>
+                <h3 style="font-size: 18px; font-weight: 600; color: #1a1a1a;">申请加入行程</h3>
+                <p style="font-size: 13px; color: #8E8EA0; margin-top: 4px;">周六灵山徒步 · 还剩2个名额</p>
+              </div>
+              <div style="margin-bottom: 16px;">
+                <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500;">联系方式类型</label>
+                <div style="display: flex; gap: 8px;">
+                  <div style="flex: 1; padding: 12px; background: #4A90E2; color: white; border-radius: 10px; text-align: center; font-size: 14px; font-weight: 500;">📱 手机号</div>
+                  <div style="flex: 1; padding: 12px; background: #F5F7FA; border-radius: 10px; text-align: center; font-size: 14px; font-weight: 500; color: #4A4A68;">💬 微信号</div>
+                </div>
+              </div>
+              <div style="margin-bottom: 20px;">
+                <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500;">手机号码</label>
+                <input type="text" placeholder="请输入您的手机号" style="width: 100%; padding: 14px 16px; border: 1px solid #E8E8F0; border-radius: 12px; font-size: 15px; background: #F5F7FA;">
+              </div>
+              <div style="margin-bottom: 20px;">
+                <label style="font-size: 13px; color: #4A4A68; display: block; margin-bottom: 8px; font-weight: 500;">自我介绍（选填）</label>
+                <textarea placeholder="简单介绍一下自己..." style="width: 100%; padding: 14px 16px; border: 1px solid #E8E8F0; border-radius: 12px; font-size: 15px; background: #F5F7FA; resize: none; height: 80px;"></textarea>
+              </div>
+              <div style="display: flex; gap: 12px;">
+                <button style="flex: 1; padding: 14px; background: #F5F7FA; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; color: #4A4A68;">取消</button>
+                <button style="flex: 2; padding: 14px; background: #4A90E2; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; color: white;">提交申请</button>
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 行程相关页面 -->
+    <div class="section" id="trip-pages">
+      <h2 class="section-title">行程相关页面</h2>
+      
+      <!-- 1. 发布行程页 -->
+      <h3 style="margin: 32px 0 16px; font-size: 20px; color: #FF4D4F;">1. 发布行程页 🔒</h3>
+      <div class="screens-grid">
+        <div class="screen-wrapper">
+          <div class="screen-title">发布行程（分组式）</div>
+          <div class="phone-frame" style="height: 900px; overflow-y: auto;">
+            <div class="status-bar" style="position: sticky; top: 0; z-index: 10; background: white;"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="background: white; padding: 16px; border-bottom: 1px solid var(--border-color);">
+              <div style="display: flex; align-items: center;">
+                <span style="font-size: 20px; color: #8E8EA0;">‹</span>
+                <span style="font-size: 18px; font-weight: 600; color: #1a1a1a; flex: 1; text-align: center;">发布行程</span>
+                <span style="width: 20px;"></span>
+              </div>
+            </div>
+            <div style="background: var(--bg-color); padding: 16px; padding-bottom: 120px;">
+              <!-- 选择地点 -->
+              <div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px;">
+                <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">📍 选择地点</div>
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0;">
+                  <span style="font-size: 15px; color: #1a1a1a; font-weight: 500;">目的地</span>
+                  <div style="display: flex; align-items: center; color: #8E8EA0; font-size: 15px;">
+                    <span>东灵山</span>
+                    <span style="margin-left: 8px; font-size: 20px; color: #CCCCCC;">›</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 行程信息 -->
+              <div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px;">
+                <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">📅 行程信息</div>
+                
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+                  <span style="font-size: 15px; color: #1a1a1a; font-weight: 500;">出发地</span>
+                  <div style="display: flex; align-items: center; color: #8E8EA0; font-size: 15px;">
+                    <span>海淀区</span>
+                    <span style="margin-left: 8px; font-size: 20px; color: #CCCCCC;">›</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+                  <span style="font-size: 15px; color: #1a1a1a; font-weight: 500;">出行日期</span>
+                  <div style="display: flex; align-items: center; color: #8E8EA0; font-size: 15px;">
+                    <span>2026-04-05</span>
+                    <span style="margin-left: 8px; font-size: 20px; color: #CCCCCC;">›</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+                  <span style="font-size: 15px; color: #1a1a1a; font-weight: 500;">出行方式</span>
+                  <div style="display: flex; gap: 12px;">
+                    <div style="padding: 9px 24px; border-radius: 20px; font-size: 14px; background: rgba(74, 144, 226, 0.15); color: #4A90E2; font-weight: 500;">有车</div>
+                    <div style="padding: 9px 24px; border-radius: 20px; font-size: 14px; background: var(--bg-color); color: #8E8EA0;">无车</div>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+                  <span style="font-size: 15px; color: #1a1a1a; font-weight: 500;">已有人数</span>
+                  <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--bg-color); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #8E8EA0;">−</div>
+                    <span style="font-size: 20px; font-weight: 600; color: #1a1a1a; min-width: 40px; text-align: center;">1人</span>
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--bg-color); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #8E8EA0;">+</div>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0;">
+                  <span style="font-size: 15px; color: #1a1a1a; font-weight: 500;">还需人数</span>
+                  <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--bg-color); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #8E8EA0;">−</div>
+                    <span style="font-size: 20px; font-weight: 600; color: #1a1a1a; min-width: 40px; text-align: center;">3人</span>
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--bg-color); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #8E8EA0;">+</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 补充说明 -->
+              <div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px;">
+                <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">📝 补充说明</div>
+                <textarea style="width: 100%; height: 120px; padding: 12px; border: 1px solid #E8E8E8; border-radius: 10px; font-size: 15px; background: #FAFAFA; resize: none; font-family: inherit; line-height: 1.6; box-sizing: border-box;" placeholder="说说你的计划、要求或期望（如：早上6点出发，AA制，希望队友有户外经验等）">周六早上8点海淀黄庄地铁站B口集合，自驾前往灵山。预计10:30到达，下午4点返程。费用AA，油费+门票约150元/人。</textarea>
+                <div style="text-align: right; font-size: 13px; color: #8E8EA0; margin-top: 8px;">76/200</div>
+              </div>
+            </div>
+            <!-- 底部发布按钮 -->
+            <div style="position: sticky; bottom: 0; left: 0; right: 0; padding: 12px 16px 28px; background: white; box-shadow: 0 -4px 20px rgba(0,0,0,0.06);">
+              <button style="width: 100%; height: 54px; background: linear-gradient(135deg, #4A90E2, #6BA3E8); border: none; border-radius: 16px; font-size: 17px; font-weight: 600; color: white; box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <span style="font-size: 20px;">+</span> 发布行程
+              </button>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+        
+        <!-- 行程详情页 -->
+        <div class="screen-wrapper">
+          <div class="screen-title">行程详情页（列表式信息流）</div>
+          <div class="phone-frame" style="height: 900px; overflow-y: auto;">
+            <div class="status-bar" style="background: transparent; position: absolute; top: 0; left: 0; right: 0; color: white; z-index: 10;"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="height: 240px; position: relative; overflow: hidden;">
+              <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop" style="width: 100%; height: 100%; object-fit: cover;">
+              <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.75) 100%);"></div>
+              <div style="position: absolute; top: 44px; left: 16px; width: 36px; height: 36px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">‹</div>
+              <div style="position: absolute; top: 44px; right: 16px; width: 36px; height: 36px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">⋯</div>
+              <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; color: white;">
+                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                  <span style="padding: 6px 12px; background: #52C41A; border-radius: 14px; font-size: 12px; font-weight: 500;">招募中</span>
+                  <span style="padding: 6px 12px; background: rgba(255,255,255,0.25); border-radius: 14px; font-size: 12px;">还剩2个名额</span>
+                </div>
+                <h2 style="font-size: 26px; font-weight: 700; margin-bottom: 6px;">周六灵山徒步</h2>
+                <div style="font-size: 14px; opacity: 0.9;">🏔️ 东灵山 · 北京最高峰</div>
+              </div>
+            </div>
+            <div style="background: var(--bg-color); padding-bottom: 100px;">
+              <!-- 列表式信息 -->
+              <div style="margin: 16px 12px 12px; background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                  <div style="display: flex; align-items: center; gap: 16px; padding-bottom: 20px; border-bottom: 1px solid var(--bg-color);">
+                    <div style="font-size: 28px; line-height: 1;">📅</div>
+                    <div style="flex: 1;">
+                      <div style="font-size: 13px; color: var(--text-hint); margin-bottom: 5px;">出发日期</div>
+                      <div style="font-size: 17px; font-weight: 600; color: var(--text-primary);">2026年4月5日 周六</div>
+                    </div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 16px; padding-bottom: 20px; border-bottom: 1px solid var(--bg-color);">
+                    <div style="font-size: 28px; line-height: 1;">📍</div>
+                    <div style="flex: 1;">
+                      <div style="font-size: 13px; color: var(--text-hint); margin-bottom: 5px;">出发地点</div>
+                      <div style="font-size: 17px; font-weight: 600; color: var(--text-primary);">海淀区集合</div>
+                    </div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 16px; padding-bottom: 20px; border-bottom: 1px solid var(--bg-color);">
+                    <div style="font-size: 28px; line-height: 1;">👥</div>
+                    <div style="flex: 1;">
+                      <div style="font-size: 13px; color: var(--text-hint); margin-bottom: 5px;">招募情况</div>
+                      <div style="font-size: 17px; font-weight: 600; color: var(--text-primary);">已有2人，还差2人</div>
+                    </div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="font-size: 28px; line-height: 1;">🚗</div>
+                    <div style="flex: 1;">
+                      <div style="font-size: 13px; color: var(--text-hint); margin-bottom: 5px;">交通方式</div>
+                      <div style="font-size: 17px; font-weight: 600; color: var(--text-primary);">自驾前往，有车可拼</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- 发起人 -->
+              <div style="margin: 12px; background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 18px;">👤 发起人</div>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                  <div style="width: 52px; height: 52px; background: linear-gradient(135deg, #4A90E2, #6BA3E8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 18px;">张</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a;">张伟</div>
+                    <div style="font-size: 12px; color: #8E8EA0; margin-top: 5px;">已发起 5 次 · ★ 98% 好评</div>
+                  </div>
+                  <div style="padding: 9px 20px; background: rgba(74, 144, 226, 0.1); color: #4A90E2; border-radius: 22px; font-size: 13px; font-weight: 500;">关注</div>
+                </div>
+              </div>
+              <!-- 行程说明 -->
+              <div style="margin: 12px; background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 18px;">📝 行程说明</div>
+                <p style="font-size: 14px; color: #4A4A68; line-height: 1.8;">周六早上8点在海淀黄庄地铁站B口集合，自驾前往灵山，预计10:30到达。下午4点返程。费用AA，油费+门票约150元/人。</p>
+              </div>
+              <!-- 已加入成员 -->
+              <div style="margin: 12px; background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                  <div style="font-size: 16px; font-weight: 600; color: #1a1a1a;">👥 已加入成员</div>
+                  <div style="font-size: 13px; color: #4A90E2; font-weight: 500;">2/4人</div>
+                </div>
+                <div style="display: flex; gap: 16px;">
+                  <div style="text-align: center;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #4A90E2, #6BA3E8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; margin: 0 auto 8px; font-size: 16px;">张</div>
+                    <div style="font-size: 12px; color: #1a1a1a; font-weight: 500;">张伟</div>
+                  </div>
+                  <div style="text-align: center;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #FF6B6B, #FF8E53); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; margin: 0 auto 8px; font-size: 16px;">李</div>
+                    <div style="font-size: 12px; color: #1a1a1a; font-weight: 500;">李明</div>
+                  </div>
+                  <div style="text-align: center;">
+                    <div style="width: 50px; height: 50px; background: #F5F7FA; border: 2px dashed #E8E8F0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #8E8EA0; margin: 0 auto 8px; font-size: 22px;">+</div>
+                    <div style="font-size: 12px; color: #8E8EA0;">待加入</div>
+                  </div>
+                  <div style="text-align: center;">
+                    <div style="width: 50px; height: 50px; background: #F5F7FA; border: 2px dashed #E8E8F0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #8E8EA0; margin: 0 auto 8px; font-size: 22px;">+</div>
+                    <div style="font-size: 12px; color: #8E8EA0;">待加入</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 底部按钮 -->
+            <div style="position: sticky; bottom: 0; left: 0; right: 0; padding: 12px 16px 28px; background: white; box-shadow: 0 -4px 20px rgba(0,0,0,0.06);">
+              <button style="width: 100%; height: 54px; background: linear-gradient(135deg, #4A90E2, #6BA3E8); border: none; border-radius: 16px; font-size: 16px; font-weight: 600; color: white; box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4);">申请加入</button>
             </div>
             <div class="home-indicator"></div>
           </div>
         </div>
       </div>
       
-      <!-- 更多需登录页面说明 -->
+      <!-- 2. 消息相关页面 -->
+      <h3 style="margin: 32px 0 16px; font-size: 20px; color: #FF4D4F;">2. 消息相关页面 🔒</h3>
+      <div class="screens-grid">
+        <!-- 消息 - 行程通知 -->
+        <div class="screen-wrapper">
+          <div class="screen-title">消息 - 行程通知</div>
+          <div class="phone-frame">
+            <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="background: white; padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center;">
+              <span style="font-size: 20px; color: #8E8EA0;">‹</span>
+              <span style="font-size: 18px; font-weight: 600; color: #1a1a1a; flex: 1; text-align: center;">行程通知</span>
+              <span style="width: 20px;"></span>
+            </div>
+            <div style="flex: 1; background: var(--bg-color); overflow-y: auto; padding: 16px;">
+              <!-- 申请加入通知 -->
+              <div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                  <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #FF6B6B, #FF8E53); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">李</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 15px; font-weight: 600; color: #1a1a1a;">李明 申请加入您的行程</div>
+                    <div style="font-size: 12px; color: #8E8EA0;">周六灵山徒步 · 10分钟前</div>
+                  </div>
+                </div>
+                <div style="background: var(--bg-color); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+                  <div style="font-size: 13px; color: #4A4A68; margin-bottom: 8px;">📱 手机号：138****8888</div>
+                  <div style="font-size: 13px; color: #4A4A68;">💬 自我介绍：有户外经验</div>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                  <button style="flex: 1; padding: 12px; background: var(--bg-color); border: none; border-radius: 10px; font-size: 14px; font-weight: 500; color: #4A4A68;">拒绝</button>
+                  <button style="flex: 1; padding: 12px; background: #4A90E2; color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 500;">同意</button>
+                </div>
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+                </div>
+              </div>
+              
+              <!-- 出发地区域 -->
+              <div style="background: white; border-radius: 16px; padding: 18px; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+                  <div style="width: 40px; height: 40px; background: rgba(82, 196, 26, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">📍</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 14px; font-weight: 600; color: #1a1a1a;">出发地区域</div>
+                    <div style="font-size: 12px; color: #8E8EA0;">方便队友就近集合</div>
+                  </div>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                  <div style="padding: 10px 16px; background: #4A90E2; color: white; border-radius: 20px; font-size: 13px; font-weight: 500;">海淀区</div>
+                  <div style="padding: 10px 16px; background: var(--bg-color); border-radius: 20px; font-size: 13px; color: #4A4A68;">朝阳区</div>
+                  <div style="padding: 10px 16px; background: var(--bg-color); border-radius: 20px; font-size: 13px; color: #4A4A68;">西城区</div>
+                  <div style="padding: 10px 16px; background: var(--bg-color); border-radius: 20px; font-size: 13px; color: #4A4A68;">东城区</div>
+                  <div style="padding: 10px 16px; background: var(--bg-color); border-radius: 20px; font-size: 13px; color: #4A4A68;">丰台区</div>
+                </div>
+              </div>
+              
+              <!-- 招募人数 -->
+              <div style="background: white; border-radius: 16px; padding: 18px; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+                  <div style="width: 40px; height: 40px; background: rgba(255, 107, 107, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">👥</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 14px; font-weight: 600; color: #1a1a1a;">招募人数</div>
+                    <div style="font-size: 12px; color: #8E8EA0;">包含您自己在内</div>
+                  </div>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 20px;">
+                  <div style="width: 44px; height: 44px; background: var(--bg-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #4A4A68; cursor: pointer;">−</div>
+                  <div style="text-align: center;">
+                    <div style="font-size: 36px; font-weight: 700; color: #4A90E2;">4</div>
+                    <div style="font-size: 12px; color: #8E8EA0;">人</div>
+                  </div>
+                  <div style="width: 44px; height: 44px; background: #4A90E2; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; cursor: pointer;">+</div>
+                </div>
+              </div>
+              
+              <!-- 交通方式 -->
+              <div style="background: white; border-radius: 16px; padding: 18px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+                  <div style="width: 40px; height: 40px; background: rgba(250, 173, 20, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">🚗</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 14px; font-weight: 600; color: #1a1a1a;">交通方式</div>
+                    <div style="font-size: 12px; color: #8E8EA0;">选择您的出行方式</div>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                  <div style="flex: 1; padding: 16px; background: #4A90E2; color: white; border-radius: 14px; text-align: center;">
+                    <div style="font-size: 28px; margin-bottom: 6px;">🚗</div>
+                    <div style="font-size: 14px; font-weight: 500;">有车</div>
+                  </div>
+                  <div style="flex: 1; padding: 16px; background: var(--bg-color); border-radius: 14px; text-align: center;">
+                    <div style="font-size: 28px; margin-bottom: 6px;">🚶</div>
+                    <div style="font-size: 14px; color: #4A4A68;">无车</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="padding: 12px 16px 24px; background: white; border-top: 1px solid var(--border-color);">
+              <button style="width: 100%; padding: 16px; background: linear-gradient(135deg, #4A90E2, #6BA3E8); border: none; border-radius: 14px; font-size: 17px; font-weight: 600; color: white;">下一步</button>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+        
+        <div class="screen-wrapper">
+          <div class="screen-title">发布行程 - 步骤3</div>
+          <div class="phone-frame">
+            <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="background: white; padding: 16px; border-bottom: 1px solid var(--border-color);">
+              <div style="display: flex; align-items: center;">
+                <span style="font-size: 20px; color: #8E8EA0;">‹</span>
+                <span style="font-size: 18px; font-weight: 600; color: #1a1a1a; flex: 1; text-align: center;">发布行程</span>
+                <span style="width: 20px;"></span>
+              </div>
+              <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px;">
+                <div style="width: 28px; height: 28px; background: #52C41A; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px;">✓</div>
+                <div style="width: 40px; height: 2px; background: #52C41A;"></div>
+                <div style="width: 28px; height: 28px; background: #52C41A; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px;">✓</div>
+                <div style="width: 40px; height: 2px; background: #4A90E2;"></div>
+                <div style="width: 28px; height: 28px; background: #4A90E2; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;">3</div>
+              </div>
+            </div>
+            <div style="flex: 1; background: var(--bg-color); overflow-y: auto; padding: 20px 16px;">
+              <h3 style="font-size: 20px; font-weight: 700; color: #1a1a1a; margin-bottom: 20px;">完善信息</h3>
+              
+              <!-- 行程说明 -->
+              <div style="background: white; border-radius: 16px; padding: 18px; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                  <div style="width: 40px; height: 40px; background: rgba(74, 144, 226, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">📝</div>
+                  <div style="font-size: 14px; font-weight: 600; color: #1a1a1a;">行程说明</div>
+                </div>
+                <textarea placeholder="介绍一下行程安排、集合地点、费用说明等..." style="width: 100%; padding: 14px; border: 1px solid #E8E8F0; border-radius: 12px; font-size: 14px; background: var(--bg-color); resize: none; height: 100px; font-family: inherit;">周六早上8点海淀黄庄地铁站B口集合，自驾前往灵山。预计10:30到达，下午4点返程。费用AA，油费+门票约150元/人。</textarea>
+              </div>
+              
+              <!-- 联系方式 -->
+              <div style="background: white; border-radius: 16px; padding: 18px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                  <div style="width: 40px; height: 40px; background: rgba(255, 77, 79, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">📱</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 14px; font-weight: 600; color: #1a1a1a;">联系方式</div>
+                    <div style="font-size: 12px; color: #8E8EA0;">必填，方便队友联系您</div>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                  <div style="flex: 1; padding: 12px; background: #4A90E2; color: white; border-radius: 10px; text-align: center; font-size: 14px; font-weight: 500;">📱 手机号</div>
+                  <div style="flex: 1; padding: 12px; background: var(--bg-color); border-radius: 10px; text-align: center; font-size: 14px; color: #4A4A68;">💬 微信号</div>
+                </div>
+                <input type="text" value="138****8888" style="width: 100%; padding: 14px; border: 1px solid #E8E8F0; border-radius: 12px; font-size: 15px; background: var(--bg-color);">
+              </div>
+              
+              <!-- 行程预览 -->
+              <div style="background: linear-gradient(135deg, rgba(74, 144, 226, 0.08), rgba(74, 144, 226, 0.03)); border-radius: 16px; padding: 16px; border: 1px solid rgba(74, 144, 226, 0.2);">
+                <div style="font-size: 14px; font-weight: 600; color: #4A90E2; margin-bottom: 12px;">📋 行程预览</div>
+                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #4A4A68;">
+                  <div style="display: flex; justify-content: space-between;"><span>目的地</span><span style="color: #1a1a1a; font-weight: 500;">东灵山</span></div>
+                  <div style="display: flex; justify-content: space-between;"><span>出发日期</span><span style="color: #1a1a1a; font-weight: 500;">周六 4/5</span></div>
+                  <div style="display: flex; justify-content: space-between;"><span>出发地</span><span style="color: #1a1a1a; font-weight: 500;">海淀区</span></div>
+                  <div style="display: flex; justify-content: space-between;"><span>招募人数</span><span style="color: #1a1a1a; font-weight: 500;">4人</span></div>
+                  <div style="display: flex; justify-content: space-between;"><span>交通方式</span><span style="color: #1a1a1a; font-weight: 500;">🚗 有车</span></div>
+                </div>
+              </div>
+            </div>
+            <div style="padding: 12px 16px 24px; background: white; border-top: 1px solid var(--border-color);">
+              <button style="width: 100%; padding: 16px; background: linear-gradient(135deg, #52C41A, #73D13D); border: none; border-radius: 14px; font-size: 17px; font-weight: 600; color: white; box-shadow: 0 4px 16px rgba(82, 196, 26, 0.3);">发布行程</button>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+        
+        <!-- 消息 - 邀请消息 -->
+                  <div style="font-size: 13px; color: #4A90E2; font-weight: 500;">2/4人</div>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                  <div style="text-align: center;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #4A90E2, #6BA3E8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; margin: 0 auto 6px; font-size: 18px;">张</div>
+                    <div style="font-size: 12px; color: #1a1a1a; font-weight: 500;">张伟</div>
+                    <div style="font-size: 10px; color: #8E8EA0;">发起人</div>
+                  </div>
+                  <div style="text-align: center;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #FF6B6B, #FF8E53); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; margin: 0 auto 6px; font-size: 18px;">李</div>
+                    <div style="font-size: 12px; color: #1a1a1a; font-weight: 500;">李明</div>
+                    <div style="font-size: 10px; color: #8E8EA0;">队友</div>
+                  </div>
+                  <div style="text-align: center;">
+                    <div style="width: 50px; height: 50px; background: #F5F7FA; border: 2px dashed #D9D9D9; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #8E8EA0; margin: 0 auto 6px; font-size: 20px;">+</div>
+                    <div style="font-size: 12px; color: #8E8EA0;">待加入</div>
+                  </div>
+                  <div style="text-align: center;">
+                    <div style="width: 50px; height: 50px; background: #F5F7FA; border: 2px dashed #D9D9D9; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #8E8EA0; margin: 0 auto 6px; font-size: 20px;">+</div>
+                    <div style="font-size: 12px; color: #8E8EA0;">待加入</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 底部操作 -->
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 12px 16px 24px; background: white; border-top: 1px solid var(--border-color);">
+              <button style="width: 100%; padding: 16px; background: linear-gradient(135deg, #4A90E2, #6BA3E8); border: none; border-radius: 14px; font-size: 17px; font-weight: 600; color: white; box-shadow: 0 4px 16px rgba(74, 144, 226, 0.3);">申请加入</button>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+        
+        <!-- 消息 - 行程通知 -->
+        <div class="screen-wrapper">
+          <div class="screen-title">消息 - 行程通知</div>
+          <div class="phone-frame">
+            <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="background: white; padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center;">
+              <span style="font-size: 20px; color: #8E8EA0;">‹</span>
+              <span style="font-size: 18px; font-weight: 600; color: #1a1a1a; flex: 1; text-align: center;">行程通知</span>
+              <span style="width: 20px;"></span>
+            </div>
+            <div style="flex: 1; background: var(--bg-color); overflow-y: auto; padding: 16px;">
+              <!-- 申请加入通知 -->
+              <div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                  <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #FF6B6B, #FF8E53); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">李</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 15px; font-weight: 600; color: #1a1a1a;">李明 申请加入您的行程</div>
+                    <div style="font-size: 12px; color: #8E8EA0;">周六灵山徒步 · 10分钟前</div>
+                  </div>
+                </div>
+                <div style="background: var(--bg-color); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+                  <div style="font-size: 13px; color: #4A4A68; margin-bottom: 8px;">📱 手机号：138****8888</div>
+                  <div style="font-size: 13px; color: #4A4A68;">💬 自我介绍：有户外经验，可以分摊油费</div>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                  <button style="flex: 1; padding: 12px; background: var(--bg-color); border: none; border-radius: 10px; font-size: 14px; font-weight: 500; color: #4A4A68;">拒绝</button>
+                  <button style="flex: 1; padding: 12px; background: #4A90E2; color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 500;">同意</button>
+                </div>
+              </div>
+              
+              <!-- 已处理通知 -->
+              <div style="background: white; border-radius: 16px; padding: 16px; opacity: 0.6;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #56AB2F, #A8E6CF); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">王</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 15px; font-weight: 600; color: #1a1a1a;">王小华 申请加入您的行程</div>
+                    <div style="font-size: 12px; color: #8E8EA0;">周六灵山徒步 · 1小时前</div>
+                  </div>
+                  <span style="font-size: 13px; color: #52C41A; font-weight: 500;">已同意</span>
+                </div>
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+        
+        <!-- 消息 - 邀请消息 -->
+        <div class="screen-wrapper">
+          <div class="screen-title">消息 - 邀请消息</div>
+          <div class="phone-frame">
+            <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="background: white; padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center;">
+              <span style="font-size: 20px; color: #8E8EA0;">‹</span>
+              <span style="font-size: 18px; font-weight: 600; color: #1a1a1a; flex: 1; text-align: center;">邀请消息</span>
+              <span style="width: 20px;"></span>
+            </div>
+            <div style="flex: 1; background: var(--bg-color); overflow-y: auto; padding: 16px;">
+              <!-- 邀请通知 -->
+              <div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                  <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #4A90E2, #6BA3E8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">张</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 15px; font-weight: 600; color: #1a1a1a;">张伟 邀请您一起游玩</div>
+                    <div style="font-size: 12px; color: #8E8EA0;">东灵山 · 30分钟前</div>
+                  </div>
+                </div>
+                <div style="background: var(--bg-color); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+                  <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <span class="tag" style="font-size: 11px;">🏔️ 东灵山</span>
+                    <span class="tag" style="font-size: 11px;">📅 4/5</span>
+                    <span class="tag" style="font-size: 11px;">🚗 有车</span>
+                  </div>
+                  <div style="font-size: 13px; color: #4A4A68;">📱 手机号：139****6666</div>
+                  <div style="font-size: 13px; color: #4A4A68; margin-top: 4px;">💬 留言：周末一起去灵山看日出吧，我有车可以载你</div>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                  <button style="flex: 1; padding: 12px; background: var(--bg-color); border: none; border-radius: 10px; font-size: 14px; font-weight: 500; color: #4A4A68;">忽略</button>
+                  <button style="flex: 1; padding: 12px; background: #4A90E2; color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 500;">查看行程</button>
+                </div>
+              </div>
+              
+              <!-- 已处理邀请 -->
+              <div style="background: white; border-radius: 16px; padding: 16px; opacity: 0.6;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #56AB2F, #A8E6CF); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">李</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 15px; font-weight: 600; color: #1a1a1a;">小李 邀请您一起游玩</div>
+                    <div style="font-size: 12px; color: #8E8EA0;">百花山 · 2小时前</div>
+                  </div>
+                  <span style="font-size: 13px; color: #8E8EA0; font-weight: 500;">已忽略</span>
+                </div>
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 设计说明 -->
       <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 24px; margin-top: 24px;">
-        <h4 style="font-size: 18px; margin-bottom: 16px;">更多需登录页面</h4>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-          <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px;">
-            <div style="font-size: 24px; margin-bottom: 8px;">📝</div>
-            <div style="font-weight: 600; margin-bottom: 4px;">发布行程</div>
-            <div style="font-size: 13px; opacity: 0.7;">选择地点、日期、人数</div>
+        <h4 style="font-size: 18px; margin-bottom: 16px;">💡 消息接收设计说明</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+          <div>
+            <h5 style="font-size: 15px; font-weight: 600; margin-bottom: 8px; color: #4A90E2;">📍 入口位置</h5>
+            <p style="font-size: 13px; opacity: 0.7; line-height: 1.6;">消息入口在底部导航栏「消息」Tab，用户点击后可查看各类通知。</p>
           </div>
-          <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px;">
-            <div style="font-size: 24px; margin-bottom: 8px;">🚗</div>
-            <div style="font-weight: 600; margin-bottom: 4px;">行程详情</div>
-            <div style="font-size: 13px; opacity: 0.7;">查看行程、申请加入</div>
+          <div>
+            <h5 style="font-size: 15px; font-weight: 600; margin-bottom: 8px; color: #4A90E2;">🔔 行程通知</h5>
+            <p style="font-size: 13px; opacity: 0.7; line-height: 1.6;">当有人申请加入您的行程时，会收到通知。您可以查看对方联系方式，选择同意或拒绝。</p>
           </div>
-          <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px;">
-            <div style="font-size: 24px; margin-bottom: 8px;">📅</div>
-            <div style="font-weight: 600; margin-bottom: 4px;">我的行程</div>
-            <div style="font-size: 13px; opacity: 0.7;">我发起/参与的行程</div>
+          <div>
+            <h5 style="font-size: 15px; font-weight: 600; margin-bottom: 8px; color: #4A90E2;">✉️ 邀请消息</h5>
+            <p style="font-size: 13px; opacity: 0.7; line-height: 1.6;">当有人邀请您一起游玩时，会收到通知。您可以查看行程详情和对方联系方式，选择接受或忽略。</p>
           </div>
-          <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px;">
-            <div style="font-size: 24px; margin-bottom: 8px;">💭</div>
-            <div style="font-weight: 600; margin-bottom: 4px;">聊天详情</div>
-            <div style="font-size: 13px; opacity: 0.7;">行程群聊、私聊</div>
-          </div>
-          <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px;">
-            <div style="font-size: 24px; margin-bottom: 8px;">👥</div>
-            <div style="font-weight: 600; margin-bottom: 4px;">关注粉丝</div>
-            <div style="font-size: 13px; opacity: 0.7;">关注列表、粉丝列表</div>
-          </div>
-          <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px;">
-            <div style="font-size: 24px; margin-bottom: 8px;">⭐</div>
-            <div style="font-weight: 600; margin-bottom: 4px;">评论列表</div>
-            <div style="font-size: 13px; opacity: 0.7;">地点评论、评分</div>
-          </div>
-          <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px;">
-            <div style="font-size: 24px; margin-bottom: 8px;">⚙️</div>
-            <div style="font-weight: 600; margin-bottom: 4px;">设置</div>
-            <div style="font-size: 13px; opacity: 0.7;">通知、隐私、退出登录</div>
+          <div>
+            <h5 style="font-size: 15px; font-weight: 600; margin-bottom: 8px; color: #4A90E2;">📱 联系方式</h5>
+            <p style="font-size: 13px; opacity: 0.7; line-height: 1.6;">由于暂不做聊天系统，双方通过手机号或微信号联系，通知中会展示联系方式。</p>
           </div>
         </div>
       </div>
@@ -1391,6 +1945,12 @@
             <th style="padding: 12px 16px; text-align: left; color: rgba(255,255,255,0.6); font-weight: 500;">日期</th>
             <th style="padding: 12px 16px; text-align: left; color: rgba(255,255,255,0.6); font-weight: 500;">作者</th>
             <th style="padding: 12px 16px; text-align: left; color: rgba(255,255,255,0.6); font-weight: 500;">变更内容</th>
+          </tr>
+          <tr>
+            <td style="padding: 12px 16px; font-weight: 600;">v1.1.0</td>
+            <td style="padding: 12px 16px; opacity: 0.8;">2026-04-02</td>
+            <td style="padding: 12px 16px; opacity: 0.8;">UI Team</td>
+            <td style="padding: 12px 16px; opacity: 0.8;">重新设计发布行程页（三步骤引导式）和行程详情页；整理需登录页面布局；整合地点详情页设计稿；新增邀请/申请接收页面</td>
           </tr>
           <tr>
             <td style="padding: 12px 16px; font-weight: 600;">v1.0.4</td>
@@ -1429,7 +1989,7 @@
     <!-- 页脚 -->
     <footer style="text-align: center; padding: 40px 20px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 40px;">
       <p style="font-size: 14px; opacity: 0.6;">北京去哪玩 · 设计规范文档</p>
-      <p style="font-size: 12px; opacity: 0.4; margin-top: 8px;">Version 1.0.0 | 2026-03-24 | 设计团队</p>
+      <p style="font-size: 12px; opacity: 0.4; margin-top: 8px;">Version 1.1.0 | 2026-04-02 | UI Team</p>
     </footer>
   </div>
 </body>

@@ -1306,14 +1306,53 @@
             <div class="page-section">
               <div class="page-section-title">📄 页面展示内容</div>
               <ul class="feature-list">
-                <li><strong>地点选择</strong> - 搜索或选择已发布的地点</li>
-                <li><strong>日期选择</strong> - 日历选择器，选择出行日期</li>
-                <li><strong>人数设置</strong> - 滑动选择1-20人</li>
-                <li><strong>是否有车</strong> - 开关选择</li>
-                <li><strong>座位数</strong> - 有车时显示，填写可拼车座位数</li>
-                <li><strong>备注说明</strong> - 文本输入框，最多200字</li>
-                <li><strong>发布按钮</strong> - 提交发布行程</li>
+                <li><strong>📍 选择地点</strong> - 目的地选择，显示已选地点名称</li>
+                <li><strong>📅 行程信息</strong>：
+                  <ul style="margin-top: 8px; padding-left: 20px;">
+                    <li>出发地 - 北京16个区选择（暂仅支持北京）</li>
+                    <li>出行日期 - 日期选择器，格式：2026-04-05</li>
+                    <li>出行方式 - 有车/无车切换</li>
+                    <li>已有人数 - 数字选择器（1-20人）</li>
+                    <li>还需人数 - 数字选择器（1-20人）</li>
+                  </ul>
+                </li>
+                <li><strong>📝 补充说明</strong> - 文本域，最多200字，显示字数统计</li>
+                <li><strong>发布按钮</strong> - 蓝色渐变按钮，54px高度，16px圆角</li>
               </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">📐 设计规范</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">元素</th>
+                  <th>样式</th>
+                </tr>
+                <tr>
+                  <td>分组标题</td>
+                  <td>16px font-weight 600，emoji + 文字，下边框分隔</td>
+                </tr>
+                <tr>
+                  <td>表单字段</td>
+                  <td>标签在左，控件在右，每行一个字段</td>
+                </tr>
+                <tr>
+                  <td>出行方式</td>
+                  <td>圆角药丸样式按钮（有车/无车）</td>
+                </tr>
+                <tr>
+                  <td>数字选择器</td>
+                  <td>36px圆形加减按钮，20px数字</td>
+                </tr>
+                <tr>
+                  <td>文本域</td>
+                  <td>120px高度，10px圆角，浅灰背景</td>
+                </tr>
+                <tr>
+                  <td>发布按钮</td>
+                  <td>蓝色渐变 #4A90E2 → #6BA3E2，54px高度，16px圆角</td>
+                </tr>
+              </table>
             </div>
             
             <div class="page-section">
@@ -1325,9 +1364,14 @@
                   <th width="120">是否需要登录</th>
                 </tr>
                 <tr>
-                  <td>地点选择</td>
+                  <td>目的地选择</td>
                   <td>地点搜索页</td>
-                  <td><span class="tag danger">是</span></td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
+                  <td>出发地选择</td>
+                  <td>出发地选择器弹窗（北京16个区）</td>
+                  <td><span class="tag success">否</span></td>
                 </tr>
                 <tr>
                   <td>发布按钮</td>
@@ -1337,7 +1381,7 @@
                 <tr>
                   <td>返回按钮</td>
                   <td>上一页（询问是否放弃）</td>
-                  <td><span class="tag danger">是</span></td>
+                  <td><span class="tag success">否</span></td>
                 </tr>
               </table>
             </div>
@@ -1354,14 +1398,60 @@
             <div class="page-section">
               <div class="page-section-title">📄 页面展示内容</div>
               <ul class="feature-list">
-                <li><strong>地点信息</strong> - 地点名称、图片，点击可跳转地点详情</li>
-                <li><strong>行程信息</strong> - 出行日期、出发时间、人数</li>
-                <li><strong>发布者信息</strong> - 头像、昵称、是否有车</li>
-                <li><strong>参与成员</strong> - 头像列表</li>
-                <li><strong>备注说明</strong> - 行程详情描述</li>
-                <li><strong>申请加入按钮</strong> - 非发布者显示</li>
-                <li><strong>编辑按钮</strong> - 发布者显示</li>
+                <li><strong>顶部图片区域</strong> - 240px高度，目的地图片，渐变遮罩</li>
+                <li><strong>状态标签</strong> - 招募中（绿色）/ 已满员（灰色）</li>
+                <li><strong>标题区域</strong> - 行程名称 + 目的地简介</li>
+                <li><strong>列表式信息卡片</strong>：
+                  <ul style="margin-top: 8px; padding-left: 20px;">
+                    <li>📅 出发日期 - 格式：2026年4月5日 周六</li>
+                    <li>📍 出发地点 - 如：海淀区集合</li>
+                    <li>👥 招募情况 - 如：已有2人，还差2人</li>
+                    <li>🚗 交通方式 - 如：自驾前往，有车可拼</li>
+                  </ul>
+                </li>
+                <li><strong>发起人卡片</strong> - 头像、昵称、发起次数、好评率、关注按钮</li>
+                <li><strong>行程说明卡片</strong> - 详细行程描述</li>
+                <li><strong>已加入成员</strong> - 头像列表，待加入占位（虚线边框）</li>
+                <li><strong>底部按钮</strong> - 申请加入（非发起人）/ 编辑行程（发起人）</li>
               </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">📐 设计规范</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">元素</th>
+                  <th>样式</th>
+                </tr>
+                <tr>
+                  <td>顶部图片</td>
+                  <td>240px高度，真实图片 + 渐变遮罩</td>
+                </tr>
+                <tr>
+                  <td>信息项emoji</td>
+                  <td>28px</td>
+                </tr>
+                <tr>
+                  <td>信息项标题</td>
+                  <td>13px #8E8EA0</td>
+                </tr>
+                <tr>
+                  <td>信息项内容</td>
+                  <td>17px #1a1a1a font-weight 600</td>
+                </tr>
+                <tr>
+                  <td>信息项间距</td>
+                  <td>20px，1px分割线</td>
+                </tr>
+                <tr>
+                  <td>用户头像</td>
+                  <td>52px（发起人）、50px（成员）</td>
+                </tr>
+                <tr>
+                  <td>底部按钮</td>
+                  <td>54px高度，16px圆角，蓝色渐变</td>
+                </tr>
+              </table>
             </div>
             
             <div class="page-section">
@@ -1373,29 +1463,34 @@
                   <th width="120">是否需要登录</th>
                 </tr>
                 <tr>
-                  <td>地点信息</td>
+                  <td>顶部图片区域</td>
                   <td>地点详情页</td>
-                  <td><span class="tag danger">是</span></td>
+                  <td><span class="tag success">否</span></td>
                 </tr>
                 <tr>
                   <td>申请加入</td>
-                  <td>提交申请 → 等待审核</td>
+                  <td>申请加入弹窗（需填写联系方式）</td>
                   <td><span class="tag danger">是</span></td>
                 </tr>
                 <tr>
-                  <td>编辑按钮</td>
+                  <td>编辑行程</td>
                   <td>编辑行程页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>发起人关注</td>
+                  <td>关注/取消关注</td>
                   <td><span class="tag danger">是</span></td>
                 </tr>
                 <tr>
                   <td>成员头像</td>
                   <td>该用户个人主页</td>
-                  <td><span class="tag danger">是</span></td>
+                  <td><span class="tag success">否</span></td>
                 </tr>
                 <tr>
                   <td>返回按钮</td>
                   <td>上一页</td>
-                  <td><span class="tag danger">是</span></td>
+                  <td><span class="tag success">否</span></td>
                 </tr>
               </table>
             </div>
