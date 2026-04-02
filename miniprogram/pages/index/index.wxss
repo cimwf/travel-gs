@@ -26,6 +26,9 @@ page {
   --success-color: #52C41A;
   --warning-color: #FAAD14;
   --danger-color: #FF4D4F;
+
+  /* 禁用横向滚动 */
+  overflow-x: hidden;
 }
 
 .container {
@@ -35,6 +38,8 @@ page {
   padding-right: 20rpx;
   min-height: 100vh;
   background: var(--bg-color);
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* ========================================

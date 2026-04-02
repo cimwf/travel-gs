@@ -7,10 +7,15 @@ Page({
     trips: [],
     loading: true,
     isCollected: false,
-    userInfo: null
+    userInfo: null,
+    statusBarHeight: 0
   },
 
   onLoad: function (options) {
+    // 获取状态栏高度
+    const systemInfo = wx.getSystemInfoSync();
+    this.setData({ statusBarHeight: systemInfo.statusBarHeight });
+
     const placeId = options.id || 'place_001';
     this.loadPlaceDetail(placeId);
     this.loadTrips(placeId);
@@ -111,7 +116,11 @@ Page({
 
   // 分享按钮
   onShareTap: function () {
-    // 触发分享
+    // 触发分享菜单
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage', 'shareTimeline']
+    });
   },
 
   // 收藏

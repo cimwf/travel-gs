@@ -15,11 +15,21 @@
         <image class="banner-image" src="{{item}}" mode="aspectFill"></image>
       </swiper-item>
     </swiper>
+
     <!-- 渐变遮罩 -->
     <view class="banner-overlay"></view>
-    <!-- 导航按钮 -->
-    <view class="nav-btn nav-back" bindtap="onBackTap">←</view>
-    <view class="nav-btn nav-share" bindtap="onShareTap">⋯</view>
+
+    <!-- 自定义导航栏 -->
+    <view class="custom-nav" style="padding-top: {{statusBarHeight}}px;">
+      <!-- 返回按钮 -->
+      <view class="nav-btn" bindtap="onBackTap">
+        <text class="nav-icon">‹</text>
+      </view>
+      <!-- 分享按钮 -->
+      <!-- <view class="nav-btn nav-share" bindtap="onShareTap">
+        <text class="nav-icon-share">...</text>
+      </view> -->
+    </view>
   </view>
 
   <!-- 基本信息区域 -->
@@ -55,7 +65,9 @@
 
     <!-- 标签 -->
     <view class="tags-container">
-      <view class="tag" wx:for="{{place.tags}}" wx:key="*this">{{item}}</view>
+      <view class="tag" wx:for="{{place.tags}}" wx:key="*this">
+        <text>{{item}}</text>
+      </view>
     </view>
 
     <!-- 元信息 -->
@@ -142,15 +154,18 @@
     </view>
   </view>
 
-  <!-- 底部操作栏 -->
-  <view class="footer-bar">
-    <view class="collect-btn {{isCollected ? 'collected' : ''}}" bindtap="onCollectTap">
-      <text class="collect-icon">{{isCollected ? '❤️' : '🤍'}}</text>
-      <text class="collect-text">{{isCollected ? '已收藏' : '收藏'}}</text>
-    </view>
-    <view class="publish-btn" bindtap="onPublishTrip">
-      <text class="publish-icon">+</text>
-      <text>发布我的行程</text>
-    </view>
+  <!-- 底部安全区 -->
+  <view class="safe-bottom"></view>
+</view>
+
+<!-- 底部操作栏 -->
+<view class="footer-bar">
+  <view class="collect-btn {{isCollected ? 'collected' : ''}}" bindtap="onCollectTap">
+    <text class="collect-icon">{{isCollected ? '❤️' : '🤍'}}</text>
+    <text class="collect-text">{{isCollected ? '已收藏' : '收藏'}}</text>
+  </view>
+  <view class="publish-btn" bindtap="onPublishTrip">
+    <text class="publish-icon">+</text>
+    <text>发布我的行程</text>
   </view>
 </view>

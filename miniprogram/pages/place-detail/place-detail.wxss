@@ -21,7 +21,7 @@ page {
 }
 
 .container {
-  padding-bottom: 160rpx;
+  padding-bottom: 180rpx;
   background: var(--bg-color);
 }
 
@@ -29,6 +29,7 @@ page {
 .header {
   position: relative;
   height: 440rpx;
+  width: 100%;
 }
 
 .banner-swiper {
@@ -60,10 +61,21 @@ page {
   z-index: 2;
 }
 
-/* 导航按钮 */
-.nav-btn {
+/* ========== 自定义导航栏 ========== */
+.custom-nav {
   position: absolute;
-  top: 96rpx;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 32rpx;
+  padding-bottom: 24rpx;
+  z-index: 20;
+}
+
+.nav-btn {
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;
@@ -72,27 +84,28 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.nav-icon {
   color: white;
-  font-size: 36rpx;
+  font-size: 56rpx;
   font-weight: 300;
-  z-index: 10;
+  margin-top: -6rpx;
+  margin-left: -2rpx;
 }
 
-.nav-back {
-  left: 32rpx;
-}
-
-.nav-share {
-  right: 32rpx;
-  font-size: 44rpx;
+.nav-icon-share {
+  color: white;
+  font-size: 32rpx;
   font-weight: bold;
-  letter-spacing: 2rpx;
+  letter-spacing: 4rpx;
 }
 
 /* ========== 基本信息区域 ========== */
 .info-section {
+  width: 84%;
   background: white;
-  margin: -40rpx 24rpx 24rpx;
+  margin: -50rpx 24rpx 24rpx;
   border-radius: 32rpx;
   padding: 40rpx;
   position: relative;
@@ -429,6 +442,11 @@ page {
 .empty-text {
   font-size: 28rpx;
   color: var(--text-hint);
+}
+
+/* ========== 底部安全区 ========== */
+.safe-bottom {
+  height: 40rpx;
 }
 
 /* ========== 底部操作栏 ========== */
