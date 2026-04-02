@@ -15,11 +15,6 @@
         <image class="banner-image" src="{{item}}" mode="aspectFill"></image>
       </swiper-item>
     </swiper>
-    <!-- 渐变遮罩 -->
-    <view class="banner-overlay"></view>
-    <!-- 导航按钮 -->
-    <view class="nav-btn nav-back" bindtap="onBackTap">←</view>
-    <view class="nav-btn nav-share" bindtap="onShareTap">⋯</view>
   </view>
 
   <!-- 基本信息区域 -->
@@ -53,10 +48,6 @@
       </view>
     </view>
 
-    <!-- 标签 -->
-    <view class="tags-container">
-      <view class="tag" wx:for="{{place.tags}}" wx:key="*this">{{item}}</view>
-    </view>
 
     <!-- 元信息 -->
     <view class="meta-info">

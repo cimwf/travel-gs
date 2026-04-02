@@ -29,6 +29,7 @@ page {
 .header {
   position: relative;
   height: 440rpx;
+  width: 100%;
 }
 
 .banner-swiper {
@@ -91,8 +92,9 @@ page {
 
 /* ========== 基本信息区域 ========== */
 .info-section {
+  width: 84%;
   background: white;
-  margin: -40rpx 24rpx 24rpx;
+  margin: -50rpx 24rpx 24rpx;
   border-radius: 32rpx;
   padding: 40rpx;
   position: relative;
@@ -155,6 +157,7 @@ page {
 
 /* 标签 */
 .tags-container {
+  width: 84%;
   display: flex;
   flex-wrap: wrap;
   gap: 16rpx;
