@@ -36,7 +36,7 @@
       </view>
 
       <!-- 统计数据 -->
-      <view class="stats-row">
+      <!-- <view class="stats-row">
         <view class="stat-item" bindtap="onTapFollowing">
           <view class="stat-value">{{stats.following}}</view>
           <view class="stat-label">关注</view>
@@ -49,7 +49,7 @@
           <view class="stat-value">{{stats.trips}}</view>
           <view class="stat-label">行程</view>
         </view>
-      </view>
+      </view> -->
     </view>
   </view>
 

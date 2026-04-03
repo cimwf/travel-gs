@@ -79,8 +79,8 @@ page {
 .logged-in {
   display: flex;
   flex-direction: column;
-  padding-left: 20rpx;
-  padding-right: 20rpx;
+  padding-left: 40rpx;
+  padding-right: 40rpx;
 }
 
 .user-info {
