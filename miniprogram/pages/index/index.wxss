@@ -78,6 +78,7 @@ page {
    ======================================== */
 .banner-section {
   width: 100%;
+  margin-top: 32rpx;
   padding: 0 32rpx 32rpx;
 }
 
