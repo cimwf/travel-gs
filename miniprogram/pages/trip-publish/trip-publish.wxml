@@ -1,71 +1,134 @@
 <!--pages/trip-publish/trip-publish.wxml-->
 <view class="container">
-  <!-- 选择地点 -->
-  <view class="form-section">
-    <view class="section-title">📍 选择地点</view>
-    <view class="form-item">
-      <text class="form-label">目的地</text>
-      <view class="form-value">
-        <text>{{placeName}}</text>
-        <text class="arrow">›</text>
-      </view>
+  <!-- 自定义导航栏 -->
+  <view class="custom-nav" style="padding-top: {{statusBarHeight}}px;">
+    <view class="nav-back" bindtap="onBackTap">
+      <text class="nav-icon">‹</text>
     </view>
+    <view class="nav-title">发布行程</view>
+    <view class="nav-placeholder"></view>
   </view>
 
-  <!-- 行程信息 -->
-  <view class="form-section">
-    <view class="section-title">📅 行程信息</view>
-    
-    <view class="form-item">
-      <text class="form-label">出行日期</text>
-      <picker mode="date" value="{{date}}" start="{{minDate}}" bindchange="onDateChange">
+  <!-- 占位区域 -->
+  <view class="nav-placeholder-area" style="height: {{statusBarHeight + 44}}px;"></view>
+
+  <!-- 表单内容 -->
+  <view class="form-content">
+    <!-- 选择地点 -->
+    <view class="form-section">
+      <view class="section-title">📍 选择地点</view>
+      <view class="form-item" bindtap="onSelectPlace">
+        <text class="form-label">目的地</text>
         <view class="form-value">
-          <text>{{date}}</text>
+          <text class="{{placeName ? 'value-text' : 'placeholder-text'}}">{{placeName || '请选择目的地'}}</text>
           <text class="arrow">›</text>
         </view>
-      </picker>
-    </view>
-
-    <view class="form-item">
-      <text class="form-label">出行方式</text>
-      <view class="radio-group">
-        <view class="radio-item {{hasCar ? 'active' : ''}}" data-value="{{true}}" bindtap="onCarChange">有车</view>
-        <view class="radio-item {{!hasCar ? 'active' : ''}}" data-value="{{false}}" bindtap="onCarChange">无车</view>
       </view>
     </view>
 
-    <view class="form-item">
-      <text class="form-label">已有人数</text>
-      <view class="count-picker">
-        <view class="count-btn" data-type="minus" bindtap="onCurrentCountChange">-</view>
-        <text class="count-value">{{currentCount}}人</text>
-        <view class="count-btn" data-type="plus" bindtap="onCurrentCountChange">+</view>
+    <!-- 行程信息 -->
+    <view class="form-section">
+      <view class="section-title">📅 行程信息</view>
+
+      <view class="form-item" bindtap="onSelectDeparture">
+        <text class="form-label">出发地</text>
+        <view class="form-value">
+          <text class="{{departure ? 'value-text' : 'placeholder-text'}}">{{departure || '请选择出发地'}}</text>
+          <text class="arrow">›</text>
+        </view>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">出行日期</text>
+        <picker mode="date" value="{{date}}" start="{{minDate}}" bindchange="onDateChange">
+          <view class="form-value">
+            <text class="value-text">{{date}}</text>
+            <text class="arrow">›</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">出行方式</text>
+        <view class="radio-group">
+          <view class="radio-item {{hasCar ? 'active' : ''}}" data-value="{{true}}" bindtap="onCarChange">有车</view>
+          <view class="radio-item {{!hasCar ? 'active' : ''}}" data-value="{{false}}" bindtap="onCarChange">无车</view>
+        </view>
+      </view>
+
+      <view class="form-item">
+        <text class="form-label">已有人数</text>
+        <view class="count-picker">
+          <view class="count-btn" data-type="minus" data-field="currentCount" bindtap="onCountChange">−</view>
+          <text class="count-value">{{currentCount}}人</text>
+          <view class="count-btn" data-type="plus" data-field="currentCount" bindtap="onCountChange">+</view>
+        </view>
+      </view>
+
+      <view class="form-item last-item">
+        <text class="form-label">还需人数</text>
+        <view class="count-picker">
+          <view class="count-btn" data-type="minus" data-field="needCount" bindtap="onCountChange">−</view>
+          <text class="count-value">{{needCount}}人</text>
+          <view class="count-btn" data-type="plus" data-field="needCount" bindtap="onCountChange">+</view>
+        </view>
       </view>
     </view>
 
-    <view class="form-item">
-      <text class="form-label">还需人数</text>
-      <view class="count-picker">
-        <view class="count-btn" data-type="minus" bindtap="onNeedCountChange">-</view>
-        <text class="count-value">{{needCount}}人</text>
-        <view class="count-btn" data-type="plus" bindtap="onNeedCountChange">+</view>
-      </view>
+    <!-- 补充说明 -->
+    <view class="form-section">
+      <view class="section-title">📝 补充说明</view>
+      <textarea
+        class="remark-input"
+        placeholder="说说你的计划、要求或期望（如：早上6点出发，AA制，希望队友有户外经验等）"
+        value="{{remark}}"
+        bindinput="onRemarkInput"
+        maxlength="200"
+      ></textarea>
+      <view class="char-count">{{remark.length}}/200</view>
     </view>
   </view>
 
-  <!-- 补充说明 -->
-  <view class="form-section">
-    <view class="section-title">📝 补充说明</view>
-    <textarea 
-      class="remark-input"
-      placeholder="说说你的计划、要求或期望（如：早上6点出发，AA制，希望队友有户外经验等）"
-      value="{{remark}}"
-      bindinput="onRemarkInput"
-      maxlength="200"
-    ></textarea>
-    <view class="char-count">{{remark.length}}/200</view>
-  </view>
+  <!-- 底部安全区 -->
+  <view class="safe-bottom"></view>
+</view>
 
-  <!-- 提交按钮 -->
-  <view class="submit-btn" bindtap="onSubmit">发布行程</view>
+<!-- 底部发布按钮 -->
+<view class="footer-bar">
+  <view class="submit-btn" bindtap="onSubmit">
+    <text class="submit-icon">+</text>
+    <text>发布行程</text>
+  </view>
+</view>
+
+<!-- ========== 出发地选择弹窗 ========== -->
+<view class="modal-mask" wx:if="{{showDepartureModal}}" bindtap="onCloseDepartureModal">
+  <view class="modal-content" catchtap="">
+    <!-- 弹窗头部 -->
+    <view class="modal-header">
+      <view class="modal-title">选择出发地</view>
+      <view class="modal-close" bindtap="onCloseDepartureModal">
+        <text class="close-icon">×</text>
+      </view>
+    </view>
+
+    <!-- 区域选择 -->
+    <view class="district-section">
+      <view class="district-subtitle">选择区（北京 · 共16个区）</view>
+      <view class="district-grid">
+        <view
+          class="district-item {{departure === item ? 'active' : ''}}"
+          wx:for="{{districts}}"
+          wx:key="*this"
+          bindtap="onSelectDistrict"
+          data-district="{{item}}"
+        >
+          {{item}}
+        </view>
+      </view>
+    </view>
+
+    <!-- 确认按钮 -->
+    <view class="modal-confirm" bindtap="onConfirmDeparture">确认选择</view>
+  </view>
 </view>
