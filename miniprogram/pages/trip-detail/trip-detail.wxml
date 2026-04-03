@@ -1,112 +1,114 @@
 <!--pages/trip-detail/trip-detail.wxml-->
 <view class="container">
-  <!-- 地点信息 -->
-  <view class="place-card" bindtap="onPlaceTap">
-    <image class="place-image" src="{{trip.placeImage || 'https://picsum.photos/400/200'}}" mode="aspectFill"></image>
-    <view class="place-info">
-      <view class="place-name">{{trip.placeName}}</view>
-      <view class="place-address">📍 {{trip.placeAddress || '北京市'}}</view>
+  <!-- 顶部图片区域 -->
+  <view class="header">
+    <image class="header-image" src="{{trip.placeImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop'}}" mode="aspectFill"></image>
+    <view class="header-overlay"></view>
+
+    <!-- 导航按钮 -->
+    <view class="nav-btns" style="padding-top: {{statusBarHeight}}px;">
+      <view class="nav-btn" bindtap="onBackTap">
+        <text class="nav-arrow">←</text>
+      </view>
     </view>
-    <text class="arrow">›</text>
+
+    <!-- 底部标题信息 -->
+    <view class="header-content">
+      <view class="status-tags">
+        <view class="status-tag status-{{trip.status}}">{{statusText}}</view>
+        <view class="status-tag remain-tag" wx:if="{{remainCount > 0}}">还剩{{remainCount}}个名额</view>
+      </view>
+      <view class="trip-title">{{trip.title || trip.placeName}}</view>
+      <view class="trip-location">🏔️ {{trip.placeName}} · {{trip.placeHighlight || '北京周边'}}</view>
+    </view>
   </view>
 
-  <!-- 状态标签 -->
-  <view class="status-bar">
-    <view class="status-tag {{trip.status}}">{{statusText}}</view>
-  </view>
-
-  <!-- 行程信息 -->
-  <view class="info-card">
-    <view class="info-grid">
+  <!-- 内容区域 -->
+  <view class="content">
+    <!-- 列表式信息卡片 -->
+    <view class="info-card">
       <view class="info-item">
-        <view class="info-icon">📅</view>
+        <text class="info-emoji">📅</text>
         <view class="info-content">
-          <view class="info-value">{{trip.date}}</view>
-          <view class="info-label">出行日期</view>
+          <view class="info-label">出发日期</view>
+          <view class="info-value">{{trip.dateText || trip.date}}</view>
         </view>
       </view>
       <view class="info-item">
-        <view class="info-icon">🕐</view>
+        <text class="info-emoji">📍</text>
         <view class="info-content">
-          <view class="info-value">{{trip.time || '09:00'}}</view>
-          <view class="info-label">集合时间</view>
-        </view>
-      </view>
-    </view>
-    <view class="info-grid">
-      <view class="info-item">
-        <view class="info-icon">👥</view>
-        <view class="info-content">
-          <view class="info-value">{{trip.currentCount || 1}}/{{trip.maxParticipants}}人</view>
-          <view class="info-label">{{remainText}}</view>
+          <view class="info-label">出发地点</view>
+          <view class="info-value">{{trip.departure || '待定'}}</view>
         </view>
       </view>
       <view class="info-item">
-        <view class="info-icon">💰</view>
+        <text class="info-emoji">👥</text>
         <view class="info-content">
-          <view class="info-value">{{trip.costEstimate || '面议'}}{{trip.costEstimate ? '/人' : ''}}</view>
-          <view class="info-label">预估费用</view>
+          <view class="info-label">招募情况</view>
+          <view class="info-value">已有{{trip.currentCount}}人，还差{{remainCount}}人</view>
+        </view>
+      </view>
+      <view class="info-item last-item">
+        <text class="info-emoji">🚗</text>
+        <view class="info-content">
+          <view class="info-label">交通方式</view>
+          <view class="info-value">{{trip.hasCar ? '自驾前往，有车可拼' : '需拼车出行'}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 发起人信息 -->
+    <view class="creator-card">
+      <view class="card-header">
+        <text class="card-icon">👤</text>
+        <text class="card-title">发起人</text>
+      </view>
+      <view class="creator-info">
+        <image class="creator-avatar" src="{{trip.creatorAvatar || 'https://i.pravatar.cc/100?img=1'}}" mode="aspectFill"></image>
+        <view class="creator-text">
+          <view class="creator-name">{{trip.creatorName}}</view>
+          <view class="creator-meta">已发起 {{trip.creatorTripCount || 5}} 次 · ★ {{trip.creatorRating || 98}}% 好评</view>
+        </view>
+        <view class="follow-btn" bindtap="onFollowTap">关注</view>
+      </view>
+    </view>
+
+    <!-- 行程说明 -->
+    <view class="note-card" wx:if="{{trip.remark || trip.note}}">
+      <view class="card-header">
+        <text class="card-icon">📝</text>
+        <text class="card-title">行程说明</text>
+      </view>
+      <view class="note-text">{{trip.remark || trip.note}}</view>
+    </view>
+
+    <!-- 已加入成员 -->
+    <view class="members-card">
+      <view class="members-header">
+        <text class="card-title">已加入成员</text>
+        <text class="members-count">{{trip.currentCount}}/{{trip.totalCount}}人</text>
+      </view>
+      <view class="members-grid">
+        <view class="member-item" wx:for="{{participants}}" wx:key="_id">
+          <image class="member-avatar" src="{{item.avatar || 'https://i.pravatar.cc/100'}}" mode="aspectFill"></image>
+          <view class="member-name">{{item.nickname || item.name}}</view>
+        </view>
+        <!-- 待加入占位 -->
+        <view class="member-item placeholder" wx:for="{{remainCount}}" wx:key="index">
+          <view class="member-avatar placeholder-avatar">+</view>
+          <view class="member-name placeholder-name">待加入</view>
         </view>
       </view>
     </view>
   </view>
 
-  <!-- 车辆信息 -->
-  <view class="car-card" wx:if="{{trip.hasCar}}">
-    <view class="car-icon">🚗</view>
-    <view class="car-text">有车，可载 {{trip.carSeats || 4}} 人</view>
-  </view>
+  <!-- 底部安全区 -->
+  <view class="safe-bottom"></view>
+</view>
 
-  <!-- 发起人信息 -->
-  <view class="creator-card">
-    <view class="section-title">发起人</view>
-    <view class="creator-info">
-      <image class="creator-avatar" src="{{trip.creatorAvatar || 'https://picsum.photos/100/100'}}" mode="aspectFill"></image>
-      <view class="creator-text">
-        <view class="creator-name">{{trip.creatorName}}</view>
-        <view class="creator-meta">已发起 {{trip.creatorTripCount || 1}} 次行程</view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 备注说明 -->
-  <view class="note-card" wx:if="{{trip.note}}">
-    <view class="section-title">备注说明</view>
-    <view class="note-text">{{trip.note}}</view>
-  </view>
-
-  <!-- 参与者列表 -->
-  <view class="participants-card">
-    <view class="section-title">已报名 ({{trip.currentCount || 1}}人)</view>
-    <view class="participants-list">
-      <view class="participant-item" wx:for="{{participants}}" wx:key="_id">
-        <image class="participant-avatar" src="{{item.avatar || 'https://picsum.photos/80/80'}}" mode="aspectFill"></image>
-        <view class="participant-name">{{item.nickname}}</view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 底部操作栏 -->
-  <view class="footer-bar" wx:if="{{trip.status === 'open'}}">
-    <view class="footer-left">
-      <button class="share-btn" open-type="share">
-        <text>分享</text>
-      </button>
-    </view>
-    <view class="footer-right">
-      <button class="join-btn {{canJoin ? '' : 'disabled'}}" bindtap="onJoinTap" disabled="{{!canJoin}}">
-        {{joinBtnText}}
-      </button>
-    </view>
-  </view>
-
-  <!-- 已满员提示 -->
-  <view class="footer-bar full-bar" wx:if="{{trip.status === 'full'}}">
-    <text>该行程已满员</text>
-  </view>
-
-  <!-- 已取消提示 -->
-  <view class="footer-bar cancelled-bar" wx:if="{{trip.status === 'cancelled'}}">
-    <text>该行程已取消</text>
+<!-- 底部申请按钮 -->
+<view class="footer-bar">
+  <view class="apply-btn {{canJoin ? '' : 'disabled'}}" bindtap="onJoinTap">
+    <text>{{joinBtnText}}</text>
   </view>
 </view>

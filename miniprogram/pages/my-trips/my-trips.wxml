@@ -1,22 +1,83 @@
-<!--
-  我的行程列表 (my-trips)
-  ================================
-  设计要点：
-  1. 标签切换：我发起的 / 我参与的 / 已结束
-  2. 行程卡片：地点图片+日期+人数+参与者头像
-  3. 状态标签：招募中/已满员/已结束/已取消
-  4. 悬浮按钮：发起新行程
-  5. 空状态：引导发现地点
-
-  组件结构：
-  - 行程卡片
-  - 参与者头像列表
-  - 状态标签
-  - 悬浮按钮
-
-  参考：E:\beijing-travel\docs\缺失页面设计方案.md
--->
-
+<!--pages/my-trips/my-trips.wxml-->
 <view class="container">
-  <!-- TODO: 实现我的行程列表 -->
+  <!-- 自定义导航栏 -->
+  <view class="nav-header" style="padding-top: {{statusBarHeight}}px;">
+    <view class="nav-top">
+      <view class="nav-back" bindtap="onBackTap">
+        <text class="back-icon">←</text>
+      </view>
+      <text class="nav-title">我的行程</text>
+      <view class="nav-placeholder"></view>
+    </view>
+
+    <!-- 标签切换 -->
+    <view class="tabs">
+      <view class="tab {{activeTab === 'created' ? 'active' : ''}}" bindtap="onTabChange" data-tab="created">我发起的</view>
+      <view class="tab {{activeTab === 'joined' ? 'active' : ''}}" bindtap="onTabChange" data-tab="joined">我参与的</view>
+      <view class="tab {{activeTab === 'ended' ? 'active' : ''}}" bindtap="onTabChange" data-tab="ended">已结束</view>
+    </view>
+  </view>
+
+  <!-- 占位区域 -->
+  <view class="nav-placeholder-area" style="height: {{statusBarHeight + 100}}px;"></view>
+
+  <!-- 内容区域 -->
+  <view class="content">
+    <!-- 行程列表 -->
+    <block wx:if="{{trips.length > 0}}">
+      <view class="trip-card" wx:for="{{trips}}" wx:key="_id" bindtap="onTripTap" data-id="{{item._id}}">
+        <!-- 卡片头部 -->
+        <view class="trip-header">
+          <view class="trip-img" style="background: {{item.imgBg}};">
+            <text class="trip-emoji">{{item.emoji}}</text>
+          </view>
+          <view class="trip-info">
+            <view class="trip-name">{{item.placeName}}</view>
+            <view class="trip-date">📅 {{item.dateText}}</view>
+            <view class="trip-count">👥 已{{item.currentCount}}人 · {{item.needCount - item.currentCount > 0 ? '还需' + (item.needCount - item.currentCount) + '人' : '已满员'}}</view>
+          </view>
+          <view class="trip-status status-{{item.statusClass}}">{{item.statusText}}</view>
+        </view>
+
+        <!-- 参与者 -->
+        <view class="trip-participants">
+          <view class="participant {{item.isCreator ? 'participant-creator' : ''}}" wx:for="{{item.participants}}" wx:for-item="p" wx:for-index="pIndex" wx:key="pIndex">
+            <text>{{p.name}}</text>
+          </view>
+        </view>
+
+        <!-- 操作按钮 -->
+        <view class="trip-actions" wx:if="{{activeTab !== 'ended'}}">
+          <view class="action-btn secondary" wx:if="{{item.isCreator && activeTab === 'created'}}" catchtap="onManageTap" data-id="{{item._id}}">管理</view>
+          <view class="action-btn secondary" wx:if="{{!item.isCreator && activeTab === 'joined'}}" catchtap="onQuitTap" data-id="{{item._id}}">退出</view>
+          <view class="action-btn primary" catchtap="onDetailTap" data-id="{{item._id}}">查看详情</view>
+        </view>
+        <view class="trip-actions" wx:else>
+          <view class="action-btn primary" catchtap="onDetailTap" data-id="{{item._id}}">查看详情</view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{trips.length === 0 && !loading}}">
+      <view class="empty-icon">{{emptyIcon}}</view>
+      <view class="empty-title">{{emptyTitle}}</view>
+      <view class="empty-desc">{{emptyDesc}}</view>
+      <view class="empty-btn" bindtap="onExploreTap">发现周边好去处</view>
+    </view>
+
+    <!-- 加载状态 -->
+    <view class="loading-state" wx:if="{{loading}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+  </view>
+
+  <!-- 底部安全区 -->
+  <view class="safe-bottom"></view>
+</view>
+
+<!-- 悬浮发布按钮 -->
+<view class="fab" bindtap="onPublishTap">
+  <text class="fab-icon">+</text>
 </view>
