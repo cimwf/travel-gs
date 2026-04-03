@@ -9,6 +9,7 @@
     "pages/trip-publish/trip-publish",
     "pages/trip-detail/trip-detail",
     "pages/my-trips/my-trips",
+    "pages/trip-notifications/trip-notifications",
     "pages/messages/messages",
     "pages/chat/chat",
     "pages/comments/comments",

@@ -7,6 +7,7 @@ Page({
   data: {
     userInfo: null,
     isLoggedIn: false,
+    unreadCount: 0,
     stats: {
       following: 0,
       followers: 0,
@@ -76,6 +77,17 @@ Page({
     if (!auth.checkNeedLogin()) {
       wx.navigateTo({
         url: '/pages/my-trips/my-trips'
+      });
+    } else {
+      auth.goToLogin('/pages/profile/profile');
+    }
+  },
+
+  // 行程通知
+  onTapNotifications: function () {
+    if (!auth.checkNeedLogin()) {
+      wx.navigateTo({
+        url: '/pages/trip-notifications/trip-notifications'
       });
     } else {
       auth.goToLogin('/pages/profile/profile');

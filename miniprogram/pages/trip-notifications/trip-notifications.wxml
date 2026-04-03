@@ -1,0 +1,115 @@
+<!--pages/trip-notifications/trip-notifications.wxml-->
+<view class="container">
+  <!-- 自定义导航栏 -->
+  <view class="nav-header" style="padding-top: {{statusBarHeight}}px;">
+    <view class="nav-top">
+      <view class="nav-back" bindtap="onBackTap">
+        <text class="back-icon">‹</text>
+      </view>
+      <text class="nav-title">行程通知</text>
+      <view class="nav-placeholder"></view>
+    </view>
+
+    <!-- 标签切换 -->
+    <view class="tabs">
+      <view class="tab {{activeTab === 'apply' ? 'active' : ''}}" bindtap="onTabChange" data-tab="apply">申请通知</view>
+      <view class="tab {{activeTab === 'invite' ? 'active' : ''}}" bindtap="onTabChange" data-tab="invite">邀请消息</view>
+    </view>
+  </view>
+
+  <!-- 占位区域 -->
+  <view class="nav-placeholder-area" style="height: {{statusBarHeight + 100}}px;"></view>
+
+  <!-- 内容区域 -->
+  <view class="content">
+    <!-- 申请通知列表 -->
+    <block wx:if="{{activeTab === 'apply'}}">
+      <view class="notification-card" wx:for="{{applyList}}" wx:key="_id">
+        <view class="card-header">
+          <view class="user-avatar" style="background: {{item.avatarBg}}">
+            <text>{{item.userName[0]}}</text>
+          </view>
+          <view class="header-info">
+            <view class="header-title">{{item.userName}} 申请加入您的行程</view>
+            <view class="header-meta">{{item.tripName}} · {{item.timeAgo}}</view>
+          </view>
+        </view>
+
+        <view class="card-detail" wx:if="{{!item.isHandled}}">
+          <view class="detail-row">
+            <text class="detail-label">📱 手机号：</text>
+            <text class="detail-value">{{item.phone}}</text>
+          </view>
+          <view class="detail-row" wx:if="{{item.introduction}}">
+            <text class="detail-label">💬 自我介绍：</text>
+            <text class="detail-value">{{item.introduction}}</text>
+          </view>
+        </view>
+
+        <view class="card-actions" wx:if="{{!item.isHandled}}">
+          <view class="action-btn reject" catchtap="onRejectApply" data-id="{{item._id}}">拒绝</view>
+          <view class="action-btn agree" catchtap="onAgreeApply" data-id="{{item._id}}">同意</view>
+        </view>
+
+        <view class="card-status" wx:else>
+          <text class="status-text {{item.status}}">{{item.statusText}}</text>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="empty-state" wx:if="{{applyList.length === 0}}">
+        <text class="empty-icon">📭</text>
+        <text class="empty-text">暂无申请通知</text>
+      </view>
+    </block>
+
+    <!-- 邀请消息列表 -->
+    <block wx:if="{{activeTab === 'invite'}}">
+      <view class="notification-card" wx:for="{{inviteList}}" wx:key="_id">
+        <view class="card-header">
+          <view class="user-avatar" style="background: {{item.avatarBg}}">
+            <text>{{item.userName[0]}}</text>
+          </view>
+          <view class="header-info">
+            <view class="header-title">{{item.userName}} 邀请您一起游玩</view>
+            <view class="header-meta">{{item.placeName}} · {{item.timeAgo}}</view>
+          </view>
+        </view>
+
+        <view class="card-detail" wx:if="{{!item.isHandled}}">
+          <view class="trip-tags">
+            <view class="trip-tag">🏔️ {{item.placeName}}</view>
+            <view class="trip-tag">📅 {{item.tripDate}}</view>
+            <view class="trip-tag" wx:if="{{item.hasCar}}">🚗 有车</view>
+          </view>
+          <view class="detail-row">
+            <text class="detail-label">📱 手机号：</text>
+            <text class="detail-value">{{item.phone}}</text>
+          </view>
+          <view class="detail-row" wx:if="{{item.message}}">
+            <text class="detail-label">💬 留言：</text>
+            <text class="detail-value">{{item.message}}</text>
+          </view>
+        </view>
+
+        <view class="card-actions" wx:if="{{!item.isHandled}}">
+          <view class="action-btn reject" catchtap="onIgnoreInvite" data-id="{{item._id}}">忽略</view>
+          <view class="action-btn agree" catchtap="onViewTrip" data-id="{{item._id}}" data-tripid="{{item.tripId}}">查看行程</view>
+        </view>
+
+        <view class="card-status" wx:else>
+          <text class="status-text {{item.status}}">{{item.statusText}}</text>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="empty-state" wx:if="{{inviteList.length === 0}}">
+        <text class="empty-icon">📭</text>
+        <text class="empty-text">暂无邀请消息</text>
+      </view>
+    </block>
+  </view>
+
+  <!-- 底部安全区 -->
+  <view class="safe-bottom"></view>
+</view>

@@ -1,0 +1,263 @@
+/* pages/trip-notifications/trip-notifications.wxss */
+
+page {
+  --primary-color: #4A90E2;
+  --primary-light: #6BA3E8;
+  --primary-dark: #357ABD;
+  --bg-color: #F5F7FA;
+  --text-primary: #1A1A2E;
+  --text-secondary: #4A4A68;
+  --text-hint: #8E8EA0;
+  --border-color: #E8E8F0;
+  --success-color: #52C41A;
+  --warning-color: #FAAD14;
+  --danger-color: #FF4D4F;
+  --shadow-sm: 0 2rpx 8rpx rgba(0,0,0,0.04);
+}
+
+page {
+  background: var(--bg-color);
+}
+
+.container {
+  min-height: 100vh;
+  background: var(--bg-color);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========== 导航栏 ========== */
+.nav-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  z-index: 100;
+  border-bottom: 2rpx solid var(--border-color);
+}
+
+.nav-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 32rpx;
+  padding-bottom: 20rpx;
+}
+
+.nav-back {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-icon {
+  font-size: 48rpx;
+  color: var(--text-hint);
+  font-weight: 300;
+}
+
+.nav-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.nav-placeholder {
+  width: 72rpx;
+}
+
+/* ========== 标签切换 ========== */
+.tabs {
+  display: flex;
+  gap: 16rpx;
+  padding: 0 32rpx 24rpx;
+}
+
+.tab {
+  padding: 16rpx 40rpx;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.tab.active {
+  background: var(--primary-color);
+  color: white;
+}
+
+.tab:not(.active) {
+  background: var(--bg-color);
+  color: var(--text-secondary);
+}
+
+.nav-placeholder-area {
+  flex-shrink: 0;
+}
+
+/* ========== 内容区域 ========== */
+.content {
+  flex: 1;
+  padding: 24rpx;
+}
+
+/* ========== 通知卡片 ========== */
+.notification-card {
+  background: white;
+  border-radius: 32rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  box-shadow: var(--shadow-sm);
+}
+
+.notification-card:active {
+  background: #FAFAFA;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.user-avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 40rpx;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.header-info {
+  flex: 1;
+}
+
+.header-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8rpx;
+}
+
+.header-meta {
+  font-size: 24rpx;
+  color: var(--text-hint);
+}
+
+/* ========== 卡片详情 ========== */
+.card-detail {
+  background: var(--bg-color);
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.trip-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.trip-tag {
+  padding: 8rpx 20rpx;
+  background: rgba(74, 144, 226, 0.1);
+  color: var(--primary-color);
+  border-radius: 20rpx;
+  font-size: 22rpx;
+}
+
+.detail-row {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  margin-bottom: 8rpx;
+}
+
+.detail-row:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  color: var(--text-secondary);
+}
+
+.detail-value {
+  color: var(--text-secondary);
+}
+
+/* ========== 操作按钮 ========== */
+.card-actions {
+  display: flex;
+  gap: 24rpx;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 24rpx;
+  border-radius: 20rpx;
+  text-align: center;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.action-btn.reject {
+  background: var(--bg-color);
+  color: var(--text-secondary);
+}
+
+.action-btn.agree {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* ========== 状态标签 ========== */
+.card-status {
+  text-align: right;
+}
+
+.status-text {
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+.status-text.agreed {
+  color: var(--success-color);
+}
+
+.status-text.rejected,
+.status-text.ignored {
+  color: var(--text-hint);
+}
+
+/* ========== 空状态 ========== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 80rpx;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 24rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: var(--text-hint);
+}
+
+/* ========== 底部安全区 ========== */
+.safe-bottom {
+  height: 40rpx;
+}
