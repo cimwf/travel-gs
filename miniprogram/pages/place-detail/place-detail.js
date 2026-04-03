@@ -204,7 +204,14 @@ Page({
 
   // 输入联系方式
   onContactInput: function (e) {
-    this.setData({ contactValue: e.detail.value });
+    let value = e.detail.value;
+
+    // 如果是手机号，只允许输入数字，最多11位
+    if (this.data.contactType === 'phone') {
+      value = value.replace(/\D/g, '').slice(0, 11);
+    }
+
+    this.setData({ contactValue: value });
   },
 
   // 输入自我介绍/留言
@@ -222,10 +229,42 @@ Page({
     this.setData({ showInviteModal: false });
   },
 
+  // 阻止事件冒泡（空函数）
+  preventBubble: function () {
+    // 阻止冒泡，不执行任何操作
+  },
+
+  // 校验联系方式
+  validateContact: function () {
+    const { contactType, contactValue } = this.data;
+
+    if (!contactValue) {
+      wx.showToast({ title: '请填写联系方式', icon: 'none' });
+      return false;
+    }
+
+    if (contactType === 'phone') {
+      // 手机号校验：11位数字，以1开头
+      const phoneReg = /^1[3-9]\d{9}$/;
+      if (!phoneReg.test(contactValue)) {
+        wx.showToast({ title: '请输入正确的手机号', icon: 'none' });
+        return false;
+      }
+    } else {
+      // 微信号校验：至少6位，字母开头，只能包含字母、数字、下划线、减号
+      const wechatReg = /^[a-zA-Z][a-zA-Z0-9_-]{5,19}$/;
+      if (!wechatReg.test(contactValue)) {
+        wx.showToast({ title: '请输入正确的微信号', icon: 'none' });
+        return false;
+      }
+    }
+
+    return true;
+  },
+
   // 提交申请
   onSubmitApply: function () {
-    if (!this.data.contactValue) {
-      wx.showToast({ title: '请填写联系方式', icon: 'none' });
+    if (!this.validateContact()) {
       return;
     }
 
@@ -236,8 +275,7 @@ Page({
 
   // 发送邀请
   onSubmitInvite: function () {
-    if (!this.data.contactValue) {
-      wx.showToast({ title: '请填写联系方式', icon: 'none' });
+    if (!this.validateContact()) {
       return;
     }
 
