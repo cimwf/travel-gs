@@ -5,11 +5,11 @@ const db = wx.cloud.database();
 Page({
   data: {
     statusBarHeight: 0,
-    activeTab: 'created',
+    activeTab: 'all',
     trips: [],
     loading: true,
     emptyIcon: '🗺️',
-    emptyTitle: '还没有发起过行程',
+    emptyTitle: '还没有行程',
     emptyDesc: '快去发现有趣的地方吧！'
   },
 
@@ -147,12 +147,22 @@ Page({
       ]
     };
 
+    // 如果是"全部"标签，合并所有行程
+    if (this.data.activeTab === 'all') {
+      return [...allTrips.created, ...allTrips.joined, ...allTrips.ended];
+    }
+
     return allTrips[this.data.activeTab] || [];
   },
 
   // 更新空状态文案
   updateEmptyState: function () {
     const emptyConfig = {
+      all: {
+        icon: '🗺️',
+        title: '还没有行程',
+        desc: '快去发现有趣的地方吧！'
+      },
       created: {
         icon: '🗺️',
         title: '还没有发起过行程',

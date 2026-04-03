@@ -12,6 +12,7 @@
 
     <!-- 标签切换 -->
     <view class="tabs">
+      <view class="tab {{activeTab === 'all' ? 'active' : ''}}" bindtap="onTabChange" data-tab="all">全部</view>
       <view class="tab {{activeTab === 'created' ? 'active' : ''}}" bindtap="onTabChange" data-tab="created">我发起的</view>
       <view class="tab {{activeTab === 'joined' ? 'active' : ''}}" bindtap="onTabChange" data-tab="joined">我参与的</view>
       <view class="tab {{activeTab === 'ended' ? 'active' : ''}}" bindtap="onTabChange" data-tab="ended">已结束</view>

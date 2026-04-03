@@ -25,6 +25,7 @@ page {
   background: var(--bg-color);
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 /* ========== 导航栏 ========== */
@@ -72,16 +73,17 @@ page {
 /* ========== 标签切换 ========== */
 .tabs {
   display: flex;
-  gap: 16rpx;
-  padding: 0 32rpx 24rpx;
+  gap: 12rpx;
+  padding: 0 24rpx 24rpx;
 }
 
 .tab {
-  padding: 20rpx 40rpx;
+  padding: 16rpx 28rpx;
   border-radius: 40rpx;
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 500;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .tab.active {
@@ -98,15 +100,19 @@ page {
   flex-shrink: 0;
 }
 
+
 /* ========== 内容区域 ========== */
 .content {
+  width: 100%;
   flex: 1;
   padding: 24rpx;
   padding-bottom: 200rpx;
+  box-sizing: border-box;
 }
 
 /* ========== 行程卡片 ========== */
 .trip-card {
+  width: 100%;
   background: white;
   border-radius: 32rpx;
   overflow: hidden;
@@ -163,6 +169,7 @@ page {
   font-size: 24rpx;
   font-weight: 500;
   flex-shrink: 0;
+  height: 30rpx;
 }
 
 .status-open {
