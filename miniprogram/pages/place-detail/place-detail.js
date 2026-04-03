@@ -8,7 +8,15 @@ Page({
     loading: true,
     isCollected: false,
     userInfo: null,
-    statusBarHeight: 0
+    statusBarHeight: 0,
+
+    // 弹窗相关
+    showApplyModal: false,
+    showInviteModal: false,
+    currentTrip: null,
+    contactType: 'phone',
+    contactValue: '',
+    introduction: ''
   },
 
   onLoad: function (options) {
@@ -159,7 +167,7 @@ Page({
     });
   },
 
-  // 申请加入
+  // 点击申请加入/邀请他
   onApplyTap: function (e) {
     if (!app.globalData.isLoggedIn) {
       wx.showToast({ title: '请先登录', icon: 'none' });
@@ -167,19 +175,75 @@ Page({
     }
 
     const tripId = e.currentTarget.dataset.id;
+    const hasCar = e.currentTarget.dataset.hascar;
     const trip = this.data.trips.find(t => t._id === tripId);
 
     if (trip) {
-      wx.showModal({
-        title: trip.hasCar ? '申请加入' : '邀请同行',
-        content: trip.hasCar ? '确认申请加入这个行程吗？' : '确认邀请他加入你的行程吗？',
-        success: (res) => {
-          if (res.confirm) {
-            wx.showToast({ title: trip.hasCar ? '申请已发送' : '邀请已发送', icon: 'success' });
-          }
-        }
+      this.setData({
+        currentTrip: trip,
+        contactType: 'phone',
+        contactValue: '',
+        introduction: ''
       });
+
+      if (hasCar) {
+        // 有车 - 显示申请加入弹窗
+        this.setData({ showApplyModal: true });
+      } else {
+        // 无车 - 显示邀请弹窗
+        this.setData({ showInviteModal: true });
+      }
     }
+  },
+
+  // 选择联系方式类型
+  onSelectContactType: function (e) {
+    const type = e.currentTarget.dataset.type;
+    this.setData({ contactType: type, contactValue: '' });
+  },
+
+  // 输入联系方式
+  onContactInput: function (e) {
+    this.setData({ contactValue: e.detail.value });
+  },
+
+  // 输入自我介绍/留言
+  onIntroductionInput: function (e) {
+    this.setData({ introduction: e.detail.value });
+  },
+
+  // 关闭申请加入弹窗
+  onCloseApplyModal: function () {
+    this.setData({ showApplyModal: false });
+  },
+
+  // 关闭邀请弹窗
+  onCloseInviteModal: function () {
+    this.setData({ showInviteModal: false });
+  },
+
+  // 提交申请
+  onSubmitApply: function () {
+    if (!this.data.contactValue) {
+      wx.showToast({ title: '请填写联系方式', icon: 'none' });
+      return;
+    }
+
+    // TODO: 调用API提交申请
+    wx.showToast({ title: '申请已发送', icon: 'success' });
+    this.setData({ showApplyModal: false });
+  },
+
+  // 发送邀请
+  onSubmitInvite: function () {
+    if (!this.data.contactValue) {
+      wx.showToast({ title: '请填写联系方式', icon: 'none' });
+      return;
+    }
+
+    // TODO: 调用API发送邀请
+    wx.showToast({ title: '邀请已发送', icon: 'success' });
+    this.setData({ showInviteModal: false });
   },
 
   // 分享

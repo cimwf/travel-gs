@@ -25,10 +25,6 @@
       <view class="nav-btn" bindtap="onBackTap">
         <text class="nav-icon">‹</text>
       </view>
-      <!-- 分享按钮 -->
-      <!-- <view class="nav-btn nav-share" bindtap="onShareTap">
-        <text class="nav-icon-share">...</text>
-      </view> -->
     </view>
   </view>
 
@@ -142,7 +138,7 @@
           </view>
           <view class="trip-remark" wx:if="{{item.remark}}">{{item.remark}}</view>
         </view>
-        <view class="btn-join {{item.hasCar ? 'btn-primary' : 'btn-outline'}}" catchtap="onApplyTap" data-id="{{item._id}}">
+        <view class="btn-join {{item.hasCar ? 'btn-primary' : 'btn-outline'}}" catchtap="onApplyTap" data-id="{{item._id}}" data-hascar="{{item.hasCar}}" data-username="{{item.userName}}">
           {{item.hasCar ? '申请加入' : '邀请他'}}
         </view>
       </view>
@@ -167,5 +163,95 @@
   <view class="publish-btn" bindtap="onPublishTrip">
     <text class="publish-icon">+</text>
     <text>发布我的行程</text>
+  </view>
+</view>
+
+<!-- ========== 申请加入弹窗 ========== -->
+<view class="modal-mask" wx:if="{{showApplyModal}}" bindtap="onCloseApplyModal">
+  <view class="modal-content" catchtap="">
+    <view class="modal-header">
+      <view class="modal-icon-wrap">
+        <text class="modal-icon">🏔️</text>
+      </view>
+      <view class="modal-title">申请加入行程</view>
+      <view class="modal-subtitle">{{place.name}} · 还剩{{currentTrip.needCount}}个名额</view>
+    </view>
+
+    <view class="modal-body">
+      <!-- 联系方式类型 -->
+      <view class="form-group">
+        <view class="form-label">联系方式类型</view>
+        <view class="contact-type-row">
+          <view class="contact-type {{contactType === 'phone' ? 'active' : ''}}" bindtap="onSelectContactType" data-type="phone">
+            <text>📱 手机号</text>
+          </view>
+          <view class="contact-type {{contactType === 'wechat' ? 'active' : ''}}" bindtap="onSelectContactType" data-type="wechat">
+            <text>💬 微信号</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 联系方式输入 -->
+      <view class="form-group">
+        <view class="form-label">{{contactType === 'phone' ? '手机号码' : '微信号'}}</view>
+        <input class="form-input" placeholder="{{contactType === 'phone' ? '请输入您的手机号' : '请输入您的微信号'}}" value="{{contactValue}}" bindinput="onContactInput" />
+      </view>
+
+      <!-- 自我介绍 -->
+      <view class="form-group">
+        <view class="form-label">自我介绍（选填）</view>
+        <textarea class="form-textarea" placeholder="简单介绍一下自己..." value="{{introduction}}" bindinput="onIntroductionInput" />
+      </view>
+    </view>
+
+    <view class="modal-footer">
+      <view class="modal-btn modal-btn-cancel" bindtap="onCloseApplyModal">取消</view>
+      <view class="modal-btn modal-btn-confirm" bindtap="onSubmitApply">提交申请</view>
+    </view>
+  </view>
+</view>
+
+<!-- ========== 邀请弹窗 ========== -->
+<view class="modal-mask" wx:if="{{showInviteModal}}" bindtap="onCloseInviteModal">
+  <view class="modal-content" catchtap="">
+    <view class="modal-header">
+      <view class="modal-avatar" style="background: {{currentTrip.avatarBg}}">
+        <text>{{currentTrip.userName[0]}}</text>
+      </view>
+      <view class="modal-title">邀请 {{currentTrip.userName}} 一起游玩</view>
+      <view class="modal-subtitle">请留下您的联系方式</view>
+    </view>
+
+    <view class="modal-body">
+      <!-- 联系方式类型 -->
+      <view class="form-group">
+        <view class="form-label">联系方式类型</view>
+        <view class="contact-type-row">
+          <view class="contact-type {{contactType === 'phone' ? 'active' : ''}}" bindtap="onSelectContactType" data-type="phone">
+            <text>📱 手机号</text>
+          </view>
+          <view class="contact-type {{contactType === 'wechat' ? 'active' : ''}}" bindtap="onSelectContactType" data-type="wechat">
+            <text>💬 微信号</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 联系方式输入 -->
+      <view class="form-group">
+        <view class="form-label">{{contactType === 'phone' ? '手机号码' : '微信号'}}</view>
+        <input class="form-input" placeholder="{{contactType === 'phone' ? '请输入您的手机号' : '请输入您的微信号'}}" value="{{contactValue}}" bindinput="onContactInput" />
+      </view>
+
+      <!-- 留言 -->
+      <view class="form-group">
+        <view class="form-label">留言（选填）</view>
+        <textarea class="form-textarea" placeholder="简单介绍一下自己或行程..." value="{{introduction}}" bindinput="onIntroductionInput" />
+      </view>
+    </view>
+
+    <view class="modal-footer">
+      <view class="modal-btn modal-btn-cancel" bindtap="onCloseInviteModal">取消</view>
+      <view class="modal-btn modal-btn-confirm" bindtap="onSubmitInvite">发送邀请</view>
+    </view>
   </view>
 </view>
