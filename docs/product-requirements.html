@@ -445,8 +445,8 @@
       <header class="page-header">
         <h1>📋 产品需求文档</h1>
         <div class="meta">
-          <span>📄 版本：v1.0.0</span>
-          <span>📅 日期：2026-03-24</span>
+          <span>📄 版本：v1.6.0</span>
+          <span>📅 日期：2026-04-06</span>
           <span>👤 作者：产品团队</span>
         </div>
       </header>
@@ -613,7 +613,7 @@
               <div class="flow-number">5</div>
               <div class="flow-content">
                 <h4>登录成功 → 跳转个人信息编辑页</h4>
-                <p>首次登录填写昵称、性别、是否有车</p>
+                <p>首次登录填写昵称、性别、自我描述、旅行照片等</p>
               </div>
             </div>
             <div class="flow-arrow">↓</div>
@@ -827,7 +827,7 @@
                 </div>
               </div>
               <ul class="feature-list">
-                <li><strong>用户信息</strong> - 头像、昵称、简介、是否有车（已登录显示真实信息，未登录显示默认头像+登录提示）</li>
+                <li><strong>用户信息</strong> - 头像、昵称、简介、交通偏好（已登录显示真实信息，未登录显示默认头像+登录提示）</li>
                 <li><strong>统计数据</strong> - 关注数、粉丝数、行程数（已登录显示）</li>
                 <li><strong>功能入口</strong> - 我的行程、我的收藏、我的评论、关注/粉丝（无论登录状态都显示，未登录点击跳转登录）</li>
                 <li><strong>设置入口</strong> - 设置按钮（无论登录状态都显示）</li>
@@ -873,9 +873,14 @@
                   <td><span class="tag danger">是</span></td>
                 </tr>
                 <tr>
-                  <td>设置按钮</td>
-                  <td>设置页</td>
-                  <td><span class="tag danger">是</span></td>
+                  <td>提交建议</td>
+                  <td>提交建议页</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
+                  <td>关于我们</td>
+                  <td>关于我们页</td>
+                  <td><span class="tag success">否</span></td>
                 </tr>
                 <tr>
                   <td>底部Tab「首页」</td>
@@ -1139,13 +1144,126 @@
           <div class="page-card-body">
             <div class="page-section">
               <div class="page-section-title">📄 页面展示内容</div>
-              <ul class="feature-list">
-                <li><strong>头像上传</strong> - 点击上传头像，默认使用微信头像</li>
-                <li><strong>昵称输入框</strong> - 2-12个字符</li>
-                <li><strong>性别选择</strong> - 男/女 单选</li>
-                <li><strong>是否有车</strong> - 有车/无车 单选</li>
-                <li><strong>保存按钮</strong> - 保存个人信息</li>
-              </ul>
+              
+              <!-- 头像卡片 -->
+              <div class="content-card" style="text-align: center; margin-bottom: 20px;">
+                <div style="display: inline-block; position: relative;">
+                  <div style="width: 88px; height: 88px; border-radius: 50%; background: linear-gradient(135deg, #FF6B35, #FF8F5C); display: flex; align-items: center; justify-content: center; font-size: 36px; color: white; margin-bottom: 12px;">👤</div>
+                  <div style="position: absolute; bottom: 16px; right: -8px; width: 28px; height: 28px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">📷</div>
+                </div>
+                <p style="font-size: 13px; color: var(--text-hint); margin-top: 8px;">点击更换头像</p>
+              </div>
+              
+              <table class="data-table">
+                <tr>
+                  <th width="120">字段分组</th>
+                  <th width="140">字段名称</th>
+                  <th>输入方式</th>
+                  <th width="80">必填</th>
+                  <th>说明</th>
+                </tr>
+                <tr>
+                  <td rowspan="5"><strong>基础信息</strong></td>
+                  <td>头像</td>
+                  <td>点击上传</td>
+                  <td><span class="tag">否</span></td>
+                  <td>圆形裁剪，支持相册/拍照</td>
+                </tr>
+                <tr>
+                  <td>昵称</td>
+                  <td>文本输入</td>
+                  <td><span class="tag success">是</span></td>
+                  <td>2-12个字符</td>
+                </tr>
+                <tr>
+                  <td>性别</td>
+                  <td>单选按钮</td>
+                  <td><span class="tag success">是</span></td>
+                  <td>男/女/保密</td>
+                </tr>
+                <tr>
+                  <td>生日</td>
+                  <td>日期选择器</td>
+                  <td><span class="tag">否</span></td>
+                  <td>用于推荐适龄景点</td>
+                </tr>
+                <tr>
+                  <td>自我描述</td>
+                  <td>多行文本</td>
+                  <td><span class="tag">否</span></td>
+                  <td>介绍自己，让队友更了解你，最多200字</td>
+                </tr>
+                <tr>
+                  <td><strong>旅行照片</strong></td>
+                  <td>照片展示</td>
+                  <td>多图上传</td>
+                  <td><span class="tag">否</span></td>
+                  <td>最多9张，展示你的旅行风采，增加可信度</td>
+                </tr>
+                <tr>
+                  <td rowspan="3"><strong>出行偏好</strong></td>
+                  <td>出行人数</td>
+                  <td>数字选择器</td>
+                  <td><span class="tag">否</span></td>
+                  <td>1-10人，默认1人</td>
+                </tr>
+                <tr>
+                  <td>儿童数量</td>
+                  <td>数字选择器</td>
+                  <td><span class="tag">否</span></td>
+                  <td>0-5人，影响亲子推荐</td>
+                </tr>
+                <tr>
+                  <td>老人数量</td>
+                  <td>数字选择器</td>
+                  <td><span class="tag">否</span></td>
+                  <td>0-5人，影响无障碍推荐</td>
+                </tr>
+                <tr>
+                  <td rowspan="3"><strong>兴趣标签</strong></td>
+                  <td>景点类型</td>
+                  <td>多选标签</td>
+                  <td><span class="tag">否</span></td>
+                  <td>故宫/长城/博物馆/胡同/美食/购物/公园/寺庙</td>
+                </tr>
+                <tr>
+                  <td>行程节奏</td>
+                  <td>单选按钮</td>
+                  <td><span class="tag">否</span></td>
+                  <td>紧凑/适中/悠闲</td>
+                </tr>
+                <tr>
+                  <td>每日预算</td>
+                  <td>区间输入</td>
+                  <td><span class="tag">否</span></td>
+                  <td>100-1000元/天</td>
+                </tr>
+              </table>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">🎨 交互设计</div>
+              
+              <h4 style="font-size: 15px; margin: 16px 0 12px; color: var(--text-primary);">自我描述</h4>
+              <div class="content-card">
+                <div style="background: #f8f9fa; border-radius: 12px; padding: 16px; border: 1px solid #eee;">
+                  <p style="font-size: 14px; color: #666; line-height: 1.8;">热爱户外徒步，周末经常组织爬山活动。性格开朗，喜欢结交新朋友。有丰富的北京周边游玩经验，可以当向导～</p>
+                </div>
+                <p style="font-size: 12px; color: var(--text-hint); margin-top: 8px; text-align: right;">78/200字</p>
+              </div>
+              
+              <h4 style="font-size: 15px; margin: 20px 0 12px; color: var(--text-primary);">旅行照片</h4>
+              <div class="content-card">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                  <div style="aspect-ratio: 1; background: linear-gradient(135deg, #FFE8DB, #FFF5F0); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🏔️</div>
+                  <div style="aspect-ratio: 1; background: linear-gradient(135deg, #E8F4FF, #F0F8FF); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🏯</div>
+                  <div style="aspect-ratio: 1; background: linear-gradient(135deg, #FFF0E5, #FFF9F5); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🌸</div>
+                  <div style="aspect-ratio: 1; background: linear-gradient(135deg, #F0FFF0, #F5FFF5); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🎢</div>
+                  <div style="aspect-ratio: 1; background: linear-gradient(135deg, #FFF5EE, #FFFAF5); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🍜</div>
+                  <div style="aspect-ratio: 1; background: #f8f9fa; border: 2px dashed #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #ccc;">+</div>
+                </div>
+                <p style="font-size: 13px; color: var(--text-hint); margin-top: 12px;">💡 最多上传9张照片，展示你的旅行风采</p>
+              </div>
             </div>
             
             <div class="page-section">
@@ -1155,6 +1273,16 @@
                   <th width="200">点击元素</th>
                   <th>跳转页面</th>
                   <th width="120">是否需要登录</th>
+                </tr>
+                <tr>
+                  <td>头像</td>
+                  <td>头像上传（相册/拍照）</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>生日字段</td>
+                  <td>日期选择器弹窗</td>
+                  <td><span class="tag danger">是</span></td>
                 </tr>
                 <tr>
                   <td>保存按钮</td>
@@ -1169,12 +1297,237 @@
               </table>
             </div>
             
+            <div class="page-section">
+              <div class="page-section-title">📊 表单验证规则</div>
+              <table class="data-table">
+                <tr>
+                  <th width="140">字段</th>
+                  <th>验证规则</th>
+                  <th>错误提示</th>
+                </tr>
+                <tr>
+                  <td>昵称</td>
+                  <td>2-12个字符，支持中英文、数字、下划线</td>
+                  <td>"昵称长度需在2-12个字符之间"</td>
+                </tr>
+                <tr>
+                  <td>性别</td>
+                  <td>必填，单选</td>
+                  <td>"请选择性别"</td>
+                </tr>
+                <tr>
+                  <td>出行人数</td>
+                  <td>1-10人</td>
+                  <td>"出行人数需在1-10人之间"</td>
+                </tr>
+                <tr>
+                  <td>预算范围</td>
+                  <td>最小值 ≤ 最大值</td>
+                  <td>"预算范围无效"</td>
+                </tr>
+              </table>
+            </div>
+            
             <div class="alert info">
               <span class="alert-icon">ℹ️</span>
               <div class="alert-content">
                 <h4>特殊说明</h4>
-                <p>此页面是登录成功后的必经页面，首次登录必须填写信息，点击返回直接回到首页。</p>
+                <p>此页面是登录成功后的必经页面，首次登录必须填写昵称和性别，其他字段可选。点击返回直接回到首页。</p>
               </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 5.3 用户主页（他人查看） -->
+        <div class="page-card" id="page-user-profile">
+          <div class="page-card-header">
+            <h3>👤 用户主页（他人查看）</h3>
+            <span class="login-required lock">🔒 需要登录</span>
+          </div>
+          <div class="page-card-body">
+            <div class="page-section">
+              <div class="page-section-title">📄 页面展示内容</div>
+              
+              <table class="data-table">
+                <tr>
+                  <th width="140">模块</th>
+                  <th>展示内容</th>
+                  <th width="120">说明</th>
+                </tr>
+                <tr>
+                  <td><strong>用户信息卡</strong></td>
+                  <td>头像、昵称、ID、关注数、粉丝数、获赞数</td>
+                  <td>顶部渐变背景</td>
+                </tr>
+                <tr>
+                  <td><strong>操作按钮</strong></td>
+                  <td>「+ 关注」和「💬 私信」两个按钮</td>
+                  <td>已关注状态显示「已关注」</td>
+                </tr>
+                <tr>
+                  <td><strong>个人简介</strong></td>
+                  <td>用户自我描述文本</td>
+                  <td>最多200字</td>
+                </tr>
+                <tr>
+                  <td><strong>兴趣标签</strong></td>
+                  <td>景点类型标签：山岳、古迹、美食、摄影、徒步等</td>
+                  <td>展示用户偏好</td>
+                </tr>
+                <tr>
+                  <td><strong>旅行照片</strong></td>
+                  <td>3×3网格展示，最多显示6张+「+N」入口</td>
+                  <td>点击「查看全部」进入相册</td>
+                </tr>
+                <tr>
+                  <td><strong>Tab切换</strong></td>
+                  <td>「发布的行程」单一内容展示</td>
+                  <td>他人主页不显示收藏</td>
+                </tr>
+                <tr>
+                  <td><strong>行程列表</strong></td>
+                  <td>行程卡片：封面图、标题、日期、时长、标签、浏览/点赞/评论数</td>
+                  <td>下拉刷新、上拉加载</td>
+                </tr>
+              </table>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">👆 点击跳转</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">点击元素</th>
+                  <th>跳转页面</th>
+                  <th width="120">是否需要登录</th>
+                </tr>
+                <tr>
+                  <td>+ 关注按钮</td>
+                  <td>当前页状态切换（关注/取消关注）</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>私信按钮</td>
+                  <td>聊天页面</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>旅行照片</td>
+                  <td>相册查看页</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
+                  <td>行程卡片</td>
+                  <td>行程详情页</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+              </table>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">🔗 入口来源</div>
+              <ul class="feature-list">
+                <li>行程详情页 → 点击发布者头像</li>
+                <li>评论区 → 点击用户昵称</li>
+                <li>想去的人列表 → 点击用户头像</li>
+                <li>聊天列表 → 点击用户头像</li>
+              </ul>
+            </div>
+            
+            <div class="alert info">
+              <span class="alert-icon">ℹ️</span>
+              <div class="alert-content">
+                <h4>隐私说明</h4>
+                <p>收藏的地点属于用户隐私，他人无法查看。用户可在设置中控制自我描述、旅行照片的可见性。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 5.4 提交建议页 -->
+        <div class="page-card" id="page-feedback">
+          <div class="page-card-header">
+            <h3>💡 提交建议</h3>
+            <span class="login-required">✅ 无需登录</span>
+          </div>
+          <div class="page-card-body">
+            <div class="page-section">
+              <div class="page-section-title">📄 页面展示内容</div>
+              <ul class="feature-list">
+                <li><strong>标题输入框</strong> - 简要描述建议内容（选填，最多50字）</li>
+                <li><strong>详细描述输入框</strong> - 详细说明建议或问题（必填，最多500字）</li>
+                <li><strong>联系方式输入框</strong> - 手机号或微信号（选填，用于后续沟通）</li>
+                <li><strong>提交按钮</strong> - 点击提交建议</li>
+              </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">👆 点击跳转</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">点击元素</th>
+                  <th>跳转页面/操作</th>
+                  <th width="120">是否需要登录</th>
+                </tr>
+                <tr>
+                  <td>提交按钮</td>
+                  <td>弹出成功提示，返回上一页</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
+                  <td>返回按钮</td>
+                  <td>返回上一页</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+              </table>
+            </div>
+            
+            <div class="alert info">
+              <span class="alert-icon">ℹ️</span>
+              <div class="alert-content">
+                <h4>设计说明</h4>
+                <p>无需登录即可提交建议，降低用户反馈门槛。后台收集建议列表供管理员查看。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 5.5 关于我们页 -->
+        <div class="page-card" id="page-about">
+          <div class="page-card-header">
+            <h3>ℹ️ 关于我们</h3>
+            <span class="login-required">✅ 无需登录</span>
+          </div>
+          <div class="page-card-body">
+            <div class="page-section">
+              <div class="page-section-title">📄 页面展示内容</div>
+              <ul class="feature-list">
+                <li><strong>应用Logo和名称</strong> - 北京去哪玩</li>
+                <li><strong>版本号</strong> - 当前版本号</li>
+                <li><strong>简介</strong> - 产品介绍文字</li>
+                <li><strong>用户协议</strong> - 点击跳转用户协议页面</li>
+                <li><strong>隐私政策</strong> - 点击跳转隐私政策页面</li>
+              </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">👆 点击跳转</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">点击元素</th>
+                  <th>跳转页面</th>
+                  <th width="120">是否需要登录</th>
+                </tr>
+                <tr>
+                  <td>用户协议</td>
+                  <td>用户协议页（WebView）</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
+                  <td>隐私政策</td>
+                  <td>隐私政策页（WebView）</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+              </table>
             </div>
           </div>
         </div>
@@ -1798,6 +2151,24 @@
             <th>变更内容</th>
           </tr>
           <tr>
+            <td><strong>v1.6.0</strong></td>
+            <td>2026-04-06</td>
+            <td>产品团队</td>
+            <td>移除设置页，在「我的」页面新增「提交建议」「关于我们」入口</td>
+          </tr>
+          <tr>
+            <td><strong>v1.5.1</strong></td>
+            <td>2026-04-06</td>
+            <td>产品团队</td>
+            <td>移除用户主页「收藏的地点」Tab，收藏属于隐私，他人不可查看</td>
+          </tr>
+          <tr>
+            <td><strong>v1.5.0</strong></td>
+            <td>2026-04-06</td>
+            <td>产品团队</td>
+            <td>新增「用户主页（他人查看）」页面：关注/粉丝/获赞、个人简介、兴趣标签、旅行照片、发布的行程列表、隐私设置</td>
+          </tr>
+          <tr>
             <td><strong>v1.0.2</strong></td>
             <td>2026-03-29</td>
             <td>产品团队</td>
@@ -1821,7 +2192,7 @@
       <!-- 页脚 -->
       <footer style="text-align: center; padding: 40px 0; border-top: 1px solid var(--border-color); margin-top: 40px; color: var(--text-hint); font-size: 14px;">
         <p>北京去哪玩 · 产品需求文档</p>
-        <p style="margin-top: 8px;">Version 1.0.0 | 2026-03-24 | 产品团队</p>
+        <p style="margin-top: 8px;">Version 1.6.0 | 2026-04-06 | 产品团队</p>
       </footer>
     </main>
   </div>
