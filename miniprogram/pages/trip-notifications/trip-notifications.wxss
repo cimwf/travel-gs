@@ -20,6 +20,7 @@ page {
 }
 
 .container {
+  width: 100%;
   min-height: 100vh;
   background: var(--bg-color);
   display: flex;
@@ -98,9 +99,15 @@ page {
   flex-shrink: 0;
 }
 
+.content-view {
+  flex: 1;
+  width: 100%;
+  padding-left: 20rpx;
+  padding-right: 20rpx;
+}
+
 /* ========== 内容区域 ========== */
 .content {
-  flex: 1;
   padding: 24rpx;
 }
 
@@ -111,6 +118,10 @@ page {
   padding: 32rpx;
   margin-bottom: 24rpx;
   box-shadow: var(--shadow-sm);
+}
+
+.notification-card.handled {
+  opacity: 0.6;
 }
 
 .notification-card:active {
@@ -227,6 +238,7 @@ page {
 .status-text {
   font-size: 26rpx;
   font-weight: 500;
+  flex-shrink: 0;
 }
 
 .status-text.agreed {
@@ -236,6 +248,22 @@ page {
 .status-text.rejected,
 .status-text.ignored {
   color: var(--text-hint);
+}
+
+/* ========== 已处理卡片（左右结构） ========== */
+.card-handled {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.card-handled .header-info {
+  flex: 1;
+}
+
+.card-handled .user-avatar {
+  width: 96rpx;
+  height: 96rpx;
 }
 
 /* ========== 空状态 ========== */
