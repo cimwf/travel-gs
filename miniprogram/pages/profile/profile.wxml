@@ -5,8 +5,8 @@
 
   未登录状态：头像居中 + 登录提示
   已登录状态：头像 + 用户信息 + 编辑按钮
-  统计数据：关注 / 粉丝 / 行程
-  功能入口：我的行程 / 我的收藏 / 我的评论 / 关注粉丝 / 设置
+  功能入口：我的行程 / 我的收藏 / 我的评论 / 关注粉丝
+  其他入口：提交建议 / 关于我们
 -->
 
 <view class="container">
@@ -28,28 +28,9 @@
         <view class="user-detail">
           <view class="nickname">{{userInfo.nickname || userInfo.nickName}}</view>
           <view class="user-bio">{{userInfo.bio || '喜欢户外运动，周末出游'}}</view>
-          <view class="user-tags">
-            <view class="user-tag">{{userInfo.hasCar ? '🚗 有车' : '🚗 无车'}}</view>
-          </view>
         </view>
         <view class="edit-btn" bindtap="onEditProfile">编辑 ›</view>
       </view>
-
-      <!-- 统计数据 -->
-      <!-- <view class="stats-row">
-        <view class="stat-item" bindtap="onTapFollowing">
-          <view class="stat-value">{{stats.following}}</view>
-          <view class="stat-label">关注</view>
-        </view>
-        <view class="stat-item" bindtap="onTapFollowers">
-          <view class="stat-value">{{stats.followers}}</view>
-          <view class="stat-label">粉丝</view>
-        </view>
-        <view class="stat-item" bindtap="onTapTrips">
-          <view class="stat-value">{{stats.trips}}</view>
-          <view class="stat-label">行程</view>
-        </view>
-      </view> -->
     </view>
   </view>
 
@@ -63,16 +44,6 @@
         </view>
         <text class="menu-arrow">›</text>
       </view>
-      <view class="menu-item" bindtap="onTapNotifications">
-        <view class="menu-left">
-          <view class="menu-icon" style="background: rgba(255, 77, 79, 0.1);">🔔</view>
-          <text class="menu-text">行程通知</text>
-        </view>
-        <view class="menu-right">
-          <view class="notification-badge" wx:if="{{unreadCount > 0}}">{{unreadCount}}</view>
-          <text class="menu-arrow">›</text>
-        </view>
-      </view>
       <view class="menu-item" bindtap="onTapCollections">
         <view class="menu-left">
           <view class="menu-icon" style="background: rgba(250, 173, 20, 0.1);">⭐</view>
@@ -80,7 +51,7 @@
         </view>
         <text class="menu-arrow">›</text>
       </view>
-      <view class="menu-item" bindtap="onTapComments">
+      <!-- <view class="menu-item" bindtap="onTapComments">
         <view class="menu-left">
           <view class="menu-icon" style="background: rgba(82, 196, 26, 0.1);">💬</view>
           <text class="menu-text">我的评论</text>
@@ -89,26 +60,29 @@
       </view>
       <view class="menu-item" bindtap="onTapFollow">
         <view class="menu-left">
-          <view class="menu-icon" style="background: rgba(102, 126, 234, 0.1);">👥</view>
+          <view class="menu-icon" style="background: rgba(255, 77, 79, 0.1);">👥</view>
           <text class="menu-text">关注 / 粉丝</text>
         </view>
         <text class="menu-arrow">›</text>
-      </view>
+      </view> -->
     </view>
 
+    <!-- 其他入口 -->
     <view class="menu-section">
-      <view class="menu-item" bindtap="onTapSettings">
+      <view class="menu-item" bindtap="onTapFeedback">
         <view class="menu-left">
-          <view class="menu-icon" style="background: rgba(142, 142, 160, 0.1);">⚙️</view>
-          <text class="menu-text">设置</text>
+          <view class="menu-icon" style="background: rgba(142, 142, 160, 0.1);">💡</view>
+          <text class="menu-text">提交建议</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+      <view class="menu-item" bindtap="onTapAbout">
+        <view class="menu-left">
+          <view class="menu-icon" style="background: rgba(142, 142, 160, 0.1);">ℹ️</view>
+          <text class="menu-text">关于我们</text>
         </view>
         <text class="menu-arrow">›</text>
       </view>
     </view>
-  </view>
-
-  <!-- 版本信息 -->
-  <view class="version-info">
-    <text>北上周边行 v1.0.0</text>
   </view>
 </view>

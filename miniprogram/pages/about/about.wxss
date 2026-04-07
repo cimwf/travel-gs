@@ -1,0 +1,155 @@
+/* pages/about/about.wxss */
+
+page {
+  --primary-color: #4A90E2;
+  --primary-light: #6BA3E8;
+  --text-primary: #1A1A2E;
+  --text-secondary: #4A4A68;
+  --text-hint: #8E8EA0;
+  --bg-color: #F5F7FA;
+  --border-color: #E8E8F0;
+}
+
+page {
+  background: var(--bg-color);
+}
+
+.container {
+  min-height: 100vh;
+  background: var(--bg-color);
+}
+
+/* ========== 导航栏 ========== */
+.nav-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  z-index: 100;
+  border-bottom: 2rpx solid var(--border-color);
+}
+
+.nav-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 32rpx;
+}
+
+.nav-back {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-icon {
+  font-size: 48rpx;
+  color: var(--text-hint);
+  font-weight: 300;
+}
+
+.nav-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.nav-placeholder {
+  width: 72rpx;
+}
+
+.nav-placeholder-area {
+  flex-shrink: 0;
+}
+
+/* ========== 内容区域 ========== */
+.content {
+  padding: 32rpx;
+}
+
+/* ========== Logo卡片 ========== */
+.logo-card {
+  background: white;
+  border-radius: 32rpx;
+  padding: 64rpx 40rpx;
+  text-align: center;
+  margin-bottom: 32rpx;
+}
+
+.logo-icon {
+  width: 160rpx;
+  height: 160rpx;
+  background: linear-gradient(135deg, var(--primary-color), #667eea);
+  border-radius: 40rpx;
+  margin: 0 auto 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 32rpx rgba(74, 144, 226, 0.3);
+}
+
+.logo-emoji {
+  font-size: 80rpx;
+}
+
+.app-name {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8rpx;
+}
+
+.app-version {
+  font-size: 28rpx;
+  color: var(--text-hint);
+}
+
+/* ========== 简介卡片 ========== */
+.intro-card {
+  background: white;
+  border-radius: 32rpx;
+  padding: 40rpx;
+  margin-bottom: 32rpx;
+}
+
+.intro-text {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+/* ========== 链接卡片 ========== */
+.link-card {
+  background: white;
+  border-radius: 32rpx;
+  overflow: hidden;
+}
+
+.link-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx 40rpx;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.link-item:last-child {
+  border-bottom: none;
+}
+
+.link-item:active {
+  background: var(--bg-color);
+}
+
+.link-text {
+  font-size: 30rpx;
+  color: var(--text-primary);
+}
+
+.link-arrow {
+  font-size: 32rpx;
+  color: #CCCCCC;
+}

@@ -7,7 +7,6 @@ Page({
   data: {
     userInfo: null,
     isLoggedIn: false,
-    unreadCount: 0,
     stats: {
       following: 0,
       followers: 0,
@@ -83,17 +82,6 @@ Page({
     }
   },
 
-  // 行程通知
-  onTapNotifications: function () {
-    if (!auth.checkNeedLogin()) {
-      wx.navigateTo({
-        url: '/pages/trip-notifications/trip-notifications'
-      });
-    } else {
-      auth.goToLogin('/pages/profile/profile');
-    }
-  },
-
   // 我的收藏
   onTapCollections: function () {
     if (!auth.checkNeedLogin()) {
@@ -125,47 +113,17 @@ Page({
     }
   },
 
-  // 点击关注数
-  onTapFollowing: function () {
-    if (!auth.checkNeedLogin()) {
-      wx.navigateTo({
-        url: '/pages/followers/followers?tab=following'
-      });
-    } else {
-      auth.goToLogin('/pages/profile/profile');
-    }
+  // 提交建议
+  onTapFeedback: function () {
+    wx.navigateTo({
+      url: '/pages/feedback/feedback'
+    });
   },
 
-  // 点击粉丝数
-  onTapFollowers: function () {
-    if (!auth.checkNeedLogin()) {
-      wx.navigateTo({
-        url: '/pages/followers/followers?tab=followers'
-      });
-    } else {
-      auth.goToLogin('/pages/profile/profile');
-    }
-  },
-
-  // 点击行程数
-  onTapTrips: function () {
-    if (!auth.checkNeedLogin()) {
-      wx.navigateTo({
-        url: '/pages/my-trips/my-trips'
-      });
-    } else {
-      auth.goToLogin('/pages/profile/profile');
-    }
-  },
-
-  // 设置
-  onTapSettings: function () {
-    if (!auth.checkNeedLogin()) {
-      wx.navigateTo({
-        url: '/pages/settings/settings'
-      });
-    } else {
-      auth.goToLogin('/pages/profile/profile');
-    }
+  // 关于我们
+  onTapAbout: function () {
+    wx.navigateTo({
+      url: '/pages/about/about'
+    });
   }
 });

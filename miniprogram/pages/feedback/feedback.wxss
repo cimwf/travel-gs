@@ -1,0 +1,152 @@
+/* pages/feedback/feedback.wxss */
+
+page {
+  --primary-color: #4A90E2;
+  --primary-light: #6BA3E8;
+  --text-primary: #1A1A2E;
+  --text-secondary: #4A4A68;
+  --text-hint: #8E8EA0;
+  --bg-color: #F5F7FA;
+  --border-color: #E8E8F0;
+  --danger-color: #FF4D4F;
+}
+
+page {
+  background: var(--bg-color);
+}
+
+.container {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--bg-color);
+  padding-left: 20rpx;
+  padding-right: 20rpx;
+}
+
+/* ========== 导航栏 ========== */
+.nav-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  z-index: 100;
+  border-bottom: 2rpx solid var(--border-color);
+}
+
+.nav-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 32rpx;
+}
+
+.nav-back {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-icon {
+  font-size: 48rpx;
+  color: var(--text-hint);
+  font-weight: 300;
+}
+
+.nav-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.nav-placeholder {
+  width: 72rpx;
+}
+
+.nav-placeholder-area {
+  flex-shrink: 0;
+}
+
+/* ========== 表单内容 ========== */
+.form-content {
+  padding: 32rpx;
+  width: 100%;
+}
+
+.form-card {
+  background: white;
+  border-radius: 32rpx;
+  padding: 40rpx;
+}
+
+.form-group {
+  margin-bottom: 40rpx;
+}
+
+.form-group:last-of-type {
+  margin-bottom: 0;
+}
+
+.form-label {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  margin-bottom: 16rpx;
+  font-weight: 500;
+}
+
+.required {
+  color: var(--danger-color);
+}
+
+.form-input {
+  width: 100%;
+  height: 100rpx;
+  padding: 0rpx 32rpx;
+  border: 2rpx solid var(--border-color);
+  border-radius: 24rpx;
+  font-size: 30rpx;
+  background: var(--bg-color);
+  box-sizing: border-box;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 28rpx 32rpx;
+  border: 2rpx solid var(--border-color);
+  border-radius: 24rpx;
+  font-size: 30rpx;
+  background: var(--bg-color);
+  height: 240rpx;
+  box-sizing: border-box;
+}
+
+.char-count {
+  font-size: 24rpx;
+  color: var(--text-hint);
+  text-align: right;
+  margin-top: 8rpx;
+}
+
+.submit-btn {
+  margin-top: 48rpx;
+  padding: 32rpx;
+  background: var(--primary-color);
+  color: white;
+  text-align: center;
+  border-radius: 28rpx;
+  font-size: 34rpx;
+  font-weight: 600;
+}
+
+.submit-btn:active {
+  opacity: 0.9;
+}
+
+.input-placeholder {
+  color: var(--text-hint);
+  height: 100rpx;
+  display: flex;
+  align-items: center;
+}

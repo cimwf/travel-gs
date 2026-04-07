@@ -1,0 +1,45 @@
+<!--pages/about/about.wxml-->
+<view class="container">
+  <!-- 导航栏 -->
+  <view class="nav-header" style="padding-top: {{statusBarHeight}}px;">
+    <view class="nav-top">
+      <view class="nav-back" bindtap="onBackTap">
+        <text class="back-icon">‹</text>
+      </view>
+      <text class="nav-title">关于我们</text>
+      <view class="nav-placeholder"></view>
+    </view>
+  </view>
+
+  <!-- 占位区域 -->
+  <view class="nav-placeholder-area" style="height: {{statusBarHeight + 44}}px;"></view>
+
+  <!-- 内容区域 -->
+  <view class="content">
+    <!-- Logo卡片 -->
+    <view class="logo-card">
+      <view class="logo-icon">
+        <text class="logo-emoji">🏔️</text>
+      </view>
+      <view class="app-name">北京去哪玩</view>
+      <view class="app-version">版本 1.0.0</view>
+    </view>
+
+    <!-- 简介 -->
+    <view class="intro-card">
+      <view class="intro-text">北京去哪玩是一款专注于北京周边旅行的小程序，帮助用户发现好玩的地方、规划行程、结伴出行。</view>
+    </view>
+
+    <!-- 链接列表 -->
+    <view class="link-card">
+      <view class="link-item" bindtap="onTapAgreement">
+        <text class="link-text">用户协议</text>
+        <text class="link-arrow">›</text>
+      </view>
+      <view class="link-item" bindtap="onTapPrivacy">
+        <text class="link-text">隐私政策</text>
+        <text class="link-arrow">›</text>
+      </view>
+    </view>
+  </view>
+</view>

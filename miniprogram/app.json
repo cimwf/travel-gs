@@ -16,7 +16,8 @@
     "pages/profile/profile",
     "pages/edit-profile/edit-profile",
     "pages/followers/followers",
-    "pages/settings/settings",
+    "pages/feedback/feedback",
+    "pages/about/about",
     "pages/search/search",
     "pages/agreement/agreement"
   ],

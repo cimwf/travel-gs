@@ -217,31 +217,3 @@ page {
   font-size: 36rpx;
   color: #CCCCCC;
 }
-
-.menu-right {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-}
-
-.notification-badge {
-  min-width: 36rpx;
-  height: 36rpx;
-  padding: 0 12rpx;
-  background: #FF4D4F;
-  color: white;
-  border-radius: 18rpx;
-  font-size: 22rpx;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* 版本信息 */
-.version-info {
-  text-align: center;
-  padding: 60rpx 32rpx;
-  color: var(--text-hint);
-  font-size: 26rpx;
-}
