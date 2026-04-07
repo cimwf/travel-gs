@@ -4,40 +4,70 @@ const auth = require('../../utils/auth.js');
 
 Page({
   data: {
+    statusBarHeight: 0,
     userInfo: {
       avatar: '',
+      background: '',
       nickname: '',
       gender: '',
-      hasCar: false,
-      bio: ''
+      bio: '',
+      birthday: '',
+      userId: '',
+      photos: [],
+      travelPreferences: {
+        adults: 2,
+        children: 0,
+        elderly: 0,
+        pace: 'medium'
+      }
     },
     defaultAvatar: 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0',
     saving: false,
-    isFirstLogin: false
+    // 景点类型选项
+    scenicTypes: [
+      { id: 1, name: '山岳', icon: '🏔️', selected: false },
+      { id: 2, name: '古迹', icon: '🏛️', selected: false },
+      { id: 3, name: '美食', icon: '🍜', selected: false },
+      { id: 4, name: '购物', icon: '🛍️', selected: false },
+      { id: 5, name: '自然', icon: '🌿', selected: false },
+      { id: 6, name: '乐园', icon: '🎢', selected: false }
+    ]
   },
 
   onLoad: function (options) {
-    // 检查是否是首次登录
-    const tempPhone = wx.getStorageSync('tempPhone');
-    const tempOpenid = wx.getStorageSync('tempOpenid');
-
-    if (tempPhone && tempOpenid) {
-      this.setData({
-        isFirstLogin: true,
-        'userInfo.phone': tempPhone,
-        'userInfo.openid': tempOpenid
-      });
-    }
+    // 获取状态栏高度
+    const systemInfo = wx.getSystemInfoSync();
+    this.setData({ statusBarHeight: systemInfo.statusBarHeight });
 
     // 加载已有用户信息
     const existingUserInfo = app.globalData.userInfo || wx.getStorageSync('userInfo');
     if (existingUserInfo) {
-      this.setData({
-        userInfo: {
-          ...this.data.userInfo,
-          ...existingUserInfo
+      // 合并用户数据
+      const mergedInfo = {
+        ...this.data.userInfo,
+        ...existingUserInfo,
+        travelPreferences: {
+          ...this.data.userInfo.travelPreferences,
+          ...(existingUserInfo.travelPreferences || {})
         }
-      });
+      };
+
+      // 更新景点类型的选中状态
+      if (existingUserInfo.scenicTypes) {
+        const updatedScenicTypes = this.data.scenicTypes.map(item => ({
+          ...item,
+          selected: existingUserInfo.scenicTypes.includes(item.id)
+        }));
+        this.setData({ scenicTypes: updatedScenicTypes });
+      }
+
+      this.setData({ userInfo: mergedInfo });
+    }
+
+    // 生成用户ID
+    if (!this.data.userInfo.userId) {
+      const userId = 'BJ' + new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      this.setData({ 'userInfo.userId': userId });
     }
   },
 
@@ -51,6 +81,21 @@ Page({
         const tempFilePath = res.tempFiles[0].tempFilePath;
         this.setData({
           'userInfo.avatar': tempFilePath
+        });
+      }
+    });
+  },
+
+  // 选择背景图
+  onChooseBackground: function () {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        const tempFilePath = res.tempFiles[0].tempFilePath;
+        this.setData({
+          'userInfo.background': tempFilePath
         });
       }
     });
@@ -71,14 +116,6 @@ Page({
     });
   },
 
-  // 是否有车选择
-  onCarChange: function (e) {
-    const value = e.currentTarget.dataset.value === 'true';
-    this.setData({
-      'userInfo.hasCar': value
-    });
-  },
-
   // 简介输入
   onBioInput: function (e) {
     this.setData({
@@ -86,9 +123,96 @@ Page({
     });
   },
 
+  // 选择生日
+  onSelectBirthday: function () {
+    wx.showActionSheet({
+      itemList: ['选择生日'],
+      success: () => {
+        wx.showModal({
+          title: '选择生日',
+          content: '请在输入框中输入您的生日',
+          showCancel: false
+        });
+      }
+    });
+  },
+
+  // 添加旅行照片
+  onAddPhoto: function () {
+    const currentCount = this.data.userInfo.photos.length;
+    if (currentCount >= 9) {
+      wx.showToast({ title: '最多上传9张照片', icon: 'none' });
+      return;
+    }
+
+    wx.chooseMedia({
+      count: 9 - currentCount,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        const newPhotos = res.tempFiles.map(file => file.tempFilePath);
+        this.setData({
+          'userInfo.photos': [...this.data.userInfo.photos, ...newPhotos]
+        });
+      }
+    });
+  },
+
+  // 预览照片
+  onPreviewPhoto: function (e) {
+    const index = e.currentTarget.dataset.index;
+    wx.previewImage({
+      current: this.data.userInfo.photos[index],
+      urls: this.data.userInfo.photos
+    });
+  },
+
+  // 删除照片
+  onDeletePhoto: function (e) {
+    const index = e.currentTarget.dataset.index;
+    const photos = [...this.data.userInfo.photos];
+    photos.splice(index, 1);
+    this.setData({
+      'userInfo.photos': photos
+    });
+  },
+
+  // 计数器变化
+  onCounterChange: function (e) {
+    const { type, action } = e.currentTarget.dataset;
+    const currentValue = this.data.userInfo.travelPreferences[type];
+    let newValue = currentValue;
+
+    if (action === 'plus') {
+      newValue = Math.min(currentValue + 1, 10);
+    } else if (action === 'minus') {
+      newValue = Math.max(currentValue - 1, 0);
+    }
+
+    this.setData({
+      [`userInfo.travelPreferences.${type}`]: newValue
+    });
+  },
+
+  // 切换景点类型
+  onToggleScenicType: function (e) {
+    const index = e.currentTarget.dataset.index;
+    const scenicTypes = [...this.data.scenicTypes];
+    scenicTypes[index].selected = !scenicTypes[index].selected;
+    this.setData({ scenicTypes });
+  },
+
+  // 选择行程节奏
+  onSelectPace: function (e) {
+    const pace = e.currentTarget.dataset.pace;
+    this.setData({
+      'userInfo.travelPreferences.pace': pace
+    });
+  },
+
   // 保存
   onSave: async function () {
-    const { userInfo } = this.data;
+    const { userInfo, scenicTypes } = this.data;
 
     // 验证必填项
     if (!userInfo.nickname || userInfo.nickname.length < 2) {
@@ -101,17 +225,16 @@ Page({
       return;
     }
 
-    if (userInfo.hasCar === undefined || userInfo.hasCar === null) {
-      wx.showToast({ title: '请选择是否有车', icon: 'none' });
-      return;
-    }
-
     this.setData({ saving: true });
 
     try {
+      // 获取选中的景点类型
+      const selectedScenicTypes = scenicTypes.filter(item => item.selected).map(item => item.id);
+
       // 构建用户数据
       const userData = {
         ...userInfo,
+        scenicTypes: selectedScenicTypes,
         updatedAt: new Date().toISOString()
       };
 
@@ -122,20 +245,13 @@ Page({
       app.globalData.userInfo = userData;
       app.globalData.isLoggedIn = true;
 
-      // 清除临时数据
-      wx.removeStorageSync('tempPhone');
-      wx.removeStorageSync('tempOpenid');
-
       // 使用 auth 模块处理登录成功
       auth.handleLoginSuccess(userData);
 
       wx.showToast({ title: '保存成功', icon: 'success' });
 
       setTimeout(() => {
-        // 返回首页
-        wx.switchTab({
-          url: '/pages/index/index'
-        });
+        wx.navigateBack();
       }, 1000);
 
     } catch (err) {
@@ -148,13 +264,6 @@ Page({
 
   // 返回
   onBack: function () {
-    if (this.data.isFirstLogin) {
-      // 首次登录，直接返回首页
-      wx.switchTab({
-        url: '/pages/index/index'
-      });
-    } else {
-      wx.navigateBack();
-    }
+    wx.navigateBack();
   }
 });

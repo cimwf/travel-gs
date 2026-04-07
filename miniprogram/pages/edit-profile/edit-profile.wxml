@@ -1,96 +1,109 @@
 <!--
   个人信息编辑页 (edit-profile)
   ================================
-  设计要点：
-  1. 头像上传 - 点击上传头像，默认使用微信头像
-  2. 昵称输入框 - 2-12个字符
-  3. 性别选择 - 男/女 单选
-  4. 是否有车 - 有车/无车 单选
-  5. 保存按钮 - 保存个人信息
-
-  参考：E:\beijing-travel\docs\design-spec.html
+  设计稿：docs/design-spec.html
 -->
 
 <view class="container">
   <!-- 顶部导航 -->
-  <view class="nav-header">
-    <view class="nav-back" bindtap="onBack">
-      <text class="back-icon">‹</text>
+  <view class="nav-header" style="padding-top: {{statusBarHeight}}px;">
+    <view class="nav-top">
+      <view class="nav-back" bindtap="onBack">
+        <text class="back-icon">‹</text>
+      </view>
+      <text class="nav-title">编辑资料</text>
+      <view class="nav-placeholder"></view>
     </view>
-    <view class="nav-title">完善个人信息</view>
-    <view class="nav-placeholder"></view>
   </view>
 
-  <!-- 表单内容 -->
-  <view class="form-content">
-    <!-- 头像上传 -->
-    <view class="avatar-section">
-      <view class="avatar-upload" bindtap="onChooseAvatar">
-        <image class="avatar-image" src="{{userInfo.avatar || defaultAvatar}}" mode="aspectFill" wx:if="{{userInfo.avatar}}"></image>
-        <view class="avatar-placeholder" wx:else>
-          <text class="avatar-icon">📷</text>
-        </view>
-        <view class="avatar-tip">点击上传头像</view>
+  <!-- 占位区域 -->
+  <view class="nav-placeholder-area" style="height: {{statusBarHeight + 44}}px;"></view>
+
+  <!-- 头像卡片 -->
+  <view class="profile-header-card" style="{{userInfo.background ? 'background-image: url(' + userInfo.background + '); background-size: cover; background-position: center;' : ''}}" bindtap="onChooseBackground">
+    <view class="avatar-container" catchtap="onChooseAvatar">
+      <image class="avatar-large" src="{{userInfo.avatar || defaultAvatar}}" mode="aspectFill" wx:if="{{userInfo.avatar}}"></image>
+      <view class="avatar-large-placeholder" wx:else>
+        <text>👤</text>
+      </view>
+      <view class="avatar-edit-badge">
+        <text>📷</text>
       </view>
     </view>
+    <view class="profile-nickname">{{userInfo.nickname || '旅行达人'}}</view>
+    <view class="profile-id">ID: {{userInfo.userId || 'BJ20260406'}}</view>
+    <view class="background-edit-hint">点击更换背景</view>
+  </view>
 
-    <!-- 表单卡片 -->
-    <view class="form-card">
-      <!-- 昵称 -->
-      <view class="form-item">
-        <view class="form-label">
-          <text>昵称</text>
-          <text class="required">*</text>
-        </view>
-        <input class="form-input" placeholder="请输入昵称（2-12个字符）" value="{{userInfo.nickname}}" maxlength="12" bindinput="onNicknameInput" />
-      </view>
-
-      <!-- 性别 -->
-      <view class="form-item">
-        <view class="form-label">
-          <text>性别</text>
-          <text class="required">*</text>
-        </view>
-        <view class="form-options">
-          <view class="option-item {{userInfo.gender === 'male' ? 'active' : ''}}" data-value="male" bindtap="onGenderChange">
-            <text>男</text>
+  <view class="content-section-view">
+    <view class="content-section">
+      <!-- 基础信息分组 -->
+      <view class="info-group">
+        <view class="group-header">
+          <view class="group-icon" style="background: linear-gradient(135deg, #FFF5F0, #FFE8DB);">
+            <text>👤</text>
           </view>
-          <view class="option-item {{userInfo.gender === 'female' ? 'active' : ''}}" data-value="female" bindtap="onGenderChange">
-            <text>女</text>
-          </view>
+          <text class="group-title">基础信息</text>
+          <text class="group-arrow">▼</text>
         </view>
-      </view>
-
-      <!-- 是否有车 -->
-      <view class="form-item">
-        <view class="form-label">
-          <text>是否有车</text>
-          <text class="required">*</text>
-        </view>
-        <view class="form-options">
-          <view class="option-item {{userInfo.hasCar === true ? 'active' : ''}}" data-value="true" bindtap="onCarChange">
-            <text>🚗 有车</text>
+        <view class="group-content">
+          <view class="info-row">
+            <text class="info-label">昵称</text>
+            <input class="info-input" placeholder="请输入昵称" placeholder-class="input-placeholder" value="{{userInfo.nickname}}" maxlength="12" bindinput="onNicknameInput" />
           </view>
-          <view class="option-item {{userInfo.hasCar === false ? 'active' : ''}}" data-value="false" bindtap="onCarChange">
-            <text>无车</text>
+          <view class="info-row">
+            <text class="info-label">性别</text>
+            <view class="gender-tags">
+              <view class="gender-tag {{userInfo.gender === 'male' ? 'active' : ''}}" data-value="male" bindtap="onGenderChange">男</view>
+              <view class="gender-tag {{userInfo.gender === 'female' ? 'active' : ''}}" data-value="female" bindtap="onGenderChange">女</view>
+              <view class="gender-tag {{userInfo.gender === 'secret' ? 'active' : ''}}" data-value="secret" bindtap="onGenderChange">保密</view>
+            </view>
           </view>
         </view>
       </view>
 
-      <!-- 简介（可选） -->
-      <view class="form-item">
-        <view class="form-label">
-          <text>个人简介</text>
+          <!-- 旅行照片分组 -->
+          <view class="info-group">
+        <view class="group-header">
+          <view class="group-icon" style="background: linear-gradient(135deg, #FFF0E5, #FFF9F5);">
+            <text>📸</text>
+          </view>
+          <text class="group-title">旅行照片</text>
+          <text class="group-arrow">▼</text>
         </view>
-        <textarea class="form-textarea" placeholder="介绍一下自己吧（选填，最多100字）" value="{{userInfo.bio}}" maxlength="100" bindinput="onBioInput" />
-        <view class="textarea-count">{{userInfo.bio.length || 0}}/100</view>
+        <view class="group-content">
+          <view class="photo-grid">
+            <view class="photo-item" wx:for="{{userInfo.photos}}" wx:key="index" data-index="{{index}}" bindtap="onPreviewPhoto">
+              <image class="photo-image" src="{{item}}" mode="aspectFill"></image>
+              <view class="photo-delete" data-index="{{index}}" catchtap="onDeletePhoto">×</view>
+            </view>
+            <view class="photo-add" wx:if="{{userInfo.photos.length < 9}}" bindtap="onAddPhoto">
+              <text class="photo-add-icon">+</text>
+            </view>
+          </view>
+          <view class="photo-tip">已上传 {{userInfo.photos.length || 0}}/9 张，点击图片可删除</view>
+        </view>
       </view>
-    </view>
 
-    <!-- 保存按钮 -->
-    <view class="save-section">
-      <button class="save-btn" bindtap="onSave" loading="{{saving}}">完成</button>
-      <view class="save-tip" wx:if="{{isFirstLogin}}">点击返回将回到首页</view>
+      <!-- 自我描述分组 -->
+      <view class="info-group">
+        <view class="group-header">
+          <view class="group-icon" style="background: linear-gradient(135deg, #E8F4FF, #F0F8FF);">
+            <text>📝</text>
+          </view>
+          <text class="group-title">自我描述</text>
+          <text class="group-arrow">▼</text>
+        </view>
+        <view class="group-content">
+          <textarea class="bio-textarea" placeholder="介绍一下自己，让队友更了解你～" placeholder-class="textarea-placeholder" value="{{userInfo.bio}}" maxlength="200" bindinput="onBioInput" />
+          <view class="textarea-count">{{userInfo.bio.length || 0}}/200字</view>
+        </view>
+      </view>
+
+      <!-- 保存按钮 -->
+      <view class="save-section-bottom">
+        <button class="save-btn" bindtap="onSave" loading="{{saving}}">保存修改</button>
+      </view>
     </view>
   </view>
 </view>
