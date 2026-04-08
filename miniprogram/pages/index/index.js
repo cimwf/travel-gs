@@ -10,7 +10,6 @@ Page({
     refreshing: false,
     isLoggedIn: false,
     userInfo: null,
-    useCloud: true,
 
     // Banner数据
     banners: [
@@ -32,11 +31,11 @@ Page({
       },
       {
         id: 'banner_3',
-        title: '周末去哪玩',
-        icon: '🌸',
+        title: '古镇漫游',
+        icon: '🏮',
         bgColor: 'linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%)',
-        type: 'place',
-        target: 'place_001'
+        type: 'category',
+        target: '古镇'
       }
     ]
   },
@@ -61,14 +60,16 @@ Page({
     this.setData({ loading: true });
 
     // 尝试使用云开发
-    if (wx.cloud && this.data.useCloud) {
+    if (wx.cloud) {
       try {
         const result = await api.placeList({});
-        this.setData({
-          places: result.places,
-          loading: false
-        });
-        return;
+        if (result.places && result.places.length > 0) {
+          this.setData({
+            places: result.places,
+            loading: false
+          });
+          return;
+        }
       } catch (err) {
         console.warn('云开发加载失败，使用本地数据', err);
       }
@@ -83,42 +84,36 @@ Page({
     const mockPlaces = [
       {
         _id: 'place_001',
-        name: '灵山',
+        name: '东灵山',
         icon: '🏔️',
         bgColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         category: '爬山',
-        distance: 150,
-        difficulty: '中等',
-        rating: '4.8',
-        desc: '北京最高峰，海拔2303米',
-        wantCount: 32,
-        tags: ['爬山', '看日出', '露营']
+        location: { distance: 120 },
+        difficulty: '困难',
+        wantCount: 256,
+        tags: ['日出', '云海', '露营']
       },
       {
         _id: 'place_002',
-        name: '百花山',
-        icon: '🌸',
+        name: '海坨山',
+        icon: '🏕️',
         bgColor: 'linear-gradient(135deg, #56AB2F 0%, #A8E6CF 100%)',
         category: '爬山',
-        distance: 95,
+        location: { distance: 95 },
         difficulty: '中等',
-        rating: '4.6',
-        desc: '夏季野花盛开，色彩斑斓',
-        wantCount: 28,
-        tags: ['爬山', '赏花', '徒步']
+        wantCount: 189,
+        tags: ['露营', '日出', '高山草甸']
       },
       {
         _id: 'place_003',
-        name: '龙庆峡',
+        name: '十渡',
         icon: '💧',
         bgColor: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
         category: '水上',
-        distance: 85,
-        difficulty: '易',
-        rating: '4.5',
-        desc: '峡谷风光，冰灯艺术节',
-        wantCount: 41,
-        tags: ['峡谷', '冰灯', '游船']
+        location: { distance: 80 },
+        difficulty: '简单',
+        wantCount: 378,
+        tags: ['漂流', '蹦极', '峡谷']
       },
       {
         _id: 'place_004',
@@ -126,12 +121,21 @@ Page({
         icon: '🍂',
         bgColor: 'linear-gradient(135deg, #FA8C16 0%, #FFC53D 100%)',
         category: '爬山',
-        distance: 25,
-        difficulty: '易',
-        rating: '4.7',
-        desc: '红叶胜地，秋季赏枫',
-        wantCount: 56,
-        tags: ['红叶', '徒步', '赏秋']
+        location: { distance: 20 },
+        difficulty: '简单',
+        wantCount: 423,
+        tags: ['红叶', '皇家园林', '秋季']
+      },
+      {
+        _id: 'place_005',
+        name: '古北水镇',
+        icon: '🏮',
+        bgColor: 'linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%)',
+        category: '古镇',
+        location: { distance: 120 },
+        difficulty: '简单',
+        wantCount: 756,
+        tags: ['夜景', '温泉', '长城脚下']
       }
     ];
 
@@ -144,10 +148,12 @@ Page({
 
   // 点击Banner
   onBannerTap: function (e) {
-    const { id, type, target } = e.currentTarget.dataset;
-    // Banner点击跳转
-    if (type === 'place') {
-      this.onPlaceTap({ currentTarget: { dataset: { id: target } } });
+    const { type, target } = e.currentTarget.dataset;
+    if (type === 'category') {
+      // 跳转到分类页面
+      wx.navigateTo({
+        url: `/pages/place-list/place-list?category=${target}`
+      });
     }
   },
 
@@ -181,6 +187,8 @@ Page({
   // 下拉刷新
   onPullDownRefresh: function () {
     this.setData({ refreshing: true });
-    this.loadPlaces();
+    this.loadPlaces().then(() => {
+      wx.stopPullDownRefresh();
+    });
   }
 });

@@ -1,5 +1,6 @@
 // pages/place-detail/place-detail.js
 const app = getApp();
+const api = require('../../utils/api.js');
 
 Page({
   data: {
@@ -35,8 +36,32 @@ Page({
   },
 
   // 加载地点详情
-  loadPlaceDetail: function (placeId) {
-    // 模拟数据 - 使用设计稿中的图片
+  loadPlaceDetail: async function (placeId) {
+    this.setData({ loading: true });
+
+    // 尝试使用云开发
+    if (wx.cloud) {
+      try {
+        const result = await api.placeGet(placeId);
+        if (result.place) {
+          const place = result.place;
+          // 检查是否已收藏
+          const collections = wx.getStorageSync('collections') || [];
+          const isCollected = collections.includes(place._id);
+          this.setData({ place, isCollected, loading: false });
+          return;
+        }
+      } catch (err) {
+        console.warn('云开发加载失败，使用本地数据', err);
+      }
+    }
+
+    // 使用mock数据
+    this.loadMockPlaceDetail(placeId);
+  },
+
+  // 加载模拟数据
+  loadMockPlaceDetail: function (placeId) {
     const mockPlaces = {
       'place_001': {
         _id: 'place_001',
@@ -48,17 +73,15 @@ Page({
           'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=800&h=600&fit=crop'
         ],
         description: '东灵山位于北京市门头沟区清水镇，是北京最高峰，海拔2303米，被誉为"京西珠穆朗玛"。山顶有广阔的高山草甸，夏季野花遍地，色彩斑斓；秋季层林尽染，美不胜收。\n\n这里是北京驴友必打卡之地，也是观赏日出、云海的绝佳地点。山顶气温较低，夏季凉爽宜人，是避暑胜地；秋冬季节则可欣赏壮观的日出和云海奇观。',
-        category: '山岳风光',
-        distance: 150,
-        difficulty: '中等',
-        rating: '4.8',
+        category: '爬山',
+        location: { distance: 120, address: '北京市门头沟区' },
+        difficulty: '困难',
         bestSeason: '春夏秋',
         duration: '1天',
         altitude: '2303m',
-        location: '北京市门头沟区清水镇',
         openTime: '全天开放',
-        tags: ['爬山', '看日出', '露营', '高山草甸'],
-        wantCount: 32,
+        tags: ['日出', '云海', '露营', '高山草甸'],
+        wantCount: 256,
         tipsList: [
           '山顶气温较低，建议携带保暖衣物，即使是夏季也要准备外套',
           '建议凌晨出发看日出，需要提前查看天气情况',
@@ -79,14 +102,28 @@ Page({
   },
 
   // 加载该地点的行程列表
-  loadTrips: function (placeId) {
-    // 模拟数据
+  loadTrips: async function (placeId) {
+    // 尝试使用云开发
+    if (wx.cloud) {
+      try {
+        const result = await api.tripList({ placeId });
+        if (result.trips) {
+          this.setData({ trips: result.trips });
+          return;
+        }
+      } catch (err) {
+        console.warn('加载行程失败', err);
+      }
+    }
+
+    // 使用mock数据
     const mockTrips = [
       {
         _id: 'trip_001',
-        userName: '小王',
+        creatorName: '小王',
+        creatorAvatar: '',
         avatarBg: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
-        date: '03月25日',
+        date: '04月12日',
         hasCar: true,
         currentCount: 2,
         needCount: 2,
@@ -94,9 +131,10 @@ Page({
       },
       {
         _id: 'trip_002',
-        userName: '小李',
+        creatorName: '小李',
+        creatorAvatar: '',
         avatarBg: 'linear-gradient(135deg, #4A90E2, #667eea)',
-        date: '03月26日',
+        date: '04月13日',
         hasCar: false,
         currentCount: 1,
         needCount: 3,
@@ -104,9 +142,10 @@ Page({
       },
       {
         _id: 'trip_003',
-        userName: '小张',
+        creatorName: '小张',
+        creatorAvatar: '',
         avatarBg: 'linear-gradient(135deg, #56AB2F, #A8E6CF)',
-        date: '03月27日',
+        date: '04月15日',
         hasCar: true,
         currentCount: 1,
         needCount: 3,
@@ -124,7 +163,6 @@ Page({
 
   // 分享按钮
   onShareTap: function () {
-    // 触发分享菜单
     wx.showShareMenu({
       withShareTicket: true,
       menus: ['shareAppMessage', 'shareTimeline']
@@ -132,7 +170,7 @@ Page({
   },
 
   // 收藏
-  onCollectTap: function () {
+  onCollectTap: async function () {
     if (!app.globalData.isLoggedIn) {
       wx.showToast({ title: '请先登录', icon: 'none' });
       return;
@@ -151,6 +189,15 @@ Page({
       wx.showToast({ title: '已取消收藏', icon: 'none' });
     }
     wx.setStorageSync('collections', collections);
+
+    // 尝试同步到云端
+    if (wx.cloud) {
+      try {
+        await api.wantToggle(placeId);
+      } catch (err) {
+        console.warn('同步收藏状态失败', err);
+      }
+    }
 
     this.setData({ isCollected });
   },
@@ -230,9 +277,7 @@ Page({
   },
 
   // 阻止事件冒泡（空函数）
-  preventBubble: function () {
-    // 阻止冒泡，不执行任何操作
-  },
+  preventBubble: function () {},
 
   // 校验联系方式
   validateContact: function () {
@@ -244,14 +289,12 @@ Page({
     }
 
     if (contactType === 'phone') {
-      // 手机号校验：11位数字，以1开头
       const phoneReg = /^1[3-9]\d{9}$/;
       if (!phoneReg.test(contactValue)) {
         wx.showToast({ title: '请输入正确的手机号', icon: 'none' });
         return false;
       }
     } else {
-      // 微信号校验：至少6位，字母开头，只能包含字母、数字、下划线、减号
       const wechatReg = /^[a-zA-Z][a-zA-Z0-9_-]{5,19}$/;
       if (!wechatReg.test(contactValue)) {
         wx.showToast({ title: '请输入正确的微信号', icon: 'none' });
@@ -263,23 +306,38 @@ Page({
   },
 
   // 提交申请
-  onSubmitApply: function () {
+  onSubmitApply: async function () {
     if (!this.validateContact()) {
       return;
     }
 
-    // TODO: 调用API提交申请
+    const { currentTrip, introduction } = this.data;
+
+    // 尝试调用云函数
+    if (wx.cloud) {
+      try {
+        await api.applyCreate({
+          tripId: currentTrip._id,
+          message: introduction
+        });
+        wx.showToast({ title: '申请已发送', icon: 'success' });
+        this.setData({ showApplyModal: false });
+        return;
+      } catch (err) {
+        console.warn('提交申请失败', err);
+      }
+    }
+
     wx.showToast({ title: '申请已发送', icon: 'success' });
     this.setData({ showApplyModal: false });
   },
 
   // 发送邀请
-  onSubmitInvite: function () {
+  onSubmitInvite: async function () {
     if (!this.validateContact()) {
       return;
     }
 
-    // TODO: 调用API发送邀请
     wx.showToast({ title: '邀请已发送', icon: 'success' });
     this.setData({ showInviteModal: false });
   },
