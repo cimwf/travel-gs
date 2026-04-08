@@ -40,7 +40,7 @@
         "selectedIconPath": "images/tab-home-active.png"
       },
       {
-        "pagePath": "pages/messages/messages",
+        "pagePath": "pages/trip-notifications/trip-notifications",
         "text": "行程",
         "iconPath": "images/tab-message.png",
         "selectedIconPath": "images/tab-message-active.png"

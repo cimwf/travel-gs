@@ -1,5 +1,6 @@
 {
-  "navigationStyle": "custom",
-  "navigationBarTitleText": "行程通知",
-  "usingComponents": {}
+  "navigationBarTitleText": "行程",
+  "usingComponents": {
+    "login-modal": "/components/login-modal/login-modal"
+  }
 }

@@ -1,17 +1,31 @@
 /* pages/trip-notifications/trip-notifications.wxss */
 
+/* ========================================
+   北京去哪玩 - 行程通知页面设计规格
+   设计稿：docs/design-spec.html
+   ======================================== */
+
 page {
+  /* 主色 */
   --primary-color: #4A90E2;
   --primary-light: #6BA3E8;
   --primary-dark: #357ABD;
-  --bg-color: #F5F7FA;
+
+  /* 文字颜色 */
   --text-primary: #1A1A2E;
   --text-secondary: #4A4A68;
   --text-hint: #8E8EA0;
+
+  /* 背景与边框 */
+  --bg-color: #F5F7FA;
+  --card-bg: #FFFFFF;
   --border-color: #E8E8F0;
-  --success-color: #52C41A;
-  --warning-color: #FAAD14;
+
+  /* 功能色 */
   --danger-color: #FF4D4F;
+  --success-color: #52C41A;
+
+  /* 阴影 */
   --shadow-sm: 0 2rpx 8rpx rgba(0,0,0,0.04);
 }
 
@@ -20,94 +34,109 @@ page {
 }
 
 .container {
-  width: 100%;
   min-height: 100vh;
   background: var(--bg-color);
   display: flex;
   flex-direction: column;
 }
 
-/* ========== 导航栏 ========== */
-.nav-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: white;
-  z-index: 100;
-  border-bottom: 2rpx solid var(--border-color);
-}
-
-.nav-top {
+/* ========================================
+   未登录状态
+   居中布局，图标+标题+描述+按钮
+   ======================================== */
+.not-login {
+  min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16rpx 32rpx;
-  padding-bottom: 20rpx;
+  align-items: flex-start;
+  justify-content: center;
+  background: var(--card-bg);
 }
 
-.nav-back {
-  width: 72rpx;
-  height: 72rpx;
+.not-login-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 120rpx 64rpx;
+  text-align: center;
+}
+
+.not-login-icon {
+  width: 160rpx;
+  height: 160rpx;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 72rpx;
+  margin-bottom: 40rpx;
 }
 
-.back-icon {
-  font-size: 48rpx;
-  color: var(--text-hint);
-  font-weight: 300;
-}
-
-.nav-title {
+.not-login-title {
   font-size: 36rpx;
   font-weight: 600;
   color: var(--text-primary);
+  margin-bottom: 16rpx;
 }
 
-.nav-placeholder {
-  width: 72rpx;
-}
-
-/* ========== 标签切换 ========== */
-.tabs {
-  display: flex;
-  gap: 16rpx;
-  padding: 0 32rpx 24rpx;
-}
-
-.tab {
-  padding: 16rpx 40rpx;
-  border-radius: 40rpx;
+.not-login-desc {
   font-size: 28rpx;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  color: var(--text-hint);
+  margin-bottom: 48rpx;
 }
 
-.tab.active {
+.login-btn {
+  padding: 24rpx 96rpx;
   background: var(--primary-color);
-  color: white;
+  border-radius: 48rpx;
 }
 
-.tab:not(.active) {
-  background: var(--bg-color);
-  color: var(--text-secondary);
+.login-btn:active {
+  background: var(--primary-dark);
 }
 
-.nav-placeholder-area {
-  flex-shrink: 0;
+.login-btn text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #FFFFFF;
 }
 
-.content-view {
+/* ========================================
+   加载状态
+   ======================================== */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 160rpx 0;
+  color: var(--text-hint);
+  font-size: 28rpx;
+}
+
+.loading-spinner {
+  width: 48rpx;
+  height: 48rpx;
+  border: 4rpx solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 16rpx;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   通知列表
+   ======================================== */
+.notification-list {
   flex: 1;
-  width: 100%;
-  padding-left: 20rpx;
-  padding-right: 20rpx;
+  height: 100vh;
 }
 
-/* ========== 内容区域 ========== */
-.content {
+.list-content {
   padding: 24rpx;
 }
 
@@ -231,10 +260,6 @@ page {
 }
 
 /* ========== 状态标签 ========== */
-.card-status {
-  text-align: right;
-}
-
 .status-text {
   font-size: 26rpx;
   font-weight: 500;
@@ -285,7 +310,9 @@ page {
   color: var(--text-hint);
 }
 
-/* ========== 底部安全区 ========== */
+/* ========================================
+   底部安全区
+   ======================================== */
 .safe-bottom {
-  height: 40rpx;
+  height: calc(env(safe-area-inset-bottom) + 32rpx);
 }

@@ -1,40 +1,45 @@
 // pages/trip-notifications/trip-notifications.js
 const app = getApp();
+const auth = require('../../utils/auth.js');
 
 Page({
   data: {
-    statusBarHeight: 0,
-    activeTab: 'apply',
-    applyList: [],
-    inviteList: []
+    isLoggedIn: false,
+    loading: true,
+    notifications: []
   },
 
-  onLoad: function (options) {
-    // 获取状态栏高度
-    const systemInfo = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: systemInfo.statusBarHeight });
-
-    // 设置默认标签
-    const tab = options.tab || 'apply';
-    this.setData({ activeTab: tab });
-
-    // 加载数据
-    this.loadNotifications();
+  onLoad: function () {
+    this.checkLogin();
   },
 
   onShow: function () {
-    this.loadNotifications();
+    this.checkLogin();
+  },
+
+  // 检查登录状态
+  checkLogin: function () {
+    const isLoggedIn = app.globalData.isLoggedIn;
+    this.setData({ isLoggedIn });
+
+    if (isLoggedIn) {
+      this.loadNotifications();
+    }
   },
 
   // 加载通知数据
   loadNotifications: function () {
+    this.setData({ loading: true });
+
     // 模拟申请通知数据
     const mockApplyList = [
       {
         _id: 'apply_001',
+        type: 'apply',
         userName: '李明',
         avatarBg: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
-        tripName: '周六灵山徒步',
+        headerTitle: '李明 申请加入您的行程',
+        headerMeta: '周六灵山徒步',
         timeAgo: '10分钟前',
         phone: '138****8888',
         introduction: '有户外经验，可以分摊油费',
@@ -42,9 +47,11 @@ Page({
       },
       {
         _id: 'apply_002',
+        type: 'apply',
         userName: '王小华',
         avatarBg: 'linear-gradient(135deg, #56AB2F, #A8E6CF)',
-        tripName: '周六灵山徒步',
+        headerTitle: '王小华 申请加入您的行程',
+        headerMeta: '周六灵山徒步',
         timeAgo: '1小时前',
         isHandled: true,
         status: 'agreed',
@@ -56,8 +63,11 @@ Page({
     const mockInviteList = [
       {
         _id: 'invite_001',
+        type: 'invite',
         userName: '张伟',
         avatarBg: 'linear-gradient(135deg, #4A90E2, #6BA3E8)',
+        headerTitle: '张伟 邀请您一起游玩',
+        headerMeta: '东灵山',
         placeName: '东灵山',
         tripDate: '4/5',
         hasCar: true,
@@ -69,8 +79,11 @@ Page({
       },
       {
         _id: 'invite_002',
+        type: 'invite',
         userName: '小李',
         avatarBg: 'linear-gradient(135deg, #f093fb, #f5576c)',
+        headerTitle: '小李 邀请您一起游玩',
+        headerMeta: '百花山',
         placeName: '百花山',
         tripDate: '4/6',
         hasCar: false,
@@ -81,21 +94,25 @@ Page({
       }
     ];
 
-    this.setData({
-      applyList: mockApplyList,
-      inviteList: mockInviteList
+    // 合并列表，按时间排序（未处理的优先）
+    const notifications = [...mockApplyList, ...mockInviteList].sort((a, b) => {
+      if (a.isHandled !== b.isHandled) {
+        return a.isHandled ? 1 : -1;
+      }
+      return 0;
     });
+
+    setTimeout(() => {
+      this.setData({
+        loading: false,
+        notifications
+      });
+    }, 300);
   },
 
-  // 返回
-  onBackTap: function () {
-    wx.navigateBack();
-  },
-
-  // 切换标签
-  onTabChange: function (e) {
-    const tab = e.currentTarget.dataset.tab;
-    this.setData({ activeTab: tab });
+  // 点击登录
+  onTapLogin: function () {
+    auth.goToLogin('/pages/trip-notifications/trip-notifications');
   },
 
   // 拒绝申请
@@ -106,7 +123,7 @@ Page({
       content: '确定要拒绝此申请吗？',
       success: (res) => {
         if (res.confirm) {
-          this.updateApplyStatus(id, 'rejected', '已拒绝');
+          this.updateNotificationStatus(id, 'rejected', '已拒绝');
         }
       }
     });
@@ -115,25 +132,13 @@ Page({
   // 同意申请
   onAgreeApply: function (e) {
     const id = e.currentTarget.dataset.id;
-    this.updateApplyStatus(id, 'agreed', '已同意');
-  },
-
-  // 更新申请状态
-  updateApplyStatus: function (id, status, statusText) {
-    const applyList = this.data.applyList.map(item => {
-      if (item._id === id) {
-        return { ...item, isHandled: true, status, statusText };
-      }
-      return item;
-    });
-    this.setData({ applyList });
-    wx.showToast({ title: '操作成功', icon: 'success' });
+    this.updateNotificationStatus(id, 'agreed', '已同意');
   },
 
   // 忽略邀请
   onIgnoreInvite: function (e) {
     const id = e.currentTarget.dataset.id;
-    this.updateInviteStatus(id, 'ignored', '已忽略');
+    this.updateNotificationStatus(id, 'ignored', '已忽略');
   },
 
   // 查看行程
@@ -144,23 +149,30 @@ Page({
     });
   },
 
-  // 更新邀请状态
-  updateInviteStatus: function (id, status, statusText) {
-    const inviteList = this.data.inviteList.map(item => {
+  // 更新通知状态
+  updateNotificationStatus: function (id, status, statusText) {
+    const notifications = this.data.notifications.map(item => {
       if (item._id === id) {
         return { ...item, isHandled: true, status, statusText };
       }
       return item;
     });
-    this.setData({ inviteList });
+    // 重新排序，将已处理的放到后面
+    notifications.sort((a, b) => {
+      if (a.isHandled !== b.isHandled) {
+        return a.isHandled ? 1 : -1;
+      }
+      return 0;
+    });
+    this.setData({ notifications });
     wx.showToast({ title: '操作成功', icon: 'success' });
   },
 
-  // 分享
-  onShareAppMessage: function () {
-    return {
-      title: '行程通知 - 北京去哪玩',
-      path: '/pages/trip-notifications/trip-notifications'
-    };
+  // 下拉刷新
+  onPullDownRefresh: function () {
+    if (this.data.isLoggedIn) {
+      this.loadNotifications();
+    }
+    wx.stopPullDownRefresh();
   }
 });
