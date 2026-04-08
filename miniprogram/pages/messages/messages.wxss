@@ -23,11 +23,21 @@ page {
 
   /* 功能色 */
   --danger-color: #FF4D4F;
+  --success-color: #52C41A;
+
+  /* 阴影 */
+  --shadow-sm: 0 2rpx 8rpx rgba(0,0,0,0.04);
+}
+
+page {
+  background: var(--bg-color);
 }
 
 .container {
   min-height: 100vh;
-  background: var(--card-bg);
+  background: var(--bg-color);
+  display: flex;
+  flex-direction: column;
 }
 
 /* ========================================
@@ -92,120 +102,6 @@ page {
 }
 
 /* ========================================
-   已登录状态 - 顶部导航
-   背景: white, 居中标题
-   ======================================== */
-.nav-header {
-  background: var(--card-bg);
-  padding: 32rpx 16rpx;
-  text-align: center;
-  border-bottom: 1rpx solid var(--border-color);
-}
-
-.nav-title {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-/* ========================================
-   消息列表
-   背景: white
-   ======================================== */
-.message-list {
-  background: var(--card-bg);
-  flex: 1;
-}
-
-/* 消息卡片 */
-.message-card {
-  display: flex;
-  align-items: center;
-  padding: 32rpx;
-  background: var(--card-bg);
-  border-bottom: 1rpx solid var(--border-color);
-}
-
-.message-card:active {
-  background: var(--bg-color);
-}
-
-.message-card:last-child {
-  border-bottom: none;
-}
-
-/* 头像 */
-.message-avatar {
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 24rpx;
-  flex-shrink: 0;
-  position: relative;
-}
-
-.message-avatar text {
-  font-size: 40rpx;
-  font-weight: 600;
-  color: #FFFFFF;
-}
-
-/* 消息内容 */
-.message-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.message-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8rpx;
-}
-
-.message-name {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.message-time {
-  font-size: 24rpx;
-  color: var(--text-hint);
-}
-
-.message-text {
-  font-size: 28rpx;
-  color: var(--text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* 未读badge */
-.message-badge {
-  position: absolute;
-  width: 40rpx;
-  height: 40rpx;
-  background: var(--danger-color);
-  border-radius: 20rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 16rpx;
-  right: 0;
-  top: 0;
-}
-
-.message-badge text {
-  font-size: 24rpx;
-  color: #FFFFFF;
-}
-
-/* ========================================
    加载状态
    ======================================== */
 .loading-state {
@@ -230,6 +126,188 @@ page {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   通知列表
+   ======================================== */
+.notification-list {
+  flex: 1;
+  height: 100vh;
+}
+
+.list-content {
+  padding: 24rpx;
+}
+
+/* ========== 通知卡片 ========== */
+.notification-card {
+  background: white;
+  border-radius: 32rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  box-shadow: var(--shadow-sm);
+}
+
+.notification-card.handled {
+  opacity: 0.6;
+}
+
+.notification-card:active {
+  background: #FAFAFA;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.user-avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 40rpx;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.header-info {
+  flex: 1;
+}
+
+.header-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8rpx;
+}
+
+.header-meta {
+  font-size: 24rpx;
+  color: var(--text-hint);
+}
+
+/* ========== 卡片详情 ========== */
+.card-detail {
+  background: var(--bg-color);
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.trip-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.trip-tag {
+  padding: 8rpx 20rpx;
+  background: rgba(74, 144, 226, 0.1);
+  color: var(--primary-color);
+  border-radius: 20rpx;
+  font-size: 22rpx;
+}
+
+.detail-row {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  margin-bottom: 8rpx;
+}
+
+.detail-row:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  color: var(--text-secondary);
+}
+
+.detail-value {
+  color: var(--text-secondary);
+}
+
+/* ========== 操作按钮 ========== */
+.card-actions {
+  display: flex;
+  gap: 24rpx;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 24rpx;
+  border-radius: 20rpx;
+  text-align: center;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.action-btn.reject {
+  background: var(--bg-color);
+  color: var(--text-secondary);
+}
+
+.action-btn.agree {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* ========== 状态标签 ========== */
+.status-text {
+  font-size: 26rpx;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.status-text.agreed {
+  color: var(--success-color);
+}
+
+.status-text.rejected,
+.status-text.ignored {
+  color: var(--text-hint);
+}
+
+/* ========== 已处理卡片（左右结构） ========== */
+.card-handled {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.card-handled .header-info {
+  flex: 1;
+}
+
+.card-handled .user-avatar {
+  width: 96rpx;
+  height: 96rpx;
+}
+
+/* ========== 空状态 ========== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 80rpx;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 24rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: var(--text-hint);
 }
 
 /* ========================================

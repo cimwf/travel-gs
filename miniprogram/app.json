@@ -41,7 +41,7 @@
       },
       {
         "pagePath": "pages/messages/messages",
-        "text": "消息",
+        "text": "行程",
         "iconPath": "images/tab-message.png",
         "selectedIconPath": "images/tab-message-active.png"
       },

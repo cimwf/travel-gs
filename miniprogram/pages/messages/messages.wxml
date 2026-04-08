@@ -4,16 +4,15 @@
   设计稿：docs/design-spec.html
 
   未登录状态：居中登录引导
-  已登录状态：消息列表（行程群聊、私聊、系统通知）
+  已登录状态：行程通知列表（申请通知、邀请消息合并展示）
 -->
-
 <view class="container">
   <!-- 未登录状态 -->
   <view class="not-login" wx:if="{{!isLoggedIn}}">
     <view class="not-login-content">
       <view class="not-login-icon">💬</view>
       <view class="not-login-title">登录后查看消息</view>
-      <view class="not-login-desc">登录后可以查看行程群聊、私聊消息和系统通知</view>
+      <view class="not-login-desc">登录后可以查看行程通知、申请和邀请消息</view>
       <view class="login-btn" bindtap="onTapLogin">
         <text>立即登录</text>
       </view>
@@ -28,41 +27,87 @@
       <text>加载中...</text>
     </view>
 
-    <!-- 消息列表 -->
-    <scroll-view class="message-list" scroll-y wx:else>
-      <block wx:if="{{messages.length > 0}}">
-        <view
-          class="message-card"
-          wx:for="{{messages}}"
-          wx:key="_id"
-          bindtap="onTapMessage"
-          data-id="{{item._id}}"
-          data-type="{{item.type}}"
-        >
-          <view class="message-avatar" style="background: {{item.avatarBg}};">
-            <text>{{item.avatarText || item.name[0]}}</text>
-            <view class="message-badge" wx:if="{{item.unreadCount > 0}}">
-              <text>{{item.unreadCount}}</text>
-            </view>
-          </view>
-          <view class="message-content">
-            <view class="message-header">
-              <view class="message-name">{{item.name}}</view>
-              <view class="message-time">{{item.time}}</view>
-            </view>
-            <view class="message-text">{{item.lastMessage}}</view>
-          </view>
-          <!-- <view class="message-badge" wx:if="{{item.unreadCount > 0}}">
-            <text>{{item.unreadCount}}</text>
-          </view> -->
-        </view>
-      </block>
+    <!-- 行程通知列表 -->
+    <scroll-view class="notification-list" scroll-y wx:else>
+      <view class="list-content">
+        <block wx:if="{{notifications.length > 0}}">
+          <view class="notification-card {{item.isHandled ? 'handled' : ''}}" wx:for="{{notifications}}" wx:key="_id">
+            <!-- 未处理：上下结构 -->
+            <block wx:if="{{!item.isHandled}}">
+              <view class="card-header">
+                <view class="user-avatar" style="background: {{item.avatarBg}}">
+                  <text>{{item.userName[0]}}</text>
+                </view>
+                <view class="header-info">
+                  <view class="header-title">{{item.headerTitle}}</view>
+                  <view class="header-meta">{{item.headerMeta}} · {{item.timeAgo}}</view>
+                </view>
+              </view>
 
-      <!-- 空状态 -->
-      <view class="not-login-content" wx:else>
-        <view class="not-login-icon">📭</view>
-        <view class="not-login-title">暂无消息</view>
-        <view class="not-login-desc">参与行程后会有消息通知哦</view>
+              <view class="card-detail">
+                <!-- 申请通知类型：显示手机号和自我介绍 -->
+                <block wx:if="{{item.type === 'apply'}}">
+                  <view class="detail-row">
+                    <text class="detail-label">📱 手机号：</text>
+                    <text class="detail-value">{{item.phone}}</text>
+                  </view>
+                  <view class="detail-row" wx:if="{{item.introduction}}">
+                    <text class="detail-label">💬 自我介绍：</text>
+                    <text class="detail-value">{{item.introduction}}</text>
+                  </view>
+                </block>
+
+                <!-- 邀请消息类型：显示地点、日期、手机号、留言 -->
+                <block wx:if="{{item.type === 'invite'}}">
+                  <view class="trip-tags">
+                    <view class="trip-tag">🏔️ {{item.placeName}}</view>
+                    <view class="trip-tag">📅 {{item.tripDate}}</view>
+                    <view class="trip-tag" wx:if="{{item.hasCar}}">🚗 有车</view>
+                  </view>
+                  <view class="detail-row">
+                    <text class="detail-label">📱 手机号：</text>
+                    <text class="detail-value">{{item.phone}}</text>
+                  </view>
+                  <view class="detail-row" wx:if="{{item.message}}">
+                    <text class="detail-label">💬 留言：</text>
+                    <text class="detail-value">{{item.message}}</text>
+                  </view>
+                </block>
+              </view>
+
+              <view class="card-actions">
+                <!-- 申请通知操作按钮 -->
+                <block wx:if="{{item.type === 'apply'}}">
+                  <view class="action-btn reject" catchtap="onRejectApply" data-id="{{item._id}}">拒绝</view>
+                  <view class="action-btn agree" catchtap="onAgreeApply" data-id="{{item._id}}">同意</view>
+                </block>
+                <!-- 邀请消息操作按钮 -->
+                <block wx:if="{{item.type === 'invite'}}">
+                  <view class="action-btn reject" catchtap="onIgnoreInvite" data-id="{{item._id}}">忽略</view>
+                  <view class="action-btn agree" catchtap="onViewTrip" data-id="{{item._id}}" data-tripid="{{item.tripId}}">查看行程</view>
+                </block>
+              </view>
+            </block>
+
+            <!-- 已处理：左右结构 -->
+            <view class="card-handled" wx:else>
+              <view class="user-avatar" style="background: {{item.avatarBg}}">
+                <text>{{item.userName[0]}}</text>
+              </view>
+              <view class="header-info">
+                <view class="header-title">{{item.headerTitle}}</view>
+                <view class="header-meta">{{item.headerMeta}} · {{item.timeAgo}}</view>
+              </view>
+              <text class="status-text {{item.status}}">{{item.statusText}}</text>
+            </view>
+          </view>
+        </block>
+
+        <!-- 空状态 -->
+        <view class="empty-state" wx:else>
+          <text class="empty-icon">📭</text>
+          <text class="empty-text">暂无行程通知</text>
+        </view>
       </view>
 
       <!-- 底部安全区 -->
