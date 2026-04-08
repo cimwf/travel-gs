@@ -63,7 +63,7 @@
       </view>
 
           <!-- 旅行照片分组 -->
-          <view class="info-group">
+      <view class="info-group">
         <view class="group-header">
           <view class="group-icon" style="background: linear-gradient(135deg, #FFF0E5, #FFF9F5);">
             <text>📸</text>
