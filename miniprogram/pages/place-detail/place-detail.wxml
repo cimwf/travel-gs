@@ -117,7 +117,7 @@
     <view class="section-header">
       <view class="section-title">
         <text>👥 想去的人</text>
-        <view class="trip-count">{{trips.length}}</view>
+        <!-- <view class="trip-count">{{trips.length}}</view> -->
       </view>
     </view>
 

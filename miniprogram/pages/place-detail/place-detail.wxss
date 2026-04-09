@@ -227,6 +227,7 @@ page {
 
 /* ========== 内容卡片 ========== */
 .content-card {
+  width: 84%;
   background: white;
   margin: 0 24rpx 24rpx;
   border-radius: 32rpx;
@@ -291,6 +292,7 @@ page {
 
 /* ========== 行程列表 ========== */
 .trip-section {
+  width: 84%;
   background: white;
   margin: 0 24rpx 24rpx;
   border-radius: 32rpx;
