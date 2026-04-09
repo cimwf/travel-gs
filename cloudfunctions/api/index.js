@@ -316,51 +316,72 @@ async function userLoginPassword(data) {
     };
   }
 
-  // 登录成功，重置失败次数
+  // 登录成功，重置失败次数，并更新 openid
+  const wxContext = cloud.getWXContext();
+  const currentOpenid = wxContext.OPENID;
+
+  // 准备更新数据
+  const updateData = {
+    loginAttempts: 0,
+    lockedUntil: 0,
+    lastActiveAt: Date.now()
+  };
+
+  // 如果 openid 不存在，添加 openid
+  if (!user.openid && currentOpenid) {
+    updateData.openid = currentOpenid;
+  }
+
   await db.collection('users').doc(user._id).update({
-    data: {
-      loginAttempts: 0,
-      lockedUntil: 0,
-      lastActiveAt: Date.now()
-    }
+    data: updateData
   });
 
-  // 返回用户信息（不返回密码）
-  const safeUser = { ...user };
+  // 返回用户信息（不返回密码），包含最新的 openid
+  const safeUser = { ...user, openid: user.openid || currentOpenid };
   delete safeUser.password;
   return { success: true, user: safeUser };
 }
 
 async function userUpdate(openid, data) {
-  const userRes = await db.collection('users').where({ openid }).get();
+  // 优先使用 _id 查找用户，其次用 openid
+  let user = null;
 
-  if (userRes.data.length === 0) {
-    // 用户不存在，创建新用户记录
-    const newUser = {
-      openid,
-      nickname: data.nickname || '旅行者',
-      avatar: data.avatar || '',
-      gender: data.gender || 0,
-      bio: data.bio || '',
-      background: data.background || '',
-      photos: data.photos || [],
-      phone: '',
-      following: 0,
-      followers: 0,
-      trips: 0,
-      places: 0,
-      tags: [],
-      carOwner: false,
-      createdAt: Date.now(),
-      lastActiveAt: Date.now()
-    };
-
-    const res = await db.collection('users').add({ data: newUser });
-    return { success: true, isNew: true, _id: res._id };
+  if (data._id) {
+    // 通过 _id 查找（推荐，唯一标识）
+    const res = await db.collection('users').doc(data._id).get();
+    user = res.data;
+  } else if (openid) {
+    // 通过 openid 查找
+    const userRes = await db.collection('users').where({ openid }).get();
+    if (userRes.data.length > 0) {
+      user = userRes.data[0];
+    }
   }
 
-  await db.collection('users').doc(userRes.data[0]._id).update({
-    data: { ...data, lastActiveAt: Date.now() }
+  if (!user) {
+    return { success: false, error: '用户不存在' };
+  }
+
+  // 更新用户信息
+  const updateData = {
+    nickname: data.nickname,
+    avatar: data.avatar,
+    gender: data.gender,
+    bio: data.bio,
+    background: data.background,
+    photos: data.photos,
+    lastActiveAt: Date.now()
+  };
+
+  // 过滤掉 undefined 的字段
+  Object.keys(updateData).forEach(key => {
+    if (updateData[key] === undefined) {
+      delete updateData[key];
+    }
+  });
+
+  await db.collection('users').doc(user._id).update({
+    data: updateData
   });
 
   return { success: true };

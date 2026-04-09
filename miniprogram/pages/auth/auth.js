@@ -111,17 +111,16 @@ Page({
 
   // 处理登录成功
   async handleLoginSuccess(user) {
-    const userInfo = user.nickname ? user : {
-      username: user.username,
-      nickname: user.username,
-      avatar: '',
-      gender: 0,
-      openid: user.openid
-    };
+    // 直接使用云函数返回的用户数据（包含最新的 nickname, avatar, gender, bio 等）
+    const userInfo = user;
 
+    // 保存完整的用户信息（包含 _id 作为唯一标识）
     auth.handleLoginSuccess(userInfo);
     app.globalData.openid = userInfo.openid;
+    app.globalData.userInfo = userInfo;
+    app.globalData.userId = userInfo._id;  // 保存唯一标识
     wx.setStorageSync('openid', userInfo.openid);
+    wx.setStorageSync('userId', userInfo._id);  // 保存到本地
 
     wx.showToast({ title: '登录成功', icon: 'success' });
 

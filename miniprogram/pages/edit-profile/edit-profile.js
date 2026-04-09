@@ -330,7 +330,11 @@ Page({
 
       // 同步到数据库 - 使用云函数
       try {
+        // 获取用户唯一标识 _id
+        const userId = wx.getStorageSync('userId') || app.globalData.userId;
+
         const updateRes = await api.userUpdate({
+          _id: userId,  // 传递唯一标识
           nickname: userData.nickname,
           avatar: userData.avatar,
           gender: userData.gender,
