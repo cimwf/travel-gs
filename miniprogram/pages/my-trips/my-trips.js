@@ -143,6 +143,10 @@ Page({
             if (avatar && avatar.startsWith('cloud://') && avatarMap[avatar]) {
               avatar = avatarMap[avatar];
             }
+            // 如果头像为空或无效，设为空字符串，让 wxml 显示默认头像
+            if (!avatar || avatar.startsWith('cloud://')) {
+              avatar = '';
+            }
             return {
               ...p,
               avatar
