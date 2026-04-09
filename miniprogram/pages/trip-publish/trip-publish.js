@@ -1,6 +1,5 @@
 // pages/trip-publish/trip-publish.js
 const app = getApp();
-const db = wx.cloud.database();
 const auth = require('../../utils/auth.js');
 
 Page({
@@ -60,7 +59,8 @@ Page({
       placeId,
       placeName,
       minDate,
-      date: defaultDate
+      date: defaultDate,
+      userInfo: app.globalData.userInfo
     });
   },
 
@@ -79,7 +79,6 @@ Page({
 
   // 选择地点
   onSelectPlace: function () {
-    // 如果没有传入地点，跳转到地点列表选择
     if (!this.data.placeId) {
       wx.navigateTo({
         url: '/pages/place-list/place-list?mode=select'
@@ -136,7 +135,7 @@ Page({
     this.setData({ hasCar });
   },
 
-  // 人数调整（合并处理）
+  // 人数调整
   onCountChange: function (e) {
     const type = e.currentTarget.dataset.type;
     const field = e.currentTarget.dataset.field;
@@ -159,7 +158,7 @@ Page({
   },
 
   // 提交发布
-  onSubmit: function () {
+  onSubmit: async function () {
     if (!app.globalData.isLoggedIn) {
       wx.showToast({ title: '请先登录', icon: 'none' });
       return;
@@ -182,6 +181,22 @@ Page({
 
     wx.showLoading({ title: '发布中...' });
 
+    // 确保获取到 openid
+    let openid = app.globalData.openid;
+    if (!openid) {
+      try {
+        openid = await app.getOpenid();
+      } catch (err) {
+        console.error('获取openid失败', err);
+        wx.hideLoading();
+        wx.showToast({ title: '请先登录', icon: 'none' });
+        return;
+      }
+    }
+
+    // 获取最新的用户信息（优先从 storage 读取）
+    const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
+
     // 构造行程数据
     const tripData = {
       placeId: this.data.placeId,
@@ -193,27 +208,35 @@ Page({
       needCount: this.data.needCount,
       remark: this.data.remark,
       status: 'open',
-      createTime: db.serverDate()
+      // 发起人信息
+      creatorId: openid,
+      creatorName: userInfo.nickname || '旅行者',
+      creatorAvatar: userInfo.avatar || '',
+      // 参与者列表（发起人默认参与）
+      participants: [{
+        userId: openid,
+        nickname: userInfo.nickname || '旅行者',
+        avatar: userInfo.avatar || ''
+      }],
+      createdAt: Date.now()
     };
 
-    // 保存到数据库
-    db.collection('trips').add({
-      data: tripData
-    }).then(() => {
+    console.log('发布行程数据:', tripData);
+
+    // 直接操作数据库
+    try {
+      const db = wx.cloud.database();
+      const res = await db.collection('trips').add({ data: tripData });
+      console.log('发布成功:', res);
       wx.hideLoading();
       wx.showToast({ title: '发布成功', icon: 'success' });
-
       setTimeout(() => {
         wx.navigateBack();
       }, 1500);
-    }).catch(err => {
+    } catch (err) {
       wx.hideLoading();
       console.error('发布失败', err);
-      // 模拟成功
-      wx.showToast({ title: '发布成功', icon: 'success' });
-      setTimeout(() => {
-        wx.navigateBack();
-      }, 1500);
-    });
+      wx.showToast({ title: '发布失败，请重试', icon: 'none' });
+    }
   }
 });

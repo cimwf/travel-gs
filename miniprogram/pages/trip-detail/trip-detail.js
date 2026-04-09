@@ -1,36 +1,18 @@
 // pages/trip-detail/trip-detail.js
 const app = getApp();
+const api = require('../../utils/api.js');
 
 Page({
   data: {
     statusBarHeight: 0,
     tripId: '',
-    trip: {
-      title: '周六灵山徒步',
-      placeName: '东灵山',
-      placeHighlight: '北京最高峰',
-      placeImage: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
-      date: '2026-04-05',
-      dateText: '2026年4月5日 周六',
-      departure: '海淀区集合',
-      currentCount: 2,
-      totalCount: 4,
-      hasCar: true,
-      status: 'open',
-      remark: '周六早上8点在海淀黄庄地铁站B口集合，自驾前往灵山，预计10:30到达。下午4点返程。费用AA，油费+门票约150元/人。',
-      creatorName: '张伟',
-      creatorAvatar: 'https://i.pravatar.cc/100?img=1',
-      creatorTripCount: 5,
-      creatorRating: 98
-    },
-    participants: [
-      { _id: 'p1', name: '张伟', avatar: 'https://i.pravatar.cc/100?img=1' },
-      { _id: 'p2', name: '李明', avatar: 'https://i.pravatar.cc/100?img=5' }
-    ],
+    trip: null,
+    participants: [],
     statusText: '招募中',
-    remainCount: 2,
+    remainCount: 0,
     joinBtnText: '申请加入',
-    canJoin: true
+    canJoin: true,
+    loading: true
   },
 
   onLoad: function (options) {
@@ -38,22 +20,171 @@ Page({
     const systemInfo = wx.getSystemInfoSync();
     this.setData({ statusBarHeight: systemInfo.statusBarHeight });
 
-    const tripId = options.id || 'trip_001';
+    const tripId = options.id || '';
     this.setData({ tripId });
-    this.loadTripDetail();
+
+    if (tripId) {
+      this.loadTripDetail(tripId);
+    }
   },
 
   // 加载行程详情
-  loadTripDetail: function () {
-    // 模拟数据
+  loadTripDetail: async function (tripId) {
+    this.setData({ loading: true });
+
+    // 尝试从数据库加载
+    if (wx.cloud) {
+      try {
+        const db = wx.cloud.database();
+        const res = await db.collection('trips').doc(tripId).get();
+
+        if (res.data) {
+          const trip = res.data;
+          await this.processTripData(trip);
+          return;
+        }
+      } catch (err) {
+        console.warn('加载行程详情失败', err);
+      }
+    }
+
+    // 使用mock数据
+    this.loadMockTripDetail();
+  },
+
+  // 处理行程数据
+  processTripData: async function (trip) {
+    // 计算状态文字
+    const statusMap = {
+      'open': '招募中',
+      'full': '已满员',
+      'ended': '已结束',
+      'cancelled': '已取消'
+    };
+
+    const statusText = statusMap[trip.status] || '招募中';
+    const totalCount = trip.currentCount + trip.needCount;
+    const remainCount = trip.needCount;
+    const canJoin = trip.status === 'open' && remainCount > 0;
+    const joinBtnText = canJoin ? '申请加入' : (trip.status === 'full' ? '已满员' : '不可加入');
+
+    // 格式化日期显示
+    let dateText = trip.date;
+    if (trip.date) {
+      const date = new Date(trip.date);
+      const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+      dateText = `${trip.date} 周${weekDays[date.getDay()]}`;
+    }
+
+    // 获取地点图片
+    const placeImages = {
+      '东灵山': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
+      '海坨山': 'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop',
+      '百花山': 'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=800&h=600&fit=crop',
+      '香山': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop',
+      '八达岭长城': 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=800&h=600&fit=crop',
+      '慕田峪长城': 'https://images.unsplash.com/photo-1529921879218-f99546d03a16?w=800&h=600&fit=crop',
+      '十渡': 'https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=800&h=600&fit=crop',
+      '青龙峡': 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=800&h=600&fit=crop',
+      '古北水镇': 'https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&h=600&fit=crop',
+      '爨底下村': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop'
+    };
+
+    // 处理发起人头像（云存储链接）
+    let creatorAvatar = trip.creatorAvatar || '';
+    if (creatorAvatar && creatorAvatar.startsWith('cloud://') && wx.cloud) {
+      try {
+        const urlRes = await wx.cloud.getTempFileURL({
+          fileList: [creatorAvatar]
+        });
+        if (urlRes.fileList && urlRes.fileList[0] && urlRes.fileList[0].tempFileURL) {
+          creatorAvatar = urlRes.fileList[0].tempFileURL;
+        }
+      } catch (err) {
+        console.warn('获取发起人头像链接失败', err);
+      }
+    }
+
+    // 处理参与者头像（云存储链接）
+    const participants = (trip.participants || []).map(p => ({
+      ...p,
+      avatar: p.avatar || ''
+    }));
+
+    const fileIDs = participants
+      .filter(p => p.avatar && p.avatar.startsWith('cloud://'))
+      .map(p => p.avatar);
+
+    if (fileIDs.length > 0 && wx.cloud) {
+      try {
+        const urlRes = await wx.cloud.getTempFileURL({
+          fileList: fileIDs
+        });
+        if (urlRes.fileList) {
+          const avatarMap = {};
+          urlRes.fileList.forEach(item => {
+            if (item.tempFileURL) {
+              avatarMap[item.fileID] = item.tempFileURL;
+            }
+          });
+          participants.forEach(p => {
+            if (p.avatar && avatarMap[p.avatar]) {
+              p.avatar = avatarMap[p.avatar];
+            }
+          });
+        }
+      } catch (err) {
+        console.warn('获取参与者头像链接失败', err);
+      }
+    }
+
+    const processedTrip = {
+      ...trip,
+      creatorAvatar,
+      dateText,
+      totalCount,
+      placeImage: placeImages[trip.placeName] || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
+      placeHighlight: this.getPlaceHighlight(trip.placeName)
+    };
+
+    this.setData({
+      trip: processedTrip,
+      participants: participants,
+      statusText,
+      remainCount,
+      canJoin,
+      joinBtnText,
+      loading: false
+    });
+  },
+
+  // 获取地点亮点描述
+  getPlaceHighlight: function (placeName) {
+    const highlights = {
+      '东灵山': '北京最高峰',
+      '海坨山': '高山草甸露营',
+      '百花山': '百花盛开',
+      '香山': '红叶胜地',
+      '八达岭长城': '世界遗产',
+      '慕田峪长城': '人少景美',
+      '十渡': '北方小桂林',
+      '青龙峡': '青山绿水',
+      '古北水镇': '长城脚下',
+      '爨底下村': '明清古村落'
+    };
+    return highlights[placeName] || '北京周边';
+  },
+
+  // 加载模拟数据
+  loadMockTripDetail: function () {
     const mockTrip = {
       _id: 'trip_001',
       title: '周六灵山徒步',
       placeName: '东灵山',
       placeHighlight: '北京最高峰',
       placeImage: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
-      date: '2026-04-05',
-      dateText: '2026年4月5日 周六',
+      date: '2026-04-12',
+      dateText: '2026-04-12 周六',
       departure: '海淀区集合',
       currentCount: 2,
       totalCount: 4,
@@ -69,22 +200,14 @@ Page({
     };
 
     const mockParticipants = [
-      { _id: 'p1', name: '张伟', avatar: 'https://i.pravatar.cc/100?img=1' },
-      { _id: 'p2', name: '李明', avatar: 'https://i.pravatar.cc/100?img=5' }
+      { userId: 'p1', nickname: '张伟', avatar: 'https://i.pravatar.cc/100?img=1' },
+      { userId: 'p2', nickname: '李明', avatar: 'https://i.pravatar.cc/100?img=5' }
     ];
 
-    // 计算状态
-    const statusMap = {
-      'open': '招募中',
-      'full': '已满员',
-      'ended': '已结束',
-      'cancelled': '已取消'
-    };
-
-    const statusText = statusMap[mockTrip.status] || '招募中';
-    const remainCount = mockTrip.totalCount - mockTrip.currentCount;
-    const canJoin = mockTrip.status === 'open' && remainCount > 0;
-    const joinBtnText = canJoin ? '申请加入' : (mockTrip.status === 'full' ? '已满员' : '不可加入');
+    const statusText = '招募中';
+    const remainCount = 2;
+    const canJoin = true;
+    const joinBtnText = '申请加入';
 
     this.setData({
       trip: mockTrip,
@@ -92,7 +215,8 @@ Page({
       statusText,
       remainCount,
       canJoin,
-      joinBtnText
+      joinBtnText,
+      loading: false
     });
   },
 
@@ -107,13 +231,11 @@ Page({
       itemList: ['分享行程', '举报行程'],
       success: (res) => {
         if (res.tapIndex === 0) {
-          // 分享
           wx.showShareMenu({
             withShareTicket: true,
             menus: ['shareAppMessage']
           });
         } else if (res.tapIndex === 1) {
-          // 举报
           wx.showToast({ title: '举报成功', icon: 'success' });
         }
       }
@@ -130,7 +252,7 @@ Page({
   },
 
   // 申请加入
-  onJoinTap: function () {
+  onJoinTap: async function () {
     if (!app.globalData.isLoggedIn) {
       wx.showToast({ title: '请先登录', icon: 'none' });
       return;
@@ -140,17 +262,70 @@ Page({
       return;
     }
 
-    // 显示申请弹窗或直接跳转
+    const trip = this.data.trip;
+
+    // 检查是否已参与
+    const openid = app.globalData.openid;
+    if (trip.participants && trip.participants.some(p => p.userId === openid)) {
+      wx.showToast({ title: '您已参与该行程', icon: 'none' });
+      return;
+    }
+
     wx.showModal({
       title: '申请加入',
-      content: `确定要加入"${this.data.trip.title}"吗？`,
-      success: (res) => {
+      content: `确定要加入"${trip.placeName}"的行程吗？`,
+      success: async (res) => {
         if (res.confirm) {
           wx.showLoading({ title: '申请中...' });
-          setTimeout(() => {
+
+          // 尝试调用云函数
+          if (wx.cloud) {
+            try {
+              const result = await api.tripJoin(trip._id);
+              if (result.success) {
+                wx.hideLoading();
+                wx.showToast({ title: '加入成功', icon: 'success' });
+                // 重新加载数据
+                setTimeout(() => {
+                  this.loadTripDetail(trip._id);
+                }, 1000);
+                return;
+              }
+            } catch (err) {
+              console.warn('加入行程失败', err);
+            }
+          }
+
+          // 直接操作数据库
+          try {
+            const db = wx.cloud.database();
+            const userInfo = app.globalData.userInfo || {};
+
+            const newParticipant = {
+              userId: openid,
+              nickname: userInfo.nickname || '旅行者',
+              avatar: userInfo.avatar || ''
+            };
+
+            await db.collection('trips').doc(trip._id).update({
+              data: {
+                participants: db.command.push(newParticipant),
+                currentCount: db.command.inc(1)
+              }
+            });
+
             wx.hideLoading();
-            wx.showToast({ title: '申请成功', icon: 'success' });
-          }, 500);
+            wx.showToast({ title: '加入成功', icon: 'success' });
+
+            // 重新加载数据
+            setTimeout(() => {
+              this.loadTripDetail(trip._id);
+            }, 1000);
+          } catch (err) {
+            wx.hideLoading();
+            console.error('加入失败', err);
+            wx.showToast({ title: '加入失败，请重试', icon: 'none' });
+          }
         }
       }
     });
@@ -158,10 +333,11 @@ Page({
 
   // 分享
   onShareAppMessage: function () {
+    const trip = this.data.trip;
     return {
-      title: `${this.data.trip.creatorName} 邀你一起去 ${this.data.trip.placeName}`,
-      path: `/pages/trip-detail/trip-detail?id=${this.data.tripId}`,
-      imageUrl: this.data.trip.placeImage
+      title: `${trip.creatorName} 邀你一起去 ${trip.placeName}`,
+      path: `/pages/trip-detail/trip-detail?id=${trip._id}`,
+      imageUrl: trip.placeImage
     };
   }
 });

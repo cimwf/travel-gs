@@ -28,86 +28,153 @@ Page({
   },
 
   // 加载通知数据
-  loadNotifications: function () {
+  loadNotifications: async function () {
     this.setData({ loading: true });
 
-    // 模拟申请通知数据
-    const mockApplyList = [
-      {
-        _id: 'apply_001',
-        type: 'apply',
-        userName: '李明',
-        avatarBg: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
-        headerTitle: '李明 申请加入您的行程',
-        headerMeta: '周六灵山徒步',
-        timeAgo: '10分钟前',
-        phone: '138****8888',
-        introduction: '有户外经验，可以分摊油费',
-        isHandled: false
-      },
-      {
-        _id: 'apply_002',
-        type: 'apply',
-        userName: '王小华',
-        avatarBg: 'linear-gradient(135deg, #56AB2F, #A8E6CF)',
-        headerTitle: '王小华 申请加入您的行程',
-        headerMeta: '周六灵山徒步',
-        timeAgo: '1小时前',
-        isHandled: true,
-        status: 'agreed',
-        statusText: '已同意'
-      }
-    ];
+    const openid = app.globalData.openid;
+    if (!openid) {
+      this.setData({ loading: false, notifications: [] });
+      return;
+    }
 
-    // 模拟邀请消息数据
-    const mockInviteList = [
-      {
-        _id: 'invite_001',
-        type: 'invite',
-        userName: '张伟',
-        avatarBg: 'linear-gradient(135deg, #4A90E2, #6BA3E8)',
-        headerTitle: '张伟 邀请您一起游玩',
-        headerMeta: '东灵山',
-        placeName: '东灵山',
-        tripDate: '4/5',
-        hasCar: true,
-        timeAgo: '30分钟前',
-        phone: '139****6666',
-        message: '周末一起去灵山看日出吧，我有车可以载你',
-        tripId: 'trip_001',
-        isHandled: false
-      },
-      {
-        _id: 'invite_002',
-        type: 'invite',
-        userName: '小李',
-        avatarBg: 'linear-gradient(135deg, #f093fb, #f5576c)',
-        headerTitle: '小李 邀请您一起游玩',
-        headerMeta: '百花山',
-        placeName: '百花山',
-        tripDate: '4/6',
-        hasCar: false,
-        timeAgo: '2小时前',
-        isHandled: true,
-        status: 'ignored',
-        statusText: '已忽略'
-      }
-    ];
+    // 从数据库加载真实数据
+    if (wx.cloud) {
+      try {
+        const db = wx.cloud.database();
+        const _ = db.command;
 
-    // 合并列表，按时间排序（未处理的优先）
-    const notifications = [...mockApplyList, ...mockInviteList].sort((a, b) => {
-      if (a.isHandled !== b.isHandled) {
-        return a.isHandled ? 1 : -1;
+        // 加载申请通知（别人申请加入我的行程）
+        const applyRes = await db.collection('applies')
+          .where({
+            creatorId: openid
+          })
+          .orderBy('createdAt', 'desc')
+          .limit(20)
+          .get();
+
+        // 加载我参与的行程中被邀请的消息
+        // 这里简化处理，加载我参与但不是我发起的行程
+        const tripRes = await db.collection('trips')
+          .where({
+            'participants.userId': openid,
+            creatorId: _.neq(openid)
+          })
+          .orderBy('createdAt', 'desc')
+          .limit(10)
+          .get();
+
+        // 处理申请通知数据
+        const applyList = (applyRes.data || []).map(item => {
+          const timeAgo = this.formatTimeAgo(item.createdAt);
+          return {
+            _id: item._id,
+            type: 'apply',
+            userName: item.userName || '旅行者',
+            avatarBg: this.getAvatarBg(item.userName),
+            headerTitle: `${item.userName || '旅行者'} 申请加入您的行程`,
+            headerMeta: item.placeName || '行程',
+            timeAgo: timeAgo,
+            phone: item.phone || '',
+            introduction: item.message || '',
+            isHandled: item.status !== 'pending',
+            status: item.status === 'accepted' ? 'agreed' : item.status,
+            statusText: item.status === 'accepted' ? '已同意' : (item.status === 'rejected' ? '已拒绝' : ''),
+            tripId: item.tripId
+          };
+        });
+
+        // 处理邀请消息数据（别人发起的行程，我可以参与）
+        const inviteList = (tripRes.data || []).map(item => {
+          const timeAgo = this.formatTimeAgo(item.createdAt);
+          return {
+            _id: item._id,
+            type: 'invite',
+            userName: item.creatorName || '旅行者',
+            avatarBg: this.getAvatarBg(item.creatorName),
+            headerTitle: `${item.creatorName || '旅行者'} 邀请您一起游玩`,
+            headerMeta: item.placeName || '行程',
+            placeName: item.placeName || '',
+            tripDate: item.date || '',
+            hasCar: item.hasCar,
+            timeAgo: timeAgo,
+            phone: '',
+            message: item.remark || '',
+            tripId: item._id,
+            isHandled: false, // 行程邀请默认未处理
+            status: '',
+            statusText: ''
+          };
+        });
+
+        // 合并列表，按时间排序（未处理的优先）
+        const notifications = [...applyList, ...inviteList].sort((a, b) => {
+          if (a.isHandled !== b.isHandled) {
+            return a.isHandled ? 1 : -1;
+          }
+          return 0;
+        });
+
+        this.setData({
+          loading: false,
+          notifications
+        });
+        return;
+      } catch (err) {
+        console.warn('加载通知失败', err);
       }
-      return 0;
+    }
+
+    // 模拟数据（备用）
+    // const mockApplyList = [
+    //   {
+    //     _id: 'apply_001',
+    //     type: 'apply',
+    //     userName: '李明',
+    //     avatarBg: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
+    //     headerTitle: '李明 申请加入您的行程',
+    //     headerMeta: '周六灵山徒步',
+    //     timeAgo: '10分钟前',
+    //     phone: '138****8888',
+    //     introduction: '有户外经验，可以分摊油费',
+    //     isHandled: false
+    //   }
+    // ];
+
+    this.setData({
+      loading: false,
+      notifications: []
     });
+  },
 
-    setTimeout(() => {
-      this.setData({
-        loading: false,
-        notifications
-      });
-    }, 300);
+  // 格式化时间为"xx前"
+  formatTimeAgo: function (timestamp) {
+    if (!timestamp) return '';
+    const now = Date.now();
+    const diff = now - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return '刚刚';
+    if (minutes < 60) return `${minutes}分钟前`;
+    if (hours < 24) return `${hours}小时前`;
+    if (days < 7) return `${days}天前`;
+    return new Date(timestamp).toLocaleDateString();
+  },
+
+  // 根据名字生成头像背景色
+  getAvatarBg: function (name) {
+    const colors = [
+      'linear-gradient(135deg, #FF6B6B, #FF8E53)',
+      'linear-gradient(135deg, #4A90E2, #6BA3E8)',
+      'linear-gradient(135deg, #56AB2F, #A8E6CF)',
+      'linear-gradient(135deg, #f093fb, #f5576c)',
+      'linear-gradient(135deg, #667eea, #764ba2)',
+      'linear-gradient(135deg, #11998e, #38ef7d)'
+    ];
+    if (!name) return colors[0];
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
   },
 
   // 点击登录
@@ -116,23 +183,23 @@ Page({
   },
 
   // 拒绝申请
-  onRejectApply: function (e) {
+  onRejectApply: async function (e) {
     const id = e.currentTarget.dataset.id;
     wx.showModal({
       title: '确认拒绝',
       content: '确定要拒绝此申请吗？',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          this.updateNotificationStatus(id, 'rejected', '已拒绝');
+          await this.updateApplyStatus(id, 'rejected', '已拒绝');
         }
       }
     });
   },
 
   // 同意申请
-  onAgreeApply: function (e) {
+  onAgreeApply: async function (e) {
     const id = e.currentTarget.dataset.id;
-    this.updateNotificationStatus(id, 'agreed', '已同意');
+    await this.updateApplyStatus(id, 'accepted', '已同意');
   },
 
   // 忽略邀请
@@ -149,7 +216,45 @@ Page({
     });
   },
 
-  // 更新通知状态
+  // 更新申请状态（数据库操作）
+  updateApplyStatus: async function (applyId, status, statusText) {
+    if (wx.cloud) {
+      try {
+        const db = wx.cloud.database();
+        await db.collection('applies').doc(applyId).update({
+          data: { status }
+        });
+
+        // 如果同意，将申请人加入行程
+        if (status === 'accepted') {
+          const notification = this.data.notifications.find(n => n._id === applyId);
+          if (notification && notification.tripId) {
+            // 获取申请信息
+            const applyRes = await db.collection('applies').doc(applyId).get();
+            if (applyRes.data) {
+              const apply = applyRes.data;
+              await db.collection('trips').doc(apply.tripId).update({
+                data: {
+                  participants: db.command.push({
+                    userId: apply.userId,
+                    nickname: apply.userName,
+                    avatar: apply.userAvatar || ''
+                  }),
+                  currentCount: db.command.inc(1)
+                }
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('更新申请状态失败', err);
+      }
+    }
+
+    this.updateNotificationStatus(applyId, status === 'accepted' ? 'agreed' : status, statusText);
+  },
+
+  // 更新通知状态（本地）
   updateNotificationStatus: function (id, status, statusText) {
     const notifications = this.data.notifications.map(item => {
       if (item._id === id) {

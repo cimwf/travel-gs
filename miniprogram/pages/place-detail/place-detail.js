@@ -106,9 +106,18 @@ Page({
     // 尝试使用云开发
     if (wx.cloud) {
       try {
-        const result = await api.tripList({ placeId });
-        if (result.trips) {
-          this.setData({ trips: result.trips });
+        const db = wx.cloud.database();
+        const res = await db.collection('trips')
+          .where({
+            placeId: placeId,
+            status: 'open'
+          })
+          .orderBy('createdAt', 'desc')
+          .limit(10)
+          .get();
+
+        if (res.data && res.data.length > 0) {
+          this.setData({ trips: res.data });
           return;
         }
       } catch (err) {
@@ -139,21 +148,18 @@ Page({
         currentCount: 1,
         needCount: 3,
         remark: '无车等拼车，可以分摊油费'
-      },
-      {
-        _id: 'trip_003',
-        creatorName: '小张',
-        creatorAvatar: '',
-        avatarBg: 'linear-gradient(135deg, #56AB2F, #A8E6CF)',
-        date: '04月15日',
-        hasCar: true,
-        currentCount: 1,
-        needCount: 3,
-        remark: '周末自驾，有车，求3人同行'
       }
     ];
 
     this.setData({ trips: mockTrips });
+  },
+
+  // 点击行程卡片跳转详情
+  onTripTap: function (e) {
+    const tripId = e.currentTarget.dataset.id;
+    wx.navigateTo({
+      url: `/pages/trip-detail/trip-detail?id=${tripId}`
+    });
   },
 
   // 返回

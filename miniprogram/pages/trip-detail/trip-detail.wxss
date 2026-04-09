@@ -26,6 +26,31 @@ page {
   padding-bottom: 180rpx;
 }
 
+/* ========== 加载状态 ========== */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: var(--text-hint);
+  font-size: 28rpx;
+}
+
+.loading-spinner {
+  width: 48rpx;
+  height: 48rpx;
+  border: 4rpx solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 16rpx;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ========== 顶部图片区域 ========== */
 .header {
   position: relative;
@@ -234,6 +259,20 @@ page {
   height: 104rpx;
   border-radius: 50%;
   flex-shrink: 0;
+  background: #f5f5f5;
+}
+
+.creator-avatar-text {
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 44rpx;
+  font-weight: 600;
+  flex-shrink: 0;
 }
 
 .creator-text {
@@ -300,6 +339,20 @@ page {
   height: 100rpx;
   border-radius: 50%;
   margin-bottom: 16rpx;
+  background: #f5f5f5;
+}
+
+.member-avatar-text {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  margin-bottom: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 40rpx;
+  font-weight: 600;
 }
 
 .member-name {

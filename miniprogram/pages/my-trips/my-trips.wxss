@@ -211,12 +211,25 @@ page {
   border: 4rpx solid white;
 }
 
+.participant-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  margin-left: -16rpx;
+  border: 4rpx solid white;
+}
+
 .participant:first-child {
+  margin-left: 0;
+}
+
+.participant-avatar:first-child {
   margin-left: 0;
 }
 
 .participant-creator {
   background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+  border: 4rpx solid white;
 }
 
 /* ========== 操作按钮 ========== */

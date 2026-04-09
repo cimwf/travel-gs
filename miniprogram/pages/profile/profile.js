@@ -27,15 +27,24 @@ Page({
 
   // 检查登录状态
   checkLogin: function () {
-    const isLoggedIn = app.globalData.isLoggedIn;
-    const userInfo = app.globalData.userInfo;
-
-    // 获取存储的用户信息
+    // 优先从storage读取最新数据
     const storedUserInfo = wx.getStorageSync('userInfo');
+    const storedLoginTime = wx.getStorageSync('lastLoginTime');
+
+    console.log('profile checkLogin - storedUserInfo:', storedUserInfo);
+
+    // 判断是否已登录：有用户信息且有登录时间
+    const isLoggedIn = !!(storedUserInfo && storedUserInfo.nickname) && !!storedLoginTime;
+
+    // 更新全局数据
+    if (storedUserInfo && storedUserInfo.nickname) {
+      app.globalData.userInfo = storedUserInfo;
+      app.globalData.isLoggedIn = true;
+    }
 
     this.setData({
       isLoggedIn,
-      userInfo: userInfo || storedUserInfo
+      userInfo: storedUserInfo || null
     });
   },
 

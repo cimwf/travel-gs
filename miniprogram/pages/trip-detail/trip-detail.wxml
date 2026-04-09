@@ -1,113 +1,127 @@
 <!--pages/trip-detail/trip-detail.wxml-->
 <view class="container">
-  <!-- 顶部图片区域 -->
-  <view class="header">
-    <image class="header-image" src="{{trip.placeImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop'}}" mode="aspectFill"></image>
-    <view class="header-overlay"></view>
-
-    <!-- 导航按钮 -->
-    <view class="nav-btns" style="padding-top: {{statusBarHeight}}px;">
-      <view class="nav-btn" bindtap="onBackTap">
-        <text class="nav-arrow">←</text>
-      </view>
-    </view>
-
-    <!-- 底部标题信息 -->
-    <view class="header-content">
-      <view class="status-tags">
-        <view class="status-tag status-{{trip.status}}">{{statusText}}</view>
-        <view class="status-tag remain-tag" wx:if="{{remainCount > 0}}">还剩{{remainCount}}个名额</view>
-      </view>
-      <view class="trip-title">{{trip.title || trip.placeName}}</view>
-      <view class="trip-location">🏔️ {{trip.placeName}} · {{trip.placeHighlight || '北京周边'}}</view>
-    </view>
+  <!-- 加载中 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text>加载中...</text>
   </view>
 
-  <!-- 内容区域 -->
-  <view class="content">
-    <!-- 列表式信息卡片 -->
-    <view class="info-card">
-      <view class="info-item">
-        <text class="info-emoji">📅</text>
-        <view class="info-content">
-          <view class="info-label">出发日期</view>
-          <view class="info-value">{{trip.dateText || trip.date}}</view>
+  <block wx:else>
+    <!-- 顶部图片区域 -->
+    <view class="header">
+      <image class="header-image" src="{{trip.placeImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop'}}" mode="aspectFill"></image>
+      <view class="header-overlay"></view>
+
+      <!-- 导航按钮 -->
+      <view class="nav-btns" style="padding-top: {{statusBarHeight}}px;">
+        <view class="nav-btn" bindtap="onBackTap">
+          <text class="nav-arrow">←</text>
         </view>
       </view>
-      <view class="info-item">
-        <text class="info-emoji">📍</text>
-        <view class="info-content">
-          <view class="info-label">出发地点</view>
-          <view class="info-value">{{trip.departure || '待定'}}</view>
+
+      <!-- 底部标题信息 -->
+      <view class="header-content">
+        <view class="status-tags">
+          <view class="status-tag status-{{trip.status}}">{{statusText}}</view>
+          <view class="status-tag remain-tag" wx:if="{{remainCount > 0}}">还剩{{remainCount}}个名额</view>
+        </view>
+        <view class="trip-title">{{trip.title || trip.placeName}}</view>
+        <view class="trip-location">🏔️ {{trip.placeName}} · {{trip.placeHighlight || '北京周边'}}</view>
+      </view>
+    </view>
+
+    <!-- 内容区域 -->
+    <view class="content">
+      <!-- 列表式信息卡片 -->
+      <view class="info-card">
+        <view class="info-item">
+          <text class="info-emoji">📅</text>
+          <view class="info-content">
+            <view class="info-label">出发日期</view>
+            <view class="info-value">{{trip.dateText || trip.date}}</view>
+          </view>
+        </view>
+        <view class="info-item">
+          <text class="info-emoji">📍</text>
+          <view class="info-content">
+            <view class="info-label">出发地点</view>
+            <view class="info-value">{{trip.departure || '待定'}}</view>
+          </view>
+        </view>
+        <view class="info-item">
+          <text class="info-emoji">👥</text>
+          <view class="info-content">
+            <view class="info-label">招募情况</view>
+            <view class="info-value">已有{{trip.currentCount}}人，还差{{remainCount}}人</view>
+          </view>
+        </view>
+        <view class="info-item last-item">
+          <text class="info-emoji">🚗</text>
+          <view class="info-content">
+            <view class="info-label">交通方式</view>
+            <view class="info-value">{{trip.hasCar ? '自驾前往，有车可拼' : '需拼车出行'}}</view>
+          </view>
         </view>
       </view>
-      <view class="info-item">
-        <text class="info-emoji">👥</text>
-        <view class="info-content">
-          <view class="info-label">招募情况</view>
-          <view class="info-value">已有{{trip.currentCount}}人，还差{{remainCount}}人</view>
+
+      <!-- 发起人信息 -->
+      <view class="creator-card">
+        <view class="card-header">
+          <text class="card-icon">👤</text>
+          <text class="card-title">发起人</text>
+        </view>
+        <view class="creator-info">
+          <image class="creator-avatar" src="{{trip.creatorAvatar}}" wx:if="{{trip.creatorAvatar}}" mode="aspectFill"></image>
+          <view class="creator-avatar-text" style="background: linear-gradient(135deg, #4A90E2, #6BA3E8);" wx:else>
+            <text>{{trip.creatorName ? trip.creatorName[0] : '旅'}}</text>
+          </view>
+          <view class="creator-text">
+            <view class="creator-name">{{trip.creatorName || '旅行者'}}</view>
+            <view class="creator-meta">行程发起人</view>
+          </view>
+          <view class="follow-btn" bindtap="onFollowTap">关注</view>
         </view>
       </view>
-      <view class="info-item last-item">
-        <text class="info-emoji">🚗</text>
-        <view class="info-content">
-          <view class="info-label">交通方式</view>
-          <view class="info-value">{{trip.hasCar ? '自驾前往，有车可拼' : '需拼车出行'}}</view>
+
+      <!-- 行程说明 -->
+      <view class="note-card" wx:if="{{trip.remark}}">
+        <view class="card-header">
+          <text class="card-icon">📝</text>
+          <text class="card-title">行程说明</text>
+        </view>
+        <view class="note-text">{{trip.remark}}</view>
+      </view>
+
+      <!-- 已加入成员 -->
+      <view class="members-card">
+        <view class="members-header">
+          <text class="card-title">已加入成员</text>
+          <text class="members-count">{{trip.currentCount}}/{{trip.totalCount || (trip.currentCount + trip.needCount)}}人</text>
+        </view>
+        <view class="members-grid">
+          <view class="member-item" wx:for="{{participants}}" wx:key="userId">
+            <image class="member-avatar" src="{{item.avatar}}" wx:if="{{item.avatar}}" mode="aspectFill"></image>
+            <view class="member-avatar-text" style="background: linear-gradient(135deg, #56AB2F, #A8E6CF);" wx:else>
+              <text>{{item.nickname ? item.nickname[0] : '旅'}}</text>
+            </view>
+            <view class="member-name">{{item.nickname || '旅行者'}}</view>
+          </view>
+          <!-- 待加入占位 -->
+          <view class="member-item placeholder" wx:for="{{remainCount}}" wx:key="index">
+            <view class="member-avatar placeholder-avatar">+</view>
+            <view class="member-name placeholder-name">待加入</view>
+          </view>
         </view>
       </view>
     </view>
 
-    <!-- 发起人信息 -->
-    <view class="creator-card">
-      <view class="card-header">
-        <text class="card-icon">👤</text>
-        <text class="card-title">发起人</text>
-      </view>
-      <view class="creator-info">
-        <image class="creator-avatar" src="{{trip.creatorAvatar || 'https://i.pravatar.cc/100?img=1'}}" mode="aspectFill"></image>
-        <view class="creator-text">
-          <view class="creator-name">{{trip.creatorName}}</view>
-          <view class="creator-meta">已发起 {{trip.creatorTripCount || 5}} 次 · ★ {{trip.creatorRating || 98}}% 好评</view>
-        </view>
-        <view class="follow-btn" bindtap="onFollowTap">关注</view>
-      </view>
-    </view>
-
-    <!-- 行程说明 -->
-    <view class="note-card" wx:if="{{trip.remark || trip.note}}">
-      <view class="card-header">
-        <text class="card-icon">📝</text>
-        <text class="card-title">行程说明</text>
-      </view>
-      <view class="note-text">{{trip.remark || trip.note}}</view>
-    </view>
-
-    <!-- 已加入成员 -->
-    <view class="members-card">
-      <view class="members-header">
-        <text class="card-title">已加入成员</text>
-        <text class="members-count">{{trip.currentCount}}/{{trip.totalCount}}人</text>
-      </view>
-      <view class="members-grid">
-        <view class="member-item" wx:for="{{participants}}" wx:key="_id">
-          <image class="member-avatar" src="{{item.avatar || 'https://i.pravatar.cc/100'}}" mode="aspectFill"></image>
-          <view class="member-name">{{item.nickname || item.name}}</view>
-        </view>
-        <!-- 待加入占位 -->
-        <view class="member-item placeholder" wx:for="{{remainCount}}" wx:key="index">
-          <view class="member-avatar placeholder-avatar">+</view>
-          <view class="member-name placeholder-name">待加入</view>
-        </view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 底部安全区 -->
-  <view class="safe-bottom"></view>
+    <!-- 底部安全区 -->
+    <view class="safe-bottom"></view>
+  </block>
 </view>
 
 <!-- 底部申请按钮 -->
-<view class="footer-bar">
+<view class="footer-bar" wx:if="{{!loading}}">
   <view class="apply-btn {{canJoin ? '' : 'disabled'}}" bindtap="onJoinTap">
     <text>{{joinBtnText}}</text>
   </view>

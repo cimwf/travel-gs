@@ -122,11 +122,13 @@
     </view>
 
     <view class="trip-list" wx:if="{{trips.length > 0}}">
-      <view class="trip-item" wx:for="{{trips}}" wx:key="_id">
-        <view class="user-avatar" style="background: {{item.avatarBg}}"></view>
+      <view class="trip-item" wx:for="{{trips}}" wx:key="_id" bindtap="onTripTap" data-id="{{item._id}}">
+        <view class="user-avatar" style="background: {{item.avatarBg || 'linear-gradient(135deg, #4A90E2, #6BA3E8)'}}">
+          <text>{{item.creatorName ? item.creatorName[0] : '旅'}}</text>
+        </view>
         <view class="trip-info">
           <view class="trip-header">
-            <text class="trip-user">{{item.userName}}</text>
+            <text class="trip-user">{{item.creatorName || '旅行者'}}</text>
             <view class="trip-status {{item.hasCar ? 'has-car' : 'need-car'}}">
               <text>{{item.hasCar ? '🚗 有车' : '🚌 需拼车'}}</text>
             </view>
@@ -138,7 +140,7 @@
           </view>
           <view class="trip-remark" wx:if="{{item.remark}}">{{item.remark}}</view>
         </view>
-        <view class="btn-join {{item.hasCar ? 'btn-primary' : 'btn-outline'}}" catchtap="onApplyTap" data-id="{{item._id}}" data-hascar="{{item.hasCar}}" data-username="{{item.userName}}">
+        <view class="btn-join {{item.hasCar ? 'btn-primary' : 'btn-outline'}}" catchtap="onApplyTap" data-id="{{item._id}}" data-hascar="{{item.hasCar}}" data-username="{{item.creatorName}}">
           {{item.hasCar ? '申请加入' : '邀请他'}}
         </view>
       </view>

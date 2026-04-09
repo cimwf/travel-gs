@@ -42,9 +42,12 @@
 
         <!-- 参与者 -->
         <view class="trip-participants">
-          <view class="participant {{item.isCreator ? 'participant-creator' : ''}}" wx:for="{{item.participants}}" wx:for-item="p" wx:for-index="pIndex" wx:key="pIndex">
-            <text>{{p.name}}</text>
-          </view>
+          <block wx:for="{{item.participants}}" wx:for-item="p" wx:for-index="pIndex" wx:key="userId">
+            <image class="participant-avatar {{pIndex === 0 ? 'participant-creator' : ''}}" src="{{p.avatar}}" wx:if="{{p.avatar}}" mode="aspectFill"></image>
+            <view class="participant {{pIndex === 0 ? 'participant-creator' : ''}}" wx:else>
+              <text>{{p.nickname ? p.nickname[0] : '旅'}}</text>
+            </view>
+          </block>
         </view>
 
         <!-- 操作按钮 -->

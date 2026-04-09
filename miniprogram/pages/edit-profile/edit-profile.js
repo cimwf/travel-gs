@@ -72,31 +72,75 @@ Page({
   },
 
   // 选择头像
-  onChooseAvatar: function () {
+  onChooseAvatar: async function () {
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
       sourceType: ['album', 'camera'],
-      success: (res) => {
+      success: async (res) => {
         const tempFilePath = res.tempFiles[0].tempFilePath;
+
+        // 先显示临时图片
         this.setData({
           'userInfo.avatar': tempFilePath
         });
+
+        // 上传到云存储
+        if (wx.cloud) {
+          try {
+            const cloudPath = `avatars/${Date.now()}-${Math.random().toString(36).substr(2)}.jpg`;
+            const uploadRes = await wx.cloud.uploadFile({
+              cloudPath: cloudPath,
+              filePath: tempFilePath
+            });
+
+            if (uploadRes.fileID) {
+              this.setData({
+                'userInfo.avatar': uploadRes.fileID
+              });
+              console.log('头像上传成功:', uploadRes.fileID);
+            }
+          } catch (err) {
+            console.warn('头像上传失败，使用临时路径', err);
+          }
+        }
       }
     });
   },
 
   // 选择背景图
-  onChooseBackground: function () {
+  onChooseBackground: async function () {
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
       sourceType: ['album', 'camera'],
-      success: (res) => {
+      success: async (res) => {
         const tempFilePath = res.tempFiles[0].tempFilePath;
+
+        // 先显示临时图片
         this.setData({
           'userInfo.background': tempFilePath
         });
+
+        // 上传到云存储
+        if (wx.cloud) {
+          try {
+            const cloudPath = `backgrounds/${Date.now()}-${Math.random().toString(36).substr(2)}.jpg`;
+            const uploadRes = await wx.cloud.uploadFile({
+              cloudPath: cloudPath,
+              filePath: tempFilePath
+            });
+
+            if (uploadRes.fileID) {
+              this.setData({
+                'userInfo.background': uploadRes.fileID
+              });
+              console.log('背景图上传成功:', uploadRes.fileID);
+            }
+          } catch (err) {
+            console.warn('背景图上传失败，使用临时路径', err);
+          }
+        }
       }
     });
   },
@@ -138,7 +182,7 @@ Page({
   },
 
   // 添加旅行照片
-  onAddPhoto: function () {
+  onAddPhoto: async function () {
     const currentCount = this.data.userInfo.photos.length;
     if (currentCount >= 9) {
       wx.showToast({ title: '最多上传9张照片', icon: 'none' });
@@ -149,11 +193,44 @@ Page({
       count: 9 - currentCount,
       mediaType: ['image'],
       sourceType: ['album', 'camera'],
-      success: (res) => {
-        const newPhotos = res.tempFiles.map(file => file.tempFilePath);
+      success: async (res) => {
+        const tempFiles = res.tempFiles.map(file => file.tempFilePath);
+
+        // 先显示临时图片
         this.setData({
-          'userInfo.photos': [...this.data.userInfo.photos, ...newPhotos]
+          'userInfo.photos': [...this.data.userInfo.photos, ...tempFiles]
         });
+
+        // 上传到云存储
+        if (wx.cloud) {
+          wx.showLoading({ title: '上传中...' });
+          const uploadedPhotos = [];
+
+          for (let i = 0; i < tempFiles.length; i++) {
+            try {
+              const cloudPath = `photos/${Date.now()}-${i}-${Math.random().toString(36).substr(2)}.jpg`;
+              const uploadRes = await wx.cloud.uploadFile({
+                cloudPath: cloudPath,
+                filePath: tempFiles[i]
+              });
+
+              if (uploadRes.fileID) {
+                uploadedPhotos.push(uploadRes.fileID);
+              }
+            } catch (err) {
+              console.warn('照片上传失败', err);
+              uploadedPhotos.push(tempFiles[i]); // 失败时保留临时路径
+            }
+          }
+
+          wx.hideLoading();
+
+          // 更新为云存储路径
+          const allPhotos = [...this.data.userInfo.photos.slice(0, currentCount), ...uploadedPhotos];
+          this.setData({
+            'userInfo.photos': allPhotos
+          });
+        }
       }
     });
   },
@@ -227,6 +304,8 @@ Page({
 
     this.setData({ saving: true });
 
+    wx.showLoading({ title: '保存中...' });
+
     try {
       // 获取选中的景点类型
       const selectedScenicTypes = scenicTypes.filter(item => item.selected).map(item => item.id);
@@ -235,19 +314,47 @@ Page({
       const userData = {
         ...userInfo,
         scenicTypes: selectedScenicTypes,
-        updatedAt: new Date().toISOString()
+        updatedAt: Date.now()
       };
+
+      console.log('保存的用户数据:', userData);
 
       // 保存到本地存储
       wx.setStorageSync('userInfo', userData);
+      wx.setStorageSync('lastLoginTime', Date.now());
 
       // 更新全局数据
       app.globalData.userInfo = userData;
       app.globalData.isLoggedIn = true;
 
-      // 使用 auth 模块处理登录成功
-      auth.handleLoginSuccess(userData);
+      // 同步到数据库
+      if (wx.cloud && app.globalData.openid) {
+        try {
+          const db = wx.cloud.database();
+          const openid = app.globalData.openid;
 
+          // 查找是否已存在用户记录
+          const userRes = await db.collection('users').where({ openid }).get();
+
+          if (userRes.data.length > 0) {
+            // 更新现有记录
+            await db.collection('users').doc(userRes.data[0]._id).update({
+              data: {
+                nickname: userData.nickname,
+                avatar: userData.avatar,
+                gender: userData.gender,
+                bio: userData.bio,
+                updatedAt: Date.now()
+              }
+            });
+            console.log('数据库更新成功');
+          }
+        } catch (err) {
+          console.warn('同步到数据库失败', err);
+        }
+      }
+
+      wx.hideLoading();
       wx.showToast({ title: '保存成功', icon: 'success' });
 
       setTimeout(() => {
@@ -255,6 +362,7 @@ Page({
       }, 1000);
 
     } catch (err) {
+      wx.hideLoading();
       console.error('保存用户信息失败', err);
       wx.showToast({ title: '保存失败，请重试', icon: 'none' });
     } finally {
