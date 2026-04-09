@@ -476,9 +476,8 @@
 
     .trip-item {
       display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 14px;
+      flex-direction: column;
+      padding: 14px 16px;
       background: var(--bg-color);
       border-radius: 12px;
       transition: all 0.2s;
@@ -494,25 +493,12 @@
       border-radius: 50%;
       overflow: hidden;
       flex-shrink: 0;
-      background: linear-gradient(135deg, #667eea, #764ba2);
     }
 
     .user-avatar img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-    }
-
-    .trip-content {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .trip-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 6px;
     }
 
     .trip-user {
@@ -525,9 +511,9 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      padding: 3px 8px;
-      border-radius: 10px;
-      font-size: 10px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
       font-weight: 500;
     }
 
@@ -541,42 +527,71 @@
       color: var(--primary-color);
     }
 
-    .trip-meta {
+    .trip-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .trip-user-info {
       display: flex;
       align-items: center;
-      gap: 6px;
-      margin-bottom: 8px;
+      gap: 10px;
     }
 
-    .trip-meta span {
-      font-size: 12px;
+    .trip-user {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .trip-meta-row {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 10px;
+    }
+
+    .trip-meta-item {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .trip-meta-label {
       color: var(--text-hint);
-    }
-
-    .trip-meta .separator {
-      color: var(--border-color);
+      margin-right: 6px;
     }
 
     .trip-remark {
       font-size: 12px;
       color: var(--text-secondary);
       background: white;
-      padding: 8px 10px;
+      padding: 10px 12px;
       border-radius: 8px;
-      line-height: 1.5;
+      line-height: 1.6;
+      margin-bottom: 10px;
     }
 
-    .trip-action {
+    .trip-footer {
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
-      align-self: center;
+    }
+
+    .trip-footer-stats {
+      display: flex;
+      gap: 12px;
+    }
+
+    .trip-stat {
+      font-size: 12px;
+      color: var(--text-hint);
     }
 
     .action-btn {
-      padding: 8px 14px;
+      padding: 8px 18px;
       border-radius: 20px;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s;
@@ -1030,67 +1045,94 @@
         <div class="trip-list">
           <!-- 行程1 -->
           <div class="trip-item">
-            <div class="user-avatar">
-              <img src="https://i.pravatar.cc/100?img=1" alt="用户头像">
-            </div>
-            <div class="trip-content">
-              <div class="trip-header">
+            <div class="trip-top">
+              <div class="trip-user-info">
+                <div class="user-avatar">
+                  <img src="https://i.pravatar.cc/100?img=1" alt="用户头像">
+                </div>
                 <span class="trip-user">小王</span>
-                <span class="trip-status has-car">🚗 有车</span>
+                <span class="trip-status has-car">有车</span>
               </div>
-              <div class="trip-meta">
-                <span>03月25日</span>
-                <span class="separator">·</span>
-                <span>已有2人求2人</span>
-              </div>
-              <div class="trip-remark">有车求队友，AA制，早上6点出发</div>
+              <button class="action-btn primary">申请加入</button>
             </div>
-            <div class="trip-action">
-              <div class="action-btn primary">申请加入</div>
+            <div class="trip-meta-row">
+              <div class="trip-meta-item">
+                <span class="trip-meta-label">出发</span>
+                03月25日 周二
+              </div>
+              <div class="trip-meta-item">
+                <span class="trip-meta-label">人数</span>
+                2/4人
+              </div>
+            </div>
+            <div class="trip-remark">有车求队友，AA制，早上6点出发，可以顺路接人</div>
+            <div class="trip-footer">
+              <div class="trip-footer-stats">
+                <span class="trip-stat">👁 156次浏览</span>
+                <span class="trip-stat">发布于3小时前</span>
+              </div>
             </div>
           </div>
 
           <!-- 行程2 -->
           <div class="trip-item">
-            <div class="user-avatar">
-              <img src="https://i.pravatar.cc/100?img=5" alt="用户头像">
-            </div>
-            <div class="trip-content">
-              <div class="trip-header">
+            <div class="trip-top">
+              <div class="trip-user-info">
+                <div class="user-avatar">
+                  <img src="https://i.pravatar.cc/100?img=5" alt="用户头像">
+                </div>
                 <span class="trip-user">小李</span>
-                <span class="trip-status need-car">🚌 需拼车</span>
+                <span class="trip-status need-car">需拼车</span>
               </div>
-              <div class="trip-meta">
-                <span>03月26日</span>
-                <span class="separator">·</span>
-                <span>已有1人求3人</span>
-              </div>
-              <div class="trip-remark">无车等拼车，可以分摊油费</div>
+              <button class="action-btn outline">邀请他</button>
             </div>
-            <div class="trip-action">
-              <div class="action-btn outline">邀请他</div>
+            <div class="trip-meta-row">
+              <div class="trip-meta-item">
+                <span class="trip-meta-label">出发</span>
+                03月26日 周三
+              </div>
+              <div class="trip-meta-item">
+                <span class="trip-meta-label">人数</span>
+                1/4人
+              </div>
+            </div>
+            <div class="trip-remark">无车等拼车，可以分摊油费和高速费，希望有车的朋友带一程，时间灵活可协商</div>
+            <div class="trip-footer">
+              <div class="trip-footer-stats">
+                <span class="trip-stat">👁 89次浏览</span>
+                <span class="trip-stat">发布于5小时前</span>
+              </div>
             </div>
           </div>
 
           <!-- 行程3 -->
           <div class="trip-item">
-            <div class="user-avatar">
-              <img src="https://i.pravatar.cc/100?img=8" alt="用户头像">
-            </div>
-            <div class="trip-content">
-              <div class="trip-header">
+            <div class="trip-top">
+              <div class="trip-user-info">
+                <div class="user-avatar">
+                  <img src="https://i.pravatar.cc/100?img=8" alt="用户头像">
+                </div>
                 <span class="trip-user">小张</span>
-                <span class="trip-status has-car">🚗 有车</span>
+                <span class="trip-status has-car">有车</span>
               </div>
-              <div class="trip-meta">
-                <span>03月27日</span>
-                <span class="separator">·</span>
-                <span>已有1人求3人</span>
-              </div>
-              <div class="trip-remark">周末自驾，有车，求3人同行</div>
+              <button class="action-btn primary">申请加入</button>
             </div>
-            <div class="trip-action">
-              <div class="action-btn primary">申请加入</div>
+            <div class="trip-meta-row">
+              <div class="trip-meta-item">
+                <span class="trip-meta-label">出发</span>
+                03月27日 周四
+              </div>
+              <div class="trip-meta-item">
+                <span class="trip-meta-label">人数</span>
+                1/4人
+              </div>
+            </div>
+            <div class="trip-remark">周末自驾，有车，求3人同行，费用AA</div>
+            <div class="trip-footer">
+              <div class="trip-footer-stats">
+                <span class="trip-stat">👁 234次浏览</span>
+                <span class="trip-stat">发布于1天前</span>
+              </div>
             </div>
           </div>
         </div>
@@ -1162,6 +1204,18 @@
           <li><strong>📍 出发地点</strong>：海淀区集合</li>
           <li><strong>👥 招募情况</strong>：已有2人，还差2人</li>
           <li><strong>🚗 交通方式</strong>：自驾前往，有车可拼</li>
+        </ul>
+      </div>
+
+      <div class="section-block">
+        <h3>想去的人 - 列表式设计（方案E）</h3>
+        <ul class="feature-list">
+          <li><strong>顶部区域</strong>：头像 + 用户名 + 状态标签 + 操作按钮（左右分布）</li>
+          <li><strong>信息分栏</strong>：出发日期 | 人数，横向并排展示</li>
+          <li><strong>备注区域</strong>：白色背景卡片，200字限制</li>
+          <li><strong>底部统计</strong>：浏览量 + 发布时间</li>
+          <li><strong>状态标签</strong>：有车（绿色）/ 需拼车（蓝色）</li>
+          <li><strong>优势</strong>：信息结构化、带互动数据、视觉平衡</li>
         </ul>
       </div>
 
@@ -1660,6 +1714,119 @@
 
       <!-- 确认按钮 -->
       <div style="margin-top: 20px; padding: 16px; background: linear-gradient(135deg, var(--primary-color), var(--primary-light)); color: white; text-align: center; border-radius: 14px; font-size: 16px; font-weight: 500; cursor: pointer;">确认选择</div>
+    </div>
+  </div>
+
+  <!-- ========== 发布成功页 ========== -->
+  <div class="phone-frame">
+    <!-- 状态栏 -->
+    <div class="status-bar" style="color: var(--text-primary);">
+      <span class="time">21:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M12 3C6.95 3 3 6.95 3 12s3.95 9 9 9c.76 0 1.51-.09 2.23-.27C12.14 19.13 10 16.27 10 13c0-3.87 3.13-7 7-7 1.27 0 2.46.34 3.49.93C18.71 4.79 15.59 3 12 3z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+
+    <!-- 内容区域 -->
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 40px 24px; text-align: center;">
+      <!-- 成功图标 -->
+      <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #52C41A, #73D13D); display: flex; align-items: center; justify-content: center; margin-bottom: 28px; box-shadow: 0 8px 24px rgba(82, 196, 26, 0.3);">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+
+      <!-- 成功标题 -->
+      <h1 style="font-size: 24px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">发布成功！</h1>
+      
+      <!-- 成功描述 -->
+      <p style="font-size: 15px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 36px;">
+        你的行程已成功发布<br>正在等待志同道合的队友加入
+      </p>
+
+      <!-- 行程摘要卡片 -->
+      <div style="width: 100%; background: var(--bg-color); border-radius: 16px; padding: 20px; margin-bottom: 32px; text-align: left;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+          <div style="width: 48px; height: 48px; border-radius: 12px; overflow: hidden;">
+            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=100&h=100&fit=crop" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <div>
+            <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">东灵山</div>
+            <div style="font-size: 12px; color: var(--text-hint);">北京市门头沟区</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 16px;">
+          <div style="flex: 1;">
+            <div style="font-size: 12px; color: var(--text-hint); margin-bottom: 4px;">出发日期</div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--text-primary);">2026年4月5日</div>
+          </div>
+          <div style="flex: 1;">
+            <div style="font-size: 12px; color: var(--text-hint); margin-bottom: 4px;">招募人数</div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--text-primary);">1-4人</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 查看行程详情按钮 -->
+      <button style="width: 100%; padding: 16px; background: linear-gradient(135deg, var(--primary-color), var(--primary-light)); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4); margin-bottom: 14px;">
+        查看行程详情
+      </button>
+
+      <!-- 返回地点详情 -->
+      <button style="width: 100%; padding: 16px; background: white; color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 14px; font-size: 16px; font-weight: 500; cursor: pointer;">
+        返回地点详情
+      </button>
+    </div>
+  </div>
+
+  <!-- 设计说明面板 - 发布成功页 -->
+  <div class="design-panel" style="position: fixed; top: 20px; right: 20px;">
+    <div class="panel-header">
+      <h2>🎨 设计说明</h2>
+      <p>北上周边行 · 发布成功页</p>
+    </div>
+    <div class="panel-content">
+      <div class="section-block">
+        <h3>页面结构</h3>
+        <ul class="feature-list">
+          <li><strong>成功图标</strong>：绿色渐变圆形 + 对勾动画</li>
+          <li><strong>标题</strong>："发布成功！" 大字突出</li>
+          <li><strong>描述</strong>：友好的提示文案</li>
+          <li><strong>行程摘要卡片</strong>：展示刚发布的行程概要</li>
+          <li><strong>主按钮</strong>："查看行程详情" 跳转到行程详情页</li>
+          <li><strong>次按钮</strong>："返回地点详情" 返回上一页</li>
+        </ul>
+      </div>
+
+      <div class="section-block">
+        <h3>行程摘要卡片</h3>
+        <ul class="feature-list">
+          <li>地点封面图 + 名称 + 地址</li>
+          <li>出发日期 | 招募人数</li>
+          <li>灰色背景卡片，圆角16px</li>
+        </ul>
+      </div>
+
+      <div class="section-block">
+        <h3>交互逻辑</h3>
+        <ul class="feature-list">
+          <li><strong>查看行程详情</strong>：跳转到刚发布的行程详情页</li>
+          <li><strong>返回地点详情</strong>：返回到该地点的详情页</li>
+          <li>成功图标可加动画效果（缩放+渐显）</li>
+        </ul>
+      </div>
+
+      <div class="section-block">
+        <h3>视觉风格</h3>
+        <ul class="feature-list">
+          <li>成功色：#52C41A 绿色</li>
+          <li>主按钮：蓝色渐变</li>
+          <li>居中对齐，垂直布局</li>
+          <li>简洁大方，符合成功状态</li>
+        </ul>
+      </div>
     </div>
   </div>
 </body>

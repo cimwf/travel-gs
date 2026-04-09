@@ -2005,7 +2005,167 @@
         </div>
       </div>
       
-      <!-- 2. 消息相关页面 -->
+      <!-- 发布成功页 -->
+      <h3 style="margin: 32px 0 16px; font-size: 20px; color: #52C41A;">发布成功页 ✅</h3>
+      <div class="screens-grid">
+        <div class="screen-wrapper">
+          <div class="screen-title">发布成功</div>
+          <div class="phone-frame">
+            <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 40px 24px; text-align: center;">
+              <!-- 成功图标 -->
+              <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #52C41A, #73D13D); display: flex; align-items: center; justify-content: center; margin-bottom: 28px; box-shadow: 0 8px 24px rgba(82, 196, 26, 0.3);">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <!-- 成功标题 -->
+              <h1 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin-bottom: 12px;">发布成功！</h1>
+              <!-- 成功描述 -->
+              <p style="font-size: 15px; color: #4A4A68; line-height: 1.6; margin-bottom: 36px;">
+                你的行程已成功发布<br>正在等待志同道合的队友加入
+              </p>
+              <!-- 行程摘要卡片 -->
+              <div style="width: 100%; background: #F5F7FA; border-radius: 16px; padding: 20px; margin-bottom: 32px; text-align: left;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #E8E8F0;">
+                  <div style="width: 48px; height: 48px; border-radius: 12px; overflow: hidden;">
+                    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=100&h=100&fit=crop" style="width: 100%; height: 100%; object-fit: cover;">
+                  </div>
+                  <div>
+                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a;">东灵山</div>
+                    <div style="font-size: 12px; color: #8E8EA0;">北京市门头沟区</div>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 16px;">
+                  <div style="flex: 1;">
+                    <div style="font-size: 12px; color: #8E8EA0; margin-bottom: 4px;">出发日期</div>
+                    <div style="font-size: 14px; font-weight: 500; color: #1a1a1a;">2026年4月5日</div>
+                  </div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 12px; color: #8E8EA0; margin-bottom: 4px;">招募人数</div>
+                    <div style="font-size: 14px; font-weight: 500; color: #1a1a1a;">1-4人</div>
+                  </div>
+                </div>
+              </div>
+              <!-- 查看行程详情按钮 -->
+              <button style="width: 100%; padding: 16px; background: linear-gradient(135deg, #4A90E2, #6BA3E8); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4); margin-bottom: 14px;">
+                查看行程详情
+              </button>
+              <!-- 返回地点详情 -->
+              <button style="width: 100%; padding: 16px; background: white; color: #4A4A68; border: 1px solid #E8E8F0; border-radius: 14px; font-size: 16px; font-weight: 500; cursor: pointer;">
+                返回地点详情
+              </button>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 3. 我的行程页 -->
+      <h3 style="margin: 32px 0 16px; font-size: 20px; color: #52C41A;">3. 我的行程页 ✅</h3>
+      <p style="opacity: 0.7; margin-bottom: 16px;">需登录 | 管理我发起/参与/已结束的行程</p>
+      <div class="screens-grid">
+        <div class="screen-wrapper">
+          <div class="screen-title">我发起的行程</div>
+          <div class="phone-frame" style="height: 750px; overflow-y: auto;">
+            <div class="status-bar" style="position: sticky; top: 0; background: white; z-index: 10;"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="background: white; padding: 8px 16px 16px; border-bottom: 1px solid var(--border-color);">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                <span style="font-size: 20px; color: #8E8EA0;">←</span>
+                <span style="font-size: 20px; font-weight: 700; color: #1a1a1a;">我的行程</span>
+                <span style="width: 20px;"></span>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <div style="padding: 10px 20px; border-radius: 20px; font-size: 14px; background: #4A90E2; color: white; font-weight: 500;">我发起的</div>
+                <div style="padding: 10px 20px; border-radius: 20px; font-size: 14px; background: var(--bg-color); color: #4A4A68;">我参与的</div>
+                <div style="padding: 10px 20px; border-radius: 20px; font-size: 14px; background: var(--bg-color); color: #4A4A68;">已结束</div>
+              </div>
+            </div>
+            <div style="background: var(--bg-color); padding: 16px; padding-bottom: 100px;">
+              <!-- 招募中 -->
+              <div style="background: white; border-radius: 16px; overflow: hidden; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div style="display: flex; padding: 16px; gap: 12px;">
+                  <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px;">🏔️</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 6px;">东灵山日出</div>
+                    <div style="font-size: 13px; color: #8E8EA0; margin-bottom: 4px;">📅 4月5日 周六</div>
+                    <div style="font-size: 13px; color: #8E8EA0;">👥 已3人 · 还需2人</div>
+                  </div>
+                  <div style="padding: 4px 10px; background: rgba(82, 196, 26, 0.1); color: #52C41A; border-radius: 12px; font-size: 12px; font-weight: 500; height: fit-content;">招募中</div>
+                </div>
+                <div style="display: flex; gap: 8px; padding: 0 16px 12px;">
+                  <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #FF6B6B, #FF8E53); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 600;">我</div>
+                  <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #4A90E2, #6BA3E8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 600;">小</div>
+                  <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #56AB2F, #A8E6CF); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 600;">红</div>
+                </div>
+                <div style="display: flex; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--bg-color);">
+                  <button style="flex: 1; padding: 10px; background: var(--bg-color); border: none; border-radius: 20px; font-size: 14px; font-weight: 500; color: #4A4A68;">管理</button>
+                  <button style="flex: 1; padding: 10px; background: #4A90E2; color: white; border: none; border-radius: 20px; font-size: 14px; font-weight: 500;">查看详情</button>
+                </div>
+              </div>
+              <!-- 已满员 -->
+              <div style="background: white; border-radius: 16px; overflow: hidden; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div style="display: flex; padding: 16px; gap: 12px;">
+                  <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #56AB2F, #A8E6CF); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px;">🌸</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 6px;">百花山踏青</div>
+                    <div style="font-size: 13px; color: #8E8EA0; margin-bottom: 4px;">📅 4月8日 周二</div>
+                    <div style="font-size: 13px; color: #8E8EA0;">👥 已4人 · 已满员</div>
+                  </div>
+                  <div style="padding: 4px 10px; background: rgba(74, 144, 226, 0.1); color: #4A90E2; border-radius: 12px; font-size: 12px; font-weight: 500; height: fit-content;">已满员</div>
+                </div>
+                <div style="display: flex; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--bg-color);">
+                  <button style="flex: 1; padding: 10px; background: var(--bg-color); border: none; border-radius: 20px; font-size: 14px; font-weight: 500; color: #4A4A68;">管理</button>
+                  <button style="flex: 1; padding: 10px; background: #4A90E2; color: white; border: none; border-radius: 20px; font-size: 14px; font-weight: 500;">查看详情</button>
+                </div>
+              </div>
+            </div>
+            <!-- 悬浮发布按钮 -->
+            <div style="position: absolute; bottom: 100px; right: 20px; width: 56px; height: 56px; background: linear-gradient(135deg, #4A90E2, #6BA3E8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; box-shadow: 0 4px 20px rgba(74, 144, 226, 0.4);">+</div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+        
+        <div class="screen-wrapper">
+          <div class="screen-title">我参与的行程</div>
+          <div class="phone-frame" style="height: 750px; overflow-y: auto;">
+            <div class="status-bar" style="position: sticky; top: 0; background: white; z-index: 10;"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="background: white; padding: 8px 16px 16px; border-bottom: 1px solid var(--border-color);">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                <span style="font-size: 20px; color: #8E8EA0;">←</span>
+                <span style="font-size: 20px; font-weight: 700; color: #1a1a1a;">我的行程</span>
+                <span style="width: 20px;"></span>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <div style="padding: 10px 20px; border-radius: 20px; font-size: 14px; background: var(--bg-color); color: #4A4A68;">我发起的</div>
+                <div style="padding: 10px 20px; border-radius: 20px; font-size: 14px; background: #4A90E2; color: white; font-weight: 500;">我参与的</div>
+                <div style="padding: 10px 20px; border-radius: 20px; font-size: 14px; background: var(--bg-color); color: #4A4A68;">已结束</div>
+              </div>
+            </div>
+            <div style="background: var(--bg-color); padding: 16px; padding-bottom: 100px;">
+              <!-- 已加入 -->
+              <div style="background: white; border-radius: 16px; overflow: hidden; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div style="display: flex; padding: 16px; gap: 12px;">
+                  <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px;">🏔️</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 6px;">海坨山露营</div>
+                    <div style="font-size: 13px; color: #8E8EA0; margin-bottom: 4px;">发起人：张伟 · 📅 4月10日</div>
+                    <div style="font-size: 13px; color: #8E8EA0;">👥 已2人 · 还需3人</div>
+                  </div>
+                  <div style="padding: 4px 10px; background: rgba(82, 196, 26, 0.1); color: #52C41A; border-radius: 12px; font-size: 12px; font-weight: 500; height: fit-content;">已加入</div>
+                </div>
+                <div style="display: flex; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--bg-color);">
+                  <button style="flex: 1; padding: 10px; background: rgba(255, 77, 79, 0.1); color: #FF4D4F; border: none; border-radius: 20px; font-size: 14px; font-weight: 500;">退出</button>
+                  <button style="flex: 1; padding: 10px; background: #4A90E2; color: white; border: none; border-radius: 20px; font-size: 14px; font-weight: 500;">查看详情</button>
+                </div>
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 4. 消息相关页面 -->
       <h3 style="margin: 32px 0 16px; font-size: 20px; color: #FF4D4F;">2. 消息相关页面 🔒</h3>
       <div class="screens-grid">
           <!-- 消息 - 行程通知 -->
@@ -2142,6 +2302,12 @@
           <th style="padding: 12px 16px; text-align: left; color: rgba(255,255,255,0.6); font-weight: 500;">日期</th>
           <th style="padding: 12px 16px; text-align: left; color: rgba(255,255,255,0.6); font-weight: 500;">作者</th>
           <th style="padding: 12px 16px; text-align: left; color: rgba(255,255,255,0.6); font-weight: 500;">变更内容</th>
+        </tr>
+        <tr>
+          <td style="padding: 12px 16px; font-weight: 600;">v1.7.0</td>
+          <td style="padding: 12px 16px; opacity: 0.8;">2026-04-09</td>
+          <td style="padding: 12px 16px; opacity: 0.8;">UI Team</td>
+          <td style="padding: 12px 16px; opacity: 0.8;">新增发布成功页；优化"想去的人"列表式设计（方案E）；新增浏览量和发布时间；整合我的行程页
         </tr>
         <tr>
           <td style="padding: 12px 16px; font-weight: 600;">v1.6.0</td>

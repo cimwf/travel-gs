@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>想去的人 - 方案对比</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    :root {
+      --primary-color: #4A90E2;
+      --primary-light: #6BA3E8;
+      --bg-color: #F5F7FA;
+      --text-primary: #1A1A2E;
+      --text-secondary: #4A4A68;
+      --text-hint: #8E8EA0;
+      --border-color: #E8E8F0;
+      --success-color: #52C41A;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      background: #E8E8F0;
+      padding: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      justify-content: center;
+    }
+    
+    .design-option {
+      background: white;
+      border-radius: 20px;
+      padding: 24px;
+      width: 380px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+    }
+    
+    .option-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--bg-color);
+    }
+    
+    .option-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+    }
+    
+    .option-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .option-desc {
+      font-size: 12px;
+      color: var(--text-hint);
+      margin-top: 4px;
+    }
+    
+    /* ========== 通用组件 ========== */
+    .user-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    
+    .user-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .status-tag {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    
+    .status-tag.has-car {
+      background: rgba(82, 196, 26, 0.1);
+      color: var(--success-color);
+    }
+    
+    .status-tag.need-car {
+      background: rgba(74, 144, 226, 0.1);
+      color: var(--primary-color);
+    }
+    
+    .action-btn {
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+    
+    .action-btn.primary {
+      background: var(--primary-color);
+      color: white;
+    }
+    
+    .action-btn.outline {
+      background: white;
+      color: var(--primary-color);
+      border: 1px solid var(--primary-color);
+    }
+    
+    /* ========== 方案A：底部按钮式 ========== */
+    .card-a {
+      background: var(--bg-color);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    
+    .card-a-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    
+    .card-a-user {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .card-a-info {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    
+    .card-a-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    
+    .card-a-remark {
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: white;
+      padding: 10px 12px;
+      border-radius: 8px;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    
+    .card-a-footer {
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border-color);
+    }
+    
+    /* ========== 方案B：左右分栏式 ========== */
+    .card-b {
+      background: var(--bg-color);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    
+    .card-b-main {
+      display: flex;
+      gap: 14px;
+    }
+    
+    .card-b-left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .card-b-btn {
+      padding: 6px 14px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .card-b-right {
+      flex: 1;
+    }
+    
+    .card-b-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    
+    .card-b-user {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .card-b-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    
+    .card-b-info-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    
+    .card-b-remark {
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: white;
+      padding: 10px 12px;
+      border-radius: 8px;
+      line-height: 1.6;
+    }
+    
+    /* ========== 方案C：顶部信息栏式 ========== */
+    .card-c {
+      background: var(--bg-color);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    
+    .card-c-top {
+      background: rgba(74, 144, 226, 0.08);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .card-c-date {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .card-c-body {
+      padding: 16px;
+    }
+    
+    .card-c-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .card-c-user-info {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .card-c-user {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .card-c-count {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+    
+    .card-c-remark {
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: white;
+      padding: 10px 12px;
+      border-radius: 8px;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    
+    .card-c-action {
+      display: flex;
+      justify-content: flex-end;
+    }
+    
+    /* ========== 方案D：紧凑卡片式 ========== */
+    .card-d {
+      background: var(--bg-color);
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+    
+    .card-d-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .card-d-content {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .card-d-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    
+    .card-d-user {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .card-d-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    
+    .card-d-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .card-d-divider {
+      color: var(--border-color);
+    }
+    
+    /* ========== 方案E：列表式 ========== */
+    .card-e {
+      background: var(--bg-color);
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+    
+    .card-e-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    
+    .card-e-user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .card-e-user {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .card-e-info {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 10px;
+    }
+    
+    .card-e-info-item {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    
+    .card-e-info-label {
+      color: var(--text-hint);
+      margin-right: 6px;
+    }
+    
+    .card-e-remark {
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: white;
+      padding: 10px 12px;
+      border-radius: 8px;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    
+    .card-e-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .card-e-views {
+      font-size: 12px;
+      color: var(--text-hint);
+    }
+    
+    /* ========== 方案F：双栏信息式 ========== */
+    .card-f {
+      background: var(--bg-color);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    
+    .card-f-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    
+    .card-f-user {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .card-f-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    
+    .card-f-item {
+      background: white;
+      padding: 10px 12px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .card-f-item-icon {
+      font-size: 16px;
+    }
+    
+    .card-f-item-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    
+    .card-f-remark {
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: white;
+      padding: 10px 12px;
+      border-radius: 8px;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    
+    .card-f-action {
+      display: flex;
+      justify-content: flex-end;
+    }
+    
+    /* ========== 优缺点标签 ========== */
+    .pros-cons {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-color);
+    }
+    
+    .pros, .cons {
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    
+    .pros {
+      color: var(--success-color);
+    }
+    
+    .cons {
+      color: #FF6B6B;
+    }
+    
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      background: rgba(0,0,0,0.05);
+      border-radius: 4px;
+      margin-right: 6px;
+      margin-bottom: 4px;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 方案A：底部按钮式 -->
+  <div class="design-option">
+    <div class="option-header">
+      <div class="option-badge">A</div>
+      <div>
+        <div class="option-title">底部按钮式</div>
+        <div class="option-desc">按钮在内容底部右对齐</div>
+      </div>
+    </div>
+    
+    <div class="card-a">
+      <div class="card-a-header">
+        <div class="user-avatar">
+          <img src="https://i.pravatar.cc/100?img=1" alt="">
+        </div>
+        <span class="card-a-user">小王</span>
+        <span class="status-tag has-car">有车</span>
+      </div>
+      <div class="card-a-info">
+        <div class="card-a-row">
+          <span>📅</span>
+          <span>03月25日 周二</span>
+        </div>
+        <div class="card-a-row">
+          <span>👥</span>
+          <span>已有2人，还差2人</span>
+        </div>
+      </div>
+      <div class="card-a-remark">有车求队友，AA制，早上6点出发，可以顺路接人</div>
+      <div class="card-a-footer">
+        <button class="action-btn primary">申请加入</button>
+      </div>
+    </div>
+    
+    <div class="pros-cons">
+      <div class="pros">
+        ✓ <span class="tag">信息完整</span><span class="tag">层级清晰</span><span class="tag">按钮显眼</span>
+      </div>
+      <div class="cons">
+        ✗ <span class="tag">卡片较高</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 方案B：左右分栏式 -->
+  <div class="design-option">
+    <div class="option-header">
+      <div class="option-badge">B</div>
+      <div>
+        <div class="option-title">左右分栏式</div>
+        <div class="option-desc">头像+按钮在左，信息在右</div>
+      </div>
+    </div>
+    
+    <div class="card-b">
+      <div class="card-b-main">
+        <div class="card-b-left">
+          <div class="user-avatar">
+            <img src="https://i.pravatar.cc/100?img=5" alt="">
+          </div>
+          <button class="action-btn primary card-b-btn">申请</button>
+        </div>
+        <div class="card-b-right">
+          <div class="card-b-header">
+            <span class="card-b-user">小李</span>
+            <span class="status-tag need-car">需拼车</span>
+          </div>
+          <div class="card-b-info">
+            <span class="card-b-info-item">📅 03月26日</span>
+            <span class="card-b-info-item">👥 1/4人</span>
+          </div>
+          <div class="card-b-remark">无车等拼车，可以分摊油费和高速费</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="pros-cons">
+      <div class="pros">
+        ✓ <span class="tag">操作便捷</span><span class="tag">视觉平衡</span>
+      </div>
+      <div class="cons">
+        ✗ <span class="tag">按钮挤占空间</span><span class="tag">信息密度大</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 方案C：顶部信息栏式 -->
+  <div class="design-option">
+    <div class="option-header">
+      <div class="option-badge">C</div>
+      <div>
+        <div class="option-title">顶部信息栏式</div>
+        <div class="option-desc">日期突出显示在顶部</div>
+      </div>
+    </div>
+    
+    <div class="card-c">
+      <div class="card-c-top">
+        <div class="card-c-date">
+          <span>📅</span>
+          <span>03月27日 周四</span>
+        </div>
+        <span class="status-tag has-car">有车</span>
+      </div>
+      <div class="card-c-body">
+        <div class="card-c-header">
+          <div class="card-c-user-info">
+            <div class="user-avatar">
+              <img src="https://i.pravatar.cc/100?img=8" alt="">
+            </div>
+            <span class="card-c-user">小张</span>
+          </div>
+          <button class="action-btn primary">申请加入</button>
+        </div>
+        <div class="card-c-count">
+          <span>👥</span>
+          <span>已有1人，还差3人</span>
+        </div>
+        <div class="card-c-remark">周末自驾，有车，求3人同行，费用AA</div>
+      </div>
+    </div>
+    
+    <div class="pros-cons">
+      <div class="pros">
+        ✓ <span class="tag">日期醒目</span><span class="tag">信息优先级明确</span>
+      </div>
+      <div class="cons">
+        ✗ <span class="tag">视觉较重</span><span class="tag">占空间</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 方案D：紧凑卡片式 -->
+  <div class="design-option">
+    <div class="option-header">
+      <div class="option-badge">D</div>
+      <div>
+        <div class="option-title">紧凑卡片式</div>
+        <div class="option-desc">一行式，信息横向排列</div>
+      </div>
+    </div>
+    
+    <div class="card-d">
+      <div class="card-d-row">
+        <div class="user-avatar">
+          <img src="https://i.pravatar.cc/100?img=12" alt="">
+        </div>
+        <div class="card-d-content">
+          <div class="card-d-header">
+            <span class="card-d-user">小赵</span>
+            <span class="status-tag has-car">有车</span>
+          </div>
+          <div class="card-d-meta">
+            <span>📅 03月28日</span>
+            <span class="card-d-divider">|</span>
+            <span>👥 2/4人</span>
+            <span class="card-d-divider">|</span>
+            <span>自驾，AA制</span>
+          </div>
+        </div>
+        <button class="action-btn primary">申请</button>
+      </div>
+    </div>
+    
+    <div class="pros-cons">
+      <div class="pros">
+        ✓ <span class="tag">紧凑高效</span><span class="tag">一屏可多卡片</span>
+      </div>
+      <div class="cons">
+        ✗ <span class="tag">信息不全</span><span class="tag">无备注区域</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 方案E：列表式 -->
+  <div class="design-option">
+    <div class="option-header">
+      <div class="option-badge">E</div>
+      <div>
+        <div class="option-title">列表式</div>
+        <div class="option-desc">信息分栏展示，带浏览量</div>
+      </div>
+    </div>
+    
+    <div class="card-e">
+      <div class="card-e-top">
+        <div class="card-e-user-info">
+          <div class="user-avatar">
+            <img src="https://i.pravatar.cc/100?img=15" alt="">
+          </div>
+          <span class="card-e-user">小陈</span>
+          <span class="status-tag need-car">需拼车</span>
+        </div>
+        <button class="action-btn outline">邀请他</button>
+      </div>
+      <div class="card-e-info">
+        <div class="card-e-info-item">
+          <span class="card-e-info-label">出发</span>
+          03月29日 周五
+        </div>
+        <div class="card-e-info-item">
+          <span class="card-e-info-label">人数</span>
+          1/3人
+        </div>
+      </div>
+      <div class="card-e-remark">无车等拼车，可以分摊油费，时间可协商</div>
+      <div class="card-e-footer">
+        <span class="card-e-views">👁 128次浏览</span>
+        <span class="card-e-views">发布于2小时前</span>
+      </div>
+    </div>
+    
+    <div class="pros-cons">
+      <div class="pros">
+        ✓ <span class="tag">信息结构化</span><span class="tag">带互动数据</span>
+      </div>
+      <div class="cons">
+        ✗ <span class="tag">卡片较高</span><span class="tag">元素多</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 方案F：双栏信息式 -->
+  <div class="design-option">
+    <div class="option-header">
+      <div class="option-badge">F</div>
+      <div>
+        <div class="option-title">双栏信息式</div>
+        <div class="option-desc">日期和人数并排展示</div>
+      </div>
+    </div>
+    
+    <div class="card-f">
+      <div class="card-f-header">
+        <div class="user-avatar">
+          <img src="https://i.pravatar.cc/100?img=20" alt="">
+        </div>
+        <span class="card-f-user">小刘</span>
+        <span class="status-tag has-car">有车</span>
+      </div>
+      <div class="card-f-grid">
+        <div class="card-f-item">
+          <span class="card-f-item-icon">📅</span>
+          <span class="card-f-item-text">03月30日 周六</span>
+        </div>
+        <div class="card-f-item">
+          <span class="card-f-item-icon">👥</span>
+          <span class="card-f-item-text">已有2人，差2人</span>
+        </div>
+      </div>
+      <div class="card-f-remark">周末自驾去灵山，有车可拼，费用AA，早上7点出发</div>
+      <div class="card-f-action">
+        <button class="action-btn primary">申请加入</button>
+      </div>
+    </div>
+    
+    <div class="pros-cons">
+      <div class="pros">
+        ✓ <span class="tag">信息网格化</span><span class="tag">视觉整齐</span>
+      </div>
+      <div class="cons">
+        ✗ <span class="tag">占用空间大</span>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
