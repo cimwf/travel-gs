@@ -20,6 +20,9 @@ page {
   --bg-color: #F5F7FA;
   --card-bg: #FFFFFF;
   --border-color: #E8E8F0;
+
+  /* 禁止横向滚动 */
+  overflow-x: hidden;
 }
 
 .container {

@@ -1,6 +1,7 @@
 // pages/edit-profile/edit-profile.js
 const app = getApp();
 const auth = require('../../utils/auth.js');
+const api = require('../../utils/api.js');
 
 Page({
   data: {
@@ -327,31 +328,20 @@ Page({
       app.globalData.userInfo = userData;
       app.globalData.isLoggedIn = true;
 
-      // 同步到数据库
-      if (wx.cloud && app.globalData.openid) {
-        try {
-          const db = wx.cloud.database();
-          const openid = app.globalData.openid;
-
-          // 查找是否已存在用户记录
-          const userRes = await db.collection('users').where({ openid }).get();
-
-          if (userRes.data.length > 0) {
-            // 更新现有记录
-            await db.collection('users').doc(userRes.data[0]._id).update({
-              data: {
-                nickname: userData.nickname,
-                avatar: userData.avatar,
-                gender: userData.gender,
-                bio: userData.bio,
-                updatedAt: Date.now()
-              }
-            });
-            console.log('数据库更新成功');
-          }
-        } catch (err) {
-          console.warn('同步到数据库失败', err);
-        }
+      // 同步到数据库 - 使用云函数
+      try {
+        const updateRes = await api.userUpdate({
+          nickname: userData.nickname,
+          avatar: userData.avatar,
+          gender: userData.gender,
+          bio: userData.bio,
+          background: userData.background,
+          photos: userData.photos
+        });
+        console.log('云函数更新结果:', updateRes);
+      } catch (err) {
+        console.warn('同步到数据库失败', err);
+        // 不影响本地保存，继续执行
       }
 
       wx.hideLoading();

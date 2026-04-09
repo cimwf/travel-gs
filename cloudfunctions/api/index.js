@@ -333,14 +333,36 @@ async function userLoginPassword(data) {
 
 async function userUpdate(openid, data) {
   const userRes = await db.collection('users').where({ openid }).get();
+
   if (userRes.data.length === 0) {
-    return { success: false, error: '用户不存在' };
+    // 用户不存在，创建新用户记录
+    const newUser = {
+      openid,
+      nickname: data.nickname || '旅行者',
+      avatar: data.avatar || '',
+      gender: data.gender || 0,
+      bio: data.bio || '',
+      background: data.background || '',
+      photos: data.photos || [],
+      phone: '',
+      following: 0,
+      followers: 0,
+      trips: 0,
+      places: 0,
+      tags: [],
+      carOwner: false,
+      createdAt: Date.now(),
+      lastActiveAt: Date.now()
+    };
+
+    const res = await db.collection('users').add({ data: newUser });
+    return { success: true, isNew: true, _id: res._id };
   }
-  
+
   await db.collection('users').doc(userRes.data[0]._id).update({
     data: { ...data, lastActiveAt: Date.now() }
   });
-  
+
   return { success: true };
 }
 
