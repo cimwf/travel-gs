@@ -327,7 +327,8 @@ Page({
 
     const { currentTrip, contactType, contactValue, introduction } = this.data;
     const openid = app.globalData.openid;
-    const userInfo = app.globalData.userInfo || {};
+    // 优先从 storage 读取最新用户信息
+    const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
 
     wx.showLoading({ title: '发送中...' });
 
@@ -379,7 +380,8 @@ Page({
 
     const { currentTrip, contactType, contactValue, introduction } = this.data;
     const openid = app.globalData.openid;
-    const userInfo = app.globalData.userInfo || {};
+    // 优先从 storage 读取最新用户信息
+    const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
 
     wx.showLoading({ title: '发送中...' });
 

@@ -61,14 +61,52 @@ Page({
           .limit(20)
           .get();
 
+        // 收集所有云存储头像链接
+        const fileIDs = [];
+        const allData = [...(applyRes.data || []), ...(inviteRes.data || [])];
+        allData.forEach(item => {
+          if (item.fromUserAvatar && item.fromUserAvatar.startsWith('cloud://')) {
+            fileIDs.push(item.fromUserAvatar);
+          }
+        });
+
+        // 批量获取临时链接
+        let avatarMap = {};
+        if (fileIDs.length > 0 && wx.cloud) {
+          try {
+            const urlRes = await wx.cloud.getTempFileURL({
+              fileList: fileIDs
+            });
+            if (urlRes.fileList) {
+              urlRes.fileList.forEach(item => {
+                if (item.tempFileURL) {
+                  avatarMap[item.fileID] = item.tempFileURL;
+                }
+              });
+            }
+          } catch (err) {
+            console.warn('获取头像临时链接失败', err);
+          }
+        }
+
         // 处理申请通知数据
         const applyList = (applyRes.data || []).filter(item => item.type !== 'invite').map(item => {
           const timeAgo = this.formatTimeAgo(item.createdAt);
           const contactLabel = item.contactType === 'phone' ? '手机号' : '微信号';
+          // 转换云存储链接
+          let avatar = item.fromUserAvatar || '';
+          if (avatar && avatar.startsWith('cloud://') && avatarMap[avatar]) {
+            avatar = avatarMap[avatar];
+          }
+          // 如果头像不是 http 开头，设为空字符串
+          if (avatar && !avatar.startsWith('http')) {
+            avatar = '';
+          }
           return {
             _id: item._id,
             type: 'apply',
             userName: item.fromUserName || '旅行者',
+            fromUserAvatar: avatar,
             avatarBg: this.getAvatarBg(item.fromUserName),
             headerTitle: (item.fromUserName || '旅行者') + ' 申请加入您的行程',
             headerMeta: item.placeName || '行程',
@@ -88,10 +126,20 @@ Page({
         const inviteList = (inviteRes.data || []).map(item => {
           const timeAgo = this.formatTimeAgo(item.createdAt);
           const contactLabel = item.contactType === 'phone' ? '手机号' : '微信号';
+          // 转换云存储链接
+          let avatar = item.fromUserAvatar || '';
+          if (avatar && avatar.startsWith('cloud://') && avatarMap[avatar]) {
+            avatar = avatarMap[avatar];
+          }
+          // 如果头像不是 http 开头，设为空字符串
+          if (avatar && !avatar.startsWith('http')) {
+            avatar = '';
+          }
           return {
             _id: item._id,
             type: 'invite',
             userName: item.fromUserName || '旅行者',
+            fromUserAvatar: avatar,
             avatarBg: this.getAvatarBg(item.fromUserName),
             headerTitle: (item.fromUserName || '旅行者') + ' 想加入您的行程',
             headerMeta: item.placeName || '行程',

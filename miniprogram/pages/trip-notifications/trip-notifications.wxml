@@ -36,7 +36,8 @@
             <block wx:if="{{!item.isHandled}}">
               <view class="card-header">
                 <view class="user-avatar" style="background: {{item.avatarBg}}">
-                  <text>{{item.userName[0]}}</text>
+                  <image wx:if="{{item.fromUserAvatar}}" class="avatar-image" src="{{item.fromUserAvatar}}" mode="aspectFill"></image>
+                  <text wx:else>{{item.userName[0]}}</text>
                 </view>
                 <view class="header-info">
                   <view class="header-title">{{item.headerTitle}}</view>
@@ -90,7 +91,8 @@
             <!-- 已处理：左右结构 -->
             <view class="card-handled" wx:else>
               <view class="user-avatar" style="background: {{item.avatarBg}}">
-                <text>{{item.userName[0]}}</text>
+                <image wx:if="{{item.fromUserAvatar}}" class="avatar-image" src="{{item.fromUserAvatar}}" mode="aspectFill"></image>
+                <text wx:else>{{item.userName[0]}}</text>
               </view>
               <view class="header-info">
                 <view class="header-title">{{item.headerTitle}}</view>
