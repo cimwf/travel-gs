@@ -274,7 +274,8 @@ Page({
                     nickname: apply.fromUserName,
                     avatar: apply.fromUserAvatar || ''
                   }),
-                  currentCount: db.command.inc(1)
+                  currentCount: db.command.inc(1),
+                  needCount: db.command.inc(-1)
                 }
               });
             }

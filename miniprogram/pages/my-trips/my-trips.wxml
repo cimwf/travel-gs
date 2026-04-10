@@ -35,7 +35,7 @@
           <view class="trip-info">
             <view class="trip-name">{{item.placeName}}</view>
             <view class="trip-date">📅 {{item.dateText}}</view>
-            <view class="trip-count">👥 已{{item.currentCount}}人 · {{item.needCount - item.currentCount > 0 ? '还需' + (item.needCount - item.currentCount) + '人' : '已满员'}}</view>
+            <view class="trip-count">👥 已{{item.currentCount}}人 · {{item.needCount > 0 ? '还需' + item.needCount + '人' : '已满员'}}</view>
           </view>
           <view class="trip-status status-{{item.statusClass}}">{{item.statusText}}</view>
         </view>
