@@ -228,11 +228,27 @@ Page({
       const db = wx.cloud.database();
       const res = await db.collection('trips').add({ data: tripData });
       console.log('发布成功:', res);
+
       wx.hideLoading();
-      wx.showToast({ title: '发布成功', icon: 'success' });
-      setTimeout(() => {
-        wx.navigateBack();
-      }, 1500);
+
+      // 格式化日期显示
+      const dateObj = new Date(this.data.date);
+      const dateText = dateObj.getFullYear() + '年' + (dateObj.getMonth() + 1) + '月' + dateObj.getDate() + '日';
+
+      // 跳转到发布成功页
+      const params = [
+        'tripId=' + res._id,
+        'placeId=' + this.data.placeId,
+        'placeName=' + encodeURIComponent(this.data.placeName),
+        'placeAddress=' + encodeURIComponent('北京市'),
+        'dateText=' + encodeURIComponent(dateText),
+        'currentCount=' + this.data.currentCount,
+        'needCount=' + this.data.needCount
+      ].join('&');
+
+      wx.redirectTo({
+        url: '/pages/trip-publish-success/trip-publish-success?' + params
+      });
     } catch (err) {
       wx.hideLoading();
       console.error('发布失败', err);

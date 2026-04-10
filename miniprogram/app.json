@@ -7,6 +7,7 @@
     "pages/place-detail/place-detail",
     "pages/place-list/place-list",
     "pages/trip-publish/trip-publish",
+    "pages/trip-publish-success/trip-publish-success",
     "pages/trip-detail/trip-detail",
     "pages/my-trips/my-trips",
     "pages/trip-notifications/trip-notifications",

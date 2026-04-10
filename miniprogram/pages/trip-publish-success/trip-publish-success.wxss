@@ -1,0 +1,157 @@
+/* pages/trip-publish-success/trip-publish-success.wxss */
+
+page {
+  --primary-color: #4A90E2;
+  --primary-light: #6BA3E8;
+  --bg-color: #F5F7FA;
+  --text-primary: #1A1A2E;
+  --text-secondary: #4A4A68;
+  --text-hint: #8E8EA0;
+  --border-color: #E8E8F0;
+  --success-color: #52C41A;
+}
+
+page {
+  background: var(--bg-color);
+  height: 100%;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 80rpx 48rpx;
+}
+
+.content {
+  width: 100%;
+  text-align: center;
+}
+
+/* 成功图标 */
+.success-icon {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #52C41A, #73D13D);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 56rpx;
+  box-shadow: 0 16rpx 48rpx rgba(82, 196, 26, 0.3);
+}
+
+/* 对勾图标 - 使用CSS绘制 */
+.check-icon {
+  width: 60rpx;
+  height: 100rpx;
+  border-right: 12rpx solid white;
+  border-bottom: 12rpx solid white;
+  transform: rotate(45deg);
+  margin-top: -20rpx;
+}
+
+/* 成功标题 */
+.success-title {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 24rpx;
+}
+
+/* 成功描述 */
+.success-desc {
+  font-size: 30rpx;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 72rpx;
+}
+
+/* 行程摘要卡片 */
+.trip-card {
+  background: white;
+  border-radius: 32rpx;
+  padding: 40rpx;
+  margin-bottom: 64rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+
+.trip-header {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding-bottom: 32rpx;
+  border-bottom: 2rpx solid var(--border-color);
+  margin-bottom: 32rpx;
+}
+
+.trip-image {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 24rpx;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.trip-info {
+  flex: 1;
+  text-align: left;
+}
+
+.trip-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8rpx;
+}
+
+.trip-address {
+  font-size: 24rpx;
+  color: var(--text-hint);
+}
+
+.trip-details {
+  display: flex;
+  gap: 32rpx;
+}
+
+.detail-item {
+  flex: 1;
+  text-align: left;
+}
+
+.detail-label {
+  font-size: 24rpx;
+  color: var(--text-hint);
+  margin-bottom: 8rpx;
+}
+
+.detail-value {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* 按钮 */
+.btn-primary {
+  padding: 32rpx;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  color: white;
+  border-radius: 28rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  box-shadow: 0 8rpx 32rpx rgba(74, 144, 226, 0.4);
+  margin-bottom: 28rpx;
+}
+
+.btn-secondary {
+  padding: 32rpx;
+  background: white;
+  color: var(--text-secondary);
+  border: 2rpx solid var(--border-color);
+  border-radius: 28rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+}

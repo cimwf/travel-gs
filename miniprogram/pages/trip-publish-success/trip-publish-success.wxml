@@ -1,0 +1,46 @@
+<!--pages/trip-publish-success/trip-publish-success.wxml-->
+<view class="container">
+  <!-- 内容区域 -->
+  <view class="content">
+    <!-- 成功图标 -->
+    <view class="success-icon">
+      <view class="check-icon"></view>
+    </view>
+
+    <!-- 成功标题 -->
+    <view class="success-title">发布成功!</view>
+
+    <!-- 成功描述 -->
+    <view class="success-desc">
+      <view>你的行程已成功发布</view>
+      <view>正在等待志同道合的队友加入</view>
+    </view>
+
+    <!-- 行程摘要卡片 -->
+    <view class="trip-card">
+      <view class="trip-header">
+        <image class="trip-image" src="{{tripImage}}" mode="aspectFill"></image>
+        <view class="trip-info">
+          <view class="trip-name">{{placeName}}</view>
+          <view class="trip-address">{{placeAddress}}</view>
+        </view>
+      </view>
+      <view class="trip-details">
+        <view class="detail-item">
+          <view class="detail-label">出发日期</view>
+          <view class="detail-value">{{dateText}}</view>
+        </view>
+        <view class="detail-item">
+          <view class="detail-label">招募人数</view>
+          <view class="detail-value">{{currentCount}}-{{totalCount}}人</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 查看行程详情按钮 -->
+    <view class="btn-primary" bindtap="onViewTrip">查看行程详情</view>
+
+    <!-- 返回地点详情 -->
+    <view class="btn-secondary" bindtap="onBackToPlace">返回地点详情</view>
+  </view>
+</view>
