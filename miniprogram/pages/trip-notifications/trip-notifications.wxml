@@ -46,15 +46,15 @@
               </view>
 
               <view class="card-detail">
-                <!-- 申请通知类型：显示联系方式和自我介绍 -->
+                <!-- 申请通知类型：显示联系方式和备注 -->
                 <block wx:if="{{item.type === 'apply'}}">
                   <view class="detail-row" wx:if="{{item.contactValue}}">
                     <text class="detail-label">{{item.contactType === 'phone' ? '📱 手机号：' : '💬 微信号：'}}</text>
                     <text class="detail-value">{{item.contactValue}}</text>
                   </view>
                   <view class="detail-row" wx:if="{{item.introduction}}">
-                    <text class="detail-label">📝 自我介绍：</text>
-                    <text class="detail-value">{{item.introduction}}</text>
+                    <text class="detail-label">📝 备注：</text>
+                    <text class="detail-value text-ellipsis">{{item.introduction}}</text>
                   </view>
                 </block>
 
@@ -69,7 +69,7 @@
                   </view>
                   <view class="detail-row" wx:if="{{item.message}}">
                     <text class="detail-label">📝 留言：</text>
-                    <text class="detail-value">{{item.message}}</text>
+                    <text class="detail-value text-ellipsis">{{item.message}}</text>
                   </view>
                 </block>
               </view>

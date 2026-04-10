@@ -240,6 +240,14 @@ page {
   color: var(--text-secondary);
 }
 
+.text-ellipsis {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ========== 操作按钮 ========== */
 .card-actions {
   display: flex;

@@ -217,9 +217,9 @@
         <input class="form-input" placeholder-class="input-placeholder" placeholder="{{contactType === 'phone' ? '请输入您的手机号' : '请输入您的微信号'}}" value="{{contactValue}}" bindinput="onContactInput" />
       </view>
 
-      <!-- 自我介绍 -->
+      <!-- 备注 -->
       <view class="form-group">
-        <view class="form-label">自我介绍（选填）</view>
+        <view class="form-label">备注（选填）</view>
         <textarea class="form-textarea" placeholder="简单介绍一下自己..." value="{{introduction}}" bindinput="onIntroductionInput" />
       </view>
     </view>
