@@ -158,37 +158,8 @@ Page({
       }
     }
 
-    // 使用mock数据
-    const mockTrips = [
-      {
-        _id: 'trip_001',
-        creatorName: '小王',
-        creatorAvatar: '',
-        avatarBg: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
-        date: '04月12日 周六',
-        hasCar: true,
-        currentCount: 2,
-        needCount: 2,
-        remark: '有车求队友，AA制，早上6点出发，可以顺路接人',
-        viewCount: 156,
-        publishTime: '发布于3小时前'
-      },
-      {
-        _id: 'trip_002',
-        creatorName: '小李',
-        creatorAvatar: '',
-        avatarBg: 'linear-gradient(135deg, #4A90E2, #667eea)',
-        date: '04月13日 周日',
-        hasCar: false,
-        currentCount: 1,
-        needCount: 3,
-        remark: '无车等拼车，可以分摊油费和高速费，希望有车的朋友带一程',
-        viewCount: 89,
-        publishTime: '发布于5小时前'
-      }
-    ];
-
-    this.setData({ trips: mockTrips });
+    // 无数据时显示空状态
+    this.setData({ trips: [] });
   },
 
   // 点击行程卡片跳转详情
@@ -354,20 +325,45 @@ Page({
       return;
     }
 
-    const { currentTrip, introduction } = this.data;
+    const { currentTrip, contactType, contactValue, introduction } = this.data;
+    const openid = app.globalData.openid;
+    const userInfo = app.globalData.userInfo || {};
 
-    // 尝试调用云函数
+    wx.showLoading({ title: '发送中...' });
+
+    // 存储到数据库
     if (wx.cloud) {
       try {
-        await api.applyCreate({
-          tripId: currentTrip._id,
-          message: introduction
+        const db = wx.cloud.database();
+
+        // 创建申请记录
+        await db.collection('applies').add({
+          data: {
+            tripId: currentTrip._id,
+            placeName: this.data.place ? this.data.place.name : '',
+            toUserId: currentTrip.creatorId || '',
+            toUserName: currentTrip.creatorName || '',
+            fromUserId: openid,
+            fromUserName: userInfo.nickname || '旅行者',
+            fromUserAvatar: userInfo.avatar || '',
+            contactType: contactType,  // 'phone' 或 'wechat'
+            contactValue: contactValue, // 手机号或微信号
+            message: introduction || '',
+            status: 'pending',
+            type: 'apply',  // 申请加入
+            createdAt: Date.now()
+          }
         });
+
+        wx.hideLoading();
         wx.showToast({ title: '申请已发送', icon: 'success' });
         this.setData({ showApplyModal: false });
         return;
       } catch (err) {
-        console.warn('提交申请失败', err);
+        wx.hideLoading();
+        console.error('提交申请失败', err);
+        wx.showToast({ title: '发送失败，请重试', icon: 'none' });
+        return;
       }
     }
 
@@ -379,6 +375,48 @@ Page({
   onSubmitInvite: async function () {
     if (!this.validateContact()) {
       return;
+    }
+
+    const { currentTrip, contactType, contactValue, introduction } = this.data;
+    const openid = app.globalData.openid;
+    const userInfo = app.globalData.userInfo || {};
+
+    wx.showLoading({ title: '发送中...' });
+
+    // 存储到数据库
+    if (wx.cloud) {
+      try {
+        const db = wx.cloud.database();
+
+        // 创建邀请记录
+        await db.collection('applies').add({
+          data: {
+            tripId: currentTrip._id,
+            placeName: this.data.place ? this.data.place.name : '',
+            toUserId: currentTrip.creatorId || '',
+            toUserName: currentTrip.creatorName || '',
+            fromUserId: openid,
+            fromUserName: userInfo.nickname || '旅行者',
+            fromUserAvatar: userInfo.avatar || '',
+            contactType: contactType,  // 'phone' 或 'wechat'
+            contactValue: contactValue, // 手机号或微信号
+            message: introduction || '',
+            status: 'pending',
+            type: 'invite',  // 邀请他
+            createdAt: Date.now()
+          }
+        });
+
+        wx.hideLoading();
+        wx.showToast({ title: '邀请已发送', icon: 'success' });
+        this.setData({ showInviteModal: false });
+        return;
+      } catch (err) {
+        wx.hideLoading();
+        console.error('发送邀请失败', err);
+        wx.showToast({ title: '发送失败，请重试', icon: 'none' });
+        return;
+      }
     }
 
     wx.showToast({ title: '邀请已发送', icon: 'success' });

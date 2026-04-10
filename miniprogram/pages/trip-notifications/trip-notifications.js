@@ -41,40 +41,41 @@ Page({
     if (wx.cloud) {
       try {
         const db = wx.cloud.database();
-        const _ = db.command;
 
-        // 加载申请通知（别人申请加入我的行程）
+        // 加载申请通知（别人申请加入我的行程，toUserId 是我）
         const applyRes = await db.collection('applies')
           .where({
-            creatorId: openid
+            toUserId: openid
           })
           .orderBy('createdAt', 'desc')
           .limit(20)
           .get();
 
-        // 加载我参与的行程中被邀请的消息
-        // 这里简化处理，加载我参与但不是我发起的行程
-        const tripRes = await db.collection('trips')
+        // 加载邀请消息（别人邀请我，toUserId 是我）
+        const inviteRes = await db.collection('applies')
           .where({
-            'participants.userId': openid,
-            creatorId: _.neq(openid)
+            toUserId: openid,
+            type: 'invite'
           })
           .orderBy('createdAt', 'desc')
-          .limit(10)
+          .limit(20)
           .get();
 
         // 处理申请通知数据
-        const applyList = (applyRes.data || []).map(item => {
+        const applyList = (applyRes.data || []).filter(item => item.type !== 'invite').map(item => {
           const timeAgo = this.formatTimeAgo(item.createdAt);
+          const contactLabel = item.contactType === 'phone' ? '手机号' : '微信号';
           return {
             _id: item._id,
             type: 'apply',
-            userName: item.userName || '旅行者',
-            avatarBg: this.getAvatarBg(item.userName),
-            headerTitle: `${item.userName || '旅行者'} 申请加入您的行程`,
+            userName: item.fromUserName || '旅行者',
+            avatarBg: this.getAvatarBg(item.fromUserName),
+            headerTitle: (item.fromUserName || '旅行者') + ' 申请加入您的行程',
             headerMeta: item.placeName || '行程',
             timeAgo: timeAgo,
-            phone: item.phone || '',
+            contactType: item.contactType || 'phone',
+            contactLabel: contactLabel,
+            contactValue: item.contactValue || '',
             introduction: item.message || '',
             isHandled: item.status !== 'pending',
             status: item.status === 'accepted' ? 'agreed' : item.status,
@@ -83,26 +84,27 @@ Page({
           };
         });
 
-        // 处理邀请消息数据（别人发起的行程，我可以参与）
-        const inviteList = (tripRes.data || []).map(item => {
+        // 处理邀请消息数据
+        const inviteList = (inviteRes.data || []).map(item => {
           const timeAgo = this.formatTimeAgo(item.createdAt);
+          const contactLabel = item.contactType === 'phone' ? '手机号' : '微信号';
           return {
             _id: item._id,
             type: 'invite',
-            userName: item.creatorName || '旅行者',
-            avatarBg: this.getAvatarBg(item.creatorName),
-            headerTitle: `${item.creatorName || '旅行者'} 邀请您一起游玩`,
+            userName: item.fromUserName || '旅行者',
+            avatarBg: this.getAvatarBg(item.fromUserName),
+            headerTitle: (item.fromUserName || '旅行者') + ' 想加入您的行程',
             headerMeta: item.placeName || '行程',
             placeName: item.placeName || '',
-            tripDate: item.date || '',
-            hasCar: item.hasCar,
             timeAgo: timeAgo,
-            phone: '',
-            message: item.remark || '',
-            tripId: item._id,
-            isHandled: false, // 行程邀请默认未处理
-            status: '',
-            statusText: ''
+            contactType: item.contactType || 'phone',
+            contactLabel: contactLabel,
+            contactValue: item.contactValue || '',
+            message: item.message || '',
+            tripId: item.tripId,
+            isHandled: item.status !== 'pending',
+            status: item.status,
+            statusText: item.status === 'accepted' ? '已同意' : (item.status === 'rejected' ? '已拒绝' : '')
           };
         });
 
@@ -123,22 +125,6 @@ Page({
         console.warn('加载通知失败', err);
       }
     }
-
-    // 模拟数据（备用）
-    // const mockApplyList = [
-    //   {
-    //     _id: 'apply_001',
-    //     type: 'apply',
-    //     userName: '李明',
-    //     avatarBg: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
-    //     headerTitle: '李明 申请加入您的行程',
-    //     headerMeta: '周六灵山徒步',
-    //     timeAgo: '10分钟前',
-    //     phone: '138****8888',
-    //     introduction: '有户外经验，可以分摊油费',
-    //     isHandled: false
-    //   }
-    // ];
 
     this.setData({
       loading: false,
