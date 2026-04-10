@@ -335,11 +335,25 @@ page {
 
 .trip-item {
   display: flex;
-  align-items: flex-start;
-  gap: 24rpx;
-  padding: 28rpx;
+  flex-direction: column;
+  padding: 28rpx 32rpx;
   background: var(--bg-color);
   border-radius: 24rpx;
+}
+
+/* 顶部区域：头像+用户名+状态 | 按钮 */
+.trip-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24rpx;
+}
+
+.trip-user-info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16rpx;
 }
 
 .user-avatar {
@@ -348,33 +362,30 @@ page {
   border-radius: 50%;
   flex-shrink: 0;
   background: linear-gradient(135deg, #667eea, #764ba2);
-}
-
-.trip-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.trip-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8rpx;
+  justify-content: center;
+  color: white;
+  font-size: 36rpx;
+  font-weight: 600;
 }
 
 .trip-user {
-  font-size: 28rpx;
+  font-size: 30rpx;
   font-weight: 600;
   color: var(--text-primary);
+  max-width: 180rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .trip-status {
   display: inline-flex;
   align-items: center;
-  gap: 4rpx;
-  padding: 6rpx 16rpx;
-  border-radius: 20rpx;
-  font-size: 20rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 24rpx;
+  font-size: 22rpx;
   font-weight: 500;
 }
 
@@ -388,46 +399,70 @@ page {
   color: var(--primary-color);
 }
 
-.trip-meta {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  font-size: 24rpx;
-  color: var(--text-hint);
-  margin-bottom: 8rpx;
-}
-
-.dot {
-  color: var(--border-color);
-}
-
-.trip-remark {
-  font-size: 24rpx;
-  color: var(--text-secondary);
-  background: white;
-  padding: 16rpx 20rpx;
-  border-radius: 16rpx;
-  line-height: 1.5;
-}
-
-.btn-join {
-  padding: 16rpx 32rpx;
+/* 操作按钮 */
+.action-btn {
+  padding: 16rpx 36rpx;
   border-radius: 40rpx;
-  font-size: 24rpx;
+  font-size: 26rpx;
   font-weight: 500;
   white-space: nowrap;
-  flex-shrink: 0;
 }
 
-.btn-primary {
+.action-btn.primary {
   background: var(--primary-color);
   color: white;
 }
 
-.btn-outline {
+.action-btn.outline {
   background: white;
   color: var(--primary-color);
   border: 2rpx solid var(--primary-color);
+}
+
+/* 信息栏：出发日期 | 人数 */
+.trip-meta-row {
+  display: flex;
+  gap: 40rpx;
+  margin-bottom: 20rpx;
+}
+
+.trip-meta-item {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+}
+
+.trip-meta-label {
+  color: var(--text-hint);
+  margin-right: 12rpx;
+}
+
+/* 备注区域 */
+.trip-remark {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  background: white;
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  line-height: 1.6;
+  margin-bottom: 20rpx;
+}
+
+/* 底部统计 */
+.trip-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.trip-footer-stats {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.trip-stat {
+  font-size: 24rpx;
+  color: var(--text-hint);
 }
 
 /* 空状态 */

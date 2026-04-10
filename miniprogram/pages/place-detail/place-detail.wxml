@@ -123,25 +123,43 @@
 
     <view class="trip-list" wx:if="{{trips.length > 0}}">
       <view class="trip-item" wx:for="{{trips}}" wx:key="_id" bindtap="onTripTap" data-id="{{item._id}}">
-        <view class="user-avatar" style="background: {{item.avatarBg || 'linear-gradient(135deg, #4A90E2, #6BA3E8)'}}">
-          <text>{{item.creatorName ? item.creatorName[0] : '旅'}}</text>
-        </view>
-        <view class="trip-info">
-          <view class="trip-header">
+        <!-- 顶部：头像+用户名+状态标签 | 操作按钮 -->
+        <view class="trip-top">
+          <view class="trip-user-info">
+            <view class="user-avatar" style="background: {{item.avatarBg || 'linear-gradient(135deg, #4A90E2, #6BA3E8)'}}">
+              <text>{{item.creatorName ? item.creatorName[0] : '旅'}}</text>
+            </view>
             <text class="trip-user">{{item.creatorName || '旅行者'}}</text>
             <view class="trip-status {{item.hasCar ? 'has-car' : 'need-car'}}">
-              <text>{{item.hasCar ? '🚗 有车' : '🚌 需拼车'}}</text>
+              <text>{{item.hasCar ? '有车' : '需拼车'}}</text>
             </view>
           </view>
-          <view class="trip-meta">
-            <text>{{item.date}}</text>
-            <text class="dot">·</text>
-            <text>已有{{item.currentCount}}人求{{item.needCount}}人</text>
+          <view class="action-btn {{item.hasCar ? 'primary' : 'outline'}}" catchtap="onApplyTap" data-id="{{item._id}}" data-hascar="{{item.hasCar}}" data-username="{{item.creatorName}}">
+            {{item.hasCar ? '申请加入' : '邀请他'}}
           </view>
-          <view class="trip-remark" wx:if="{{item.remark}}">{{item.remark}}</view>
         </view>
-        <view class="btn-join {{item.hasCar ? 'btn-primary' : 'btn-outline'}}" catchtap="onApplyTap" data-id="{{item._id}}" data-hascar="{{item.hasCar}}" data-username="{{item.creatorName}}">
-          {{item.hasCar ? '申请加入' : '邀请他'}}
+
+        <!-- 信息栏：出发日期 | 人数 -->
+        <view class="trip-meta-row">
+          <view class="trip-meta-item">
+            <text class="trip-meta-label">出发</text>
+            <text>{{item.date}}</text>
+          </view>
+          <view class="trip-meta-item">
+            <text class="trip-meta-label">人数</text>
+            <text>{{item.currentCount}}/{{item.currentCount + item.needCount}}人</text>
+          </view>
+        </view>
+
+        <!-- 备注区域 -->
+        <view class="trip-remark" wx:if="{{item.remark}}">{{item.remark}}</view>
+
+        <!-- 底部：浏览量 + 发布时间 -->
+        <view class="trip-footer">
+          <view class="trip-footer-stats">
+            <text class="trip-stat">👁 {{item.viewCount || 0}}次浏览</text>
+            <text class="trip-stat">{{item.publishTime || '刚刚发布'}}</text>
+          </view>
         </view>
       </view>
     </view>

@@ -117,7 +117,40 @@ Page({
           .get();
 
         if (res.data && res.data.length > 0) {
-          this.setData({ trips: res.data });
+          // 处理行程数据，添加展示所需字段
+          const trips = res.data.map(trip => {
+            // 格式化日期
+            let dateText = trip.date || '';
+            if (trip.date) {
+              const date = new Date(trip.date);
+              const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+              dateText = `${(date.getMonth() + 1).toString().padStart(2, '0')}月${date.getDate().toString().padStart(2, '0')}日 ${weekDays[date.getDay()]}`;
+            }
+
+            // 计算发布时间
+            let publishTime = '刚刚发布';
+            if (trip.createdAt) {
+              const diff = Date.now() - new Date(trip.createdAt).getTime();
+              const hours = Math.floor(diff / (1000 * 60 * 60));
+              if (hours < 1) {
+                publishTime = '刚刚发布';
+              } else if (hours < 24) {
+                publishTime = `发布于${hours}小时前`;
+              } else {
+                const days = Math.floor(hours / 24);
+                publishTime = `发布于${days}天前`;
+              }
+            }
+
+            return {
+              ...trip,
+              date: dateText,
+              viewCount: trip.viewCount || Math.floor(Math.random() * 200) + 50,
+              publishTime: publishTime
+            };
+          });
+
+          this.setData({ trips: trips });
           return;
         }
       } catch (err) {
@@ -132,22 +165,26 @@ Page({
         creatorName: '小王',
         creatorAvatar: '',
         avatarBg: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
-        date: '04月12日',
+        date: '04月12日 周六',
         hasCar: true,
         currentCount: 2,
         needCount: 2,
-        remark: '有车求队友，AA制，早上6点出发'
+        remark: '有车求队友，AA制，早上6点出发，可以顺路接人',
+        viewCount: 156,
+        publishTime: '发布于3小时前'
       },
       {
         _id: 'trip_002',
         creatorName: '小李',
         creatorAvatar: '',
         avatarBg: 'linear-gradient(135deg, #4A90E2, #667eea)',
-        date: '04月13日',
+        date: '04月13日 周日',
         hasCar: false,
         currentCount: 1,
         needCount: 3,
-        remark: '无车等拼车，可以分摊油费'
+        remark: '无车等拼车，可以分摊油费和高速费，希望有车的朋友带一程',
+        viewCount: 89,
+        publishTime: '发布于5小时前'
       }
     ];
 
