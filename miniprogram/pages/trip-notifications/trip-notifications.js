@@ -270,9 +270,9 @@ Page({
               await db.collection('trips').doc(apply.tripId).update({
                 data: {
                   participants: db.command.push({
-                    userId: apply.userId,
-                    nickname: apply.userName,
-                    avatar: apply.userAvatar || ''
+                    userId: apply.fromUserId,
+                    nickname: apply.fromUserName,
+                    avatar: apply.fromUserAvatar || ''
                   }),
                   currentCount: db.command.inc(1)
                 }
@@ -281,7 +281,9 @@ Page({
           }
         }
       } catch (err) {
-        console.warn('更新申请状态失败', err);
+        console.error('更新申请状态失败', err);
+        wx.showToast({ title: '操作失败，请重试', icon: 'none' });
+        return;
       }
     }
 
