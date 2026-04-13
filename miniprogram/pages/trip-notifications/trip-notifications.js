@@ -29,7 +29,10 @@ Page({
 
   // 加载通知数据
   loadNotifications: async function () {
-    this.setData({ loading: true });
+    // 首次加载显示loading，下拉刷新不显示
+    if (this.data.notifications.length === 0) {
+      this.setData({ loading: true });
+    }
 
     const openid = app.globalData.openid;
     if (!openid) {

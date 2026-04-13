@@ -2,6 +2,18 @@
 const app = getApp();
 const api = require('../../utils/api.js');
 
+// 防抖函数
+function debounce(fn, delay = 1000) {
+  let timer = null;
+  return function(...args) {
+    if (timer) return;
+    fn.apply(this, args);
+    timer = setTimeout(() => {
+      timer = null;
+    }, delay);
+  };
+}
+
 Page({
   data: {
     place: null,
@@ -320,7 +332,7 @@ Page({
   },
 
   // 提交申请
-  onSubmitApply: async function () {
+  onSubmitApply: debounce(async function () {
     if (!this.validateContact()) {
       return;
     }
@@ -370,10 +382,10 @@ Page({
 
     wx.showToast({ title: '申请已发送', icon: 'success' });
     this.setData({ showApplyModal: false });
-  },
+  }),
 
   // 发送邀请
-  onSubmitInvite: async function () {
+  onSubmitInvite: debounce(async function () {
     if (!this.validateContact()) {
       return;
     }
@@ -423,7 +435,7 @@ Page({
 
     wx.showToast({ title: '邀请已发送', icon: 'success' });
     this.setData({ showInviteModal: false });
-  },
+  }),
 
   // 分享
   onShareAppMessage: function () {
