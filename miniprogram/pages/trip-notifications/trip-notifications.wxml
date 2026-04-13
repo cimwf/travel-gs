@@ -36,7 +36,8 @@
             <block wx:if="{{!item.isHandled}}">
               <view class="card-header">
                 <view class="user-avatar" style="background: {{item.avatarBg}}">
-                  <text>{{item.userName[0]}}</text>
+                  <image wx:if="{{item.fromUserAvatar}}" class="avatar-image" src="{{item.fromUserAvatar}}" mode="aspectFill"></image>
+                  <text wx:else>{{item.userName[0]}}</text>
                 </view>
                 <view class="header-info">
                   <view class="header-title">{{item.headerTitle}}</view>
@@ -45,32 +46,30 @@
               </view>
 
               <view class="card-detail">
-                <!-- 申请通知类型：显示手机号和自我介绍 -->
+                <!-- 申请通知类型：显示联系方式和备注 -->
                 <block wx:if="{{item.type === 'apply'}}">
-                  <view class="detail-row">
-                    <text class="detail-label">📱 手机号：</text>
-                    <text class="detail-value">{{item.phone}}</text>
+                  <view class="detail-row" wx:if="{{item.contactValue}}">
+                    <text class="detail-label">{{item.contactType === 'phone' ? '📱 手机号：' : '💬 微信号：'}}</text>
+                    <text class="detail-value">{{item.contactValue}}</text>
                   </view>
                   <view class="detail-row" wx:if="{{item.introduction}}">
-                    <text class="detail-label">💬 自我介绍：</text>
-                    <text class="detail-value">{{item.introduction}}</text>
+                    <text class="detail-label">📝 备注：</text>
+                    <text class="detail-value text-ellipsis">{{item.introduction}}</text>
                   </view>
                 </block>
 
-                <!-- 邀请消息类型：显示地点、日期、手机号、留言 -->
+                <!-- 邀请消息类型：显示地点、联系方式、留言 -->
                 <block wx:if="{{item.type === 'invite'}}">
-                  <view class="trip-tags">
-                    <view class="trip-tag">🏔️ {{item.placeName}}</view>
-                    <view class="trip-tag">📅 {{item.tripDate}}</view>
-                    <view class="trip-tag" wx:if="{{item.hasCar}}">🚗 有车</view>
+                  <view class="trip-tags" wx:if="{{item.placeName}}">
+                    <view class="trip-tag">{{item.placeName}}</view>
                   </view>
-                  <view class="detail-row">
-                    <text class="detail-label">📱 手机号：</text>
-                    <text class="detail-value">{{item.phone}}</text>
+                  <view class="detail-row" wx:if="{{item.contactValue}}">
+                    <text class="detail-label">{{item.contactType === 'phone' ? '📱 手机号：' : '💬 微信号：'}}</text>
+                    <text class="detail-value">{{item.contactValue}}</text>
                   </view>
                   <view class="detail-row" wx:if="{{item.message}}">
-                    <text class="detail-label">💬 留言：</text>
-                    <text class="detail-value">{{item.message}}</text>
+                    <text class="detail-label">📝 留言：</text>
+                    <text class="detail-value text-ellipsis">{{item.message}}</text>
                   </view>
                 </block>
               </view>
@@ -92,7 +91,8 @@
             <!-- 已处理：左右结构 -->
             <view class="card-handled" wx:else>
               <view class="user-avatar" style="background: {{item.avatarBg}}">
-                <text>{{item.userName[0]}}</text>
+                <image wx:if="{{item.fromUserAvatar}}" class="avatar-image" src="{{item.fromUserAvatar}}" mode="aspectFill"></image>
+                <text wx:else>{{item.userName[0]}}</text>
               </view>
               <view class="header-info">
                 <view class="header-title">{{item.headerTitle}}</view>

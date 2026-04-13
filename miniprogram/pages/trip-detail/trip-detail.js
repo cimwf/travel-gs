@@ -54,19 +54,32 @@ Page({
 
   // 处理行程数据
   processTripData: async function (trip) {
-    // 计算状态文字
-    const statusMap = {
-      'open': '招募中',
-      'full': '已满员',
-      'ended': '已结束',
-      'cancelled': '已取消'
-    };
+    // 计算剩余名额
+    const remainCount = trip.needCount || 0;
+    const totalCount = (trip.currentCount || 0) + (trip.needCount || 0);
 
-    const statusText = statusMap[trip.status] || '招募中';
-    const totalCount = trip.currentCount + trip.needCount;
-    const remainCount = trip.needCount;
-    const canJoin = trip.status === 'open' && remainCount > 0;
-    const joinBtnText = canJoin ? '申请加入' : (trip.status === 'full' ? '已满员' : '不可加入');
+    // 动态判断状态
+    let statusText = '招募中';
+    let canJoin = true;
+    let joinBtnText = '申请加入';
+
+    if (trip.status === 'cancelled') {
+      statusText = '已取消';
+      canJoin = false;
+      joinBtnText = '已取消';
+    } else if (trip.status === 'ended') {
+      statusText = '已结束';
+      canJoin = false;
+      joinBtnText = '已结束';
+    } else if (remainCount <= 0) {
+      statusText = '已满员';
+      canJoin = false;
+      joinBtnText = '已满员';
+    } else {
+      statusText = '招募中';
+      canJoin = true;
+      joinBtnText = '申请加入';
+    }
 
     // 格式化日期显示
     let dateText = trip.date;
@@ -143,6 +156,7 @@ Page({
       creatorAvatar,
       dateText,
       totalCount,
+      status: remainCount <= 0 ? 'full' : trip.status,
       placeImage: placeImages[trip.placeName] || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
       placeHighlight: this.getPlaceHighlight(trip.placeName)
     };

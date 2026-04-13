@@ -122,7 +122,8 @@ Page({
             // 出行日期已过，标记为已结束
             statusText = '已结束';
             statusClass = 'ended';
-          } else if (item.currentCount >= (item.currentCount + item.needCount)) {
+          } else if ((item.needCount || 0) <= 0) {
+            // 还需人数为0，已满员
             statusText = '已满员';
             statusClass = 'full';
           }

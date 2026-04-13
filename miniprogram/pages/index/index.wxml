@@ -41,14 +41,15 @@
         data-id="{{item._id}}"
         bindtap="onPlaceTap"
       >
-        <view class="place-image" style="background: {{item.bgColor || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}};">
+        <image class="place-image" src="{{item.coverImage}}" mode="aspectFill" wx:if="{{item.coverImage}}"></image>
+        <view class="place-image" style="background: {{item.bgColor || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}};" wx:else>
           <text class="place-icon">{{item.icon || '🏔️'}}</text>
         </view>
         <view class="place-info">
           <view class="place-name">{{item.name}}</view>
           <view class="place-desc">{{item.desc || '暂无简介'}}</view>
           <view class="place-meta">
-            <text class="meta-item">📍 {{item.distance}}密云区</text>
+            <text class="meta-item">📍 {{item.distance}}km</text>
             <text class="meta-item">⚡ {{item.difficulty}}</text>
             <text class="meta-item">⭐ {{item.rating || '4.5'}}</text>
           </view>

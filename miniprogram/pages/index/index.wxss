@@ -134,6 +134,8 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 24rpx;
+  overflow: hidden;
 }
 
 .place-icon {

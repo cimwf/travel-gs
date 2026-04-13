@@ -29,7 +29,10 @@ Page({
 
   // 加载通知数据
   loadNotifications: async function () {
-    this.setData({ loading: true });
+    // 首次加载显示loading，下拉刷新不显示
+    if (this.data.notifications.length === 0) {
+      this.setData({ loading: true });
+    }
 
     const openid = app.globalData.openid;
     if (!openid) {
@@ -41,40 +44,79 @@ Page({
     if (wx.cloud) {
       try {
         const db = wx.cloud.database();
-        const _ = db.command;
 
-        // 加载申请通知（别人申请加入我的行程）
+        // 加载申请通知（别人申请加入我的行程，toUserId 是我）
         const applyRes = await db.collection('applies')
           .where({
-            creatorId: openid
+            toUserId: openid
           })
           .orderBy('createdAt', 'desc')
           .limit(20)
           .get();
 
-        // 加载我参与的行程中被邀请的消息
-        // 这里简化处理，加载我参与但不是我发起的行程
-        const tripRes = await db.collection('trips')
+        // 加载邀请消息（别人邀请我，toUserId 是我）
+        const inviteRes = await db.collection('applies')
           .where({
-            'participants.userId': openid,
-            creatorId: _.neq(openid)
+            toUserId: openid,
+            type: 'invite'
           })
           .orderBy('createdAt', 'desc')
-          .limit(10)
+          .limit(20)
           .get();
 
+        // 收集所有云存储头像链接
+        const fileIDs = [];
+        const allData = [...(applyRes.data || []), ...(inviteRes.data || [])];
+        allData.forEach(item => {
+          if (item.fromUserAvatar && item.fromUserAvatar.startsWith('cloud://')) {
+            fileIDs.push(item.fromUserAvatar);
+          }
+        });
+
+        // 批量获取临时链接
+        let avatarMap = {};
+        if (fileIDs.length > 0 && wx.cloud) {
+          try {
+            const urlRes = await wx.cloud.getTempFileURL({
+              fileList: fileIDs
+            });
+            if (urlRes.fileList) {
+              urlRes.fileList.forEach(item => {
+                if (item.tempFileURL) {
+                  avatarMap[item.fileID] = item.tempFileURL;
+                }
+              });
+            }
+          } catch (err) {
+            console.warn('获取头像临时链接失败', err);
+          }
+        }
+
         // 处理申请通知数据
-        const applyList = (applyRes.data || []).map(item => {
+        const applyList = (applyRes.data || []).filter(item => item.type !== 'invite').map(item => {
           const timeAgo = this.formatTimeAgo(item.createdAt);
+          const contactLabel = item.contactType === 'phone' ? '手机号' : '微信号';
+          // 转换云存储链接
+          let avatar = item.fromUserAvatar || '';
+          if (avatar && avatar.startsWith('cloud://') && avatarMap[avatar]) {
+            avatar = avatarMap[avatar];
+          }
+          // 如果头像不是 http 开头，设为空字符串
+          if (avatar && !avatar.startsWith('http')) {
+            avatar = '';
+          }
           return {
             _id: item._id,
             type: 'apply',
-            userName: item.userName || '旅行者',
-            avatarBg: this.getAvatarBg(item.userName),
-            headerTitle: `${item.userName || '旅行者'} 申请加入您的行程`,
+            userName: item.fromUserName || '旅行者',
+            fromUserAvatar: avatar,
+            avatarBg: this.getAvatarBg(item.fromUserName),
+            headerTitle: (item.fromUserName || '旅行者') + ' 申请加入您的行程',
             headerMeta: item.placeName || '行程',
             timeAgo: timeAgo,
-            phone: item.phone || '',
+            contactType: item.contactType || 'phone',
+            contactLabel: contactLabel,
+            contactValue: item.contactValue || '',
             introduction: item.message || '',
             isHandled: item.status !== 'pending',
             status: item.status === 'accepted' ? 'agreed' : item.status,
@@ -83,26 +125,37 @@ Page({
           };
         });
 
-        // 处理邀请消息数据（别人发起的行程，我可以参与）
-        const inviteList = (tripRes.data || []).map(item => {
+        // 处理邀请消息数据
+        const inviteList = (inviteRes.data || []).map(item => {
           const timeAgo = this.formatTimeAgo(item.createdAt);
+          const contactLabel = item.contactType === 'phone' ? '手机号' : '微信号';
+          // 转换云存储链接
+          let avatar = item.fromUserAvatar || '';
+          if (avatar && avatar.startsWith('cloud://') && avatarMap[avatar]) {
+            avatar = avatarMap[avatar];
+          }
+          // 如果头像不是 http 开头，设为空字符串
+          if (avatar && !avatar.startsWith('http')) {
+            avatar = '';
+          }
           return {
             _id: item._id,
             type: 'invite',
-            userName: item.creatorName || '旅行者',
-            avatarBg: this.getAvatarBg(item.creatorName),
-            headerTitle: `${item.creatorName || '旅行者'} 邀请您一起游玩`,
+            userName: item.fromUserName || '旅行者',
+            fromUserAvatar: avatar,
+            avatarBg: this.getAvatarBg(item.fromUserName),
+            headerTitle: (item.fromUserName || '旅行者') + ' 想加入您的行程',
             headerMeta: item.placeName || '行程',
             placeName: item.placeName || '',
-            tripDate: item.date || '',
-            hasCar: item.hasCar,
             timeAgo: timeAgo,
-            phone: '',
-            message: item.remark || '',
-            tripId: item._id,
-            isHandled: false, // 行程邀请默认未处理
-            status: '',
-            statusText: ''
+            contactType: item.contactType || 'phone',
+            contactLabel: contactLabel,
+            contactValue: item.contactValue || '',
+            message: item.message || '',
+            tripId: item.tripId,
+            isHandled: item.status !== 'pending',
+            status: item.status,
+            statusText: item.status === 'accepted' ? '已同意' : (item.status === 'rejected' ? '已拒绝' : '')
           };
         });
 
@@ -123,22 +176,6 @@ Page({
         console.warn('加载通知失败', err);
       }
     }
-
-    // 模拟数据（备用）
-    // const mockApplyList = [
-    //   {
-    //     _id: 'apply_001',
-    //     type: 'apply',
-    //     userName: '李明',
-    //     avatarBg: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
-    //     headerTitle: '李明 申请加入您的行程',
-    //     headerMeta: '周六灵山徒步',
-    //     timeAgo: '10分钟前',
-    //     phone: '138****8888',
-    //     introduction: '有户外经验，可以分摊油费',
-    //     isHandled: false
-    //   }
-    // ];
 
     this.setData({
       loading: false,
@@ -236,18 +273,21 @@ Page({
               await db.collection('trips').doc(apply.tripId).update({
                 data: {
                   participants: db.command.push({
-                    userId: apply.userId,
-                    nickname: apply.userName,
-                    avatar: apply.userAvatar || ''
+                    userId: apply.fromUserId,
+                    nickname: apply.fromUserName,
+                    avatar: apply.fromUserAvatar || ''
                   }),
-                  currentCount: db.command.inc(1)
+                  currentCount: db.command.inc(1),
+                  needCount: db.command.inc(-1)
                 }
               });
             }
           }
         }
       } catch (err) {
-        console.warn('更新申请状态失败', err);
+        console.error('更新申请状态失败', err);
+        wx.showToast({ title: '操作失败，请重试', icon: 'none' });
+        return;
       }
     }
 

@@ -2,6 +2,18 @@
 const app = getApp();
 const api = require('../../utils/api.js');
 
+// 防抖函数
+function debounce(fn, delay = 1000) {
+  let timer = null;
+  return function(...args) {
+    if (timer) return;
+    fn.apply(this, args);
+    timer = setTimeout(() => {
+      timer = null;
+    }, delay);
+  };
+}
+
 Page({
   data: {
     place: null,
@@ -117,7 +129,40 @@ Page({
           .get();
 
         if (res.data && res.data.length > 0) {
-          this.setData({ trips: res.data });
+          // 处理行程数据，添加展示所需字段
+          const trips = res.data.map(trip => {
+            // 格式化日期
+            let dateText = trip.date || '';
+            if (trip.date) {
+              const date = new Date(trip.date);
+              const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+              dateText = `${(date.getMonth() + 1).toString().padStart(2, '0')}月${date.getDate().toString().padStart(2, '0')}日 ${weekDays[date.getDay()]}`;
+            }
+
+            // 计算发布时间
+            let publishTime = '刚刚发布';
+            if (trip.createdAt) {
+              const diff = Date.now() - new Date(trip.createdAt).getTime();
+              const hours = Math.floor(diff / (1000 * 60 * 60));
+              if (hours < 1) {
+                publishTime = '刚刚发布';
+              } else if (hours < 24) {
+                publishTime = `发布于${hours}小时前`;
+              } else {
+                const days = Math.floor(hours / 24);
+                publishTime = `发布于${days}天前`;
+              }
+            }
+
+            return {
+              ...trip,
+              date: dateText,
+              viewCount: trip.viewCount || Math.floor(Math.random() * 200) + 50,
+              publishTime: publishTime
+            };
+          });
+
+          this.setData({ trips: trips });
           return;
         }
       } catch (err) {
@@ -125,33 +170,8 @@ Page({
       }
     }
 
-    // 使用mock数据
-    const mockTrips = [
-      {
-        _id: 'trip_001',
-        creatorName: '小王',
-        creatorAvatar: '',
-        avatarBg: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
-        date: '04月12日',
-        hasCar: true,
-        currentCount: 2,
-        needCount: 2,
-        remark: '有车求队友，AA制，早上6点出发'
-      },
-      {
-        _id: 'trip_002',
-        creatorName: '小李',
-        creatorAvatar: '',
-        avatarBg: 'linear-gradient(135deg, #4A90E2, #667eea)',
-        date: '04月13日',
-        hasCar: false,
-        currentCount: 1,
-        needCount: 3,
-        remark: '无车等拼车，可以分摊油费'
-      }
-    ];
-
-    this.setData({ trips: mockTrips });
+    // 无数据时显示空状态
+    this.setData({ trips: [] });
   },
 
   // 点击行程卡片跳转详情
@@ -312,41 +332,110 @@ Page({
   },
 
   // 提交申请
-  onSubmitApply: async function () {
+  onSubmitApply: debounce(async function () {
     if (!this.validateContact()) {
       return;
     }
 
-    const { currentTrip, introduction } = this.data;
+    const { currentTrip, contactType, contactValue, introduction } = this.data;
+    const openid = app.globalData.openid;
+    // 优先从 storage 读取最新用户信息
+    const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
 
-    // 尝试调用云函数
+    wx.showLoading({ title: '发送中...' });
+
+    // 存储到数据库
     if (wx.cloud) {
       try {
-        await api.applyCreate({
-          tripId: currentTrip._id,
-          message: introduction
+        const db = wx.cloud.database();
+
+        // 创建申请记录
+        await db.collection('applies').add({
+          data: {
+            tripId: currentTrip._id,
+            placeName: this.data.place ? this.data.place.name : '',
+            toUserId: currentTrip.creatorId || '',
+            toUserName: currentTrip.creatorName || '',
+            fromUserId: openid,
+            fromUserName: userInfo.nickname || '旅行者',
+            fromUserAvatar: userInfo.avatar || '',
+            contactType: contactType,  // 'phone' 或 'wechat'
+            contactValue: contactValue, // 手机号或微信号
+            message: introduction || '',
+            status: 'pending',
+            type: 'apply',  // 申请加入
+            createdAt: Date.now()
+          }
         });
+
+        wx.hideLoading();
         wx.showToast({ title: '申请已发送', icon: 'success' });
         this.setData({ showApplyModal: false });
         return;
       } catch (err) {
-        console.warn('提交申请失败', err);
+        wx.hideLoading();
+        console.error('提交申请失败', err);
+        wx.showToast({ title: '发送失败，请重试', icon: 'none' });
+        return;
       }
     }
 
     wx.showToast({ title: '申请已发送', icon: 'success' });
     this.setData({ showApplyModal: false });
-  },
+  }),
 
   // 发送邀请
-  onSubmitInvite: async function () {
+  onSubmitInvite: debounce(async function () {
     if (!this.validateContact()) {
       return;
     }
 
+    const { currentTrip, contactType, contactValue, introduction } = this.data;
+    const openid = app.globalData.openid;
+    // 优先从 storage 读取最新用户信息
+    const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
+
+    wx.showLoading({ title: '发送中...' });
+
+    // 存储到数据库
+    if (wx.cloud) {
+      try {
+        const db = wx.cloud.database();
+
+        // 创建邀请记录
+        await db.collection('applies').add({
+          data: {
+            tripId: currentTrip._id,
+            placeName: this.data.place ? this.data.place.name : '',
+            toUserId: currentTrip.creatorId || '',
+            toUserName: currentTrip.creatorName || '',
+            fromUserId: openid,
+            fromUserName: userInfo.nickname || '旅行者',
+            fromUserAvatar: userInfo.avatar || '',
+            contactType: contactType,  // 'phone' 或 'wechat'
+            contactValue: contactValue, // 手机号或微信号
+            message: introduction || '',
+            status: 'pending',
+            type: 'invite',  // 邀请他
+            createdAt: Date.now()
+          }
+        });
+
+        wx.hideLoading();
+        wx.showToast({ title: '邀请已发送', icon: 'success' });
+        this.setData({ showInviteModal: false });
+        return;
+      } catch (err) {
+        wx.hideLoading();
+        console.error('发送邀请失败', err);
+        wx.showToast({ title: '发送失败，请重试', icon: 'none' });
+        return;
+      }
+    }
+
     wx.showToast({ title: '邀请已发送', icon: 'success' });
     this.setData({ showInviteModal: false });
-  },
+  }),
 
   // 分享
   onShareAppMessage: function () {
