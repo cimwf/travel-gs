@@ -442,11 +442,11 @@
     
     <!-- 主内容 -->
     <main class="main-content">
-      <header class="page-header">
+            <header class="page-header">
         <h1>📋 产品需求文档</h1>
         <div class="meta">
-          <span>📄 版本：v1.6.0</span>
-          <span>📅 日期：2026-04-06</span>
+          <span>📄 版本：v1.9.0</span>
+          <span>📅 日期：2026-04-13</span>
           <span>👤 作者：产品团队</span>
         </div>
       </header>
@@ -806,6 +806,312 @@
                   <td><span class="tag success">否</span></td>
                 </tr>
               </table>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 4.2.1 行程消息页 -->
+        <div class="page-card" id="page-trip-messages">
+          <div class="page-card-header">
+            <h3>📋 行程消息页</h3>
+            <span class="login-required lock">🔒 需要登录</span>
+          </div>
+          <div class="page-card-body">
+            <div class="page-section">
+              <div class="page-section-title">📄 页面概述</div>
+              <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">
+                行程消息页是<strong>申请管理中心</strong>，整合了所有与申请相关的消息，分为「我收到的」和「我发出的」两个分组。
+              </p>
+              <ul class="feature-list">
+                <li><strong>顶部标题栏</strong> - 返回按钮 + 「行程消息」标题</li>
+                <li><strong>分组Tab</strong> - 我收到的 / 我发出的</li>
+                <li><strong>消息卡片列表</strong> - 统一卡片样式，根据类型显示不同内容</li>
+                <li><strong>状态标签</strong> - 待处理、已同意、已拒绝、已过期等状态</li>
+                <li><strong>操作按钮</strong> - 待处理状态显示操作按钮，已处理状态显示状态标签</li>
+              </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">📊 页面分组结构</div>
+              <table class="data-table">
+                <tr>
+                  <th width="120">分组</th>
+                  <th>内容说明</th>
+                  <th>消息类型</th>
+                </tr>
+                <tr>
+                  <td><strong>📥 我收到的</strong></td>
+                  <td>别人发给我的申请/邀请，需要我处理</td>
+                  <td>申请加入、邀请游玩、已处理记录</td>
+                </tr>
+                <tr>
+                  <td><strong>📤 我发出的</strong></td>
+                  <td>我发出的申请，可查看状态和取消</td>
+                  <td>申请中、已同意、已拒绝、已过期</td>
+                </tr>
+              </table>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">📊 消息类型与状态</div>
+              
+              <h4 style="font-size: 15px; margin: 16px 0 12px; color: var(--primary-color);">📥 我收到的 - 申请加入类（我是行程发起者）</h4>
+              <table class="data-table">
+                <tr>
+                  <th width="100">状态</th>
+                  <th width="150">触发场景</th>
+                  <th>显示方式</th>
+                  <th width="140">通知发送</th>
+                </tr>
+                <tr>
+                  <td><span class="tag warning">待处理</span></td>
+                  <td>有人申请加入我的行程</td>
+                  <td>显示「同意/拒绝」按钮</td>
+                  <td>-</td>
+                </tr>
+                <tr>
+                  <td><span class="tag success">已同意</span></td>
+                  <td>我同意了申请</td>
+                  <td>绿色标签「已同意」</td>
+                  <td>✅ 给申请人发通知</td>
+                </tr>
+                <tr>
+                  <td><span class="tag">已拒绝</span></td>
+                  <td>我拒绝了申请</td>
+                  <td>灰色标签「已拒绝」</td>
+                  <td>❌ 不发通知</td>
+                </tr>
+                <tr>
+                  <td><span class="tag">已过期</span></td>
+                  <td>行程已结束</td>
+                  <td>灰色标签「已过期」</td>
+                  <td>-</td>
+                </tr>
+              </table>
+              
+              <h4 style="font-size: 15px; margin: 20px 0 12px; color: var(--primary-color);">📥 我收到的 - 邀请游玩类（我被邀请）</h4>
+              <table class="data-table">
+                <tr>
+                  <th width="100">状态</th>
+                  <th width="150">触发场景</th>
+                  <th>显示方式</th>
+                  <th width="140">通知发送</th>
+                </tr>
+                <tr>
+                  <td><span class="tag warning">待处理</span></td>
+                  <td>有人邀请我一起游玩</td>
+                  <td>显示「接受/忽略」按钮</td>
+                  <td>-</td>
+                </tr>
+                <tr>
+                  <td><span class="tag success">已接受</span></td>
+                  <td>我接受了邀请</td>
+                  <td>绿色标签「已接受」</td>
+                  <td>✅ 给邀请者发通知</td>
+                </tr>
+                <tr>
+                  <td><span class="tag">已忽略</span></td>
+                  <td>我忽略了邀请</td>
+                  <td>灰色标签「已忽略」</td>
+                  <td>❌ 不发通知</td>
+                </tr>
+                <tr>
+                  <td><span class="tag">已过期</span></td>
+                  <td>行程已结束</td>
+                  <td>灰色标签「已过期」</td>
+                  <td>-</td>
+                </tr>
+              </table>
+              
+              <h4 style="font-size: 15px; margin: 20px 0 12px; color: var(--primary-color);">📤 我发出的 - 申请管理</h4>
+              <table class="data-table">
+                <tr>
+                  <th width="100">状态</th>
+                  <th width="150">触发场景</th>
+                  <th>显示方式</th>
+                  <th>操作</th>
+                </tr>
+                <tr>
+                  <td><span class="tag warning">申请中</span></td>
+                  <td>我申请加入他人行程，对方尚未处理</td>
+                  <td>显示申请详情，黄色标签「申请中」</td>
+                  <td>可取消申请</td>
+                </tr>
+                <tr>
+                  <td><span class="tag success">已同意</span></td>
+                  <td>对方同意了我的申请</td>
+                  <td>绿色标签 + 发起人联系方式</td>
+                  <td>查看行程详情</td>
+                </tr>
+                <tr>
+                  <td><span class="tag">已拒绝</span></td>
+                  <td>对方拒绝了我的申请</td>
+                  <td>灰色标签「已拒绝」</td>
+                  <td>可重新申请</td>
+                </tr>
+                <tr>
+                  <td><span class="tag">已过期</span></td>
+                  <td>行程已结束</td>
+                  <td>灰色标签「已过期」</td>
+                  <td>-</td>
+                </tr>
+              </table>
+              
+              <div class="alert info" style="margin-top: 16px;">
+                <span class="alert-icon">ℹ️</span>
+                <div class="alert-content">
+                  <h4>取消申请说明</h4>
+                  <p>用户在「我发出的 → 申请中」点击取消申请后，弹出确认弹窗。确认后取消申请，对方不会收到通知，用户可重新申请。</p>
+                </div>
+              </div>
+              
+              <h4 style="font-size: 15px; margin: 20px 0 12px; color: var(--primary-color);">📤 我发出的 - 邀请反馈</h4>
+              <table class="data-table">
+                <tr>
+                  <th width="100">状态</th>
+                  <th width="150">触发场景</th>
+                  <th>显示方式</th>
+                  <th>补充信息</th>
+                </tr>
+                <tr>
+                  <td><span class="tag success">已接受</span></td>
+                  <td>对方接受了我的邀请</td>
+                  <td>绿色标签 + 对方联系方式</td>
+                  <td>显示对方手机号/微信</td>
+                </tr>
+                <tr>
+                  <td><span class="tag">已忽略</span></td>
+                  <td>对方忽略了我的邀请</td>
+                  <td>灰色标签「已忽略」</td>
+                  <td>-</td>
+                </tr>
+              </table>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">🎨 统一消息卡片模板</div>
+              <div class="content-card" style="background: white; border: 1px solid var(--border-color);">
+                <div style="font-family: monospace; font-size: 13px; line-height: 1.8; color: #666;">
+<pre style="margin: 0; white-space: pre-wrap;">
+┌─────────────────────────────────────────┐
+│ 👤 [头像]  [用户名]              [时间] │
+│         [消息标题]                       │
+├─────────────────────────────────────────┤
+│ 📍 [地点名称]  📅 [日期]  👥 [人数]     │
+│ 🚗 [交通方式]  [其他标签...]            │
+├─────────────────────────────────────────┤
+│ 💬 微信号：138****8888                  │
+│ 💬 留言：有户外经验，可以分摊油费       │
+├─────────────────────────────────────────┤
+│ [状态标签] 或 [操作按钮区域]            │
+│ 待处理: [同意] [拒绝] 或 [接受] [忽略]  │
+│ 已处理: 绿色/灰色状态标签               │
+└─────────────────────────────────────────┘
+</pre>
+                </div>
+              </div>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">🔄 消息流转示例</div>
+              
+              <div class="flow-chart">
+                <h4 style="font-size: 14px; margin-bottom: 12px; color: var(--primary-color);">场景A：申请加入行程</h4>
+                <div class="flow-step">
+                  <div class="flow-number">1</div>
+                  <div class="flow-content">
+                    <p style="font-size: 13px;">用户B申请加入 → A收到【申请通知-待处理】</p>
+                  </div>
+                </div>
+                <div class="flow-step">
+                  <div class="flow-number">2</div>
+                  <div class="flow-content">
+                    <p style="font-size: 13px;">A同意 → B收到【已同意通知】（含A的联系方式）</p>
+                  </div>
+                </div>
+                <div class="flow-step">
+                  <div class="flow-number">3</div>
+                  <div class="flow-content">
+                    <p style="font-size: 13px;">A拒绝 → 消息变为【已拒绝】（不通知B）</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="flow-chart">
+                <h4 style="font-size: 14px; margin-bottom: 12px; color: var(--primary-color);">场景B：邀请游玩</h4>
+                <div class="flow-step">
+                  <div class="flow-number">1</div>
+                  <div class="flow-content">
+                    <p style="font-size: 13px;">用户A邀请 → B收到【邀请通知-待处理】</p>
+                  </div>
+                </div>
+                <div class="flow-step">
+                  <div class="flow-number">2</div>
+                  <div class="flow-content">
+                    <p style="font-size: 13px;">B接受 → A收到【已接受通知】（含B的联系方式）</p>
+                  </div>
+                </div>
+                <div class="flow-step">
+                  <div class="flow-number">3</div>
+                  <div class="flow-content">
+                    <p style="font-size: 13px;">B忽略 → 消息变为【已忽略】（不通知A）</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">👆 点击跳转</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">点击元素</th>
+                  <th>跳转页面</th>
+                  <th width="120">是否需要登录</th>
+                </tr>
+                <tr>
+                  <td>分组Tab（我收到的/我发出的）</td>
+                  <td>当前页切换内容</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
+                  <td>行程信息卡片</td>
+                  <td>行程详情页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>用户头像/名称</td>
+                  <td>该用户个人主页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>同意/拒绝按钮</td>
+                  <td>当前页操作，更新状态</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>接受/忽略按钮</td>
+                  <td>当前页操作，更新状态</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>取消申请按钮（我发出的）</td>
+                  <td>弹出确认弹窗，确认后取消申请</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>返回按钮</td>
+                  <td>消息Tab或上一页</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+              </table>
+            </div>
+            
+            <div class="alert info">
+              <span class="alert-icon">ℹ️</span>
+              <div class="alert-content">
+                <h4>联系方式说明</h4>
+                <p>由于暂不做聊天系统，双方通过手机号或微信号联系。当申请被同意或邀请被接受时，消息卡片会展示对方的联系方式（脱敏显示）。</p>
+              </div>
             </div>
           </div>
         </div>
@@ -1669,6 +1975,13 @@
                     <li>还需人数 - 数字选择器（1-20人）</li>
                   </ul>
                 </li>
+                <li><strong>📞 联系方式</strong>：
+                  <ul style="margin-top: 8px; padding-left: 20px;">
+                    <li>手机号输入框 - 同时作为微信号使用</li>
+                    <li>提示文案：此号码将同时作为手机号和微信号展示给已加入的成员</li>
+                    <li>格式校验：11位手机号（1开头）</li>
+                  </ul>
+                </li>
                 <li><strong>📝 补充说明</strong> - 文本域，最多200字，显示字数统计</li>
                 <li><strong>发布按钮</strong> - 蓝色渐变按钮，54px高度，16px圆角</li>
               </ul>
@@ -1696,6 +2009,10 @@
                 <tr>
                   <td>数字选择器</td>
                   <td>36px圆形加减按钮，20px数字</td>
+                </tr>
+                <tr>
+                  <td>联系方式输入框</td>
+                  <td>14px padding，12px圆角，浅灰背景 #FAFAFA，提示信息用浅蓝色背景</td>
                 </tr>
                 <tr>
                   <td>文本域</td>
@@ -1735,6 +2052,42 @@
                   <td>返回按钮</td>
                   <td>上一页（询问是否放弃）</td>
                   <td><span class="tag success">否</span></td>
+                </tr>
+              </table>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">🔧 字段说明</div>
+              <table class="data-table">
+                <tr>
+                  <th width="200">字段</th>
+                  <th>必填</th>
+                  <th>校验规则</th>
+                </tr>
+                <tr>
+                  <td>目的地</td>
+                  <td><span class="tag danger">是</span></td>
+                  <td>从地点列表选择</td>
+                </tr>
+                <tr>
+                  <td>出发地</td>
+                  <td><span class="tag danger">是</span></td>
+                  <td>北京16个区选择</td>
+                </tr>
+                <tr>
+                  <td>出行日期</td>
+                  <td><span class="tag danger">是</span></td>
+                  <td>不早于今天</td>
+                </tr>
+                <tr>
+                  <td>联系方式</td>
+                  <td><span class="tag danger">是</span></td>
+                  <td>11位手机号（1开头），同时作为微信号</td>
+                </tr>
+                <tr>
+                  <td>补充说明</td>
+                  <td><span class="tag success">否</span></td>
+                  <td>最多200字</td>
                 </tr>
               </table>
             </div>
@@ -1858,12 +2211,54 @@
           </div>
           <div class="page-card-body">
             <div class="page-section">
-              <div class="page-section-title">📄 页面展示内容</div>
+              <div class="page-section-title">📄 页面定位</div>
+              <div class="alert info" style="margin-bottom: 16px;">
+                <span class="alert-icon">ℹ️</span>
+                <div class="alert-content">
+                  <h4>设计理念</h4>
+                  <p>我的行程页只展示<strong>已确定的行程</strong>，作为用户的「行程日历」，按时间排序，一目了然。</p>
+                  <p style="margin-top: 8px;">申请中的行程在「行程消息页」管理。</p>
+                </div>
+              </div>
               <ul class="feature-list">
-                <li><strong>Tab切换</strong> - 我发起的、我参与的、已结束</li>
-                <li><strong>行程卡片列表</strong> - 地点名称、日期、人数、状态</li>
+                <li><strong>顶部筛选栏</strong> - 全部 / 我发起的 / 我参与的 / 已结束</li>
+                <li><strong>行程列表</strong> - 按日期排序，已确定的行程</li>
+                <li><strong>行程卡片</strong> - 地点、日期、人数、状态标签</li>
                 <li><strong>发布行程按钮</strong> - 右下角浮动按钮</li>
               </ul>
+            </div>
+            
+            <div class="page-section">
+              <div class="page-section-title">📊 行程类型与状态</div>
+              <table class="data-table">
+                <tr>
+                  <th width="120">行程类型</th>
+                  <th>包含状态</th>
+                  <th>操作按钮</th>
+                </tr>
+                <tr>
+                  <td><strong>我发起的</strong></td>
+                  <td>招募中、已满员</td>
+                  <td>管理、查看详情</td>
+                </tr>
+                <tr>
+                  <td><strong>我参与的</strong></td>
+                  <td>已加入</td>
+                  <td>退出、查看详情</td>
+                </tr>
+                <tr>
+                  <td><strong>已结束</strong></td>
+                  <td>已结束</td>
+                  <td>查看详情</td>
+                </tr>
+              </table>
+              <div class="alert info" style="margin-top: 12px;">
+                <span class="alert-icon">ℹ️</span>
+                <div class="alert-content">
+                  <h4>不包含的内容</h4>
+                  <p><strong>申请中的行程</strong>不在此页面显示，请在「行程消息页 → 我发出的」中查看和管理。</p>
+                </div>
+              </div>
             </div>
             
             <div class="page-section">
@@ -1875,8 +2270,18 @@
                   <th width="120">是否需要登录</th>
                 </tr>
                 <tr>
+                  <td>筛选标签</td>
+                  <td>当前页筛选内容</td>
+                  <td><span class="tag success">否</span></td>
+                </tr>
+                <tr>
                   <td>行程卡片</td>
                   <td>行程详情页</td>
+                  <td><span class="tag danger">是</span></td>
+                </tr>
+                <tr>
+                  <td>退出按钮（我参与的）</td>
+                  <td>弹出确认弹窗，确认后退出行程</td>
                   <td><span class="tag danger">是</span></td>
                 </tr>
                 <tr>
@@ -1889,6 +2294,10 @@
                   <td>上一页或我的Tab</td>
                   <td><span class="tag danger">是</span></td>
                 </tr>
+              </table>
+            </div>
+          </div>
+        </div>
               </table>
             </div>
           </div>
@@ -2151,6 +2560,24 @@
             <th>变更内容</th>
           </tr>
           <tr>
+            <td><strong>v1.9.0</strong></td>
+            <td>2026-04-13</td>
+            <td>产品团队</td>
+            <td>重大更新：我的行程页简化为「行程日历」（无Tab，只显示已确定的行程）；行程消息页增加「我收到的/我发出的」分组Tab</td>
+          </tr>
+          <tr>
+            <td><strong>v1.8.0</strong></td>
+            <td>2026-04-13</td>
+            <td>产品团队</td>
+            <td>我的行程页新增「申请中」Tab：显示待处理申请、支持取消申请功能</td>
+          </tr>
+          <tr>
+            <td><strong>v1.7.0</strong></td>
+            <td>2026-04-13</td>
+            <td>产品团队</td>
+            <td>新增「行程消息页」：统一消息模板、完整状态设计（申请/邀请/反馈）、消息流转逻辑</td>
+          </tr>
+          <tr>
             <td><strong>v1.6.0</strong></td>
             <td>2026-04-06</td>
             <td>产品团队</td>
@@ -2192,7 +2619,7 @@
       <!-- 页脚 -->
       <footer style="text-align: center; padding: 40px 0; border-top: 1px solid var(--border-color); margin-top: 40px; color: var(--text-hint); font-size: 14px;">
         <p>北京去哪玩 · 产品需求文档</p>
-        <p style="margin-top: 8px;">Version 1.6.0 | 2026-04-06 | 产品团队</p>
+        <p style="margin-top: 8px;">Version 1.9.0 | 2026-04-13 | 产品团队</p>
       </footer>
     </main>
   </div>

@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>北京去哪玩 - 设计稿 v2.1.0</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary-color: #4A90E2;
+      --primary-light: #6BA3E8;
+      --primary-dark: #357ABD;
+      --text-primary: #1A1A2E;
+      --text-secondary: #4A4A68;
+      --text-hint: #8E8EA0;
+      --bg-color: #F5F7FA;
+      --card-bg: #FFFFFF;
+      --border-color: #E8E8F0;
+      --success-color: #52C41A;
+      --warning-color: #FAAD14;
+      --danger-color: #FF4D4F;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      background: #1a1a2e;
+      color: white;
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+    
+    .container { max-width: 1400px; margin: 0 auto; }
+    
+    .header {
+      text-align: center;
+      padding: 60px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 24px;
+      margin-bottom: 40px;
+    }
+    
+    .header h1 { font-size: 48px; font-weight: 700; margin-bottom: 16px; }
+    .header p { font-size: 18px; opacity: 0.9; }
+    
+    .section {
+      background: rgba(255,255,255,0.05);
+      border-radius: 24px;
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+    
+    .section-title {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 28px;
+      background: var(--primary-color);
+      border-radius: 2px;
+    }
+    
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+    
+    .screen-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .screen-title {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    
+    .phone-frame {
+      width: 375px;
+      height: 750px;
+      background: white;
+      border-radius: 40px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a1a;
+      background: white;
+    }
+    
+    .tab-bar {
+      display: flex;
+      background: white;
+      border-top: 1px solid var(--border-color);
+      padding: 8px 0 24px;
+    }
+    
+    .tab-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #8E8EA0;
+      font-size: 11px;
+    }
+    
+    .tab-item.active { color: var(--primary-color); }
+    .tab-icon { font-size: 22px; }
+    
+    .home-indicator {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 134px;
+      height: 5px;
+      background: #1a1a1a;
+      border-radius: 3px;
+    }
+    
+    /* 搜索框 */
+    .search-bar {
+      display: flex;
+      align-items: center;
+      background: var(--bg-color);
+      border-radius: 12px;
+      padding: 12px 16px;
+      gap: 10px;
+    }
+    
+    .search-input {
+      border: none;
+      background: transparent;
+      font-size: 15px;
+      color: #1a1a1a;
+      flex: 1;
+      outline: none;
+    }
+    
+    .search-input::placeholder { color: #8E8EA0; }
+    
+    /* 说明卡片 */
+    .note-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 24px;
+    }
+    
+    .note-card h4 {
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+    
+    .note-card p {
+      font-size: 13px;
+      opacity: 0.7;
+      line-height: 1.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🏔️ 北京去哪玩</h1>
+      <p>设计稿 v2.1.0 | 2026-04-13</p>
+      <p style="margin-top: 8px; font-size: 14px; opacity: 0.8;">删除Tab分类，简化页面结构</p>
+    </div>
+    
+    <!-- 1. 首页 -->
+    <div class="section">
+      <h2 class="section-title">1. 首页</h2>
+      <p style="opacity: 0.7; margin-bottom: 16px;">无Tab分类 | 搜索 + 推荐地点 + 行程动态</p>
+      
+      <div class="screens-grid">
+        <div class="screen-wrapper">
+          <div class="screen-title">首页 - 地点推荐</div>
+          <div class="phone-frame" style="height: 812px; overflow-y: auto;">
+            <div class="status-bar" style="position: sticky; top: 0; background: white; z-index: 10;"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="padding: 16px; background: white;">
+              <div class="search-bar">
+                <span>🔍</span>
+                <input class="search-input" type="text" placeholder="搜索地点、目的地">
+              </div>
+            </div>
+            
+            <!-- 推荐地点 -->
+            <div style="background: white; padding: 0 16px 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="font-size: 17px; font-weight: 600; color: #1a1a1a;">📍 热门地点</span>
+                <span style="font-size: 13px; color: #4A90E2;">查看全部 ›</span>
+              </div>
+              <div style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px;">
+                <div style="min-width: 140px; height: 180px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 16px; display: flex; flex-direction: column; justify-content: flex-end; padding: 12px; color: white;">
+                  <div style="font-size: 28px; margin-bottom: 4px;">🏔️</div>
+                  <div style="font-size: 15px; font-weight: 600;">灵山</div>
+                  <div style="font-size: 12px; opacity: 0.8;">⭐ 4.8 · 150km</div>
+                </div>
+                <div style="min-width: 140px; height: 180px; background: linear-gradient(135deg, #56AB2F, #A8E6CF); border-radius: 16px; display: flex; flex-direction: column; justify-content: flex-end; padding: 12px; color: white;">
+                  <div style="font-size: 28px; margin-bottom: 4px;">🌸</div>
+                  <div style="font-size: 15px; font-weight: 600;">百花山</div>
+                  <div style="font-size: 12px; opacity: 0.8;">⭐ 4.6 · 95km</div>
+                </div>
+                <div style="min-width: 140px; height: 180px; background: linear-gradient(135deg, #4facfe, #00f2fe); border-radius: 16px; display: flex; flex-direction: column; justify-content: flex-end; padding: 12px; color: white;">
+                  <div style="font-size: 28px; margin-bottom: 4px;">💧</div>
+                  <div style="font-size: 15px; font-weight: 600;">龙庆峡</div>
+                  <div style="font-size: 12px; opacity: 0.8;">⭐ 4.5 · 85km</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 行程动态 -->
+            <div style="flex: 1; background: var(--bg-color); padding: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="font-size: 17px; font-weight: 600; color: #1a1a1a;">🚗 近期行程</span>
+                <span style="font-size: 13px; color: #4A90E2;">查看全部 ›</span>
+              </div>
+              
+              <!-- 行程卡片 -->
+              <div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px;">
+                <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                  <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px;">🏔️</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 4px;">东灵山日出徒步</div>
+                    <div style="font-size: 13px; color: #8E8EA0;">📅 4月5日 周六 · 🚗 有车 · 👥 已3人</div>
+                  </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <div style="display: flex;">
+                    <div style="width: 28px; height: 28px; background: linear-gradient(135deg, #FF6B6B, #FF8E53); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 600; border: 2px solid white;">张</div>
+                    <div style="width: 28px; height: 28px; background: linear-gradient(135deg, #4A90E2, #6BA3E8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 600; border: 2px solid white; margin-left: -8px;">李</div>
+                    <div style="width: 28px; height: 28px; background: linear-gradient(135deg, #56AB2F, #A8E6CF); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 600; border: 2px solid white; margin-left: -8px;">王</div>
+                  </div>
+                  <span style="font-size: 12px; color: #8E8EA0;">发起人：张伟 · ⭐ 4.8</span>
+                </div>
+              </div>
+              
+              <div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px;">
+                <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                  <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #56AB2F, #A8E6CF); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px;">🌸</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 4px;">百花山赏花踏青</div>
+                    <div style="font-size: 13px; color: #8E8EA0;">📅 4月8日 周二 · 🚗 无车 · 👥 已2人</div>
+                  </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <div style="display: flex;">
+                    <div style="width: 28px; height: 28px; background: linear-gradient(135deg, #FF6B6B, #FF8E53); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 600; border: 2px solid white;">小</div>
+                    <div style="width: 28px; height: 28px; background: linear-gradient(135deg, #4A90E2, #6BA3E8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 600; border: 2px solid white; margin-left: -8px;">红</div>
+                  </div>
+                  <span style="font-size: 12px; color: #8E8EA0;">发起人：小明 · ⭐ 4.6</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="tab-bar">
+              <div class="tab-item active"><span class="tab-icon">🏠</span><span>首页</span></div>
+              <div class="tab-item"><span class="tab-icon">💬</span><span>消息</span></div>
+              <div class="tab-item"><span class="tab-icon">👤</span><span>我的</span></div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="note-card">
+        <h4>💡 设计说明</h4>
+        <p>• 首页无Tab分类，直接展示「热门地点」横向滚动卡片 + 「近期行程」列表<br>
+           • 地点卡片采用大图横向滚动，视觉冲击力强<br>
+           • 行程卡片显示关键信息：地点、日期、交通、人数、发起人</p>
+      </div>
+    </div>
+    
+    <!-- 2. 我的行程页 -->
+    <div class="section">
+      <h2 class="section-title">2. 我的行程页</h2>
+      <p style="opacity: 0.7; margin-bottom: 16px;">无Tab分类 | 按时间排序的行程日历 | 只显示已确定的行程</p>
+      
+      <div class="screens-grid">
+        <div class="screen-wrapper">
+          <div class="screen-title">我的行程 - 行程日历</div>
+          <div class="phone-frame" style="height: 812px; overflow-y: auto;">
+            <div class="status-bar" style="position: sticky; top: 0; background: white; z-index: 10;"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="background: white; padding: 16px; border-bottom: 1px solid var(--border-color);">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-size: 20px; color: #8E8EA0;">←</span>
+                <span style="font-size: 20px; font-weight: 700; color: #1a1a1a;">我的行程</span>
+                <span style="width: 20px;"></span>
+              </div>
+            </div>
+            
+            <div style="flex: 1; background: var(--bg-color); padding: 16px; padding-bottom: 100px;">
+              <!-- 即将出发 -->
+              <div style="font-size: 14px; color: #8E8EA0; font-weight: 500; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                <span>📅</span> 即将出发
+              </div>
+              
+              <!-- 我发起的 -->
+              <div style="background: white; border-radius: 16px; overflow: hidden; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div style="display: flex; padding: 16px; gap: 12px;">
+                  <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px;">🏔️</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 6px;">东灵山日出</div>
+                    <div style="font-size: 13px; color: #8E8EA0; margin-bottom: 4px;">📅 4月5日 周六 · 🚗 有车</div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <div style="display: flex;">
+                        <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #FF6B6B, #FF8E53); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600; border: 2px solid white;">我</div>
+                        <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #4A90E2, #6BA3E8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600; border: 2px solid white; margin-left: -6px;">+3</div>
+                      </div>
+                      <span style="font-size: 12px; color: #8E8EA0;">已3人 · 还需2人</span>
+                    </div>
+                  </div>
+                  <div style="padding: 4px 10px; background: rgba(82, 196, 26, 0.1); color: #52C41A; border-radius: 12px; font-size: 12px; font-weight: 500; height: fit-content;">招募中</div>
+                </div>
+                <div style="display: flex; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--bg-color);">
+                  <button style="flex: 1; padding: 10px; background: var(--bg-color); border: none; border-radius: 20px; font-size: 14px; font-weight: 500; color: #4A4A68;">管理</button>
+                  <button style="flex: 1; padding: 10px; background: #4A90E2; color: white; border: none; border-radius: 20px; font-size: 14px; font-weight: 500;">查看详情</button>
+                </div>
+              </div>
+              
+              <!-- 我参与的 -->
+              <div style="background: white; border-radius: 16px; overflow: hidden; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div style="display: flex; padding: 16px; gap: 12px;">
+                  <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #56AB2F, #A8E6CF); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px;">🌸</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 6px;">百花山踏青</div>
+                    <div style="font-size: 13px; color: #8E8EA0; margin-bottom: 4px;">📅 4月8日 周二 · 发起人：张伟</div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <div style="display: flex;">
+                        <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #FF6B6B, #FF8E53); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600; border: 2px solid white;">张</div>
+                        <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #4A90E2, #6BA3E8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600; border: 2px solid white; margin-left: -6px;">李</div>
+                        <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #56AB2F, #A8E6CF); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600; border: 2px solid white; margin-left: -6px;">+2</div>
+                      </div>
+                      <span style="font-size: 12px; color: #8E8EA0;">已4人 · 🚗 无车</span>
+                    </div>
+                  </div>
+                  <div style="padding: 4px 10px; background: rgba(82, 196, 26, 0.1); color: #52C41A; border-radius: 12px; font-size: 12px; font-weight: 500; height: fit-content;">已加入</div>
+                </div>
+                <div style="display: flex; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--bg-color);">
+                  <button style="flex: 1; padding: 10px; background: rgba(255, 77, 79, 0.1); color: #FF4D4F; border: none; border-radius: 20px; font-size: 14px; font-weight: 500;">退出</button>
+                  <button style="flex: 1; padding: 10px; background: #4A90E2; color: white; border: none; border-radius: 20px; font-size: 14px; font-weight: 500;">查看详情</button>
+                </div>
+              </div>
+              
+              <!-- 已结束 -->
+              <div style="font-size: 14px; color: #8E8EA0; font-weight: 500; margin: 24px 0 12px; display: flex; align-items: center; gap: 6px;">
+                <span>📅</span> 已结束
+              </div>
+              
+              <div style="background: white; border-radius: 16px; padding: 16px; opacity: 0.6;">
+                <div style="display: flex; gap: 12px;">
+                  <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #8E8EA0, #B4B4C0); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px;">🏔️</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 6px;">海坨山露营</div>
+                    <div style="font-size: 13px; color: #8E8EA0;">📅 3月29日 · 👥 4人参与</div>
+                  </div>
+                  <div style="padding: 4px 10px; background: var(--bg-color); color: #8E8EA0; border-radius: 12px; font-size: 12px; font-weight: 500; height: fit-content;">已结束</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 悬浮发布按钮 -->
+            <div style="position: absolute; bottom: 100px; right: 20px; width: 56px; height: 56px; background: linear-gradient(135deg, #4A90E2, #6BA3E8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; box-shadow: 0 4px 20px rgba(74, 144, 226, 0.4);">+</div>
+            
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="note-card">
+        <h4>💡 设计说明</h4>
+        <p>• 删除了Tab分类，改为按时间分组的行程日历<br>
+           • 分为「即将出发」和「已结束」两个时间段<br>
+           • 只显示已确定的行程，申请中的行程在「行程消息页」管理<br>
+           • 卡片右上角显示状态标签：招募中/已加入/已结束</p>
+      </div>
+    </div>
+    
+    <!-- 3. 行程消息页 -->
+    <div class="section">
+      <h2 class="section-title">3. 行程消息页</h2>
+      <p style="opacity: 0.7; margin-bottom: 16px;">双Tab分组：我收到的 + 我发出的 | 统一卡片风格</p>
+      
+      <div class="screens-grid">
+        <!-- 我收到的 -->
+        <div class="screen-wrapper">
+          <div class="screen-title">我收到的 - 待处理</div>
+          <div class="phone-frame" style="height: 812px; overflow-y: auto;">
+            <div class="status-bar" style="position: sticky; top: 0; background: white; z-index: 10;"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="background: white; padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center;">
+              <span style="font-size: 20px; color: #8E8EA0;">‹</span>
+              <span style="font-size: 18px; font-weight: 600; color: #1a1a1a; flex: 1; text-align: center;">行程消息</span>
+              <span style="width: 20px;"></span>
+            </div>
+            
+            <!-- 分组Tab -->
+            <div style="background: white; padding: 0 16px 12px; border-bottom: 1px solid var(--border-color);">
+              <div style="display: flex; gap: 8px;">
+                <div style="flex: 1; padding: 10px; background: #4A90E2; color: white; border-radius: 20px; font-size: 14px; font-weight: 500; text-align: center;">📥 我收到的</div>
+                <div style="flex: 1; padding: 10px; background: var(--bg-color); color: #4A4A68; border-radius: 20px; font-size: 14px; font-weight: 500; text-align: center;">📤 我发出的</div>
+              </div>
+            </div>
+            
+            <div style="flex: 1; background: var(--bg-color); padding: 16px;">
+              <!-- 申请加入通知 -->
+              <div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                  <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #FF6B6B, #FF8E53); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 16px;">李</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 15px; font-weight: 600; color: #1a1a1a;">李明 申请加入您的行程</div>
+                    <div style="font-size: 12px; color: #8E8EA0;">10分钟前</div>
+                  </div>
+                </div>
+                <div style="background: var(--bg-color); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+                    <span style="padding: 4px 10px; background: white; border-radius: 12px; font-size: 12px; color: #4A4A68;">🏔️ 东灵山</span>
+                    <span style="padding: 4px 10px; background: white; border-radius: 12px; font-size: 12px; color: #4A4A68;">📅 4月5日</span>
+                    <span style="padding: 4px 10px; background: white; border-radius: 12px; font-size: 12px; color: #4A4A68;">👥 1-4人</span>
+                  </div>
+                  <div style="font-size: 13px; color: #4A4A68;"><span style="color: #8E8EA0;">💬 微信号：</span>138****8888</div>
+                  <div style="font-size: 13px; color: #4A4A68; margin-top: 4px;"><span style="color: #8E8EA0;">💬 留言：</span>有户外经验，可以分摊油费</div>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                  <button style="flex: 1; padding: 12px; background: var(--bg-color); border: none; border-radius: 10px; font-size: 14px; font-weight: 500; color: #4A4A68;">拒绝</button>
+                  <button style="flex: 1; padding: 12px; background: #4A90E2; color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 500;">同意</button>
+                </div>
+              </div>
+              
+              <!-- 邀请游玩通知 -->
+              <div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                  <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #4A90E2, #6BA3E8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 16px;">张</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 15px; font-weight: 600; color: #1a1a1a;">张伟 邀请您一起游玩</div>
+                    <div style="font-size: 12px; color: #8E8EA0;">30分钟前</div>
+                  </div>
+                </div>
+                <div style="background: var(--bg-color); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+                    <span style="padding: 4px 10px; background: white; border-radius: 12px; font-size: 12px; color: #4A4A68;">🏔️ 百花山</span>
+                    <span style="padding: 4px 10px; background: white; border-radius: 12px; font-size: 12px; color: #4A4A68;">📅 4月8日</span>
+                    <span style="padding: 4px 10px; background: white; border-radius: 12px; font-size: 12px; color: #4A4A68;">🚗 有车</span>
+                  </div>
+                  <div style="font-size: 13px; color: #4A4A68;"><span style="color: #8E8EA0;">💬 微信号：</span>139****6666</div>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                  <button style="flex: 1; padding: 12px; background: var(--bg-color); border: none; border-radius: 10px; font-size: 14px; font-weight: 500; color: #4A4A68;">忽略</button>
+                  <button style="flex: 1; padding: 12px; background: #4A90E2; color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 500;">接受</button>
+                </div>
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+        
+        <!-- 我发出的 - 统一卡片风格 -->
+        <div class="screen-wrapper">
+          <div class="screen-title">我发出的 - 申请管理</div>
+          <div class="phone-frame" style="height: 812px; overflow-y: auto;">
+            <div class="status-bar" style="position: sticky; top: 0; background: white; z-index: 10;"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="background: white; padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center;">
+              <span style="font-size: 20px; color: #8E8EA0;">‹</span>
+              <span style="font-size: 18px; font-weight: 600; color: #1a1a1a; flex: 1; text-align: center;">行程消息</span>
+              <span style="width: 20px;"></span>
+            </div>
+            
+            <!-- 分组Tab -->
+            <div style="background: white; padding: 0 16px 12px; border-bottom: 1px solid var(--border-color);">
+              <div style="display: flex; gap: 8px;">
+                <div style="flex: 1; padding: 10px; background: var(--bg-color); color: #4A4A68; border-radius: 20px; font-size: 14px; font-weight: 500; text-align: center;">📥 我收到的</div>
+                <div style="flex: 1; padding: 10px; background: #4A90E2; color: white; border-radius: 20px; font-size: 14px; font-weight: 500; text-align: center;">📤 我发出的</div>
+              </div>
+            </div>
+            
+            <div style="flex: 1; background: var(--bg-color); padding: 16px;">
+              <!-- 申请中 - 统一风格 -->
+              <div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                  <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🏔️</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 15px; font-weight: 600; color: #1a1a1a;">东灵山徒步</div>
+                    <div style="font-size: 12px; color: #8E8EA0;">发起人：张伟 · ⭐ 4.8</div>
+                  </div>
+                  <div style="padding: 4px 10px; background: rgba(250, 173, 20, 0.1); color: #FAAD14; border-radius: 12px; font-size: 12px; font-weight: 500;">⏳ 申请中</div>
+                </div>
+                <div style="background: var(--bg-color); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+                    <span style="padding: 4px 10px; background: white; border-radius: 12px; font-size: 12px; color: #4A4A68;">📅 4月12日</span>
+                    <span style="padding: 4px 10px; background: white; border-radius: 12px; font-size: 12px; color: #4A4A68;">🚗 有车</span>
+                    <span style="padding: 4px 10px; background: white; border-radius: 12px; font-size: 12px; color: #4A4A68;">👥 已3人</span>
+                  </div>
+                  <div style="font-size: 13px; color: #4A4A68;"><span style="color: #8E8EA0;">💬 我的留言：</span>有户外经验，可以分摊油费</div>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                  <button style="flex: 1; padding: 10px; background: rgba(255, 77, 79, 0.1); color: #FF4D4F; border: none; border-radius: 10px; font-size: 14px; font-weight: 500;">取消申请</button>
+                  <button style="flex: 1; padding: 10px; background: #4A90E2; color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 500;">查看行程</button>
+                </div>
+              </div>
+              
+              <!-- 已同意 - 统一风格 -->
+              <div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                  <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #56AB2F, #A8E6CF); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🏔️</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 15px; font-weight: 600; color: #1a1a1a;">海坨山露营</div>
+                    <div style="font-size: 12px; color: #8E8EA0;">发起人：李明 · ⭐ 4.6</div>
+                  </div>
+                  <div style="padding: 4px 10px; background: rgba(82, 196, 26, 0.1); color: #52C41A; border-radius: 12px; font-size: 12px; font-weight: 500;">✓ 已同意</div>
+                </div>
+                <div style="background: linear-gradient(135deg, rgba(82, 196, 26, 0.08), rgba(115, 209, 61, 0.08)); border-radius: 12px; padding: 12px; margin-bottom: 12px; border: 1px solid rgba(82, 196, 26, 0.2);">
+                  <div style="font-size: 13px; color: #52C41A; font-weight: 500; margin-bottom: 8px;">🎉 对方已同意您的申请</div>
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+                    <span style="padding: 4px 10px; background: white; border-radius: 12px; font-size: 12px; color: #4A4A68;">📅 4月8日</span>
+                    <span style="padding: 4px 10px; background: white; border-radius: 12px; font-size: 12px; color: #4A4A68;">🚗 无车</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px; padding: 8px 0;">
+                    <span style="font-size: 14px;">💬</span>
+                    <span style="font-size: 14px; color: #1a1a1a; font-weight: 500;">微信号：139****6666</span>
+                    <button style="margin-left: auto; padding: 4px 10px; background: #4A90E2; color: white; border: none; border-radius: 6px; font-size: 12px;">复制</button>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                  <button style="flex: 1; padding: 10px; background: #4A90E2; color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 500;">查看行程</button>
+                </div>
+              </div>
+              
+              <!-- 已拒绝 - 统一风格 -->
+              <div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                  <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #8E8EA0, #B4B4C0); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🌸</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 15px; font-weight: 600; color: #1a1a1a;">百花山踏青</div>
+                    <div style="font-size: 12px; color: #8E8EA0;">发起人：王伟 · 昨天</div>
+                  </div>
+                  <div style="padding: 4px 10px; background: rgba(255, 77, 79, 0.1); color: #FF4D4F; border-radius: 12px; font-size: 12px; font-weight: 500;">✕ 已拒绝</div>
+                </div>
+                <div style="background: var(--bg-color); border-radius: 12px; padding: 12px;">
+                  <div style="font-size: 13px; color: #8E8EA0; text-align: center;">别灰心，去看看其他有趣的行程吧~</div>
+                </div>
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+        
+        <!-- 取消申请确认弹窗 -->
+        <div class="screen-wrapper">
+          <div class="screen-title">取消申请确认弹窗</div>
+          <div class="phone-frame" style="height: 812px; overflow-y: auto;">
+            <div class="status-bar" style="position: sticky; top: 0; background: white; z-index: 10;"><span>9:41</span><span>📶 🔋</span></div>
+            <div style="background: white; padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center;">
+              <span style="font-size: 20px; color: #8E8EA0;">‹</span>
+              <span style="font-size: 18px; font-weight: 600; color: #1a1a1a; flex: 1; text-align: center;">行程消息</span>
+              <span style="width: 20px;"></span>
+            </div>
+            
+            <div style="background: white; padding: 0 16px 12px; border-bottom: 1px solid var(--border-color);">
+              <div style="display: flex; gap: 8px;">
+                <div style="flex: 1; padding: 10px; background: var(--bg-color); color: #4A4A68; border-radius: 20px; font-size: 14px; font-weight: 500; text-align: center;">📥 我收到的</div>
+                <div style="flex: 1; padding: 10px; background: #4A90E2; color: white; border-radius: 20px; font-size: 14px; font-weight: 500; text-align: center;">📤 我发出的</div>
+              </div>
+            </div>
+            
+            <div style="flex: 1; background: var(--bg-color); padding: 16px; position: relative;">
+              <!-- 背景模糊 -->
+              <div style="filter: blur(2px); opacity: 0.7;">
+                <div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px;">
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🏔️</div>
+                    <div style="flex: 1;">
+                      <div style="font-size: 15px; font-weight: 600; color: #1a1a1a;">东灵山徒步</div>
+                      <div style="font-size: 12px; color: #8E8EA0;">发起人：张伟</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 弹窗 -->
+              <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; background: white; border-radius: 20px; padding: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); text-align: center;">
+                <div style="width: 60px; height: 60px; background: rgba(255, 77, 79, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 32px;">⚠️</div>
+                <div style="font-size: 18px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px;">确认取消申请？</div>
+                <div style="font-size: 14px; color: #8E8EA0; margin-bottom: 24px; line-height: 1.6;">取消后将移除申请记录，对方不会收到通知。您可以随时重新申请。</div>
+                <div style="display: flex; gap: 12px;">
+                  <button style="flex: 1; padding: 14px; background: var(--bg-color); border: none; border-radius: 12px; font-size: 15px; font-weight: 500; color: #4A4A68;">再想想</button>
+                  <button style="flex: 1; padding: 14px; background: #FF4D4F; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 500;">确认取消</button>
+                </div>
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="note-card">
+        <h4>💡 设计说明</h4>
+        <p>• 「我发出的」卡片与「我收到的」采用统一的视觉风格<br>
+           • 都使用：头像/图标 + 标题 + 标签 + 信息卡片 + 操作按钮<br>
+           • 状态通过右上角标签区分：⏳申请中 / ✓已同意 / ✕已拒绝<br>
+           • 已同意状态显示联系方式，已拒绝显示鼓励文案</p>
+      </div>
+    </div>
+    
+    <!-- 版本说明 -->
+    <div class="section">
+      <h2 class="section-title">版本更新说明</h2>
+      <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 24px;">
+        <h4 style="font-size: 18px; margin-bottom: 16px;">v2.1.0 更新内容</h4>
+        <ul style="font-size: 14px; opacity: 0.8; line-height: 2; list-style: none;">
+          <li>✅ 首页：删除Tab分类，改为热门地点卡片 + 近期行程列表</li>
+          <li>✅ 我的行程页：删除Tab分类，改为按时间分组的行程日历</li>
+          <li>✅ 行程消息页：统一「我发出的」卡片风格，与「我收到的」保持一致</li>
+        </ul>
+      </div>
+    </div>
+    
+    <footer style="text-align: center; padding: 40px 20px; opacity: 0.6;">
+      <p style="font-size: 14px;">北京去哪玩 · 设计稿</p>
+      <p style="font-size: 12px; margin-top: 8px;">Version 2.1.0 | 2026-04-13</p>
+    </footer>
+  </div>
+</body>
+</html>

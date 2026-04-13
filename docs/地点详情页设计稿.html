@@ -1421,6 +1421,20 @@
         </div>
       </div>
 
+      <!-- 联系方式 -->
+      <div class="content-card" style="padding: 16px;">
+        <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">📞 联系方式</div>
+        <div style="margin-bottom: 12px;">
+          <input type="text" style="width: 100%; padding: 14px 16px; border: 1px solid #E8E8E8; border-radius: 12px; font-size: 15px; background: #FAFAFA; box-sizing: border-box;" placeholder="请输入手机号（同时也是微信号）" value="13912345678">
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; background: rgba(74, 144, 226, 0.08); border-radius: 8px;">
+          <span style="font-size: 16px; line-height: 1;">💡</span>
+          <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+            <strong style="color: var(--text-primary);">提示：</strong>此号码将同时作为手机号和微信号展示给已加入的成员，方便他们联系你。
+          </div>
+        </div>
+      </div>
+
       <!-- 补充说明 -->
       <div class="content-card" style="padding: 16px;">
         <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">📝 补充说明</div>
@@ -1441,7 +1455,122 @@
     </div>
   </div>
 
-  <!-- ========== 行程详情页 ========== -->
+  <!-- ========== 发布行程页 - 空状态 ========== -->
+  <div class="phone-frame">
+    <!-- 状态栏 -->
+    <div class="status-bar" style="color: var(--text-primary);">
+      <span class="time">21:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M12 3C6.95 3 3 6.95 3 12s3.95 9 9 9c.76 0 1.51-.09 2.23-.27C12.14 19.13 10 16.27 10 13c0-3.87 3.13-7 7-7 1.27 0 2.46.34 3.49.93C18.71 4.79 15.59 3 12 3z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+
+    <!-- 顶部导航 -->
+    <div style="background: white; padding: 12px 16px; padding-top: 44px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center;">
+      <div class="back-btn" style="position: relative; top: 0; left: 0; background: var(--bg-color);">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </div>
+      <span style="flex: 1; text-align: center; font-size: 18px; font-weight: 600; color: var(--text-primary);">发布行程</span>
+      <span style="width: 32px;"></span>
+    </div>
+
+    <div class="scroll-container" style="padding: 16px; padding-bottom: 120px;">
+      <!-- 选择地点 -->
+      <div class="content-card" style="padding: 16px;">
+        <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">📍 选择地点</div>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0;">
+          <span style="font-size: 15px; color: var(--text-primary); font-weight: 500;">目的地</span>
+          <div style="display: flex; align-items: center; color: var(--text-hint); font-size: 15px;">
+            <span>请选择</span>
+            <span style="margin-left: 8px; font-size: 20px; color: #CCCCCC;">›</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 行程信息 -->
+      <div class="content-card" style="padding: 16px;">
+        <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">📅 行程信息</div>
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+          <span style="font-size: 15px; color: var(--text-primary); font-weight: 500;">出发地</span>
+          <div style="display: flex; align-items: center; color: var(--text-hint); font-size: 15px;">
+            <span>请选择</span>
+            <span style="margin-left: 8px; font-size: 20px; color: #CCCCCC;">›</span>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+          <span style="font-size: 15px; color: var(--text-primary); font-weight: 500;">出行日期</span>
+          <div style="display: flex; align-items: center; color: var(--text-hint); font-size: 15px;">
+            <span>请选择</span>
+            <span style="margin-left: 8px; font-size: 20px; color: #CCCCCC;">›</span>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+          <span style="font-size: 15px; color: var(--text-primary); font-weight: 500;">出行方式</span>
+          <div style="display: flex; gap: 12px;">
+            <div style="padding: 9px 24px; border-radius: 20px; font-size: 14px; background: var(--bg-color); color: var(--text-hint);">有车</div>
+            <div style="padding: 9px 24px; border-radius: 20px; font-size: 14px; background: var(--bg-color); color: var(--text-hint);">无车</div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+          <span style="font-size: 15px; color: var(--text-primary); font-weight: 500;">已有人数</span>
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--bg-color); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-hint);">−</div>
+            <span style="font-size: 20px; font-weight: 600; color: var(--text-primary); min-width: 40px; text-align: center;">1人</span>
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--bg-color); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-hint);">+</div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0;">
+          <span style="font-size: 15px; color: var(--text-primary); font-weight: 500;">还需人数</span>
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--bg-color); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-hint);">−</div>
+            <span style="font-size: 20px; font-weight: 600; color: var(--text-primary); min-width: 40px; text-align: center;">1人</span>
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--bg-color); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-hint);">+</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 联系方式 - 空状态 -->
+      <div class="content-card" style="padding: 16px;">
+        <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">📞 联系方式</div>
+        <div style="margin-bottom: 12px;">
+          <input type="text" style="width: 100%; padding: 14px 16px; border: 1px solid #E8E8E8; border-radius: 12px; font-size: 15px; background: #FAFAFA; box-sizing: border-box; color: var(--text-hint);" placeholder="请输入手机号（同时也是微信号）">
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; background: rgba(74, 144, 226, 0.08); border-radius: 8px;">
+          <span style="font-size: 16px; line-height: 1;">💡</span>
+          <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+            <strong style="color: var(--text-primary);">提示：</strong>此号码将同时作为手机号和微信号展示给已加入的成员，方便他们联系你。
+          </div>
+        </div>
+      </div>
+
+      <!-- 补充说明 - 空状态 -->
+      <div class="content-card" style="padding: 16px;">
+        <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">📝 补充说明</div>
+        <textarea style="width: 100%; height: 120px; padding: 12px; border: 1px solid #E8E8E8; border-radius: 10px; font-size: 15px; background: #FAFAFA; resize: none; font-family: inherit; line-height: 1.6; box-sizing: border-box; color: var(--text-hint);" placeholder="说说你的计划、要求或期望（如：早上6点出发，AA制，希望队友有户外经验等）"></textarea>
+        <div style="text-align: right; font-size: 13px; color: var(--text-hint); margin-top: 8px;">0/200</div>
+      </div>
+    </div>
+
+    <!-- 底部发布按钮 -->
+    <div class="footer-bar">
+      <div class="publish-btn" style="opacity: 0.5;">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        发布行程
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 发布行程页 ========== -->
   <div class="phone-frame">
     <!-- 状态栏 -->
     <div class="status-bar" style="background: transparent; position: absolute; top: 0; left: 0; right: 0; color: white; z-index: 10;">
@@ -1781,8 +1910,298 @@
     </div>
   </div>
 
-  <!-- 设计说明面板 - 发布成功页 -->
+  <!-- ========== 邀请他弹窗 - 未发布行程 ========== -->
+  <div class="phone-frame">
+    <!-- 状态栏 -->
+    <div class="status-bar" style="background: transparent; position: absolute; top: 0; left: 0; right: 0; color: white; z-index: 10;">
+      <span class="time">21:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M12 3C6.95 3 3 6.95 3 12s3.95 9 9 9c.76 0 1.51-.09 2.23-.27C12.14 19.13 10 16.27 10 13c0-3.87 3.13-7 7-7 1.27 0 2.46.34 3.49.93C18.71 4.79 15.59 3 12 3z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+
+    <div class="scroll-container" style="filter: blur(2px); opacity: 0.7;">
+      <!-- 顶部轮播图 -->
+      <div class="carousel-section">
+        <div class="carousel-container" id="carousel">
+          <div class="carousel-slide">
+            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop" alt="风景1">
+            <div class="carousel-overlay"></div>
+          </div>
+        </div>
+        <div class="carousel-dots">
+          <div class="carousel-dot active"></div>
+        </div>
+        <div class="back-btn">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </div>
+        <div class="share-btn">
+          <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        </div>
+      </div>
+
+      <!-- 基本信息卡片 -->
+      <div class="info-section">
+        <div class="place-header">
+          <h1 class="place-name">东灵山</h1>
+          <span class="place-category">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 21h8M12 21V11M12 11L7 6M12 11L17 6"/>
+            </svg>
+            山岳风光
+          </span>
+        </div>
+        <div class="stats-row">
+          <div class="stat-item">
+            <div class="stat-value">150km</div>
+            <div class="stat-label">距北京市区</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">中等</div>
+            <div class="stat-label">难度等级</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">4.8</div>
+            <div class="stat-label">用户评分</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">1天</div>
+            <div class="stat-label">建议时长</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 行程列表 -->
+      <div class="trip-section">
+        <div class="section-header">
+          <div class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            想去的人
+            <span class="trip-count">3</span>
+          </div>
+        </div>
+
+        <div class="trip-list">
+          <div class="trip-item">
+            <div class="trip-top">
+              <div class="trip-user-info">
+                <div class="user-avatar">
+                  <img src="https://i.pravatar.cc/100?img=5" alt="用户头像">
+                </div>
+                <span class="trip-user">小李</span>
+                <span class="trip-status need-car">需拼车</span>
+              </div>
+              <button class="action-btn outline">邀请他</button>
+            </div>
+            <div class="trip-meta-row">
+              <div class="trip-meta-item">
+                <span class="trip-meta-label">出发</span>
+                03月26日 周三
+              </div>
+              <div class="trip-meta-item">
+                <span class="trip-meta-label">人数</span>
+                1/4人
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 邀请弹窗 -->
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: calc(100% - 48px); max-width: 320px; background: white; border-radius: 20px; padding: 28px 24px; box-shadow: 0 12px 40px rgba(0,0,0,0.2); text-align: center; z-index: 100;">
+      <!-- 图标 -->
+      <div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, rgba(74, 144, 226, 0.15), rgba(74, 144, 226, 0.08)); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4A90E2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+      </div>
+      
+      <!-- 标题 -->
+      <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">邀请队友</h3>
+      
+      <!-- 说明文字 -->
+      <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 24px;">
+        您还没有发布该地点的行程<br>
+        需要先发布行程才能邀请他人加入
+      </p>
+      
+      <!-- 按钮组 -->
+      <div style="display: flex; gap: 12px;">
+        <button style="flex: 1; padding: 14px; background: var(--bg-color); color: var(--text-secondary); border: none; border-radius: 12px; font-size: 15px; font-weight: 500; cursor: pointer;">
+          取消
+        </button>
+        <button style="flex: 1; padding: 14px; background: linear-gradient(135deg, var(--primary-color), var(--primary-light)); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);">
+          去发布
+        </button>
+      </div>
+    </div>
+
+    <!-- 遮罩层 -->
+    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 50;"></div>
+  </div>
+
+  <!-- ========== 邀请成功弹窗 - 已发布行程 ========== -->
+  <div class="phone-frame">
+    <!-- 状态栏 -->
+    <div class="status-bar" style="background: transparent; position: absolute; top: 0; left: 0; right: 0; color: white; z-index: 10;">
+      <span class="time">21:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M12 3C6.95 3 3 6.95 3 12s3.95 9 9 9c.76 0 1.51-.09 2.23-.27C12.14 19.13 10 16.27 10 13c0-3.87 3.13-7 7-7 1.27 0 2.46.34 3.49.93C18.71 4.79 15.59 3 12 3z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+
+    <div class="scroll-container" style="filter: blur(2px); opacity: 0.7;">
+      <!-- 顶部轮播图 -->
+      <div class="carousel-section">
+        <div class="carousel-container" id="carousel">
+          <div class="carousel-slide">
+            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop" alt="风景1">
+            <div class="carousel-overlay"></div>
+          </div>
+        </div>
+        <div class="carousel-dots">
+          <div class="carousel-dot active"></div>
+        </div>
+        <div class="back-btn">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 行程列表 -->
+      <div class="trip-section">
+        <div class="section-header">
+          <div class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+            </svg>
+            想去的人
+            <span class="trip-count">3</span>
+          </div>
+        </div>
+
+        <div class="trip-list">
+          <div class="trip-item">
+            <div class="trip-top">
+              <div class="trip-user-info">
+                <div class="user-avatar">
+                  <img src="https://i.pravatar.cc/100?img=5" alt="用户头像">
+                </div>
+                <span class="trip-user">小李</span>
+                <span class="trip-status need-car">需拼车</span>
+              </div>
+              <button class="action-btn outline" style="background: rgba(82, 196, 26, 0.1); color: #52C41A; border-color: #52C41A;">邀请他</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 邀请成功弹窗 -->
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: calc(100% - 48px); max-width: 320px; background: white; border-radius: 20px; padding: 28px 24px; box-shadow: 0 12px 40px rgba(0,0,0,0.2); text-align: center; z-index: 100;">
+      <!-- 成功图标 -->
+      <div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #52C41A, #73D13D); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      
+      <!-- 标题 -->
+      <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">邀请已发送</h3>
+      
+      <!-- 说明文字 -->
+      <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 24px;">
+        已向「小李」发送邀请<br>
+        对方同意后您将收到通知
+      </p>
+      
+      <!-- 确认按钮 -->
+      <button style="width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary-color), var(--primary-light)); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);">
+        好的
+      </button>
+    </div>
+
+    <!-- 遮罩层 -->
+    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 50;"></div>
+  </div>
+
+  <!-- 设计说明面板 - 邀请功能 -->
   <div class="design-panel" style="position: fixed; top: 20px; right: 20px;">
+    <div class="panel-header">
+      <h2>🎨 设计说明</h2>
+      <p>地点详情页 · 邀请功能</p>
+    </div>
+    <div class="panel-content">
+      <div class="section-block">
+        <h3>邀请交互逻辑</h3>
+        <ul class="feature-list">
+          <li><strong>前置检测</strong>：点击「邀请他」时检测是否发布行程</li>
+          <li><strong>未发布</strong>：弹窗提示需要先发布行程</li>
+          <li><strong>已发布</strong>：直接发送邀请，显示成功弹窗</li>
+        </ul>
+      </div>
+
+      <div class="section-block">
+        <h3>未发布行程弹窗</h3>
+        <ul class="feature-list">
+          <li><strong>图标</strong>：蓝色渐变圆形 + 用户组图标</li>
+          <li><strong>标题</strong>：「邀请队友」</li>
+          <li><strong>说明</strong>：您还没有发布该地点的行程，需要先发布行程才能邀请他人加入</li>
+          <li><strong>按钮</strong>：取消（灰色） + 去发布（蓝色渐变）</li>
+          <li><strong>去发布</strong>：跳转到发布行程页</li>
+        </ul>
+      </div>
+
+      <div class="section-block">
+        <h3>邀请成功弹窗</h3>
+        <ul class="feature-list">
+          <li><strong>图标</strong>：绿色渐变圆形 + 对勾</li>
+          <li><strong>标题</strong>：「邀请已发送」</li>
+          <li><strong>说明</strong>：已向「用户名」发送邀请，对方同意后您将收到通知</li>
+          <li><strong>按钮</strong>：好的（单个确认按钮）</li>
+        </ul>
+      </div>
+
+      <div class="section-block">
+        <h3>视觉规范</h3>
+        <ul class="feature-list">
+          <li><strong>弹窗宽度</strong>：calc(100% - 48px)，最大 320px</li>
+          <li><strong>圆角</strong>：20px</li>
+          <li><strong>内边距</strong>：28px 24px</li>
+          <li><strong>按钮高度</strong>：48px</li>
+          <li><strong>按钮圆角</strong>：12px</li>
+          <li><strong>背景模糊</strong>：filter: blur(2px)</li>
+          <li><strong>遮罩透明度</strong>：rgba(0,0,0,0.4)</li>
+        </ul>
+      </div>
+
+      <div class="section-block">
+        <h3>检测逻辑说明</h3>
+        <ul class="feature-list">
+          <li>点击「邀请他」按钮触发检测</li>
+          <li>检测当前用户是否有该地点的行程</li>
+          <li>检测行程状态：仅「招募中」的行程可邀请</li>
+          <li>行程地点与当前页面地点需匹配</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 设计说明面板 -->
+  <div class="design-panel" style="position: fixed; top: 20px; right: 360px;">
     <div class="panel-header">
       <h2>🎨 设计说明</h2>
       <p>北上周边行 · 发布成功页</p>
@@ -1826,6 +2245,622 @@
           <li>居中对齐，垂直布局</li>
           <li>简洁大方，符合成功状态</li>
         </ul>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 行程详情页 - 发起者视角 ========== -->
+  <div class="phone-frame">
+    <div class="status-bar" style="background: transparent; position: absolute; top: 0; left: 0; right: 0; color: white; z-index: 10;">
+      <span class="time">21:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M12 3C6.95 3 3 6.95 3 12s3.95 9 9 9c.76 0 1.51-.09 2.23-.27C12.14 19.13 10 16.27 10 13c0-3.87 3.13-7 7-7 1.27 0 2.46.34 3.49.93C18.71 4.79 15.59 3 12 3z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+
+    <!-- 顶部图片区域 -->
+    <div style="position: relative; height: 240px; overflow: hidden;">
+      <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop" style="width: 100%; height: 100%; object-fit: cover;">
+      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.75) 100%);"></div>
+      
+      <div class="back-btn" style="position: absolute; top: 44px; left: 16px;">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </div>
+      
+      <div style="position: absolute; bottom: 20px; left: 20px; right: 20px;">
+        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+          <span style="padding: 6px 12px; background: #52C41A; color: white; border-radius: 14px; font-size: 12px; font-weight: 500;">招募中</span>
+        </div>
+        <h1 style="font-size: 26px; font-weight: 700; color: white; margin-bottom: 6px;">周六灵山徒步</h1>
+        <div style="font-size: 14px; color: rgba(255,255,255,0.9);">🏔️ 东灵山 · 北京最高峰</div>
+      </div>
+    </div>
+
+    <div class="scroll-container" style="padding-bottom: 100px; background: var(--bg-color);">
+      <!-- 行程信息 - 列表形式 -->
+      <div class="content-card" style="padding: 20px;">
+        <div style="display: flex; align-items: center; margin-bottom: 16px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span class="card-title" style="margin-left: 8px;">行程信息</span>
+        </div>
+        <div style="display: flex; flex-direction: column;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+            <span style="font-size: 14px; color: var(--text-hint);">📅 出发日期</span>
+            <span style="font-size: 15px; font-weight: 500; color: var(--text-primary);">4月5日 周六</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+            <span style="font-size: 14px; color: var(--text-hint);">📍 出发地</span>
+            <span style="font-size: 15px; font-weight: 500; color: var(--text-primary);">海淀区</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+            <span style="font-size: 14px; color: var(--text-hint);">🚗 交通方式</span>
+            <span style="font-size: 15px; font-weight: 500; color: var(--text-primary);">有车 · 可载3人</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+            <span style="font-size: 14px; color: var(--text-hint);">💰 预估费用</span>
+            <span style="font-size: 15px; font-weight: 500; color: var(--text-primary);">人均约 ¥80</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+            <span style="font-size: 14px; color: var(--text-hint);">📍 集合地点</span>
+            <span style="font-size: 15px; font-weight: 500; color: var(--text-primary);">五道口地铁站B口</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0;">
+            <span style="font-size: 14px; color: var(--text-hint);">👥 招募人数</span>
+            <span style="font-size: 15px; font-weight: 500; color: var(--text-primary);">2-4人</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 温馨提示 -->
+      <div class="content-card" style="padding: 20px;">
+        <div style="display: flex; align-items: center; margin-bottom: 14px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FAAD14" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span class="card-title" style="margin-left: 8px;">温馨提示</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; background: rgba(250, 173, 20, 0.08); border-radius: 8px;">
+            <span style="font-size: 14px;">🎒</span>
+            <div style="font-size: 13px; color: var(--text-primary); line-height: 1.5;">请携带身份证、饮用水、防晒用品</div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; background: rgba(250, 173, 20, 0.08); border-radius: 8px;">
+            <span style="font-size: 14px;">👟</span>
+            <div style="font-size: 13px; color: var(--text-primary); line-height: 1.5;">建议穿运动鞋，山上有碎石路段</div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; background: rgba(82, 196, 26, 0.08); border-radius: 8px;">
+            <span style="font-size: 14px;">🌤️</span>
+            <div style="font-size: 13px; color: var(--text-primary); line-height: 1.5;">当天天气：晴，气温 12-22°C</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 已加入成员 - 发起者视角 -->
+      <div class="content-card" style="padding: 20px;">
+        <div style="display: flex; align-items: center; margin-bottom: 18px;">
+          <span class="card-title">已加入成员</span>
+          <span style="margin-left: auto; font-size: 13px; color: var(--primary-color); font-weight: 500;">2/4人</span>
+        </div>
+        <div style="display: flex; gap: 16px;">
+          <div style="text-align: center;">
+            <div style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; margin: 0 auto 8px; border: 2px solid var(--primary-color);">
+              <img src="https://i.pravatar.cc/100?img=1" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <div style="font-size: 12px; color: var(--text-primary); font-weight: 500;">张伟<br><span style="color: var(--primary-color); font-size: 10px;">发起人</span></div>
+          </div>
+          <div style="text-align: center;">
+            <div style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; margin: 0 auto 8px;">
+              <img src="https://i.pravatar.cc/100?img=5" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <div style="font-size: 12px; color: var(--text-primary); font-weight: 500;">李明</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 行程公告 - 发起者可编辑 -->
+      <div class="content-card" style="padding: 20px;">
+        <div style="display: flex; align-items: center; margin-bottom: 14px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2">
+            <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span class="card-title" style="margin-left: 8px;">行程公告</span>
+          <button style="margin-left: auto; padding: 4px 10px; background: var(--primary-color); color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer;">编辑</button>
+        </div>
+        <div style="padding: 14px; background: var(--bg-color); border-radius: 10px;">
+          <p style="font-size: 14px; color: var(--text-primary); line-height: 1.6;">集合时间：早上7:00准时出发，请大家提前10分钟到达。记得带好身份证、水和零食，穿舒适的运动鞋。有问题随时联系我~</p>
+          <div style="font-size: 12px; color: var(--text-hint); margin-top: 10px;">更新于 2小时前</div>
+        </div>
+      </div>
+
+      <!-- 申请人列表 - 发起者可见 -->
+      <div class="content-card" style="padding: 20px;">
+        <div style="display: flex; align-items: center; margin-bottom: 18px;">
+          <span class="card-title">待处理申请</span>
+          <span style="margin-left: auto; padding: 2px 8px; background: rgba(250, 173, 20, 0.15); color: #FAAD14; border-radius: 10px; font-size: 12px; font-weight: 500;">1人待审</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--bg-color); border-radius: 12px;">
+          <div style="width: 44px; height: 44px; border-radius: 50%; overflow: hidden;">
+            <img src="https://i.pravatar.cc/100?img=8" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <div style="flex: 1;">
+            <div style="font-size: 15px; font-weight: 500; color: var(--text-primary);">王芳</div>
+            <div style="font-size: 12px; color: var(--text-hint);">有户外经验，可分摊油费</div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button style="padding: 8px 16px; background: white; border: 1px solid var(--border-color); border-radius: 18px; font-size: 13px; color: var(--text-secondary); cursor: pointer;">拒绝</button>
+            <button style="padding: 8px 16px; background: var(--primary-color); color: white; border: none; border-radius: 18px; font-size: 13px; cursor: pointer;">同意</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部管理按钮 - 发起者视角 -->
+    <div class="footer-bar">
+      <button style="flex: 1; height: 54px; background: var(--bg-color); color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 16px; font-size: 16px; font-weight: 500; cursor: pointer;">编辑行程</button>
+      <button style="flex: 1; height: 54px; background: linear-gradient(135deg, var(--primary-color), var(--primary-light)); color: white; border: none; border-radius: 16px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4);">分享招募</button>
+    </div>
+  </div>
+
+  <!-- ========== 行程详情页 - 已加入成员视角 ========== -->
+  <div class="phone-frame">
+    <div class="status-bar" style="background: transparent; position: absolute; top: 0; left: 0; right: 0; color: white; z-index: 10;">
+      <span class="time">21:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M12 3C6.95 3 3 6.95 3 12s3.95 9 9 9c.76 0 1.51-.09 2.23-.27C12.14 19.13 10 16.27 10 13c0-3.87 3.13-7 7-7 1.27 0 2.46.34 3.49.93C18.71 4.79 15.59 3 12 3z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+
+    <div style="position: relative; height: 240px; overflow: hidden;">
+      <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop" style="width: 100%; height: 100%; object-fit: cover;">
+      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.75) 100%);"></div>
+      
+      <div class="back-btn" style="position: absolute; top: 44px; left: 16px;">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </div>
+      
+      <div style="position: absolute; bottom: 20px; left: 20px; right: 20px;">
+        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+          <span style="padding: 6px 12px; background: rgba(82, 196, 26, 0.9); color: white; border-radius: 14px; font-size: 12px; font-weight: 500;">✓ 已加入</span>
+        </div>
+        <h1 style="font-size: 26px; font-weight: 700; color: white; margin-bottom: 6px;">周六灵山徒步</h1>
+        <div style="font-size: 14px; color: rgba(255,255,255,0.9);">🏔️ 东灵山 · 北京最高峰</div>
+      </div>
+    </div>
+
+    <div class="scroll-container" style="padding-bottom: 100px; background: var(--bg-color);">
+      <!-- 行程信息 - 列表形式 -->
+      <div class="content-card" style="padding: 20px;">
+        <div style="display: flex; align-items: center; margin-bottom: 16px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span class="card-title" style="margin-left: 8px;">行程信息</span>
+        </div>
+        <div style="display: flex; flex-direction: column;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+            <span style="font-size: 14px; color: var(--text-hint);">📅 出发日期</span>
+            <span style="font-size: 15px; font-weight: 500; color: var(--text-primary);">4月5日 周六</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+            <span style="font-size: 14px; color: var(--text-hint);">📍 出发地</span>
+            <span style="font-size: 15px; font-weight: 500; color: var(--text-primary);">海淀区</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+            <span style="font-size: 14px; color: var(--text-hint);">🚗 交通方式</span>
+            <span style="font-size: 15px; font-weight: 500; color: var(--text-primary);">有车 · 可载3人</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+            <span style="font-size: 14px; color: var(--text-hint);">💰 预估费用</span>
+            <span style="font-size: 15px; font-weight: 500; color: var(--text-primary);">人均约 ¥80</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+            <span style="font-size: 14px; color: var(--text-hint);">📍 集合地点</span>
+            <span style="font-size: 15px; font-weight: 500; color: var(--text-primary);">五道口地铁站B口</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0;">
+            <span style="font-size: 14px; color: var(--text-hint);">👥 招募人数</span>
+            <span style="font-size: 15px; font-weight: 500; color: var(--text-primary);">2-4人</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 温馨提示 -->
+      <div class="content-card" style="padding: 20px;">
+        <div style="display: flex; align-items: center; margin-bottom: 14px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FAAD14" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span class="card-title" style="margin-left: 8px;">温馨提示</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; background: rgba(250, 173, 20, 0.08); border-radius: 8px;">
+            <span style="font-size: 14px;">🎒</span>
+            <div style="font-size: 13px; color: var(--text-primary); line-height: 1.5;">请携带身份证、饮用水、防晒用品</div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; background: rgba(250, 173, 20, 0.08); border-radius: 8px;">
+            <span style="font-size: 14px;">👟</span>
+            <div style="font-size: 13px; color: var(--text-primary); line-height: 1.5;">建议穿运动鞋，山上有碎石路段</div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; background: rgba(82, 196, 26, 0.08); border-radius: 8px;">
+            <span style="font-size: 14px;">🌤️</span>
+            <div style="font-size: 13px; color: var(--text-primary); line-height: 1.5;">当天天气：晴，气温 12-22°C</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 发起人信息 - 已加入成员可看到联系方式 -->
+      <div class="content-card" style="padding: 20px;">
+        <div class="card-header" style="margin-bottom: 18px;">
+          <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span class="card-title">发起人</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <div style="width: 52px; height: 52px; border-radius: 50%; overflow: hidden; flex-shrink: 0;">
+            <img src="https://i.pravatar.cc/100?img=1" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <div style="flex: 1;">
+            <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">张伟</div>
+            <div style="font-size: 12px; color: var(--text-hint); margin-top: 5px;">已发起 5 次 · ★ 98% 好评</div>
+          </div>
+        </div>
+        <!-- 联系方式 - 已加入可见 -->
+        <div style="margin-top: 16px; padding: 14px; background: linear-gradient(135deg, rgba(82, 196, 26, 0.08), rgba(115, 209, 61, 0.08)); border-radius: 12px; border: 1px solid rgba(82, 196, 26, 0.2);">
+          <div style="font-size: 13px; color: #52C41A; font-weight: 500; margin-bottom: 10px;">🎉 您已加入，可联系发起人</div>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 12px 0;">
+            <span style="font-size: 16px;">💬</span>
+            <span style="font-size: 15px; color: var(--text-primary); font-weight: 500;">微信号：139****6666</span>
+            <button style="margin-left: auto; padding: 5px 12px; background: var(--primary-color); color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer;">复制</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 已加入成员 -->
+      <div class="content-card" style="padding: 20px;">
+        <div style="display: flex; align-items: center; margin-bottom: 18px;">
+          <span class="card-title">已加入成员</span>
+          <span style="margin-left: auto; font-size: 13px; color: var(--primary-color); font-weight: 500;">2/4人</span>
+        </div>
+        <div style="display: flex; gap: 16px;">
+          <div style="text-align: center;">
+            <div style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; margin: 0 auto 8px;">
+              <img src="https://i.pravatar.cc/100?img=1" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <div style="font-size: 12px; color: var(--text-primary); font-weight: 500;">张伟</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; margin: 0 auto 8px; border: 2px solid var(--primary-color);">
+              <img src="https://i.pravatar.cc/100?img=5" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <div style="font-size: 12px; color: var(--text-primary); font-weight: 500;">李明<br><span style="color: var(--primary-color); font-size: 10px;">我</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 行程公告 - 成员只读 -->
+      <div class="content-card" style="padding: 20px;">
+        <div style="display: flex; align-items: center; margin-bottom: 14px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2">
+            <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span class="card-title" style="margin-left: 8px;">行程公告</span>
+        </div>
+        <div style="padding: 14px; background: var(--bg-color); border-radius: 10px;">
+          <p style="font-size: 14px; color: var(--text-primary); line-height: 1.6;">集合时间：早上7:00准时出发，请大家提前10分钟到达。记得带好身份证、水和零食，穿舒适的运动鞋。有问题随时联系我~</p>
+          <div style="font-size: 12px; color: var(--text-hint); margin-top: 10px;">更新于 2小时前</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部按钮 - 已加入成员视角 -->
+    <div class="footer-bar">
+      <button style="flex: 1; height: 54px; background: rgba(255, 77, 79, 0.1); color: #FF4D4F; border: none; border-radius: 16px; font-size: 16px; font-weight: 500; cursor: pointer;">退出行程</button>
+      <button style="flex: 1; height: 54px; background: linear-gradient(135deg, var(--primary-color), var(--primary-light)); color: white; border: none; border-radius: 16px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4);">分享给朋友</button>
+    </div>
+  </div>
+
+  <!-- ========== 行程详情页 - 管理入口 ========== -->
+  <div class="phone-frame">
+    <div class="status-bar" style="color: var(--text-primary);">
+      <span class="time">21:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M12 3C6.95 3 3 6.95 3 12s3.95 9 9 9c.76 0 1.51-.09 2.23-.27C12.14 19.13 10 16.27 10 13c0-3.87 3.13-7 7-7 1.27 0 2.46.34 3.49.93C18.71 4.79 15.59 3 12 3z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+
+    <!-- 顶部导航 -->
+    <div style="background: white; padding: 12px 16px; padding-top: 44px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center;">
+      <div class="back-btn" style="position: relative; top: 0; left: 0; background: var(--bg-color);">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </div>
+      <span style="flex: 1; text-align: center; font-size: 18px; font-weight: 600; color: var(--text-primary);">管理行程</span>
+      <span style="width: 32px;"></span>
+    </div>
+
+    <div class="scroll-container" style="padding: 16px; padding-bottom: 100px; background: var(--bg-color);">
+      <!-- 状态统计 -->
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
+        <div class="content-card" style="padding: 16px; text-align: center;">
+          <div style="font-size: 28px; font-weight: 700; color: var(--primary-color);">3</div>
+          <div style="font-size: 13px; color: var(--text-hint); margin-top: 4px;">已申请</div>
+        </div>
+        <div class="content-card" style="padding: 16px; text-align: center;">
+          <div style="font-size: 28px; font-weight: 700; color: #52C41A;">2</div>
+          <div style="font-size: 13px; color: var(--text-hint); margin-top: 4px;">已加入</div>
+        </div>
+        <div class="content-card" style="padding: 16px; text-align: center;">
+          <div style="font-size: 28px; font-weight: 700; color: #FF4D4F;">2</div>
+          <div style="font-size: 13px; color: var(--text-hint); margin-top: 4px;">空余名额</div>
+        </div>
+      </div>
+
+      <!-- 行程信息摘要 -->
+      <div class="content-card" style="padding: 20px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 60px; height: 60px; border-radius: 12px; overflow: hidden;">
+            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=100&h=100&fit=crop" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <div style="flex: 1;">
+            <div style="font-size: 17px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">周六灵山徒步</div>
+            <div style="font-size: 13px; color: var(--text-hint);">📅 4月5日 · 🏔️ 东灵山</div>
+          </div>
+          <span style="padding: 6px 12px; background: rgba(82, 196, 26, 0.15); color: #52C41A; border-radius: 12px; font-size: 13px; font-weight: 500;">招募中</span>
+        </div>
+      </div>
+
+      <!-- 快捷操作 -->
+      <div class="content-card" style="padding: 16px;">
+        <div style="font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--bg-color);">快捷操作</div>
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--bg-color); cursor: pointer;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; background: rgba(74, 144, 226, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;">✏️</div>
+            <span style="font-size: 15px; color: var(--text-primary);">编辑行程信息</span>
+          </div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8E8EA0" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--bg-color); cursor: pointer;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; background: rgba(82, 196, 26, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;">📤</div>
+            <span style="font-size: 15px; color: var(--text-primary);">分享招募链接</span>
+          </div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8E8EA0" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--bg-color); cursor: pointer;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; background: rgba(250, 173, 20, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;">⏸️</div>
+            <span style="font-size: 15px; color: var(--text-primary);">暂停招募</span>
+          </div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8E8EA0" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; cursor: pointer;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; background: rgba(255, 77, 79, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;">🗑️</div>
+            <span style="font-size: 15px; color: #FF4D4F;">取消行程</span>
+          </div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8E8EA0" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部按钮 - 管理入口 -->
+    <div class="footer-bar">
+      <button style="flex: 1; height: 54px; background: var(--bg-color); color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 16px; font-size: 16px; font-weight: 500; cursor: pointer;">返回</button>
+      <button style="flex: 1; height: 54px; background: linear-gradient(135deg, var(--primary-color), var(--primary-light)); color: white; border: none; border-radius: 16px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4);">查看行程详情</button>
+    </div>
+  </div>
+
+  <!-- ========== 编辑行程页 ========== -->
+  <div class="phone-frame">
+    <!-- 状态栏 -->
+    <div class="status-bar" style="color: var(--text-primary);">
+      <span class="time">21:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M12 3C6.95 3 3 6.95 3 12s3.95 9 9 9c.76 0 1.51-.09 2.23-.27C12.14 19.13 10 16.27 10 13c0-3.87 3.13-7 7-7 1.27 0 2.46.34 3.49.93C18.71 4.79 15.59 3 12 3z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+
+    <!-- 顶部导航 -->
+    <div style="background: white; padding: 12px 16px; padding-top: 44px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center;">
+      <div class="back-btn" style="position: relative; top: 0; left: 0; background: var(--bg-color);">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </div>
+      <span style="flex: 1; text-align: center; font-size: 18px; font-weight: 600; color: var(--text-primary);">编辑行程</span>
+      <span style="width: 32px;"></span>
+    </div>
+
+    <div class="scroll-container" style="padding: 16px; padding-bottom: 120px;">
+      <!-- 选择地点 -->
+      <div class="content-card" style="padding: 16px;">
+        <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">📍 选择地点</div>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0;">
+          <span style="font-size: 15px; color: var(--text-primary); font-weight: 500;">目的地</span>
+          <div style="display: flex; align-items: center; color: var(--text-primary); font-size: 15px; font-weight: 500;">
+            <span>东灵山</span>
+            <span style="margin-left: 8px; font-size: 20px; color: #CCCCCC;">›</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 行程信息 -->
+      <div class="content-card" style="padding: 16px;">
+        <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">📅 行程信息</div>
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+          <span style="font-size: 15px; color: var(--text-primary); font-weight: 500;">出发地</span>
+          <div style="display: flex; align-items: center; color: var(--text-primary); font-size: 15px; font-weight: 500;">
+            <span>海淀区</span>
+            <span style="margin-left: 8px; font-size: 20px; color: #CCCCCC;">›</span>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+          <span style="font-size: 15px; color: var(--text-primary); font-weight: 500;">出行日期</span>
+          <div style="display: flex; align-items: center; color: var(--text-primary); font-size: 15px; font-weight: 500;">
+            <span>2026-04-05</span>
+            <span style="margin-left: 8px; font-size: 20px; color: #CCCCCC;">›</span>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+          <span style="font-size: 15px; color: var(--text-primary); font-weight: 500;">出行方式</span>
+          <div style="display: flex; gap: 12px;">
+            <div style="padding: 9px 24px; border-radius: 20px; font-size: 14px; background: rgba(74, 144, 226, 0.15); color: var(--primary-color); font-weight: 500;">有车</div>
+            <div style="padding: 9px 24px; border-radius: 20px; font-size: 14px; background: var(--bg-color); color: var(--text-hint);">无车</div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--bg-color);">
+          <span style="font-size: 15px; color: var(--text-primary); font-weight: 500;">已有人数</span>
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--bg-color); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-hint);">−</div>
+            <span style="font-size: 20px; font-weight: 600; color: var(--text-primary); min-width: 40px; text-align: center;">1人</span>
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--bg-color); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-hint);">+</div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0;">
+          <span style="font-size: 15px; color: var(--text-primary); font-weight: 500;">还需人数</span>
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--bg-color); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-hint);">−</div>
+            <span style="font-size: 20px; font-weight: 600; color: var(--text-primary); min-width: 40px; text-align: center;">3人</span>
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--bg-color); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-hint);">+</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 联系方式 -->
+      <div class="content-card" style="padding: 16px;">
+        <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">📞 联系方式</div>
+        <div style="margin-bottom: 12px;">
+          <input type="text" style="width: 100%; padding: 14px 16px; border: 1px solid #E8E8E8; border-radius: 12px; font-size: 15px; background: #FAFAFA; box-sizing: border-box;" placeholder="请输入手机号（同时也是微信号）" value="13912345678">
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; background: rgba(74, 144, 226, 0.08); border-radius: 8px;">
+          <span style="font-size: 16px; line-height: 1;">💡</span>
+          <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+            <strong style="color: var(--text-primary);">提示：</strong>此号码将同时作为手机号和微信号展示给已加入的成员，方便他们联系你。
+          </div>
+        </div>
+      </div>
+
+      <!-- 补充说明 -->
+      <div class="content-card" style="padding: 16px;">
+        <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">📝 补充说明</div>
+        <textarea style="width: 100%; height: 120px; padding: 12px; border: 1px solid #E8E8E8; border-radius: 10px; font-size: 15px; background: #FAFAFA; resize: none; font-family: inherit; line-height: 1.6; box-sizing: border-box;" placeholder="说说你的计划、要求或期望（如：早上6点出发，AA制，希望队友有户外经验等）">周六早上8点海淀黄庄地铁站B口集合，自驾前往灵山。预计10:30到达，下午4点返程。费用AA，油费+门票约150元/人。</textarea>
+        <div style="text-align: right; font-size: 13px; color: var(--text-hint); margin-top: 8px;">76/200</div>
+      </div>
+    </div>
+
+    <!-- 底部保存按钮 -->
+    <div class="footer-bar">
+      <div class="publish-btn">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        保存修改
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 成员管理弹窗 ========== -->
+  <div class="phone-frame" style="position: relative;">
+    <div class="status-bar" style="background: transparent; position: absolute; top: 0; left: 0; right: 0; color: white; z-index: 10;">
+      <span class="time">21:41</span>
+      <div class="icons"></div>
+    </div>
+    
+    <!-- 背景模糊 -->
+    <div style="height: 100%; background: linear-gradient(135deg, #667eea, #764ba2); filter: blur(4px); opacity: 0.3;"></div>
+    
+    <!-- 弹窗 -->
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: calc(100% - 48px); max-width: 320px; background: white; border-radius: 20px; padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+      <!-- 成员信息 -->
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="width: 72px; height: 72px; border-radius: 50%; overflow: hidden; margin: 0 auto 12px; border: 3px solid var(--primary-color);">
+          <img src="https://i.pravatar.cc/100?img=5" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+        <h3 style="font-size: 18px; font-weight: 600; color: var(--text-primary);">李明</h3>
+        <p style="font-size: 13px; color: var(--text-hint); margin-top: 4px;">已加入 · 2天前</p>
+      </div>
+
+      <!-- 成员详情 -->
+      <div style="background: var(--bg-color); border-radius: 12px; padding: 14px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+          <span style="font-size: 13px; color: var(--text-hint);">出行人数</span>
+          <span style="font-size: 13px; color: var(--text-primary); font-weight: 500;">1人</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+          <span style="font-size: 13px; color: var(--text-hint);">交通方式</span>
+          <span style="font-size: 13px; color: var(--text-primary); font-weight: 500;">需拼车</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+          <span style="font-size: 13px; color: var(--text-hint);">联系方式</span>
+          <span style="font-size: 13px; color: var(--primary-color); font-weight: 500;">💬 微信号</span>
+        </div>
+      </div>
+
+      <!-- 操作按钮 -->
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <button style="width: 100%; padding: 14px; background: var(--bg-color); border: none; border-radius: 12px; font-size: 15px; font-weight: 500; color: var(--text-primary); cursor: pointer;">查看资料</button>
+        <button style="width: 100%; padding: 14px; background: rgba(255, 77, 79, 0.1); border: none; border-radius: 12px; font-size: 15px; font-weight: 500; color: #FF4D4F; cursor: pointer;">移除成员</button>
+      </div>
+
+      <!-- 关闭按钮 -->
+      <button style="position: absolute; top: 16px; right: 16px; width: 28px; height: 28px; border-radius: 50%; background: var(--bg-color); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8E8EA0" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== 移除成员确认弹窗 ========== -->
+  <div class="phone-frame" style="position: relative;">
+    <div class="status-bar" style="background: transparent; position: absolute; top: 0; left: 0; right: 0; color: white; z-index: 10;">
+      <span class="time">21:41</span>
+      <div class="icons"></div>
+    </div>
+    
+    <!-- 背景模糊 -->
+    <div style="height: 100%; background: linear-gradient(135deg, #667eea, #764ba2); filter: blur(4px); opacity: 0.3;"></div>
+    
+    <!-- 弹窗 -->
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: calc(100% - 48px); max-width: 320px; background: white; border-radius: 20px; padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(255, 77, 79, 0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FF4D4F" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+        </div>
+        <h3 style="font-size: 18px; font-weight: 600; color: var(--text-primary);">确认移除成员？</h3>
+        <p style="font-size: 14px; color: var(--text-hint); margin-top: 8px; line-height: 1.5;">移除后，该成员将退出此行程，无法查看行程信息。此操作不可撤销。</p>
+      </div>
+
+      <div style="display: flex; gap: 12px;">
+        <button style="flex: 1; padding: 14px; background: var(--bg-color); border: none; border-radius: 12px; font-size: 15px; font-weight: 500; color: var(--text-secondary); cursor: pointer;">取消</button>
+        <button style="flex: 1; padding: 14px; background: #FF4D4F; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; color: white; cursor: pointer;">确认移除</button>
       </div>
     </div>
   </div>
