@@ -25,9 +25,6 @@ Page({
 
     // 弹窗相关
     showApplyModal: false,
-    showInviteModal: false,
-    showNoTripModal: false,
-    showInviteSuccessModal: false,
     currentTrip: null,
     contactType: 'phone',
     contactValue: '',
@@ -242,15 +239,14 @@ Page({
     });
   },
 
-  // 点击申请加入/邀请他
-  onApplyTap: async function (e) {
+  // 点击申请加入
+  onApplyTap: function (e) {
     if (!app.globalData.isLoggedIn) {
       wx.showToast({ title: '请先登录', icon: 'none' });
       return;
     }
 
     const tripId = e.currentTarget.dataset.id;
-    const hasCar = e.currentTarget.dataset.hascar;
     const trip = this.data.trips.find(t => t._id === tripId);
 
     if (trip) {
@@ -261,20 +257,8 @@ Page({
         introduction: ''
       });
 
-      if (hasCar) {
-        // 有车 - 显示申请加入弹窗
-        this.setData({ showApplyModal: true });
-      } else {
-        // 无车 - 需要检测是否发布过行程
-        const userTrip = await this.checkUserTrip();
-        if (!userTrip) {
-          // 未发布行程 - 显示提示弹窗
-          this.setData({ showNoTripModal: true });
-        } else {
-          // 已发布行程 - 显示邀请弹窗
-          this.setData({ showInviteModal: true });
-        }
-      }
+      // 直接显示申请加入弹窗
+      this.setData({ showApplyModal: true });
     }
   },
 
@@ -304,61 +288,6 @@ Page({
   // 关闭申请加入弹窗
   onCloseApplyModal: function () {
     this.setData({ showApplyModal: false });
-  },
-
-  // 关闭邀请弹窗
-  onCloseInviteModal: function () {
-    this.setData({ showInviteModal: false });
-  },
-
-  // 关闭未发布行程弹窗
-  onCloseNoTripModal: function () {
-    this.setData({ showNoTripModal: false });
-  },
-
-  // 关闭邀请成功弹窗
-  onCloseInviteSuccessModal: function () {
-    this.setData({ showInviteSuccessModal: false });
-  },
-
-  // 去发布行程
-  onGoPublish: function () {
-    this.setData({ showNoTripModal: false });
-    wx.navigateTo({
-      url: `/pages/trip-publish/trip-publish?placeId=${this.data.place._id}&placeName=${this.data.place.name}`
-    });
-  },
-
-  // 检测是否发布过该地点的行程
-  checkUserTrip: async function () {
-    const openid = app.globalData.openid;
-    const placeId = this.data.place._id;
-
-    if (!openid || !placeId) {
-      return null;
-    }
-
-    if (wx.cloud) {
-      try {
-        const db = wx.cloud.database();
-        const res = await db.collection('trips')
-          .where({
-            creatorId: openid,
-            placeId: placeId,
-            status: 'open'
-          })
-          .limit(1)
-          .get();
-
-        if (res.data && res.data.length > 0) {
-          return res.data[0];
-        }
-      } catch (err) {
-        console.warn('检测行程失败', err);
-      }
-    }
-
-    return null;
   },
 
   // 阻止事件冒泡（空函数）
@@ -441,63 +370,6 @@ Page({
 
     wx.showToast({ title: '申请已发送', icon: 'success' });
     this.setData({ showApplyModal: false });
-  }),
-
-  // 发送邀请
-  onSubmitInvite: debounce(async function () {
-    if (!this.validateContact()) {
-      return;
-    }
-
-    const { currentTrip, contactType, contactValue, introduction } = this.data;
-    const openid = app.globalData.openid;
-    // 优先从 storage 读取最新用户信息
-    const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
-
-    wx.showLoading({ title: '发送中...' });
-
-    // 存储到数据库
-    if (wx.cloud) {
-      try {
-        const db = wx.cloud.database();
-
-        // 创建邀请记录
-        await db.collection('applies').add({
-          data: {
-            tripId: currentTrip._id,
-            placeName: this.data.place ? this.data.place.name : '',
-            toUserId: currentTrip.creatorId || '',
-            toUserName: currentTrip.creatorName || '',
-            fromUserId: openid,
-            fromUserName: userInfo.nickname || '旅行者',
-            fromUserAvatar: userInfo.avatar || '',
-            contactType: contactType,  // 'phone' 或 'wechat'
-            contactValue: contactValue, // 手机号或微信号
-            message: introduction || '',
-            status: 'pending',
-            type: 'invite',  // 邀请他
-            createdAt: Date.now()
-          }
-        });
-
-        wx.hideLoading();
-        this.setData({
-          showInviteModal: false,
-          showInviteSuccessModal: true
-        });
-        return;
-      } catch (err) {
-        wx.hideLoading();
-        console.error('发送邀请失败', err);
-        wx.showToast({ title: '发送失败，请重试', icon: 'none' });
-        return;
-      }
-    }
-
-    this.setData({
-      showInviteModal: false,
-      showInviteSuccessModal: true
-    });
   }),
 
   // 分享

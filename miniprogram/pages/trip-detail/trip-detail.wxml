@@ -22,8 +22,9 @@
       <!-- 底部标题信息 -->
       <view class="header-content">
         <view class="status-tags">
-          <view class="status-tag status-{{trip.status}}">{{statusText}}</view>
-          <view class="status-tag remain-tag" wx:if="{{remainCount > 0}}">还剩{{remainCount}}个名额</view>
+          <view class="status-tag status-joined" wx:if="{{hasJoined && !isCreator}}">✓ 已加入</view>
+          <view class="status-tag status-{{trip.status}}" wx:else>{{statusText}}</view>
+          <view class="status-tag remain-tag" wx:if="{{remainCount > 0 && !hasJoined}}">还剩{{remainCount}}个名额</view>
         </view>
         <view class="trip-title">{{trip.title || trip.placeName}}</view>
         <view class="trip-location">🏔️ {{trip.placeName}} · {{trip.placeHighlight || '北京周边'}}</view>
@@ -48,10 +49,6 @@
           <view class="info-row">
             <text class="info-label">📍 出发地</text>
             <text class="info-value">{{trip.departure || '待定'}}</text>
-          </view>
-          <view class="info-row">
-            <text class="info-label">🚗 交通方式</text>
-            <text class="info-value">{{trip.hasCar ? '有车 · 可载' + (trip.needCount || 3) + '人' : '需拼车'}}</text>
           </view>
           <view class="info-row">
             <text class="info-label">👥 招募人数</text>
@@ -124,9 +121,60 @@
   </block>
 </view>
 
-<!-- 底部申请按钮 -->
+<!-- 底部按钮区域 -->
 <view class="footer-bar" wx:if="{{!loading}}">
-  <view class="apply-btn {{canJoin ? '' : 'disabled'}}" bindtap="onJoinTap">
-    <text>{{joinBtnText}}</text>
+  <!-- 发起人视角：编辑行程 + 分享招募 -->
+  <block wx:if="{{isCreator}}">
+    <view class="footer-btn-secondary" bindtap="onEditTrip">编辑行程</view>
+    <view class="footer-btn-primary" bindtap="onShareRecruit">分享招募</view>
+  </block>
+
+  <!-- 已加入成员视角：退出行程 + 分享给朋友 -->
+  <block wx:elif="{{hasJoined}}">
+    <view class="footer-btn-danger" bindtap="onQuitTrip">退出行程</view>
+    <view class="footer-btn-primary" bindtap="onShareFriends">分享给朋友</view>
+  </block>
+
+  <!-- 未加入视角：申请加入 -->
+  <block wx:else>
+    <view class="footer-btn-full {{canJoin ? '' : 'disabled'}}" bindtap="onJoinTap">
+      <text>{{joinBtnText}}</text>
+    </view>
+  </block>
+</view>
+
+<!-- ========== 申请加入弹窗 ========== -->
+<view class="modal-mask" wx:if="{{showApplyModal}}" bindtap="onCloseApplyModal">
+  <view class="modal-content" catchtap="preventBubble">
+    <view class="modal-header">
+      <view class="modal-icon-wrap">
+        <text class="modal-icon">🏔️</text>
+      </view>
+      <view class="modal-title">申请加入行程</view>
+      <view class="modal-subtitle">{{trip.placeName}} · 还剩{{remainCount}}个名额</view>
+    </view>
+
+    <view class="modal-body">
+      <!-- 联系方式 -->
+      <view class="form-group">
+        <view class="form-label">联系方式 <text class="required">*</text></view>
+        <input class="form-input" placeholder="请输入手机号（同时也是微信号）" value="{{contactValue}}" bindinput="onContactInput" maxlength="11" />
+        <view class="form-tip">
+          <text class="tip-icon">💡</text>
+          <text>此号码将同时作为手机号和微信号</text>
+        </view>
+      </view>
+
+      <!-- 备注 -->
+      <view class="form-group">
+        <view class="form-label">备注（选填）</view>
+        <textarea class="form-textarea" placeholder="简单介绍一下自己..." value="{{introduction}}" bindinput="onIntroductionInput" />
+      </view>
+    </view>
+
+    <view class="modal-footer">
+      <view class="modal-btn modal-btn-cancel" catchtap="onCloseApplyModal">取消</view>
+      <view class="modal-btn modal-btn-confirm" catchtap="onSubmitApply">提交申请</view>
+    </view>
   </view>
 </view>

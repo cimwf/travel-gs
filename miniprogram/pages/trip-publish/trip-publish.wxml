@@ -48,6 +48,7 @@
         </picker>
       </view>
 
+      <!-- 出行方式暂时注释
       <view class="form-item">
         <text class="form-label">出行方式</text>
         <view class="radio-group">
@@ -55,6 +56,7 @@
           <view class="radio-item {{!hasCar ? 'active' : ''}}" data-value="{{false}}" bindtap="onCarChange">无车</view>
         </view>
       </view>
+      -->
 
       <view class="form-item">
         <text class="form-label">已有人数</text>

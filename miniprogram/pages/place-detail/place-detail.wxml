@@ -130,12 +130,14 @@
               <text>{{item.creatorName ? item.creatorName[0] : '旅'}}</text>
             </view>
             <text class="trip-user">{{item.creatorName || '旅行者'}}</text>
+            <!-- 暂时注释掉有车/需拼车标签
             <view class="trip-status {{item.hasCar ? 'has-car' : 'need-car'}}">
               <text>{{item.hasCar ? '有车' : '需拼车'}}</text>
             </view>
+            -->
           </view>
-          <view class="action-btn {{item.hasCar ? 'primary' : 'outline'}}" catchtap="onApplyTap" data-id="{{item._id}}" data-hascar="{{item.hasCar}}" data-username="{{item.creatorName}}">
-            {{item.hasCar ? '申请加入' : '邀请他'}}
+          <view class="action-btn primary" catchtap="onApplyTap" data-id="{{item._id}}">
+            申请加入
           </view>
         </view>
 
@@ -228,77 +230,5 @@
       <view class="modal-btn modal-btn-cancel" catchtap="onCloseApplyModal">取消</view>
       <view class="modal-btn modal-btn-confirm" catchtap="onSubmitApply">提交申请</view>
     </view>
-  </view>
-</view>
-
-<!-- ========== 邀请弹窗 ========== -->
-<view class="modal-mask" wx:if="{{showInviteModal}}" bindtap="onCloseInviteModal">
-  <view class="modal-content" catchtap="preventBubble">
-    <view class="modal-header">
-      <view class="modal-avatar" style="background: {{currentTrip.avatarBg}}">
-        <text>{{currentTrip.creatorName ? currentTrip.creatorName[0] : '旅'}}</text>
-      </view>
-      <view class="modal-title">邀请 {{currentTrip.creatorName}} 一起游玩</view>
-      <view class="modal-subtitle">请留下您的联系方式</view>
-    </view>
-
-    <view class="modal-body">
-      <!-- 联系方式类型 -->
-      <view class="form-group">
-        <view class="form-label">联系方式类型</view>
-        <view class="contact-type-row">
-          <view class="contact-type {{contactType === 'phone' ? 'active' : ''}}" catchtap="onSelectContactType" data-type="phone">
-            <text>📱 手机号</text>
-          </view>
-          <view class="contact-type {{contactType === 'wechat' ? 'active' : ''}}" catchtap="onSelectContactType" data-type="wechat">
-            <text>💬 微信号</text>
-          </view>
-        </view>
-      </view>
-
-      <!-- 联系方式输入 -->
-      <view class="form-group">
-        <view class="form-label">{{contactType === 'phone' ? '手机号码' : '微信号'}}</view>
-        <input class="form-input" placeholder-class="input-placeholder" placeholder="{{contactType === 'phone' ? '请输入您的手机号' : '请输入您的微信号'}}" value="{{contactValue}}" bindinput="onContactInput" />
-      </view>
-
-      <!-- 留言 -->
-      <view class="form-group">
-        <view class="form-label">留言（选填）</view>
-        <textarea class="form-textarea" placeholder="简单介绍一下自己或行程..." value="{{introduction}}" bindinput="onIntroductionInput" />
-      </view>
-    </view>
-
-    <view class="modal-footer">
-      <view class="modal-btn modal-btn-cancel" catchtap="onCloseInviteModal">取消</view>
-      <view class="modal-btn modal-btn-confirm" catchtap="onSubmitInvite">发送邀请</view>
-    </view>
-  </view>
-</view>
-
-<!-- ========== 未发布行程提示弹窗 ========== -->
-<view class="modal-mask" wx:if="{{showNoTripModal}}" bindtap="onCloseNoTripModal">
-  <view class="modal-content modal-tip" catchtap="preventBubble">
-    <view class="modal-icon-wrap tip-icon">
-      <text class="modal-icon">👥</text>
-    </view>
-    <view class="modal-title">邀请队友</view>
-    <view class="modal-desc">您还没有发布该地点的行程，需要先发布行程才能邀请他人加入</view>
-    <view class="modal-footer-btns">
-      <view class="modal-btn-secondary" catchtap="onCloseNoTripModal">取消</view>
-      <view class="modal-btn-primary" catchtap="onGoPublish">去发布</view>
-    </view>
-  </view>
-</view>
-
-<!-- ========== 邀请成功弹窗 ========== -->
-<view class="modal-mask" wx:if="{{showInviteSuccessModal}}" bindtap="onCloseInviteSuccessModal">
-  <view class="modal-content modal-tip" catchtap="preventBubble">
-    <view class="modal-icon-wrap success-icon">
-      <text class="modal-icon-check">✓</text>
-    </view>
-    <view class="modal-title">邀请已发送</view>
-    <view class="modal-desc">已向「{{currentTrip.creatorName}}」发送邀请\n对方同意后您将收到通知</view>
-    <view class="modal-btn-single" catchtap="onCloseInviteSuccessModal">好的</view>
   </view>
 </view>

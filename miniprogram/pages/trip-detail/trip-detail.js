@@ -1,6 +1,5 @@
 // pages/trip-detail/trip-detail.js
 const app = getApp();
-const api = require('../../utils/api.js');
 
 Page({
   data: {
@@ -14,7 +13,12 @@ Page({
     canJoin: true,
     loading: true,
     hasJoined: false,
-    maskedPhone: ''
+    isCreator: false,
+    maskedPhone: '',
+    // 弹窗相关
+    showApplyModal: false,
+    contactValue: '',
+    introduction: ''
   },
 
   onLoad: function (options) {
@@ -167,6 +171,9 @@ Page({
     const openid = app.globalData.openid;
     const hasJoined = trip.participants && trip.participants.some(p => p.userId === openid);
 
+    // 判断当前用户是否为发起人
+    const isCreator = trip.creatorId === openid;
+
     // 脱敏手机号
     let maskedPhone = '';
     if (trip.phone) {
@@ -182,6 +189,7 @@ Page({
       canJoin,
       joinBtnText,
       hasJoined,
+      isCreator,
       maskedPhone,
       loading: false
     });
@@ -293,8 +301,75 @@ Page({
     }
   },
 
+  // 编辑行程
+  onEditTrip: function () {
+    const trip = this.data.trip;
+    wx.navigateTo({
+      url: `/pages/trip-edit/trip-edit?id=${trip._id}`
+    });
+  },
+
+  // 分享招募
+  onShareRecruit: function () {
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage']
+    });
+  },
+
+  // 退出行程
+  onQuitTrip: function () {
+    const trip = this.data.trip;
+    wx.showModal({
+      title: '退出行程',
+      content: '确定要退出该行程吗？',
+      success: async (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '处理中...' });
+
+          const openid = app.globalData.openid;
+
+          try {
+            const db = wx.cloud.database();
+
+            // 从参与者列表中移除当前用户
+            const newParticipants = trip.participants.filter(p => p.userId !== openid);
+
+            await db.collection('trips').doc(trip._id).update({
+              data: {
+                participants: newParticipants,
+                currentCount: db.command.inc(-1),
+                needCount: db.command.inc(1)
+              }
+            });
+
+            wx.hideLoading();
+            wx.showToast({ title: '已退出行程', icon: 'success' });
+
+            // 返回上一页
+            setTimeout(() => {
+              wx.navigateBack();
+            }, 1000);
+          } catch (err) {
+            wx.hideLoading();
+            console.error('退出行程失败', err);
+            wx.showToast({ title: '退出失败，请重试', icon: 'none' });
+          }
+        }
+      }
+    });
+  },
+
+  // 分享给朋友
+  onShareFriends: function () {
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage']
+    });
+  },
+
   // 申请加入
-  onJoinTap: async function () {
+  onJoinTap: function () {
     if (!app.globalData.isLoggedIn) {
       wx.showToast({ title: '请先登录', icon: 'none' });
       return;
@@ -313,64 +388,94 @@ Page({
       return;
     }
 
-    wx.showModal({
-      title: '申请加入',
-      content: `确定要加入"${trip.placeName}"的行程吗？`,
-      success: async (res) => {
-        if (res.confirm) {
-          wx.showLoading({ title: '申请中...' });
-
-          // 尝试调用云函数
-          if (wx.cloud) {
-            try {
-              const result = await api.tripJoin(trip._id);
-              if (result.success) {
-                wx.hideLoading();
-                wx.showToast({ title: '加入成功', icon: 'success' });
-                // 重新加载数据
-                setTimeout(() => {
-                  this.loadTripDetail(trip._id);
-                }, 1000);
-                return;
-              }
-            } catch (err) {
-              console.warn('加入行程失败', err);
-            }
-          }
-
-          // 直接操作数据库
-          try {
-            const db = wx.cloud.database();
-            const userInfo = app.globalData.userInfo || {};
-
-            const newParticipant = {
-              userId: openid,
-              nickname: userInfo.nickname || '旅行者',
-              avatar: userInfo.avatar || ''
-            };
-
-            await db.collection('trips').doc(trip._id).update({
-              data: {
-                participants: db.command.push(newParticipant),
-                currentCount: db.command.inc(1)
-              }
-            });
-
-            wx.hideLoading();
-            wx.showToast({ title: '加入成功', icon: 'success' });
-
-            // 重新加载数据
-            setTimeout(() => {
-              this.loadTripDetail(trip._id);
-            }, 1000);
-          } catch (err) {
-            wx.hideLoading();
-            console.error('加入失败', err);
-            wx.showToast({ title: '加入失败，请重试', icon: 'none' });
-          }
-        }
-      }
+    // 显示申请加入弹窗
+    this.setData({
+      showApplyModal: true,
+      contactValue: '',
+      introduction: ''
     });
+  },
+
+  // 关闭申请弹窗
+  onCloseApplyModal: function () {
+    this.setData({ showApplyModal: false });
+  },
+
+  // 阻止事件冒泡
+  preventBubble: function () {},
+
+  // 输入联系方式
+  onContactInput: function (e) {
+    let value = e.detail.value;
+    // 只允许输入数字，最多11位
+    value = value.replace(/\D/g, '').slice(0, 11);
+    this.setData({ contactValue: value });
+  },
+
+  // 输入备注
+  onIntroductionInput: function (e) {
+    this.setData({ introduction: e.detail.value });
+  },
+
+  // 提交申请
+  onSubmitApply: async function () {
+    const { contactValue, introduction } = this.data;
+
+    // 校验联系方式
+    if (!contactValue) {
+      wx.showToast({ title: '请填写联系方式', icon: 'none' });
+      return;
+    }
+
+    const phoneReg = /^1[3-9]\d{9}$/;
+    if (!phoneReg.test(contactValue)) {
+      wx.showToast({ title: '请输入正确的手机号', icon: 'none' });
+      return;
+    }
+
+    const trip = this.data.trip;
+    const openid = app.globalData.openid;
+    const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
+
+    wx.showLoading({ title: '发送中...' });
+
+    // 存储申请记录到数据库
+    if (wx.cloud) {
+      try {
+        const db = wx.cloud.database();
+
+        await db.collection('applies').add({
+          data: {
+            tripId: trip._id,
+            placeName: trip.placeName || '',
+            toUserId: trip.creatorId || '',
+            toUserName: trip.creatorName || '',
+            fromUserId: openid,
+            fromUserName: userInfo.nickname || '旅行者',
+            fromUserAvatar: userInfo.avatar || '',
+            contactType: 'phone',
+            contactValue: contactValue,
+            message: introduction || '',
+            status: 'pending',
+            type: 'apply',
+            createdAt: Date.now()
+          }
+        });
+
+        wx.hideLoading();
+        wx.showToast({ title: '申请已发送', icon: 'success' });
+        this.setData({ showApplyModal: false });
+        return;
+      } catch (err) {
+        wx.hideLoading();
+        console.error('提交申请失败', err);
+        wx.showToast({ title: '发送失败，请重试', icon: 'none' });
+        return;
+      }
+    }
+
+    wx.hideLoading();
+    this.setData({ showApplyModal: false });
   },
 
   // 分享
