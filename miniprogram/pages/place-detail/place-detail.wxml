@@ -236,9 +236,9 @@
   <view class="modal-content" catchtap="preventBubble">
     <view class="modal-header">
       <view class="modal-avatar" style="background: {{currentTrip.avatarBg}}">
-        <text>{{currentTrip.userName[0]}}</text>
+        <text>{{currentTrip.creatorName ? currentTrip.creatorName[0] : '旅'}}</text>
       </view>
-      <view class="modal-title">邀请 {{currentTrip.userName}} 一起游玩</view>
+      <view class="modal-title">邀请 {{currentTrip.creatorName}} 一起游玩</view>
       <view class="modal-subtitle">请留下您的联系方式</view>
     </view>
 
@@ -273,5 +273,32 @@
       <view class="modal-btn modal-btn-cancel" catchtap="onCloseInviteModal">取消</view>
       <view class="modal-btn modal-btn-confirm" catchtap="onSubmitInvite">发送邀请</view>
     </view>
+  </view>
+</view>
+
+<!-- ========== 未发布行程提示弹窗 ========== -->
+<view class="modal-mask" wx:if="{{showNoTripModal}}" bindtap="onCloseNoTripModal">
+  <view class="modal-content modal-tip" catchtap="preventBubble">
+    <view class="modal-icon-wrap tip-icon">
+      <text class="modal-icon">👥</text>
+    </view>
+    <view class="modal-title">邀请队友</view>
+    <view class="modal-desc">您还没有发布该地点的行程，需要先发布行程才能邀请他人加入</view>
+    <view class="modal-footer-btns">
+      <view class="modal-btn-secondary" catchtap="onCloseNoTripModal">取消</view>
+      <view class="modal-btn-primary" catchtap="onGoPublish">去发布</view>
+    </view>
+  </view>
+</view>
+
+<!-- ========== 邀请成功弹窗 ========== -->
+<view class="modal-mask" wx:if="{{showInviteSuccessModal}}" bindtap="onCloseInviteSuccessModal">
+  <view class="modal-content modal-tip" catchtap="preventBubble">
+    <view class="modal-icon-wrap success-icon">
+      <text class="modal-icon-check">✓</text>
+    </view>
+    <view class="modal-title">邀请已发送</view>
+    <view class="modal-desc">已向「{{currentTrip.creatorName}}」发送邀请\n对方同意后您将收到通知</view>
+    <view class="modal-btn-single" catchtap="onCloseInviteSuccessModal">好的</view>
   </view>
 </view>

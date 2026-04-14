@@ -26,6 +26,8 @@ Page({
     // 弹窗相关
     showApplyModal: false,
     showInviteModal: false,
+    showNoTripModal: false,
+    showInviteSuccessModal: false,
     currentTrip: null,
     contactType: 'phone',
     contactValue: '',
@@ -241,7 +243,7 @@ Page({
   },
 
   // 点击申请加入/邀请他
-  onApplyTap: function (e) {
+  onApplyTap: async function (e) {
     if (!app.globalData.isLoggedIn) {
       wx.showToast({ title: '请先登录', icon: 'none' });
       return;
@@ -263,8 +265,15 @@ Page({
         // 有车 - 显示申请加入弹窗
         this.setData({ showApplyModal: true });
       } else {
-        // 无车 - 显示邀请弹窗
-        this.setData({ showInviteModal: true });
+        // 无车 - 需要检测是否发布过行程
+        const userTrip = await this.checkUserTrip();
+        if (!userTrip) {
+          // 未发布行程 - 显示提示弹窗
+          this.setData({ showNoTripModal: true });
+        } else {
+          // 已发布行程 - 显示邀请弹窗
+          this.setData({ showInviteModal: true });
+        }
       }
     }
   },
@@ -300,6 +309,56 @@ Page({
   // 关闭邀请弹窗
   onCloseInviteModal: function () {
     this.setData({ showInviteModal: false });
+  },
+
+  // 关闭未发布行程弹窗
+  onCloseNoTripModal: function () {
+    this.setData({ showNoTripModal: false });
+  },
+
+  // 关闭邀请成功弹窗
+  onCloseInviteSuccessModal: function () {
+    this.setData({ showInviteSuccessModal: false });
+  },
+
+  // 去发布行程
+  onGoPublish: function () {
+    this.setData({ showNoTripModal: false });
+    wx.navigateTo({
+      url: `/pages/trip-publish/trip-publish?placeId=${this.data.place._id}&placeName=${this.data.place.name}`
+    });
+  },
+
+  // 检测是否发布过该地点的行程
+  checkUserTrip: async function () {
+    const openid = app.globalData.openid;
+    const placeId = this.data.place._id;
+
+    if (!openid || !placeId) {
+      return null;
+    }
+
+    if (wx.cloud) {
+      try {
+        const db = wx.cloud.database();
+        const res = await db.collection('trips')
+          .where({
+            creatorId: openid,
+            placeId: placeId,
+            status: 'open'
+          })
+          .limit(1)
+          .get();
+
+        if (res.data && res.data.length > 0) {
+          return res.data[0];
+        }
+      } catch (err) {
+        console.warn('检测行程失败', err);
+      }
+    }
+
+    return null;
   },
 
   // 阻止事件冒泡（空函数）
@@ -422,8 +481,10 @@ Page({
         });
 
         wx.hideLoading();
-        wx.showToast({ title: '邀请已发送', icon: 'success' });
-        this.setData({ showInviteModal: false });
+        this.setData({
+          showInviteModal: false,
+          showInviteSuccessModal: true
+        });
         return;
       } catch (err) {
         wx.hideLoading();
@@ -433,8 +494,10 @@ Page({
       }
     }
 
-    wx.showToast({ title: '邀请已发送', icon: 'success' });
-    this.setData({ showInviteModal: false });
+    this.setData({
+      showInviteModal: false,
+      showInviteSuccessModal: true
+    });
   }),
 
   // 分享
