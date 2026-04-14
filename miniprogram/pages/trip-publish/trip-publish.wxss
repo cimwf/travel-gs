@@ -220,6 +220,58 @@ page {
   margin-top: 16rpx;
 }
 
+/* ========== 输入框 ========== */
+.form-item-input {
+  margin-bottom: 24rpx;
+}
+
+.text-input {
+  width: 100%;
+  height: 88rpx;
+  padding: 0 32rpx;
+  border: 2rpx solid var(--border-color);
+  border-radius: 24rpx;
+  font-size: 30rpx;
+  background: var(--bg-color);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  line-height: 88rpx;
+}
+
+.input-placeholder {
+  color: var(--text-hint);
+  line-height: 88rpx;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+}
+
+.text-input::placeholder {
+  color: var(--text-hint);
+}
+
+/* ========== 提示信息 ========== */
+.form-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 16rpx;
+  padding: 20rpx 24rpx;
+  background: rgba(74, 144, 226, 0.08);
+  border-radius: 16rpx;
+}
+
+.tip-icon {
+  font-size: 32rpx;
+  line-height: 1;
+}
+
+.tip-text {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
 /* ========== 底部安全区 ========== */
 .safe-bottom {
   height: 40rpx;

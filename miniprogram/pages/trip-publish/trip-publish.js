@@ -13,6 +13,7 @@ Page({
     hasCar: true,
     currentCount: 1,
     needCount: 3,
+    phone: '',
     remark: '',
     userInfo: null,
     showDepartureModal: false,
@@ -157,6 +158,11 @@ Page({
     this.setData({ remark: e.detail.value });
   },
 
+  // 手机号输入
+  onPhoneInput: function (e) {
+    this.setData({ phone: e.detail.value });
+  },
+
   // 提交发布
   onSubmit: async function () {
     if (!app.globalData.isLoggedIn) {
@@ -176,6 +182,18 @@ Page({
 
     if (!this.data.departure) {
       wx.showToast({ title: '请选择出发地', icon: 'none' });
+      return;
+    }
+
+    if (!this.data.phone) {
+      wx.showToast({ title: '请输入联系方式', icon: 'none' });
+      return;
+    }
+
+    // 验证手机号格式
+    const phoneReg = /^1[3-9]\d{9}$/;
+    if (!phoneReg.test(this.data.phone)) {
+      wx.showToast({ title: '请输入正确的手机号', icon: 'none' });
       return;
     }
 
@@ -206,6 +224,7 @@ Page({
       hasCar: this.data.hasCar,
       currentCount: this.data.currentCount,
       needCount: this.data.needCount,
+      phone: this.data.phone,
       remark: this.data.remark,
       status: 'open',
       // 发起人信息

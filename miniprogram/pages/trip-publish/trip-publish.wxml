@@ -75,6 +75,26 @@
       </view>
     </view>
 
+    <!-- 联系方式 -->
+    <view class="form-section">
+      <view class="section-title">📞 联系方式</view>
+      <view class="form-item-input">
+        <input
+          class="text-input"
+          type="text"
+          placeholder="请输入微信号"
+          placeholder-class="input-placeholder"
+          value="{{phone}}"
+          bindinput="onPhoneInput"
+          maxlength="11"
+        />
+      </view>
+      <view class="form-tip">
+        <text class="tip-icon">💡</text>
+        <text class="tip-text">此号码将同时作为手机号和微信号展示给已加入的成员，方便他们联系你。</text>
+      </view>
+    </view>
+
     <!-- 补充说明 -->
     <view class="form-section">
       <view class="section-title">📝 补充说明</view>
