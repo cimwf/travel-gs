@@ -32,34 +32,30 @@
 
     <!-- 内容区域 -->
     <view class="content">
-      <!-- 列表式信息卡片 -->
+      <!-- 行程信息卡片 -->
       <view class="info-card">
-        <view class="info-item">
-          <text class="info-emoji">📅</text>
-          <view class="info-content">
-            <view class="info-label">出发日期</view>
-            <view class="info-value">{{trip.dateText || trip.date}}</view>
+        <view class="card-header">
+          <view class="card-icon-svg">
+            <view class="icon-calendar"></view>
           </view>
+          <text class="card-title">行程信息</text>
         </view>
-        <view class="info-item">
-          <text class="info-emoji">📍</text>
-          <view class="info-content">
-            <view class="info-label">出发地点</view>
-            <view class="info-value">{{trip.departure || '待定'}}</view>
+        <view class="info-list">
+          <view class="info-row">
+            <text class="info-label">📅 出发日期</text>
+            <text class="info-value">{{trip.dateText || trip.date}}</text>
           </view>
-        </view>
-        <view class="info-item">
-          <text class="info-emoji">👥</text>
-          <view class="info-content">
-            <view class="info-label">招募情况</view>
-            <view class="info-value">已有{{trip.currentCount}}人，还差{{remainCount}}人</view>
+          <view class="info-row">
+            <text class="info-label">📍 出发地</text>
+            <text class="info-value">{{trip.departure || '待定'}}</text>
           </view>
-        </view>
-        <view class="info-item last-item">
-          <text class="info-emoji">🚗</text>
-          <view class="info-content">
-            <view class="info-label">交通方式</view>
-            <view class="info-value">{{trip.hasCar ? '自驾前往，有车可拼' : '需拼车出行'}}</view>
+          <view class="info-row">
+            <text class="info-label">🚗 交通方式</text>
+            <text class="info-value">{{trip.hasCar ? '有车 · 可载' + (trip.needCount || 3) + '人' : '需拼车'}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">👥 招募人数</text>
+            <text class="info-value">{{trip.currentCount}}-{{trip.totalCount || (trip.currentCount + trip.needCount)}}人</text>
           </view>
         </view>
       </view>
@@ -79,7 +75,15 @@
             <view class="creator-name">{{trip.creatorName || '旅行者'}}</view>
             <view class="creator-meta">行程发起人</view>
           </view>
-          <view class="follow-btn" bindtap="onFollowTap">关注</view>
+        </view>
+        <!-- 联系方式 - 已加入可见 -->
+        <view class="contact-info" wx:if="{{hasJoined && trip.phone}}">
+          <view class="contact-tip">🎉 您已加入，可联系发起人</view>
+          <view class="contact-row">
+            <text class="contact-icon">💬</text>
+            <text class="contact-value">微信号：{{maskedPhone}}</text>
+            <view class="copy-btn" bindtap="onCopyPhone">复制</view>
+          </view>
         </view>
       </view>
 

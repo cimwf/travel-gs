@@ -12,7 +12,9 @@ Page({
     remainCount: 0,
     joinBtnText: '申请加入',
     canJoin: true,
-    loading: true
+    loading: true,
+    hasJoined: false,
+    maskedPhone: ''
   },
 
   onLoad: function (options) {
@@ -161,6 +163,17 @@ Page({
       placeHighlight: this.getPlaceHighlight(trip.placeName)
     };
 
+    // 判断当前用户是否已加入
+    const openid = app.globalData.openid;
+    const hasJoined = trip.participants && trip.participants.some(p => p.userId === openid);
+
+    // 脱敏手机号
+    let maskedPhone = '';
+    if (trip.phone) {
+      const phone = trip.phone;
+      maskedPhone = phone.substring(0, 3) + '****' + phone.substring(7);
+    }
+
     this.setData({
       trip: processedTrip,
       participants: participants,
@@ -168,6 +181,8 @@ Page({
       remainCount,
       canJoin,
       joinBtnText,
+      hasJoined,
+      maskedPhone,
       loading: false
     });
   },
@@ -263,6 +278,19 @@ Page({
       return;
     }
     wx.showToast({ title: '关注成功', icon: 'success' });
+  },
+
+  // 复制手机号
+  onCopyPhone: function () {
+    const phone = this.data.trip.phone;
+    if (phone) {
+      wx.setClipboardData({
+        data: phone,
+        success: () => {
+          wx.showToast({ title: '已复制微信号', icon: 'success' });
+        }
+      });
+    }
   },
 
   // 申请加入

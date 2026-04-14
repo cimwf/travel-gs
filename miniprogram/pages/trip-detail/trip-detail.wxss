@@ -185,37 +185,64 @@ page {
   box-shadow: var(--shadow-sm);
 }
 
-.info-item {
+.card-header {
   display: flex;
   align-items: center;
-  gap: 32rpx;
-  padding-bottom: 40rpx;
+  gap: 16rpx;
+  margin-bottom: 32rpx;
+}
+
+.card-icon {
+  font-size: 40rpx;
+}
+
+.card-icon-svg {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.icon-calendar {
+  width: 40rpx;
+  height: 40rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234A90E2' stroke-width='2'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+.card-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.info-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28rpx 0;
   border-bottom: 2rpx solid var(--bg-color);
 }
 
-.info-item.last-item {
-  padding-bottom: 0;
+.info-row:last-child {
   border-bottom: none;
+  padding-bottom: 0;
 }
 
-.info-emoji {
-  font-size: 56rpx;
-  line-height: 1;
-}
-
-.info-content {
-  flex: 1;
+.info-row:first-child {
+  padding-top: 0;
 }
 
 .info-label {
-  font-size: 26rpx;
+  font-size: 28rpx;
   color: var(--text-hint);
-  margin-bottom: 10rpx;
 }
 
 .info-value {
-  font-size: 34rpx;
-  font-weight: 600;
+  font-size: 30rpx;
+  font-weight: 500;
   color: var(--text-primary);
 }
 
@@ -291,13 +318,46 @@ page {
   color: var(--text-hint);
 }
 
-.follow-btn {
-  padding: 18rpx 40rpx;
-  background: rgba(74, 144, 226, 0.1);
-  color: var(--primary-color);
-  border-radius: 44rpx;
+/* ========== 联系方式 ========== */
+.contact-info {
+  margin-top: 32rpx;
+  padding: 28rpx;
+  background: linear-gradient(135deg, rgba(82, 196, 26, 0.08), rgba(115, 209, 61, 0.08));
+  border-radius: 24rpx;
+  border: 2rpx solid rgba(82, 196, 26, 0.2);
+}
+
+.contact-tip {
   font-size: 26rpx;
+  color: var(--success-color);
   font-weight: 500;
+  margin-bottom: 20rpx;
+}
+
+.contact-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 24rpx 0;
+}
+
+.contact-icon {
+  font-size: 32rpx;
+}
+
+.contact-value {
+  flex: 1;
+  font-size: 30rpx;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.copy-btn {
+  padding: 10rpx 24rpx;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 12rpx;
+  font-size: 24rpx;
 }
 
 /* ========== 行程说明 ========== */
