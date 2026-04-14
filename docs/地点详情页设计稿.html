@@ -718,14 +718,47 @@
     /* ========== 设计说明面板 ========== */
     .design-panel {
       position: fixed;
-      top: 20px;
+      bottom: 80px;
       right: 20px;
       width: 320px;
-      max-height: calc(100vh - 40px);
+      max-height: calc(100vh - 120px);
       background: white;
       border-radius: 16px;
       box-shadow: 0 10px 40px rgba(0,0,0,0.15);
       overflow: hidden;
+      display: none;
+      z-index: 1000;
+    }
+
+    .design-panel.show {
+      display: block;
+    }
+
+    /* 设计说明切换按钮 */
+    .design-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4);
+      z-index: 1001;
+      transition: transform 0.3s ease;
+    }
+
+    .design-toggle:hover {
+      transform: scale(1.1);
+    }
+
+    .design-toggle .icon {
+      color: white;
+      font-size: 24px;
     }
 
     .panel-header {
@@ -844,7 +877,14 @@
     /* 响应式 */
     @media (max-width: 768px) {
       .design-panel {
-        display: none;
+        width: 280px;
+        right: 10px;
+        bottom: 70px;
+      }
+
+      .design-toggle {
+        right: 10px;
+        bottom: 10px;
       }
     }
   </style>
@@ -1158,7 +1198,7 @@
   </div>
 
   <!-- 设计说明面板 -->
-  <div class="design-panel">
+  <div class="design-panel" id="designPanel">
     <div class="panel-header">
       <h2>🎨 设计说明</h2>
       <p>北上周边行 · 地点详情页</p>
@@ -1719,7 +1759,7 @@
   </div>
 
   <!-- 设计说明面板 -->
-  <div class="design-panel" style="position: fixed; top: 20px; right: 20px;">
+  <div class="design-panel" id="designPanel2">
     <div class="panel-header">
       <h2>🎨 设计说明</h2>
       <p>北上周边行 · 行程相关页面</p>
@@ -2139,7 +2179,7 @@
   </div>
 
   <!-- 设计说明面板 - 邀请功能 -->
-  <div class="design-panel" style="position: fixed; top: 20px; right: 20px;">
+  <div class="design-panel" id="designPanel3">
     <div class="panel-header">
       <h2>🎨 设计说明</h2>
       <p>地点详情页 · 邀请功能</p>
@@ -2201,7 +2241,7 @@
   </div>
 
   <!-- 设计说明面板 -->
-  <div class="design-panel" style="position: fixed; top: 20px; right: 360px;">
+  <div class="design-panel" id="designPanel4">
     <div class="panel-header">
       <h2>🎨 设计说明</h2>
       <p>北上周边行 · 发布成功页</p>
@@ -2864,5 +2904,19 @@
       </div>
     </div>
   </div>
-</body>
+
+  <!-- 设计说明切换按钮 -->
+  <div class="design-toggle" id="designToggle" onclick="toggleDesignPanel()">
+    <span class="icon">🎨</span>
+  </div>
+
+  <script>
+    // 设计说明面板切换
+    function toggleDesignPanel() {
+      const panels = document.querySelectorAll('.design-panel');
+      panels.forEach(panel => {
+        panel.classList.toggle('show');
+      });
+    }
+  </script>
 </html>
