@@ -153,11 +153,6 @@
               <block wx:if="{{item.status === 'accepted'}}">
                 <view class="accepted-card">
                   <view class="accepted-tip">🎉 对方已同意您的申请</view>
-                  <view class="contact-row" wx:if="{{item.creatorPhone}}">
-                    <text class="contact-label">手机号：</text>
-                    <text class="contact-value">{{item.creatorPhone}}</text>
-                    <view class="copy-btn" catchtap="onCopyContact" data-value="{{item.creatorPhone}}">复制</view>
-                  </view>
                   <view class="contact-row" wx:if="{{item.creatorWechat}}">
                     <text class="contact-label">微信号：</text>
                     <text class="contact-value">{{item.creatorWechat}}</text>

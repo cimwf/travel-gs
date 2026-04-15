@@ -173,11 +173,13 @@ Page({
                 // 如果已同意，获取发起人联系方式
                 if (item.status === 'accepted' && tripData.creatorId) {
                   const userRes = await db.collection('users').where({
-                    _openid: tripData.creatorId
+                    openid: tripData.creatorId
                   }).get();
+
                   if (userRes.data && userRes.data[0]) {
                     creatorPhone = userRes.data[0].phone || '';
-                    creatorWechat = userRes.data[0].wechat || '';
+                    // 手机号同时也是微信号
+                    creatorWechat = userRes.data[0].wechat || creatorPhone;
                   }
                 }
               }
