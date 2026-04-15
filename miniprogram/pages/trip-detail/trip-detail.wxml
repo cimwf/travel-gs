@@ -143,38 +143,14 @@
   </block>
 </view>
 
-<!-- ========== 申请加入弹窗 ========== -->
-<view class="modal-mask" wx:if="{{showApplyModal}}" bindtap="onCloseApplyModal">
-  <view class="modal-content" catchtap="preventBubble">
-    <view class="modal-header">
-      <view class="modal-icon-wrap">
-        <text class="modal-icon">🏔️</text>
-      </view>
-      <view class="modal-title">申请加入行程</view>
-      <view class="modal-subtitle">{{trip.placeName}} · 还剩{{remainCount}}个名额</view>
-    </view>
-
-    <view class="modal-body">
-      <!-- 联系方式 -->
-      <view class="form-group">
-        <view class="form-label">联系方式 <text class="required">*</text></view>
-        <input class="form-input" placeholder="请输入手机号（同时也是微信号）" value="{{contactValue}}" bindinput="onContactInput" maxlength="11" />
-        <view class="form-tip">
-          <text class="tip-icon">💡</text>
-          <text>此号码将同时作为手机号和微信号</text>
-        </view>
-      </view>
-
-      <!-- 备注 -->
-      <view class="form-group">
-        <view class="form-label">备注（选填）</view>
-        <textarea class="form-textarea" placeholder="简单介绍一下自己..." value="{{introduction}}" bindinput="onIntroductionInput" />
-      </view>
-    </view>
-
-    <view class="modal-footer">
-      <view class="modal-btn modal-btn-cancel" catchtap="onCloseApplyModal">取消</view>
-      <view class="modal-btn modal-btn-confirm" catchtap="onSubmitApply">提交申请</view>
-    </view>
-  </view>
-</view>
+<!-- 申请加入弹窗组件 -->
+<apply-modal
+  show="{{showApplyModal}}"
+  placeName="{{trip.placeName}}"
+  remainCount="{{remainCount}}"
+  tripId="{{trip._id}}"
+  toUserId="{{trip.creatorId}}"
+  toUserName="{{trip.creatorName}}"
+  bind:close="onCloseApplyModal"
+  bind:submit="onSubmitApplySuccess"
+/>

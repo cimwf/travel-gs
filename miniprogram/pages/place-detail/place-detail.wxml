@@ -136,8 +136,9 @@
             </view>
             -->
           </view>
-          <view class="action-btn primary" catchtap="onApplyTap" data-id="{{item._id}}">
-            申请加入
+          <!-- 自己发布的行程显示"查看行程"，别人的行程显示"申请加入" -->
+          <view class="action-btn {{item.isMyTrip ? 'secondary' : 'primary'}}" catchtap="{{item.isMyTrip ? 'onViewTrip' : 'onApplyTap'}}" data-id="{{item._id}}" data-index="{{index}}">
+            {{item.isMyTrip ? '查看行程' : '申请加入'}}
           </view>
         </view>
 
@@ -188,47 +189,14 @@
   </view>
 </view>
 
-<!-- ========== 申请加入弹窗 ========== -->
-<view class="modal-mask" wx:if="{{showApplyModal}}" bindtap="onCloseApplyModal">
-  <view class="modal-content" catchtap="preventBubble">
-    <view class="modal-header">
-      <view class="modal-icon-wrap">
-        <text class="modal-icon">🏔️</text>
-      </view>
-      <view class="modal-title">申请加入行程</view>
-      <view class="modal-subtitle">{{place.name}} · 还剩{{currentTrip.needCount}}个名额</view>
-    </view>
-
-    <view class="modal-body">
-      <!-- 联系方式类型 -->
-      <view class="form-group">
-        <view class="form-label">联系方式类型</view>
-        <view class="contact-type-row">
-          <view class="contact-type {{contactType === 'phone' ? 'active' : ''}}" catchtap="onSelectContactType" data-type="phone">
-            <text>📱 手机号</text>
-          </view>
-          <view class="contact-type {{contactType === 'wechat' ? 'active' : ''}}" catchtap="onSelectContactType" data-type="wechat">
-            <text>💬 微信号</text>
-          </view>
-        </view>
-      </view>
-
-      <!-- 联系方式输入 -->
-      <view class="form-group">
-        <view class="form-label">{{contactType === 'phone' ? '手机号码' : '微信号'}}</view>
-        <input class="form-input" placeholder-class="input-placeholder" placeholder="{{contactType === 'phone' ? '请输入您的手机号' : '请输入您的微信号'}}" value="{{contactValue}}" bindinput="onContactInput" />
-      </view>
-
-      <!-- 备注 -->
-      <view class="form-group">
-        <view class="form-label">备注（选填）</view>
-        <textarea class="form-textarea" placeholder="简单介绍一下自己..." value="{{introduction}}" bindinput="onIntroductionInput" />
-      </view>
-    </view>
-
-    <view class="modal-footer">
-      <view class="modal-btn modal-btn-cancel" catchtap="onCloseApplyModal">取消</view>
-      <view class="modal-btn modal-btn-confirm" catchtap="onSubmitApply">提交申请</view>
-    </view>
-  </view>
-</view>
+<!-- 申请加入弹窗组件 -->
+<apply-modal
+  show="{{showApplyModal}}"
+  placeName="{{place.name}}"
+  remainCount="{{currentTrip.needCount || 0}}"
+  tripId="{{currentTrip._id}}"
+  toUserId="{{currentTrip.creatorId}}"
+  toUserName="{{currentTrip.creatorName}}"
+  bind:close="onCloseApplyModal"
+  bind:submit="onSubmitApplySuccess"
+/>

@@ -15,10 +15,7 @@ Page({
     hasJoined: false,
     isCreator: false,
     maskedPhone: '',
-    // 弹窗相关
-    showApplyModal: false,
-    contactValue: '',
-    introduction: ''
+    showApplyModal: false
   },
 
   onLoad: function (options) {
@@ -390,9 +387,7 @@ Page({
 
     // 显示申请加入弹窗
     this.setData({
-      showApplyModal: true,
-      contactValue: '',
-      introduction: ''
+      showApplyModal: true
     });
   },
 
@@ -401,80 +396,8 @@ Page({
     this.setData({ showApplyModal: false });
   },
 
-  // 阻止事件冒泡
-  preventBubble: function () {},
-
-  // 输入联系方式
-  onContactInput: function (e) {
-    let value = e.detail.value;
-    // 只允许输入数字，最多11位
-    value = value.replace(/\D/g, '').slice(0, 11);
-    this.setData({ contactValue: value });
-  },
-
-  // 输入备注
-  onIntroductionInput: function (e) {
-    this.setData({ introduction: e.detail.value });
-  },
-
-  // 提交申请
-  onSubmitApply: async function () {
-    const { contactValue, introduction } = this.data;
-
-    // 校验联系方式
-    if (!contactValue) {
-      wx.showToast({ title: '请填写联系方式', icon: 'none' });
-      return;
-    }
-
-    const phoneReg = /^1[3-9]\d{9}$/;
-    if (!phoneReg.test(contactValue)) {
-      wx.showToast({ title: '请输入正确的手机号', icon: 'none' });
-      return;
-    }
-
-    const trip = this.data.trip;
-    const openid = app.globalData.openid;
-    const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
-
-    wx.showLoading({ title: '发送中...' });
-
-    // 存储申请记录到数据库
-    if (wx.cloud) {
-      try {
-        const db = wx.cloud.database();
-
-        await db.collection('applies').add({
-          data: {
-            tripId: trip._id,
-            placeName: trip.placeName || '',
-            toUserId: trip.creatorId || '',
-            toUserName: trip.creatorName || '',
-            fromUserId: openid,
-            fromUserName: userInfo.nickname || '旅行者',
-            fromUserAvatar: userInfo.avatar || '',
-            contactType: 'phone',
-            contactValue: contactValue,
-            message: introduction || '',
-            status: 'pending',
-            type: 'apply',
-            createdAt: Date.now()
-          }
-        });
-
-        wx.hideLoading();
-        wx.showToast({ title: '申请已发送', icon: 'success' });
-        this.setData({ showApplyModal: false });
-        return;
-      } catch (err) {
-        wx.hideLoading();
-        console.error('提交申请失败', err);
-        wx.showToast({ title: '发送失败，请重试', icon: 'none' });
-        return;
-      }
-    }
-
-    wx.hideLoading();
+  // 提交申请成功回调
+  onSubmitApplySuccess: function () {
     this.setData({ showApplyModal: false });
   },
 

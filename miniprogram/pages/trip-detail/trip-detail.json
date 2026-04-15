@@ -1,5 +1,7 @@
 {
   "navigationStyle": "custom",
   "navigationBarTitleText": "行程详情",
-  "usingComponents": {}
+  "usingComponents": {
+    "apply-modal": "/components/apply-modal/apply-modal"
+  }
 }
