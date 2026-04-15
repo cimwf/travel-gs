@@ -15,13 +15,17 @@ Page({
     hasJoined: false,
     isCreator: false,
     maskedPhone: '',
-    showApplyModal: false
+    showApplyModal: false,
+    userInfo: null
   },
 
   onLoad: function (options) {
     // 获取状态栏高度
     const systemInfo = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: systemInfo.statusBarHeight });
+    this.setData({
+      statusBarHeight: systemInfo.statusBarHeight,
+      userInfo: app.globalData.userInfo
+    });
 
     const tripId = options.id || '';
     this.setData({ tripId });
@@ -29,6 +33,10 @@ Page({
     if (tripId) {
       this.loadTripDetail(tripId);
     }
+  },
+
+  onShow: function () {
+    this.setData({ userInfo: app.globalData.userInfo });
   },
 
   // 加载行程详情

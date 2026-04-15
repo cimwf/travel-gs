@@ -26,12 +26,24 @@ Component({
     toUserName: {
       type: String,
       value: ''
+    },
+    defaultPhone: {
+      type: String,
+      value: ''
     }
   },
 
   data: {
     contactValue: '',
     introduction: ''
+  },
+
+  observers: {
+    'show, defaultPhone': function(show, defaultPhone) {
+      if (show && defaultPhone) {
+        this.setData({ contactValue: defaultPhone });
+      }
+    }
   },
 
   methods: {

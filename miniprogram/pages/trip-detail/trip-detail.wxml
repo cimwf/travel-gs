@@ -151,6 +151,7 @@
   tripId="{{trip._id}}"
   toUserId="{{trip.creatorId}}"
   toUserName="{{trip.creatorName}}"
+  defaultPhone="{{userInfo.phone || ''}}"
   bind:close="onCloseApplyModal"
   bind:submit="onSubmitApplySuccess"
 />
