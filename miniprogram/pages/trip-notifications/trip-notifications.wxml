@@ -69,7 +69,8 @@
               <block wx:if="{{item.isHandled && item.status === 'agreed'}}">
                 <view class="sent-header">
                   <view class="trip-icon" style="background: {{item.placeBg}}">
-                    <text class="trip-emoji">{{item.placeEmoji}}</text>
+                    <image wx:if="{{item.placeCoverImage}}" class="trip-cover" src="{{item.placeCoverImage}}" mode="aspectFill"></image>
+                    <text wx:else class="trip-emoji">{{item.placeEmoji}}</text>
                   </view>
                   <view class="sent-info">
                     <view class="sent-title">{{item.placeName}}</view>
@@ -96,7 +97,8 @@
               <block wx:if="{{item.isHandled && item.status === 'rejected'}}">
                 <view class="sent-header">
                   <view class="trip-icon" style="background: {{item.placeBg}}">
-                    <text class="trip-emoji">{{item.placeEmoji}}</text>
+                    <image wx:if="{{item.placeCoverImage}}" class="trip-cover" src="{{item.placeCoverImage}}" mode="aspectFill"></image>
+                    <text wx:else class="trip-emoji">{{item.placeEmoji}}</text>
                   </view>
                   <view class="sent-info">
                     <view class="sent-title">{{item.placeName}}</view>
@@ -116,7 +118,8 @@
             <block wx:if="{{item.type === 'sent'}}">
               <view class="sent-header">
                 <view class="trip-icon" style="background: {{item.placeBg}}">
-                  <text class="trip-emoji">{{item.placeEmoji}}</text>
+                  <image wx:if="{{item.placeCoverImage}}" class="trip-cover" src="{{item.placeCoverImage}}" mode="aspectFill"></image>
+                  <text wx:else class="trip-emoji">{{item.placeEmoji}}</text>
                 </view>
                 <view class="sent-info">
                   <view class="sent-title">{{item.placeName}}</view>

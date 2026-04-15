@@ -103,11 +103,20 @@ Page({
 
           // 获取行程详情
           let tripData = null;
+          let placeCoverImage = '';
           if (item.tripId) {
             try {
               const tripRes = await db.collection('trips').doc(item.tripId).get();
               if (tripRes.data) {
                 tripData = tripRes.data;
+
+                // 获取地点封面图
+                if (tripData.placeId) {
+                  const placeRes = await db.collection('places').doc(tripData.placeId).get();
+                  if (placeRes.data && placeRes.data.coverImage) {
+                    placeCoverImage = placeRes.data.coverImage;
+                  }
+                }
               }
             } catch (err) {
               console.warn('获取行程详情失败', err);
@@ -133,6 +142,7 @@ Page({
             placeName: item.placeName || tripData?.placeName || '未知地点',
             placeBg: this.getPlaceBg(item.placeName),
             placeEmoji: this.getPlaceEmoji(item.placeName),
+            placeCoverImage: placeCoverImage,
             tripDate: tripData?.date ? this.formatDate(tripData.date) : '待定',
             createdAt: item.createdAt
           });
@@ -144,12 +154,21 @@ Page({
           let tripData = null;
           let creatorPhone = '';
           let creatorWechat = '';
+          let placeCoverImage = '';
 
           if (item.tripId) {
             try {
               const tripRes = await db.collection('trips').doc(item.tripId).get();
               if (tripRes.data) {
                 tripData = tripRes.data;
+
+                // 获取地点封面图
+                if (tripData.placeId) {
+                  const placeRes = await db.collection('places').doc(tripData.placeId).get();
+                  if (placeRes.data && placeRes.data.coverImage) {
+                    placeCoverImage = placeRes.data.coverImage;
+                  }
+                }
 
                 // 如果已同意，获取发起人联系方式
                 if (item.status === 'accepted' && tripData.creatorId) {
@@ -178,6 +197,7 @@ Page({
             placeName: item.placeName || tripData?.placeName || '未知地点',
             placeBg: this.getPlaceBg(item.placeName),
             placeEmoji: this.getPlaceEmoji(item.placeName),
+            placeCoverImage: placeCoverImage,
             creatorName: item.toUserName || tripData?.creatorName || '旅行者',
             tripDate: tripData?.date ? this.formatDate(tripData.date) : '待定',
             status: status,
