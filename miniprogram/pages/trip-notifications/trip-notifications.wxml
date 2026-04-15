@@ -55,7 +55,7 @@
                   </view>
                   <view class="detail-row" wx:if="{{item.introduction}}">
                     <text class="detail-label">备注：</text>
-                    <text class="detail-value text-ellipsis">{{item.introduction}}</text>
+                    <text class="detail-value">{{item.introduction}}</text>
                   </view>
                 </view>
 
