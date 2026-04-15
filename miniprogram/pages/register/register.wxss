@@ -1,6 +1,8 @@
 /* pages/register/register.wxss */
 page {
   height: 100%;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .register-page {
@@ -9,6 +11,9 @@ page {
   flex-direction: column;
   background: linear-gradient(180deg, #4A90E2 0%, #667eea 50%, #764ba2 100%);
   padding: 0 40rpx;
+  width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* 内容区域 */

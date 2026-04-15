@@ -1,6 +1,8 @@
 /* pages/auth/auth.wxss */
 page {
   height: 100%;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .auth-page {
@@ -10,6 +12,8 @@ page {
   background: linear-gradient(180deg, #4A90E2 0%, #667eea 50%, #764ba2 100%);
   padding: 0 40rpx;
   box-sizing: border-box;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* 内容区域 */

@@ -18,6 +18,8 @@ page {
 
 page {
   background: var(--bg-color);
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .container {
@@ -26,6 +28,8 @@ page {
   display: flex;
   flex-direction: column;
   width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* ========== 导航栏 ========== */

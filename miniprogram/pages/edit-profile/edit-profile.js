@@ -11,6 +11,7 @@ Page({
       background: '',
       nickname: '',
       gender: '',
+      phone: '',
       bio: '',
       birthday: '',
       userId: '',
@@ -161,6 +162,16 @@ Page({
     });
   },
 
+  // 手机号输入
+  onPhoneInput: function (e) {
+    let value = e.detail.value;
+    // 只允许输入数字，最多11位
+    value = value.replace(/\D/g, '').slice(0, 11);
+    this.setData({
+      'userInfo.phone': value
+    });
+  },
+
   // 简介输入
   onBioInput: function (e) {
     this.setData({
@@ -303,6 +314,18 @@ Page({
       return;
     }
 
+    // 验证手机号
+    if (!userInfo.phone) {
+      wx.showToast({ title: '请输入联系方式', icon: 'none' });
+      return;
+    }
+
+    const phoneReg = /^1[3-9]\d{9}$/;
+    if (!phoneReg.test(userInfo.phone)) {
+      wx.showToast({ title: '请输入正确的手机号', icon: 'none' });
+      return;
+    }
+
     this.setData({ saving: true });
 
     wx.showLoading({ title: '保存中...' });
@@ -338,6 +361,7 @@ Page({
           nickname: userData.nickname,
           avatar: userData.avatar,
           gender: userData.gender,
+          phone: userData.phone,
           bio: userData.bio,
           background: userData.background,
           photos: userData.photos

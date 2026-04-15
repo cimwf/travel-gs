@@ -18,11 +18,16 @@ page {
 
 page {
   background: var(--bg-color);
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .container {
   padding-bottom: 180rpx;
   background: var(--bg-color);
+  width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* ========== 顶部轮播图区域 ========== */
@@ -101,11 +106,16 @@ page {
   letter-spacing: 4rpx;
 }
 
+.content-view {
+  width: 100%;
+  padding: 0 32rpx 32rpx;
+}
+
 /* ========== 基本信息区域 ========== */
 .info-section {
-  width: 84%;
+  width: 100%;
   background: white;
-  margin: -50rpx 24rpx 24rpx;
+  margin: -50rpx 0rpx 24rpx;
   border-radius: 32rpx;
   padding: 40rpx;
   position: relative;
@@ -227,9 +237,9 @@ page {
 
 /* ========== 内容卡片 ========== */
 .content-card {
-  width: 84%;
+  width: 100%;
   background: white;
-  margin: 0 24rpx 24rpx;
+  margin-bottom: 24rpx;
   border-radius: 32rpx;
   padding: 40rpx;
   box-shadow: var(--shadow-sm);
@@ -292,9 +302,9 @@ page {
 
 /* ========== 行程列表 ========== */
 .trip-section {
-  width: 84%;
+  width: 100%;
   background: white;
-  margin: 0 24rpx 24rpx;
+  margin-bottom: 24rpx;
   border-radius: 32rpx;
   padding: 40rpx;
   box-shadow: var(--shadow-sm);

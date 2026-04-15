@@ -59,6 +59,14 @@
               <view class="gender-tag {{userInfo.gender === 'secret' ? 'active' : ''}}" data-value="secret" bindtap="onGenderChange">保密</view>
             </view>
           </view>
+          <view class="info-row phone-row">
+            <text class="info-label">联系方式 <text class="required">*</text></text>
+            <input class="info-input" type="text" placeholder="请输入手机号（同时也是微信号）" placeholder-class="input-placeholder" value="{{userInfo.phone}}" maxlength="11" bindinput="onPhoneInput" />
+          </view>
+          <view class="phone-tip">
+            <text class="tip-icon">💡</text>
+            <text class="tip-text">此号码将同时作为手机号和微信号，展示给已加入行程的成员</text>
+          </view>
         </view>
       </view>
 
