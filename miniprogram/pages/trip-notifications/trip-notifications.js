@@ -90,8 +90,9 @@ Page({
           }
         }
 
-        // 处理我收到的申请
-        const receivedList = (receivedRes.data || []).map(item => {
+        // 处理我收到的申请（需要获取行程详情）
+        const receivedList = [];
+        for (const item of receivedRes.data || []) {
           let avatar = item.fromUserAvatar || '';
           if (avatar && avatar.startsWith('cloud://') && avatarMap[avatar]) {
             avatar = avatarMap[avatar];
@@ -100,7 +101,20 @@ Page({
             avatar = '';
           }
 
-          return {
+          // 获取行程详情
+          let tripData = null;
+          if (item.tripId) {
+            try {
+              const tripRes = await db.collection('trips').doc(item.tripId).get();
+              if (tripRes.data) {
+                tripData = tripRes.data;
+              }
+            } catch (err) {
+              console.warn('获取行程详情失败', err);
+            }
+          }
+
+          receivedList.push({
             _id: item._id,
             type: 'received',
             userName: item.fromUserName || '旅行者',
@@ -116,9 +130,13 @@ Page({
             status: item.status === 'accepted' ? 'agreed' : item.status,
             statusText: item.status === 'accepted' ? '已同意' : (item.status === 'rejected' ? '已拒绝' : ''),
             tripId: item.tripId,
+            placeName: item.placeName || tripData?.placeName || '未知地点',
+            placeBg: this.getPlaceBg(item.placeName),
+            placeEmoji: this.getPlaceEmoji(item.placeName),
+            tripDate: tripData?.date ? this.formatDate(tripData.date) : '待定',
             createdAt: item.createdAt
-          };
-        });
+          });
+        }
 
         // 处理我发出的申请（需要获取行程详情）
         const sentList = [];

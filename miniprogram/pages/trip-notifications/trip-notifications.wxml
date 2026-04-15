@@ -65,18 +65,51 @@
                 </view>
               </block>
 
-              <!-- 已处理 -->
-              <view class="card-handled" wx:else>
-                <view class="user-avatar" style="background: {{item.avatarBg}}">
-                  <image wx:if="{{item.fromUserAvatar}}" class="avatar-image" src="{{item.fromUserAvatar}}" mode="aspectFill"></image>
-                  <text wx:else>{{item.userName[0]}}</text>
+              <!-- 已同意 -->
+              <block wx:if="{{item.isHandled && item.status === 'agreed'}}">
+                <view class="sent-header">
+                  <view class="trip-icon" style="background: {{item.placeBg}}">
+                    <text class="trip-emoji">{{item.placeEmoji}}</text>
+                  </view>
+                  <view class="sent-info">
+                    <view class="sent-title">{{item.placeName}}</view>
+                    <view class="sent-meta">申请人：{{item.userName}}</view>
+                    <view class="sent-date">📅 {{item.tripDate}}</view>
+                  </view>
+                  <view class="sent-status accepted">✓ 已同意</view>
                 </view>
-                <view class="header-info">
-                  <view class="header-title">{{item.headerTitle}}</view>
-                  <view class="header-meta">{{item.headerMeta}} · {{item.timeAgo}}</view>
+
+                <view class="accepted-card">
+                  <view class="accepted-tip">🎉 您已同意对方的申请</view>
+                  <view class="contact-row" wx:if="{{item.contactValue}}">
+                    <text class="contact-label">{{item.contactType === 'phone' ? '手机号：' : '微信号：'}}</text>
+                    <text class="contact-value">{{item.contactValue}}</text>
+                    <view class="copy-btn" catchtap="onCopyContact" data-value="{{item.contactValue}}">复制</view>
+                  </view>
                 </view>
-                <text class="status-text {{item.status}}">{{item.statusText}}</text>
-              </view>
+                <view class="sent-actions">
+                  <view class="action-btn primary full" catchtap="onViewTrip" data-tripid="{{item.tripId}}">查看行程</view>
+                </view>
+              </block>
+
+              <!-- 已拒绝 -->
+              <block wx:if="{{item.isHandled && item.status === 'rejected'}}">
+                <view class="sent-header">
+                  <view class="trip-icon" style="background: {{item.placeBg}}">
+                    <text class="trip-emoji">{{item.placeEmoji}}</text>
+                  </view>
+                  <view class="sent-info">
+                    <view class="sent-title">{{item.placeName}}</view>
+                    <view class="sent-meta">申请人：{{item.userName}}</view>
+                    <view class="sent-date">📅 {{item.tripDate}}</view>
+                  </view>
+                  <view class="sent-status rejected">✕ 已拒绝</view>
+                </view>
+
+                <view class="rejected-card">
+                  <view class="rejected-tip">😔 您已拒绝对方的申请</view>
+                </view>
+              </block>
             </block>
 
             <!-- 我发出的申请：我申请加入别人的行程 -->
