@@ -105,7 +105,8 @@ Page({
         }
 
         // 处理行程数据
-        const trips = (res.data || []).map(item => {
+        const trips = [];
+        for (const item of res.data || []) {
           const isCreator = item.creatorId === openid;
           const now = Date.now();
           const tripDate = new Date(item.date).getTime();
@@ -133,9 +134,22 @@ Page({
           const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
           const dateText = `${date.getMonth() + 1}月${date.getDate()}日 ${weekDays[date.getDay()]}`;
 
-          // 获取头像背景色
+          // 获取头像背景色和emoji（备用）
           const imgBg = this.getImgBg(item.placeName);
           const emoji = this.getEmoji(item.category);
+
+          // 获取地点封面图
+          let placeCoverImage = '';
+          if (item.placeId) {
+            try {
+              const placeRes = await db.collection('places').doc(item.placeId).get();
+              if (placeRes.data && placeRes.data.coverImage) {
+                placeCoverImage = placeRes.data.coverImage;
+              }
+            } catch (err) {
+              console.warn('获取地点封面图失败', err);
+            }
+          }
 
           // 处理参与者头像
           const participants = (item.participants || []).map(p => {
@@ -154,7 +168,7 @@ Page({
             };
           });
 
-          return {
+          trips.push({
             _id: item._id,
             placeName: item.placeName,
             dateText: dateText,
@@ -166,6 +180,7 @@ Page({
             statusClass,
             imgBg,
             emoji,
+            placeCoverImage,
             isCreator,
             hasCar: item.hasCar,
             departure: item.departure,
@@ -173,8 +188,8 @@ Page({
             participants: participants,
             creatorName: item.creatorName,
             rawStatus: status
-          };
-        });
+          });
+        }
 
         this.setData({
           allTrips: trips,

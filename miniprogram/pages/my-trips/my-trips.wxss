@@ -138,6 +138,12 @@ page {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.trip-cover {
+  width: 100%;
+  height: 100%;
 }
 
 .trip-emoji {
