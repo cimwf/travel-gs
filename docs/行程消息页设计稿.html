@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>行程消息页设计稿 - 北上周边行</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-color: #4A90E2;
+      --primary-light: #6BA3E8;
+      --primary-dark: #3A7BC8;
+      --bg-color: #F5F7FA;
+      --card-bg: #FFFFFF;
+      --text-primary: #1A1A2E;
+      --text-secondary: #4A4A68;
+      --text-hint: #8E8EA0;
+      --border-color: #E8E8F0;
+      --success-color: #52C41A;
+      --warning-color: #FAAD14;
+      --danger-color: #FF4D4F;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: #E8E8F0;
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    /* 手机框架 */
+    .phone-frame {
+      width: 375px;
+      height: 812px;
+      background: var(--bg-color);
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      position: relative;
+    }
+
+    /* 状态栏 */
+    .status-bar {
+      height: 44px;
+      background: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .status-bar .time {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .status-bar .icons {
+      display: flex;
+      gap: 4px;
+      font-size: 14px;
+    }
+
+    /* 导航栏 */
+    .nav-bar {
+      background: white;
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+    }
+
+    .nav-back {
+      font-size: 20px;
+      color: var(--text-hint);
+      cursor: pointer;
+      width: 24px;
+    }
+
+    .nav-title {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .nav-right {
+      width: 24px;
+    }
+
+    /* 滚动容器 */
+    .scroll-container {
+      height: calc(100% - 76px);
+      overflow-y: auto;
+      background: var(--bg-color);
+      padding: 16px;
+    }
+
+    .scroll-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* ========== 分组标题 ========== */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0 12px;
+      position: sticky;
+      top: 0;
+      background: var(--bg-color);
+      z-index: 10;
+    }
+
+    .section-header:first-child {
+      padding-top: 0;
+    }
+
+    .section-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+
+    .section-icon.inbox {
+      background: rgba(74, 144, 226, 0.1);
+    }
+
+    .section-icon.outbox {
+      background: rgba(82, 196, 26, 0.1);
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .section-count {
+      font-size: 12px;
+      color: var(--text-hint);
+      margin-left: auto;
+    }
+
+    /* ========== 消息卡片 ========== */
+    .message-card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .message-card.opacity {
+      opacity: 0.6;
+    }
+
+    /* 卡片头部 - 用户信息 */
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .user-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .user-avatar.gradient-1 {
+      background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+    }
+
+    .user-avatar.gradient-2 {
+      background: linear-gradient(135deg, #4A90E2, #6BA3E8);
+    }
+
+    .user-avatar.gradient-3 {
+      background: linear-gradient(135deg, #56AB2F, #A8E6CF);
+    }
+
+    .user-avatar.gradient-4 {
+      background: linear-gradient(135deg, #8E8EA0, #B4B4C0);
+    }
+
+    .card-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-time {
+      font-size: 12px;
+      color: var(--text-hint);
+    }
+
+    /* 状态标签 */
+    .status-tag {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+
+    .status-tag.pending {
+      background: rgba(250, 173, 20, 0.1);
+      color: var(--warning-color);
+    }
+
+    .status-tag.accepted {
+      background: rgba(82, 196, 26, 0.1);
+      color: var(--success-color);
+    }
+
+    .status-tag.rejected {
+      background: var(--bg-color);
+      color: var(--text-hint);
+    }
+
+    .status-tag.expired {
+      background: var(--bg-color);
+      color: var(--text-hint);
+    }
+
+    /* 行程信息 */
+    .trip-info {
+      background: var(--bg-color);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .trip-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .trip-tag {
+      padding: 4px 10px;
+      background: white;
+      border-radius: 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .trip-detail {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .trip-detail-label {
+      color: var(--text-hint);
+    }
+
+    /* 成功提示框 */
+    .success-notice {
+      background: linear-gradient(135deg, rgba(82, 196, 26, 0.08), rgba(115, 209, 61, 0.08));
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(82, 196, 26, 0.2);
+    }
+
+    .success-notice-title {
+      font-size: 13px;
+      color: var(--success-color);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .contact-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+    }
+
+    .contact-value {
+      font-size: 14px;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .copy-btn {
+      margin-left: auto;
+      padding: 4px 10px;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    /* 操作按钮 */
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+
+    .action-btn.secondary {
+      background: var(--bg-color);
+      color: var(--text-secondary);
+    }
+
+    .action-btn.primary {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .action-btn.danger {
+      background: rgba(255, 77, 79, 0.1);
+      color: var(--danger-color);
+    }
+
+    /* ========== 行程卡片（我发出的） ========== */
+    .trip-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .trip-card-header {
+      display: flex;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    .trip-cover {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .trip-cover.gradient-1 {
+      background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+    }
+
+    .trip-cover.gradient-2 {
+      background: linear-gradient(135deg, #56AB2F, #A8E6CF);
+    }
+
+    .trip-cover.gradient-3 {
+      background: linear-gradient(135deg, #8E8EA0, #B4B4C0);
+    }
+
+    .trip-card-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .trip-card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .trip-card-meta {
+      font-size: 13px;
+      color: var(--text-hint);
+      margin-bottom: 4px;
+    }
+
+    .trip-card-detail {
+      font-size: 13px;
+      color: var(--text-hint);
+    }
+
+    .trip-card-body {
+      background: var(--bg-color);
+      margin: 0 16px 12px;
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .trip-card-footer {
+      display: flex;
+      gap: 12px;
+      padding: 12px 16px;
+      border-top: 1px solid var(--bg-color);
+    }
+
+    .footer-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .footer-btn.outline {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+    }
+
+    .footer-btn.primary {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .footer-btn.danger {
+      background: rgba(255, 77, 79, 0.1);
+      color: var(--danger-color);
+      border: none;
+    }
+
+    /* ========== 弹窗 ========== */
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      width: 300px;
+      max-width: 90%;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.16);
+      transform: scale(0.9);
+      transition: transform 0.3s;
+    }
+
+    .modal-overlay.show .modal-content {
+      transform: scale(1);
+    }
+
+    .modal-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 28px;
+    }
+
+    .modal-icon.warning {
+      background: rgba(255, 77, 79, 0.1);
+    }
+
+    .modal-icon.success {
+      background: rgba(82, 196, 26, 0.1);
+    }
+
+    .modal-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .modal-desc {
+      font-size: 14px;
+      color: var(--text-hint);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .modal-btn.cancel {
+      background: var(--bg-color);
+      color: var(--text-secondary);
+    }
+
+    .modal-btn.confirm {
+      background: var(--danger-color);
+      color: white;
+    }
+
+    /* Home Indicator */
+    .home-indicator {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 134px;
+      height: 5px;
+      background: var(--text-primary);
+      border-radius: 3px;
+      opacity: 0.2;
+    }
+
+    /* 设计说明面板 */
+    .design-panel {
+      position: absolute;
+      top: 10px;
+      right: -340px;
+      width: 320px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      color: white;
+      padding: 20px;
+    }
+
+    .panel-header h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .panel-header p {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .panel-content {
+      padding: 20px;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    .section-block {
+      margin-bottom: 20px;
+    }
+
+    .section-block:last-child {
+      margin-bottom: 0;
+    }
+
+    .section-block h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-block h3::before {
+      content: '';
+      width: 3px;
+      height: 14px;
+      background: var(--primary-color);
+      border-radius: 2px;
+    }
+
+    .feature-list {
+      list-style: none;
+    }
+
+    .feature-list li {
+      position: relative;
+      padding-left: 16px;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .feature-list li::before {
+      content: '•';
+      position: absolute;
+      left: 0;
+      color: var(--primary-color);
+    }
+  </style>
+</head>
+<body>
+  <!-- ========== 场景1: 行程消息页 - 有消息 ========== -->
+  <div class="phone-frame">
+    <div class="status-bar">
+      <span class="time">21:41</span>
+      <div class="icons">📶 🔋</div>
+    </div>
+
+    <div class="nav-bar">
+      <span class="nav-back">‹</span>
+      <span class="nav-title">行程消息</span>
+      <span class="nav-right"></span>
+    </div>
+
+    <div class="scroll-container">
+      <!-- 我收到的 分组 -->
+      <div class="section-header">
+        <div class="section-icon inbox">📥</div>
+        <span class="section-title">我收到的</span>
+        <span class="section-count">3 条待处理</span>
+      </div>
+
+      <!-- 申请加入通知 - 待处理 -->
+      <div class="message-card">
+        <div class="card-header">
+          <div class="user-avatar gradient-1">李</div>
+          <div class="card-info">
+            <div class="card-title">李明 申请加入您的行程</div>
+            <div class="card-time">10分钟前</div>
+          </div>
+        </div>
+
+        <div class="trip-info">
+          <div class="trip-tags">
+            <span class="trip-tag">🏔️ 东灵山</span>
+            <span class="trip-tag">📅 4月5日</span>
+            <span class="trip-tag">👥 1-4人</span>
+          </div>
+          <div class="trip-detail">
+            <span class="trip-detail-label">💬 微信号：</span>138****8888
+          </div>
+          <div class="trip-detail">
+            <span class="trip-detail-label">💬 留言：</span>有户外经验，可以分摊油费
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button class="action-btn secondary">拒绝</button>
+          <button class="action-btn primary">同意</button>
+        </div>
+      </div>
+
+      <!-- 邀请游玩通知 - 待处理 -->
+      <div class="message-card">
+        <div class="card-header">
+          <div class="user-avatar gradient-2">张</div>
+          <div class="card-info">
+            <div class="card-title">张伟 邀请您一起游玩</div>
+            <div class="card-time">30分钟前</div>
+          </div>
+        </div>
+
+        <div class="trip-info">
+          <div class="trip-tags">
+            <span class="trip-tag">🏔️ 百花山</span>
+            <span class="trip-tag">📅 4月8日</span>
+            <span class="trip-tag">🚗 有车</span>
+          </div>
+          <div class="trip-detail">
+            <span class="trip-detail-label">💬 微信号：</span>139****6666
+          </div>
+          <div class="trip-detail">
+            <span class="trip-detail-label">💬 留言：</span>周末一起去百花山踏青，我有车可以载你
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button class="action-btn secondary">忽略</button>
+          <button class="action-btn primary">接受</button>
+        </div>
+      </div>
+
+      <!-- 已同意的申请 -->
+      <div class="message-card">
+        <div class="card-header">
+          <div class="user-avatar gradient-3">刘</div>
+          <div class="card-info">
+            <div class="card-title">刘洋 申请加入您的行程</div>
+            <div class="card-time">2小时前</div>
+          </div>
+          <span class="status-tag accepted">✓ 已同意</span>
+        </div>
+
+        <div class="success-notice">
+          <div class="success-notice-title">您已同意对方的申请</div>
+          <div class="contact-row">
+            <span>💬</span>
+            <span class="contact-value">对方微信号：136****9999</span>
+            <button class="copy-btn">复制</button>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button class="action-btn primary">查看行程</button>
+        </div>
+      </div>
+
+      <!-- 已处理的申请（灰色） -->
+      <div class="message-card opacity">
+        <div class="card-header">
+          <div class="user-avatar gradient-4">王</div>
+          <div class="card-info">
+            <div class="card-title">王芳 申请加入您的行程</div>
+            <div class="card-time">昨天</div>
+          </div>
+          <span class="status-tag rejected">已拒绝</span>
+        </div>
+
+        <div class="trip-info">
+          <div class="trip-tags">
+            <span class="trip-tag">🏔️ 东灵山</span>
+            <span class="trip-tag">📅 4月5日</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 我发出的 分组 -->
+      <div class="section-header">
+        <div class="section-icon outbox">📤</div>
+        <span class="section-title">我发出的</span>
+        <span class="section-count">1 条申请中</span>
+      </div>
+
+      <!-- 申请中 -->
+      <div class="trip-card">
+        <div class="trip-card-header">
+          <div class="trip-cover gradient-1">🏔️</div>
+          <div class="trip-card-info">
+            <div class="trip-card-title">东灵山徒步</div>
+            <div class="trip-card-meta">发起人：张伟 · ⭐ 4.8</div>
+            <div class="trip-card-detail">📅 4月12日 · 🚗 有车 · 👥 已3人</div>
+          </div>
+          <span class="status-tag pending">⏳ 申请中</span>
+        </div>
+
+        <div class="trip-card-body">
+          <div class="trip-detail">
+            <span class="trip-detail-label">我的申请留言：</span>有户外经验，可以分摊油费
+          </div>
+          <div class="trip-detail" style="margin-top: 4px;">
+            <span class="trip-detail-label">申请时间：</span>2026-04-10 14:30
+          </div>
+        </div>
+
+        <div class="trip-card-footer">
+          <button class="footer-btn danger">取消申请</button>
+          <button class="footer-btn primary">查看行程</button>
+        </div>
+      </div>
+
+      <!-- 已同意 -->
+      <div class="trip-card">
+        <div class="trip-card-header">
+          <div class="trip-cover gradient-2">🏔️</div>
+          <div class="trip-card-info">
+            <div class="trip-card-title">海坨山露营</div>
+            <div class="trip-card-meta">发起人：李明 · ⭐ 4.6</div>
+            <div class="trip-card-detail">📅 4月8日 · 🚗 无车</div>
+          </div>
+          <span class="status-tag accepted">✓ 已同意</span>
+        </div>
+
+        <div class="success-notice" style="margin: 0 16px 12px;">
+          <div class="success-notice-title">🎉 对方已同意您的申请</div>
+          <div class="contact-row">
+            <span>💬</span>
+            <span class="contact-value">微信号：139****6666</span>
+            <button class="copy-btn">复制</button>
+          </div>
+        </div>
+
+        <div class="trip-card-footer">
+          <button class="footer-btn primary">查看行程</button>
+        </div>
+      </div>
+
+      <!-- 已拒绝（灰色） -->
+      <div class="trip-card opacity">
+        <div class="trip-card-header">
+          <div class="trip-cover gradient-3">🌸</div>
+          <div class="trip-card-info">
+            <div class="trip-card-title">百花山踏青</div>
+            <div class="trip-card-meta">发起人：王伟 · 昨天</div>
+          </div>
+          <span class="status-tag rejected">已拒绝</span>
+        </div>
+      </div>
+
+      <!-- 已过期（灰色） -->
+      <div class="trip-card opacity">
+        <div class="trip-card-header">
+          <div class="trip-cover gradient-3">🏕️</div>
+          <div class="trip-card-info">
+            <div class="trip-card-title">灵山露营</div>
+            <div class="trip-card-meta">发起人：赵强 · 3天前</div>
+          </div>
+          <span class="status-tag expired">已过期</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-indicator"></div>
+
+    <!-- 设计说明 -->
+    <div class="design-panel">
+      <div class="panel-header">
+        <h2>🎨 设计说明</h2>
+        <p>场景：行程消息页 - 有消息</p>
+      </div>
+      <div class="panel-content">
+        <div class="section-block">
+          <h3>页面结构</h3>
+          <ul class="feature-list">
+            <li>取消Tab切换，统一展示</li>
+            <li>通过分组标题区分消息类型</li>
+            <li>📥 我收到的 + 📤 我发出的</li>
+          </ul>
+        </div>
+        <div class="section-block">
+          <h3>📥 我收到的</h3>
+          <ul class="feature-list">
+            <li>申请加入我的行程</li>
+            <li>邀请我一起游玩</li>
+            <li>反馈通知（申请被同意等）</li>
+          </ul>
+        </div>
+        <div class="section-block">
+          <h3>📤 我发出的</h3>
+          <ul class="feature-list">
+            <li>我发出的申请记录</li>
+            <li>可查看状态和取消</li>
+            <li>已同意时显示联系方式</li>
+          </ul>
+        </div>
+        <div class="section-block">
+          <h3>分组标题</h3>
+          <ul class="feature-list">
+            <li>sticky定位，滚动时固定</li>
+            <li>显示待处理/申请中数量</li>
+            <li>蓝色/绿色区分两种类型</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 场景2: 行程消息页 - 空状态 ========== -->
+  <div class="phone-frame">
+    <div class="status-bar">
+      <span class="time">21:41</span>
+      <div class="icons">📶 🔋</div>
+    </div>
+
+    <div class="nav-bar">
+      <span class="nav-back">‹</span>
+      <span class="nav-title">行程消息</span>
+      <span class="nav-right"></span>
+    </div>
+
+    <!-- 空状态 -->
+    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; background: var(--bg-color);">
+      <div style="width: 120px; height: 120px; background: linear-gradient(135deg, rgba(74, 144, 226, 0.1), rgba(107, 163, 232, 0.05)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+        <span style="font-size: 56px;">📭</span>
+      </div>
+      <h3 style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">暂无消息</h3>
+      <p style="font-size: 14px; color: var(--text-hint); text-align: center; line-height: 1.6; margin-bottom: 24px;">
+        别人申请加入您的行程、邀请您一起游玩、<br>或您发出申请后，消息会显示在这里
+      </p>
+      <button style="padding: 14px 32px; background: var(--primary-color); color: white; border: none; border-radius: 24px; font-size: 15px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);">
+        去发现行程
+      </button>
+    </div>
+
+    <div class="home-indicator"></div>
+
+    <div class="design-panel">
+      <div class="panel-header">
+        <h2>🎨 设计说明</h2>
+        <p>场景：行程消息页 - 空状态</p>
+      </div>
+      <div class="panel-content">
+        <div class="section-block">
+          <h3>空状态元素</h3>
+          <ul class="feature-list">
+            <li>📭 空邮箱图标</li>
+            <li>「暂无消息」标题</li>
+            <li>引导文案说明</li>
+            <li>「去发现行程」按钮</li>
+          </ul>
+        </div>
+        <div class="section-block">
+          <h3>文案说明</h3>
+          <ul class="feature-list">
+            <li>别人申请加入您的行程</li>
+            <li>邀请您一起游玩</li>
+            <li>您发出申请后</li>
+            <li>三种场景消息都会显示</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 场景3: 取消申请确认弹窗 ========== -->
+  <div class="phone-frame">
+    <div class="status-bar">
+      <span class="time">21:41</span>
+      <div class="icons">📶 🔋</div>
+    </div>
+
+    <div class="nav-bar">
+      <span class="nav-back">‹</span>
+      <span class="nav-title">行程消息</span>
+      <span class="nav-right"></span>
+    </div>
+
+    <div class="scroll-container" style="position: relative; filter: blur(2px); opacity: 0.8;">
+      <!-- 我收到的 分组 -->
+      <div class="section-header">
+        <div class="section-icon inbox">📥</div>
+        <span class="section-title">我收到的</span>
+      </div>
+      
+      <!-- 背景内容 -->
+      <div class="message-card opacity">
+        <div class="card-header">
+          <div class="user-avatar gradient-4">王</div>
+          <div class="card-info">
+            <div class="card-title">王芳 申请加入您的行程</div>
+            <div class="card-time">昨天</div>
+          </div>
+          <span class="status-tag rejected">已拒绝</span>
+        </div>
+      </div>
+
+      <!-- 我发出的 分组 -->
+      <div class="section-header">
+        <div class="section-icon outbox">📤</div>
+        <span class="section-title">我发出的</span>
+      </div>
+
+      <div class="trip-card">
+        <div class="trip-card-header">
+          <div class="trip-cover gradient-1">🏔️</div>
+          <div class="trip-card-info">
+            <div class="trip-card-title">东灵山徒步</div>
+            <div class="trip-card-meta">发起人：张伟 · ⭐ 4.8</div>
+          </div>
+          <span class="status-tag pending">⏳ 申请中</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 弹窗 -->
+    <div class="modal-overlay show">
+      <div class="modal-content">
+        <div class="modal-icon warning">⚠️</div>
+        <div class="modal-title">确认取消申请？</div>
+        <div class="modal-desc">取消后将移除申请记录，对方不会收到通知。您可以随时重新申请。</div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel">再想想</button>
+          <button class="modal-btn confirm">确认取消</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-indicator"></div>
+
+    <div class="design-panel">
+      <div class="panel-header">
+        <h2>🎨 设计说明</h2>
+        <p>场景：取消申请确认弹窗</p>
+      </div>
+      <div class="panel-content">
+        <div class="section-block">
+          <h3>弹窗内容</h3>
+          <ul class="feature-list">
+            <li>⚠️ 警告图标</li>
+            <li>确认取消申请标题</li>
+            <li>说明取消后果</li>
+            <li>「再想想」/「确认取消」</li>
+          </ul>
+        </div>
+        <div class="section-block">
+          <h3>取消逻辑</h3>
+          <ul class="feature-list">
+            <li>对方不会收到通知</li>
+            <li>申请记录从列表移除</li>
+            <li>可随时重新申请</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 场景4: 反馈通知 ========== -->
+  <div class="phone-frame">
+    <div class="status-bar">
+      <span class="time">21:41</span>
+      <div class="icons">📶 🔋</div>
+    </div>
+
+    <div class="nav-bar">
+      <span class="nav-back">‹</span>
+      <span class="nav-title">行程消息</span>
+      <span class="nav-right"></span>
+    </div>
+
+    <div class="scroll-container">
+      <!-- 我收到的 分组 -->
+      <div class="section-header">
+        <div class="section-icon inbox">📥</div>
+        <span class="section-title">我收到的</span>
+        <span class="section-count">2 条新通知</span>
+      </div>
+
+      <!-- 反馈通知 - 申请被同意 -->
+      <div class="message-card">
+        <div class="card-header">
+          <div class="user-avatar gradient-3">系</div>
+          <div class="card-info">
+            <div class="card-title">🎉 您的申请已被同意</div>
+            <div class="card-time">刚刚</div>
+          </div>
+        </div>
+
+        <div class="trip-info">
+          <div class="trip-tags">
+            <span class="trip-tag">🏔️ 东灵山徒步</span>
+            <span class="trip-tag">📅 4月12日</span>
+          </div>
+          <div class="trip-detail" style="margin-top: 8px;">
+            <span class="trip-detail-label">发起人：</span>张伟
+          </div>
+        </div>
+
+        <div class="success-notice">
+          <div class="success-notice-title">对方已同意您的申请</div>
+          <div class="contact-row">
+            <span>💬</span>
+            <span class="contact-value">微信号：139****6666</span>
+            <button class="copy-btn">复制</button>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button class="action-btn primary">查看行程</button>
+        </div>
+      </div>
+
+      <!-- 反馈通知 - 邀请被接受 -->
+      <div class="message-card">
+        <div class="card-header">
+          <div class="user-avatar gradient-3">系</div>
+          <div class="card-info">
+            <div class="card-title">🎉 您的邀请已被接受</div>
+            <div class="card-time">1小时前</div>
+          </div>
+        </div>
+
+        <div class="trip-info">
+          <div class="trip-tags">
+            <span class="trip-tag">🏔️ 海坨山露营</span>
+            <span class="trip-tag">📅 4月8日</span>
+          </div>
+          <div class="trip-detail" style="margin-top: 8px;">
+            <span class="trip-detail-label">接受人：</span>李明
+          </div>
+        </div>
+
+        <div class="success-notice">
+          <div class="success-notice-title">对方已接受您的邀请</div>
+          <div class="contact-row">
+            <span>💬</span>
+            <span class="contact-value">微信号：138****8888</span>
+            <button class="copy-btn">复制</button>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button class="action-btn primary">查看行程</button>
+        </div>
+      </div>
+
+      <!-- 我发出的 分组 -->
+      <div class="section-header">
+        <div class="section-icon outbox">📤</div>
+        <span class="section-title">我发出的</span>
+      </div>
+
+      <!-- 已同意 -->
+      <div class="trip-card">
+        <div class="trip-card-header">
+          <div class="trip-cover gradient-2">🏔️</div>
+          <div class="trip-card-info">
+            <div class="trip-card-title">海坨山露营</div>
+            <div class="trip-card-meta">发起人：李明 · ⭐ 4.6</div>
+            <div class="trip-card-detail">📅 4月8日 · 🚗 无车</div>
+          </div>
+          <span class="status-tag accepted">✓ 已同意</span>
+        </div>
+
+        <div class="success-notice" style="margin: 0 16px 12px;">
+          <div class="success-notice-title">🎉 对方已同意您的申请</div>
+          <div class="contact-row">
+            <span>💬</span>
+            <span class="contact-value">微信号：139****6666</span>
+            <button class="copy-btn">复制</button>
+          </div>
+        </div>
+
+        <div class="trip-card-footer">
+          <button class="footer-btn primary">查看行程</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-indicator"></div>
+
+    <div class="design-panel">
+      <div class="panel-header">
+        <h2>🎨 设计说明</h2>
+        <p>场景：反馈通知</p>
+      </div>
+      <div class="panel-content">
+        <div class="section-block">
+          <h3>反馈通知类型</h3>
+          <ul class="feature-list">
+            <li><strong>申请被同意</strong>：对方同意了我的申请</li>
+            <li><strong>申请被拒绝</strong>：对方拒绝了我的申请</li>
+            <li><strong>邀请被接受</strong>：对方接受了我的邀请</li>
+          </ul>
+        </div>
+        <div class="section-block">
+          <h3>通知机制</h3>
+          <ul class="feature-list">
+            <li>同意/接受时自动发送通知</li>
+            <li>通知中包含对方联系方式</li>
+            <li>方便双方后续沟通</li>
+          </ul>
+        </div>
+        <div class="section-block">
+          <h3>系统头像</h3>
+          <ul class="feature-list">
+            <li>系统通知使用"系"字头像</li>
+            <li>绿色渐变背景</li>
+            <li>区别于用户消息</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
