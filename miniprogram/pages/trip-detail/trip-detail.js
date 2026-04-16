@@ -15,16 +15,17 @@ Page({
     hasJoined: false,
     isCreator: false,
     maskedPhone: '',
-    // 弹窗相关
     showApplyModal: false,
-    contactValue: '',
-    introduction: ''
+    userInfo: null
   },
 
   onLoad: function (options) {
     // 获取状态栏高度
     const systemInfo = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: systemInfo.statusBarHeight });
+    this.setData({
+      statusBarHeight: systemInfo.statusBarHeight,
+      userInfo: app.globalData.userInfo
+    });
 
     const tripId = options.id || '';
     this.setData({ tripId });
@@ -32,6 +33,10 @@ Page({
     if (tripId) {
       this.loadTripDetail(tripId);
     }
+  },
+
+  onShow: function () {
+    this.setData({ userInfo: app.globalData.userInfo });
   },
 
   // 加载行程详情
@@ -60,6 +65,8 @@ Page({
 
   // 处理行程数据
   processTripData: async function (trip) {
+    const db = wx.cloud ? wx.cloud.database() : null;
+
     // 计算剩余名额
     const remainCount = trip.needCount || 0;
     const totalCount = (trip.currentCount || 0) + (trip.needCount || 0);
@@ -95,19 +102,18 @@ Page({
       dateText = `${trip.date} 周${weekDays[date.getDay()]}`;
     }
 
-    // 获取地点图片
-    const placeImages = {
-      '东灵山': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
-      '海坨山': 'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop',
-      '百花山': 'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=800&h=600&fit=crop',
-      '香山': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop',
-      '八达岭长城': 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=800&h=600&fit=crop',
-      '慕田峪长城': 'https://images.unsplash.com/photo-1529921879218-f99546d03a16?w=800&h=600&fit=crop',
-      '十渡': 'https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=800&h=600&fit=crop',
-      '青龙峡': 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=800&h=600&fit=crop',
-      '古北水镇': 'https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&h=600&fit=crop',
-      '爨底下村': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop'
-    };
+    // 获取地点图片（从 places 数据库获取）
+    let placeImage = '';
+    if (trip.placeId) {
+      try {
+        const placeRes = await db.collection('places').doc(trip.placeId).get();
+        if (placeRes.data && placeRes.data.images && placeRes.data.images.length > 0) {
+          placeImage = placeRes.data.images[0];
+        }
+      } catch (err) {
+        console.warn('获取地点图片失败', err);
+      }
+    }
 
     // 处理发起人头像（云存储链接）
     let creatorAvatar = trip.creatorAvatar || '';
@@ -163,7 +169,7 @@ Page({
       dateText,
       totalCount,
       status: remainCount <= 0 ? 'full' : trip.status,
-      placeImage: placeImages[trip.placeName] || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
+      placeImage: placeImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
       placeHighlight: this.getPlaceHighlight(trip.placeName)
     };
 
@@ -390,9 +396,7 @@ Page({
 
     // 显示申请加入弹窗
     this.setData({
-      showApplyModal: true,
-      contactValue: '',
-      introduction: ''
+      showApplyModal: true
     });
   },
 
@@ -401,80 +405,8 @@ Page({
     this.setData({ showApplyModal: false });
   },
 
-  // 阻止事件冒泡
-  preventBubble: function () {},
-
-  // 输入联系方式
-  onContactInput: function (e) {
-    let value = e.detail.value;
-    // 只允许输入数字，最多11位
-    value = value.replace(/\D/g, '').slice(0, 11);
-    this.setData({ contactValue: value });
-  },
-
-  // 输入备注
-  onIntroductionInput: function (e) {
-    this.setData({ introduction: e.detail.value });
-  },
-
-  // 提交申请
-  onSubmitApply: async function () {
-    const { contactValue, introduction } = this.data;
-
-    // 校验联系方式
-    if (!contactValue) {
-      wx.showToast({ title: '请填写联系方式', icon: 'none' });
-      return;
-    }
-
-    const phoneReg = /^1[3-9]\d{9}$/;
-    if (!phoneReg.test(contactValue)) {
-      wx.showToast({ title: '请输入正确的手机号', icon: 'none' });
-      return;
-    }
-
-    const trip = this.data.trip;
-    const openid = app.globalData.openid;
-    const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
-
-    wx.showLoading({ title: '发送中...' });
-
-    // 存储申请记录到数据库
-    if (wx.cloud) {
-      try {
-        const db = wx.cloud.database();
-
-        await db.collection('applies').add({
-          data: {
-            tripId: trip._id,
-            placeName: trip.placeName || '',
-            toUserId: trip.creatorId || '',
-            toUserName: trip.creatorName || '',
-            fromUserId: openid,
-            fromUserName: userInfo.nickname || '旅行者',
-            fromUserAvatar: userInfo.avatar || '',
-            contactType: 'phone',
-            contactValue: contactValue,
-            message: introduction || '',
-            status: 'pending',
-            type: 'apply',
-            createdAt: Date.now()
-          }
-        });
-
-        wx.hideLoading();
-        wx.showToast({ title: '申请已发送', icon: 'success' });
-        this.setData({ showApplyModal: false });
-        return;
-      } catch (err) {
-        wx.hideLoading();
-        console.error('提交申请失败', err);
-        wx.showToast({ title: '发送失败，请重试', icon: 'none' });
-        return;
-      }
-    }
-
-    wx.hideLoading();
+  // 提交申请成功回调
+  onSubmitApplySuccess: function () {
     this.setData({ showApplyModal: false });
   },
 

@@ -13,6 +13,8 @@ page {
 
 page {
   background: var(--bg-color);
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .container {
@@ -21,6 +23,8 @@ page {
   background: var(--bg-color);
   padding-left: 20rpx;
   padding-right: 20rpx;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* ========== 导航栏 ========== */

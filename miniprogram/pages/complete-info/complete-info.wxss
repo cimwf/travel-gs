@@ -1,6 +1,8 @@
 /* pages/complete-info/complete-info.wxss */
 page {
   height: 100%;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .complete-page {
@@ -8,6 +10,9 @@ page {
   display: flex;
   flex-direction: column;
   background: #F5F7FA;
+  width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* 状态栏 */

@@ -30,7 +30,8 @@
         <!-- 卡片头部 -->
         <view class="trip-header">
           <view class="trip-img" style="background: {{item.imgBg}};">
-            <text class="trip-emoji">{{item.emoji}}</text>
+            <image wx:if="{{item.placeCoverImage}}" class="trip-cover" src="{{item.placeCoverImage}}" mode="aspectFill"></image>
+            <text wx:else class="trip-emoji">{{item.emoji}}</text>
           </view>
           <view class="trip-info">
             <view class="trip-name">{{item.placeName}}</view>

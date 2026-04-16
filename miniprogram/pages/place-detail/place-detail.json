@@ -1,4 +1,6 @@
 {
   "navigationStyle": "custom",
-  "usingComponents": {}
+  "usingComponents": {
+    "apply-modal": "/components/apply-modal/apply-modal"
+  }
 }

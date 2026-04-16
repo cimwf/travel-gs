@@ -31,6 +31,8 @@ page {
 
 page {
   background: var(--bg-color);
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .container {
@@ -38,7 +40,11 @@ page {
   background: var(--bg-color);
   display: flex;
   flex-direction: column;
+  width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
+
 
 /* ========================================
    未登录状态
@@ -126,6 +132,64 @@ page {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   消息内容区域
+   ======================================== */
+.message-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ========== Tab切换 ========== */
+.tab-header {
+  display: flex;
+  gap: 16rpx;
+  padding: 24rpx 32rpx;
+  background: white;
+  border-bottom: 2rpx solid var(--border-color);
+}
+
+.tab-item {
+  flex: 1;
+  padding: 20rpx 0;
+  text-align: center;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-color);
+  border-radius: 40rpx;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.tab-item.active {
+  background: var(--primary-color);
+  color: white;
+}
+
+.tab-badge {
+  position: absolute;
+  top: -8rpx;
+  right: 20rpx;
+  min-width: 32rpx;
+  height: 32rpx;
+  padding: 0 8rpx;
+  background: var(--danger-color);
+  color: white;
+  border-radius: 16rpx;
+  font-size: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tab-item.active .tab-badge {
+  background: white;
+  color: var(--danger-color);
 }
 
 /* ========================================
@@ -329,4 +393,277 @@ page {
    ======================================== */
 .safe-bottom {
   height: calc(env(safe-area-inset-bottom) + 32rpx);
+}
+
+/* ========================================
+   我发出的申请卡片
+   ======================================== */
+.notification-card {
+  background: white;
+  border-radius: 32rpx;
+  overflow: hidden;
+  margin-bottom: 24rpx;
+  box-shadow: var(--shadow-sm);
+}
+
+/* 发出申请的头部 */
+.sent-header {
+  display: flex;
+  margin-bottom: 32rpx;
+  gap: 24rpx;
+}
+
+.trip-icon {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.trip-cover {
+  width: 100%;
+  height: 100%;
+}
+
+.trip-emoji {
+  font-size: 56rpx;
+}
+
+.sent-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.sent-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12rpx;
+}
+
+.sent-meta {
+  font-size: 26rpx;
+  color: var(--text-hint);
+  margin-bottom: 8rpx;
+}
+
+.sent-date {
+  font-size: 26rpx;
+  color: var(--text-hint);
+}
+
+/* 状态标签 */
+.sent-status {
+  padding: 8rpx 20rpx;
+  border-radius: 24rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  flex-shrink: 0;
+  height: fit-content;
+}
+
+.sent-status.pending {
+  background: rgba(250, 173, 20, 0.1);
+  color: #FAAD14;
+}
+
+.sent-status.accepted {
+  background: rgba(82, 196, 26, 0.1);
+  color: var(--success-color);
+}
+
+.sent-status.rejected {
+  background: rgba(255, 77, 79, 0.1);
+  color: var(--danger-color);
+}
+
+/* 申请详情区域（申请中） */
+.apply-detail {
+  background: var(--bg-color);
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.apply-message {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  margin-bottom: 8rpx;
+}
+
+.apply-label {
+  color: var(--text-hint);
+}
+
+.apply-value {
+  color: var(--text-secondary);
+}
+
+.apply-time {
+  font-size: 24rpx;
+  color: var(--text-hint);
+  margin-top: 8rpx;
+}
+
+/* 已同意卡片 */
+.accepted-card {
+  margin-bottom: 24rpx;
+  padding: 24rpx;
+  border-radius: 20rpx;
+  background: linear-gradient(135deg, rgba(82, 196, 26, 0.08), rgba(115, 209, 61, 0.08));
+  border: 2rpx solid rgba(82, 196, 26, 0.2);
+}
+
+.accepted-tip {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: var(--success-color);
+  margin-bottom: 16rpx;
+}
+
+/* 已拒绝卡片 */
+.rejected-card {
+  margin: 0 32rpx 24rpx;
+  padding: 24rpx;
+  border-radius: 20rpx;
+  background: rgba(255, 77, 79, 0.05);
+  border: 2rpx solid rgba(255, 77, 79, 0.15);
+}
+
+.rejected-tip {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: var(--danger-color);
+}
+
+/* 联系方式行 */
+.contact-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 12rpx 0;
+}
+
+.contact-icon {
+  font-size: 28rpx;
+}
+
+.contact-label {
+  font-size: 28rpx;
+  color: var(--text-hint);
+}
+
+.contact-value {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.copy-btn {
+  padding: 8rpx 20rpx;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+}
+
+/* 操作按钮区域 */
+.sent-actions {
+  display: flex;
+  gap: 24rpx;
+}
+
+.action-btn.cancel {
+  flex: 1;
+  padding: 20rpx;
+  background: rgba(255, 77, 79, 0.1);
+  color: var(--danger-color);
+  text-align: center;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.action-btn.primary {
+  flex: 1;
+  padding: 20rpx;
+  background: var(--primary-color);
+  color: white;
+  text-align: center;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.action-btn.primary.full {
+  flex: none;
+  width: 100%;
+}
+
+/* ========================================
+   取消申请弹窗
+   ======================================== */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  width: 80%;
+  background: white;
+  border-radius: 32rpx;
+  padding: 48rpx;
+  text-align: center;
+}
+
+.modal-icon {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16rpx;
+}
+
+.modal-desc {
+  font-size: 28rpx;
+  color: var(--text-hint);
+  margin-bottom: 40rpx;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 24rpx;
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 24rpx;
+  border-radius: 24rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+}
+
+.modal-btn.cancel {
+  background: var(--bg-color);
+  color: var(--text-secondary);
+}
+
+.modal-btn.confirm {
+  background: var(--danger-color);
+  color: white;
 }

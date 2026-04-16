@@ -34,12 +34,11 @@ page {
 .container {
   display: flex;
   flex-direction: column;
-  padding-left: 20rpx;
-  padding-right: 20rpx;
   min-height: 100vh;
-  background: var(--bg-color);
+  /* background: var(--bg-color); */
   overflow-x: hidden;
   box-sizing: border-box;
+
 }
 
 /* ========================================

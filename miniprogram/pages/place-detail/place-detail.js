@@ -2,18 +2,6 @@
 const app = getApp();
 const api = require('../../utils/api.js');
 
-// 防抖函数
-function debounce(fn, delay = 1000) {
-  let timer = null;
-  return function(...args) {
-    if (timer) return;
-    fn.apply(this, args);
-    timer = setTimeout(() => {
-      timer = null;
-    }, delay);
-  };
-}
-
 Page({
   data: {
     place: null,
@@ -25,10 +13,7 @@ Page({
 
     // 弹窗相关
     showApplyModal: false,
-    currentTrip: null,
-    contactType: 'phone',
-    contactValue: '',
-    introduction: ''
+    currentTrip: null
   },
 
   onLoad: function (options) {
@@ -128,6 +113,8 @@ Page({
           .get();
 
         if (res.data && res.data.length > 0) {
+          const openid = app.globalData.openid;
+
           // 处理行程数据，添加展示所需字段
           const trips = res.data.map(trip => {
             // 格式化日期
@@ -153,11 +140,15 @@ Page({
               }
             }
 
+            // 判断是否是自己发布的行程
+            const isMyTrip = trip.creatorId === openid;
+
             return {
               ...trip,
               date: dateText,
               viewCount: trip.viewCount || Math.floor(Math.random() * 200) + 50,
-              publishTime: publishTime
+              publishTime: publishTime,
+              isMyTrip: isMyTrip
             };
           });
 
@@ -251,38 +242,20 @@ Page({
 
     if (trip) {
       this.setData({
-        currentTrip: trip,
-        contactType: 'phone',
-        contactValue: '',
-        introduction: ''
+        currentTrip: trip
       });
 
-      // 直接显示申请加入弹窗
+      // 显示申请加入弹窗
       this.setData({ showApplyModal: true });
     }
   },
 
-  // 选择联系方式类型
-  onSelectContactType: function (e) {
-    const type = e.currentTarget.dataset.type;
-    this.setData({ contactType: type, contactValue: '' });
-  },
-
-  // 输入联系方式
-  onContactInput: function (e) {
-    let value = e.detail.value;
-
-    // 如果是手机号，只允许输入数字，最多11位
-    if (this.data.contactType === 'phone') {
-      value = value.replace(/\D/g, '').slice(0, 11);
-    }
-
-    this.setData({ contactValue: value });
-  },
-
-  // 输入自我介绍/留言
-  onIntroductionInput: function (e) {
-    this.setData({ introduction: e.detail.value });
+  // 查看行程（自己的行程）
+  onViewTrip: function (e) {
+    const tripId = e.currentTarget.dataset.id;
+    wx.navigateTo({
+      url: `/pages/trip-detail/trip-detail?id=${tripId}`
+    });
   },
 
   // 关闭申请加入弹窗
@@ -290,87 +263,10 @@ Page({
     this.setData({ showApplyModal: false });
   },
 
-  // 阻止事件冒泡（空函数）
-  preventBubble: function () {},
-
-  // 校验联系方式
-  validateContact: function () {
-    const { contactType, contactValue } = this.data;
-
-    if (!contactValue) {
-      wx.showToast({ title: '请填写联系方式', icon: 'none' });
-      return false;
-    }
-
-    if (contactType === 'phone') {
-      const phoneReg = /^1[3-9]\d{9}$/;
-      if (!phoneReg.test(contactValue)) {
-        wx.showToast({ title: '请输入正确的手机号', icon: 'none' });
-        return false;
-      }
-    } else {
-      const wechatReg = /^[a-zA-Z][a-zA-Z0-9_-]{5,19}$/;
-      if (!wechatReg.test(contactValue)) {
-        wx.showToast({ title: '请输入正确的微信号', icon: 'none' });
-        return false;
-      }
-    }
-
-    return true;
-  },
-
-  // 提交申请
-  onSubmitApply: debounce(async function () {
-    if (!this.validateContact()) {
-      return;
-    }
-
-    const { currentTrip, contactType, contactValue, introduction } = this.data;
-    const openid = app.globalData.openid;
-    // 优先从 storage 读取最新用户信息
-    const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
-
-    wx.showLoading({ title: '发送中...' });
-
-    // 存储到数据库
-    if (wx.cloud) {
-      try {
-        const db = wx.cloud.database();
-
-        // 创建申请记录
-        await db.collection('applies').add({
-          data: {
-            tripId: currentTrip._id,
-            placeName: this.data.place ? this.data.place.name : '',
-            toUserId: currentTrip.creatorId || '',
-            toUserName: currentTrip.creatorName || '',
-            fromUserId: openid,
-            fromUserName: userInfo.nickname || '旅行者',
-            fromUserAvatar: userInfo.avatar || '',
-            contactType: contactType,  // 'phone' 或 'wechat'
-            contactValue: contactValue, // 手机号或微信号
-            message: introduction || '',
-            status: 'pending',
-            type: 'apply',  // 申请加入
-            createdAt: Date.now()
-          }
-        });
-
-        wx.hideLoading();
-        wx.showToast({ title: '申请已发送', icon: 'success' });
-        this.setData({ showApplyModal: false });
-        return;
-      } catch (err) {
-        wx.hideLoading();
-        console.error('提交申请失败', err);
-        wx.showToast({ title: '发送失败，请重试', icon: 'none' });
-        return;
-      }
-    }
-
-    wx.showToast({ title: '申请已发送', icon: 'success' });
+  // 提交申请成功回调
+  onSubmitApplySuccess: function () {
     this.setData({ showApplyModal: false });
-  }),
+  },
 
   // 分享
   onShareAppMessage: function () {

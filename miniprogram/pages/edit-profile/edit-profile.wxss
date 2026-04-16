@@ -28,11 +28,17 @@ page {
   --radius-lg: 24rpx;
   --radius-xl: 32rpx;
   --radius-full: 9999rpx;
+
+  /* 禁止横向滚动 */
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .container {
   min-height: 100vh;
   background: var(--bg-color);
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* ========== 顶部导航 ========== */
@@ -157,8 +163,6 @@ page {
 
 .content-section-view {
   width: 100%;
-  padding-left: 20rpx;
-  padding-right: 20rpx;
 }
 
 /* ========== 内容区域 ========== */
@@ -276,6 +280,52 @@ page {
 .gender-tag.active {
   background: var(--primary-color);
   color: white;
+}
+
+/* ========== 手机号行 ========== */
+.phone-row {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.phone-row .info-label {
+  width: 100%;
+  margin-bottom: 16rpx;
+}
+
+.phone-row .info-input {
+  width: 100%;
+  text-align: left;
+  padding: 28rpx;
+  border: 2rpx solid #eee;
+  border-radius: var(--radius-lg);
+  background: #fafafa;
+  box-sizing: border-box;
+}
+
+.required {
+  color: #FF4D4F;
+}
+
+.phone-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 12rpx;
+  padding: 20rpx 24rpx;
+  background: rgba(74, 144, 226, 0.06);
+  border-radius: var(--radius-md);
+  margin-top: 16rpx;
+}
+
+.tip-icon {
+  font-size: 28rpx;
+  line-height: 1;
+}
+
+.tip-text {
+  font-size: 24rpx;
+  color: var(--primary-color);
+  line-height: 1.5;
 }
 
 /* ========== 自我描述文本域 ========== */
