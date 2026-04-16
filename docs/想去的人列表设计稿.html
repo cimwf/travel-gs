@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>想去的人列表 - 北上周边行</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f5f7fa;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    :root {
+      --primary-color: #4A90E2;
+      --primary-light: #6BA3E8;
+      --primary-dark: #3A7BC8;
+      --success-color: #52C41A;
+      --warning-color: #FAAD14;
+      --danger-color: #FF4D4F;
+      --text-primary: #1a1a2e;
+      --text-secondary: #666;
+      --text-hint: #999;
+      --bg-color: #f5f7fa;
+      --border-color: #e8e8e8;
+    }
+
+    .phone-frame {
+      width: 375px;
+      height: 812px;
+      background: white;
+      border-radius: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* 状态栏 */
+    .status-bar {
+      height: 44px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .status-bar .time {
+      color: var(--text-primary);
+    }
+
+    .status-bar .icons {
+      display: flex;
+      gap: 6px;
+    }
+
+    .status-bar .icons svg {
+      width: 18px;
+      height: 18px;
+      fill: var(--text-primary);
+    }
+
+    /* 导航栏 */
+    .nav-bar {
+      height: 56px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .back-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .back-btn:hover {
+      background: var(--bg-color);
+    }
+
+    .back-btn svg {
+      width: 20px;
+      height: 20px;
+      color: var(--text-primary);
+    }
+
+    .nav-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .nav-title span {
+      font-weight: 400;
+      color: var(--text-hint);
+      font-size: 14px;
+      margin-left: 4px;
+    }
+
+    /* 筛选栏 */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      background: white;
+      border-bottom: 1px solid var(--border-color);
+      overflow-x: auto;
+    }
+
+    .filter-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-chip {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 14px;
+      background: var(--bg-color);
+      border-radius: 20px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+
+    .filter-chip:hover {
+      background: rgba(74, 144, 226, 0.1);
+      color: var(--primary-color);
+    }
+
+    .filter-chip.active {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .filter-chip svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* 列表容器 */
+    .list-container {
+      height: calc(100% - 44px - 56px - 57px - 80px);
+      overflow-y: auto;
+      background: white;
+      padding: 12px 16px;
+    }
+
+    /* 行程列表样式 - 与地点详情页一致 */
+    .trip-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .trip-item {
+      display: flex;
+      flex-direction: column;
+      padding: 14px 16px;
+      background: var(--bg-color);
+      border-radius: 12px;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .trip-item:hover {
+      background: #EAEAF5;
+    }
+
+    .user-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .user-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .trip-user {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .trip-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .trip-status.has-car {
+      background: rgba(82, 196, 26, 0.1);
+      color: var(--success-color);
+    }
+
+    .trip-status.need-car {
+      background: rgba(74, 144, 226, 0.1);
+      color: var(--primary-color);
+    }
+
+    .trip-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .trip-user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .trip-meta-row {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 10px;
+    }
+
+    .trip-meta-item {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .trip-meta-label {
+      color: var(--text-hint);
+      margin-right: 6px;
+    }
+
+    .trip-remark {
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: white;
+      padding: 10px 12px;
+      border-radius: 8px;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .trip-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .trip-footer-stats {
+      display: flex;
+      gap: 12px;
+    }
+
+    .trip-stat {
+      font-size: 12px;
+      color: var(--text-hint);
+    }
+
+    .action-btn {
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .action-btn.primary {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+    }
+
+    .action-btn.primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .action-btn.outline {
+      background: white;
+      color: var(--primary-color);
+      border: 1px solid var(--primary-color);
+    }
+
+    .action-btn.outline:hover {
+      background: rgba(74, 144, 226, 0.05);
+    }
+
+    /* 底部操作栏 */
+    .footer-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px 24px;
+      background: white;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .publish-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 54px;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      color: white;
+      border-radius: 16px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4);
+      transition: all 0.2s;
+    }
+
+    .publish-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(74, 144, 226, 0.5);
+    }
+
+    .publish-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* 设计说明面板 */
+    .design-panel {
+      width: 320px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      overflow: hidden;
+      height: fit-content;
+    }
+
+    .panel-header {
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      color: white;
+      padding: 24px;
+    }
+
+    .panel-header h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .panel-header p {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .panel-content {
+      padding: 20px;
+    }
+
+    .section-block {
+      margin-bottom: 24px;
+    }
+
+    .section-block:last-child {
+      margin-bottom: 0;
+    }
+
+    .section-block h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-block h3::before {
+      content: '';
+      width: 4px;
+      height: 16px;
+      background: var(--primary-color);
+      border-radius: 2px;
+    }
+
+    .feature-list {
+      list-style: none;
+    }
+
+    .feature-list li {
+      position: relative;
+      padding-left: 20px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .feature-list li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--success-color);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <!-- 手机框架 -->
+  <div class="phone-frame">
+    <!-- 状态栏 -->
+    <div class="status-bar">
+      <span class="time">22:12</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M12 3C6.95 3 3 6.95 3 12s3.95 9 9 9c.76 0 1.51-.09 2.23-.27C12.14 19.13 10 16.27 10 13c0-3.87 3.13-7 7-7 1.27 0 2.46.34 3.49.93C18.71 4.79 15.59 3 12 3z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+
+    <!-- 导航栏 -->
+    <div class="nav-bar">
+      <div class="nav-left">
+        <div class="back-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </div>
+        <div class="nav-title">想去的人 <span>12人</span></div>
+      </div>
+    </div>
+
+    <!-- 筛选栏 -->
+    <div class="filter-bar">
+      <div class="filter-chip active">
+        全部
+      </div>
+      <div class="filter-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        出发时间
+      </div>
+      <div class="filter-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="5.5" cy="17.5" r="2.5"></circle>
+          <circle cx="18.5" cy="5.5" r="2.5"></circle>
+          <path d="M8 17V5l12-2"></path>
+        </svg>
+        有车
+      </div>
+      <div class="filter-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        人数
+      </div>
+    </div>
+
+    <!-- 列表容器 -->
+    <div class="list-container">
+      <div class="trip-list">
+        <!-- 行程1 -->
+        <div class="trip-item" onclick="window.location.href='行程详情页-评论版设计稿.html'">
+          <div class="trip-top">
+            <div class="trip-user-info">
+              <div class="user-avatar">
+                <img src="https://i.pravatar.cc/100?img=1" alt="用户头像">
+              </div>
+              <span class="trip-user">小王</span>
+              <span class="trip-status has-car">有车</span>
+            </div>
+            <button class="action-btn primary">申请加入</button>
+          </div>
+          <div class="trip-meta-row">
+            <div class="trip-meta-item">
+              <span class="trip-meta-label">出发</span>
+              03月25日 周二
+            </div>
+            <div class="trip-meta-item">
+              <span class="trip-meta-label">人数</span>
+              2/4人
+            </div>
+          </div>
+          <div class="trip-remark">有车求队友，AA制，早上6点出发，可以顺路接人</div>
+          <div class="trip-footer">
+            <div class="trip-footer-stats">
+              <span class="trip-stat">👁 156次浏览</span>
+              <span class="trip-stat">发布于3小时前</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 行程2 -->
+        <div class="trip-item" onclick="window.location.href='行程详情页-评论版设计稿.html'">
+          <div class="trip-top">
+            <div class="trip-user-info">
+              <div class="user-avatar">
+                <img src="https://i.pravatar.cc/100?img=5" alt="用户头像">
+              </div>
+              <span class="trip-user">小李</span>
+              <span class="trip-status need-car">需拼车</span>
+            </div>
+            <button class="action-btn outline">邀请他</button>
+          </div>
+          <div class="trip-meta-row">
+            <div class="trip-meta-item">
+              <span class="trip-meta-label">出发</span>
+              03月26日 周三
+            </div>
+            <div class="trip-meta-item">
+              <span class="trip-meta-label">人数</span>
+              1/4人
+            </div>
+          </div>
+          <div class="trip-remark">无车等拼车，可以分摊油费和高速费，希望有车的朋友带一程，时间灵活可协商</div>
+          <div class="trip-footer">
+            <div class="trip-footer-stats">
+              <span class="trip-stat">👁 89次浏览</span>
+              <span class="trip-stat">发布于5小时前</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 行程3 -->
+        <div class="trip-item" onclick="window.location.href='行程详情页-评论版设计稿.html'">
+          <div class="trip-top">
+            <div class="trip-user-info">
+              <div class="user-avatar">
+                <img src="https://i.pravatar.cc/100?img=8" alt="用户头像">
+              </div>
+              <span class="trip-user">小张</span>
+              <span class="trip-status has-car">有车</span>
+            </div>
+            <button class="action-btn primary">申请加入</button>
+          </div>
+          <div class="trip-meta-row">
+            <div class="trip-meta-item">
+              <span class="trip-meta-label">出发</span>
+              03月27日 周四
+            </div>
+            <div class="trip-meta-item">
+              <span class="trip-meta-label">人数</span>
+              1/4人
+            </div>
+          </div>
+          <div class="trip-remark">周末自驾，有车，求3人同行，费用AA</div>
+          <div class="trip-footer">
+            <div class="trip-footer-stats">
+              <span class="trip-stat">👁 234次浏览</span>
+              <span class="trip-stat">发布于1天前</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 行程4 -->
+        <div class="trip-item" onclick="window.location.href='行程详情页-评论版设计稿.html'">
+          <div class="trip-top">
+            <div class="trip-user-info">
+              <div class="user-avatar">
+                <img src="https://i.pravatar.cc/100?img=12" alt="用户头像">
+              </div>
+              <span class="trip-user">小陈</span>
+              <span class="trip-status need-car">需拼车</span>
+            </div>
+            <button class="action-btn outline">邀请他</button>
+          </div>
+          <div class="trip-meta-row">
+            <div class="trip-meta-item">
+              <span class="trip-meta-label">出发</span>
+              03月28日 周五
+            </div>
+            <div class="trip-meta-item">
+              <span class="trip-meta-label">人数</span>
+              2/3人
+            </div>
+          </div>
+          <div class="trip-remark">两个人一起去的，希望再找一位小伙伴，可以AA油费</div>
+          <div class="trip-footer">
+            <div class="trip-footer-stats">
+              <span class="trip-stat">👁 67次浏览</span>
+              <span class="trip-stat">发布于2天前</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 行程5 -->
+        <div class="trip-item" onclick="window.location.href='行程详情页-评论版设计稿.html'">
+          <div class="trip-top">
+            <div class="trip-user-info">
+              <div class="user-avatar">
+                <img src="https://i.pravatar.cc/100?img=15" alt="用户头像">
+              </div>
+              <span class="trip-user">户外达人</span>
+              <span class="trip-status has-car">有车</span>
+            </div>
+            <button class="action-btn primary">申请加入</button>
+          </div>
+          <div class="trip-meta-row">
+            <div class="trip-meta-item">
+              <span class="trip-meta-label">出发</span>
+              03月29日 周六
+            </div>
+            <div class="trip-meta-item">
+              <span class="trip-meta-label">人数</span>
+              3/5人
+            </div>
+          </div>
+          <div class="trip-remark">老司机带队，多次去过东灵山，熟悉路线，欢迎新人加入</div>
+          <div class="trip-footer">
+            <div class="trip-footer-stats">
+              <span class="trip-stat">👁 312次浏览</span>
+              <span class="trip-stat">发布于3天前</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部操作栏 -->
+    <div class="footer-bar">
+      <div class="publish-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        发布我的行程
+      </div>
+    </div>
+  </div>
+
+  <!-- 设计说明面板 -->
+  <div class="design-panel">
+    <div class="panel-header">
+      <h2>🎨 设计说明</h2>
+      <p>想去的人列表页</p>
+    </div>
+    <div class="panel-content">
+      <div class="section-block">
+        <h3>样式统一</h3>
+        <ul class="feature-list">
+          <li>卡片样式与地点详情页一致</li>
+          <li>相同的信息结构</li>
+          <li>相同的按钮样式</li>
+          <li>相同的交互效果</li>
+        </ul>
+      </div>
+
+      <div class="section-block">
+        <h3>页面功能</h3>
+        <ul class="feature-list">
+          <li>展示该地点所有想去的人</li>
+          <li>支持筛选：出发时间/有车/人数</li>
+          <li>点击卡片进入行程详情页</li>
+          <li>底部固定"发布我的行程"按钮</li>
+        </ul>
+      </div>
+
+      <div class="section-block">
+        <h3>交互设计</h3>
+        <ul class="feature-list">
+          <li>点击卡片 → 行程详情页（评论版）</li>
+          <li>点击"申请加入" → 申请表单</li>
+          <li>点击"邀请他" → 邀请确认</li>
+          <li>筛选标签切换激活状态</li>
+        </ul>
+      </div>
+
+      <div class="section-block">
+        <h3>页面跳转链路</h3>
+        <ul class="feature-list">
+          <li>地点详情页 → 点击"更多"</li>
+          <li>想去的人列表 → 点击卡片</li>
+          <li>行程详情页（评论版）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
