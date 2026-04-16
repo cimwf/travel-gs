@@ -493,6 +493,7 @@
       border-radius: 50%;
       overflow: hidden;
       flex-shrink: 0;
+      position: relative;
     }
 
     .user-avatar img {
@@ -615,6 +616,27 @@
 
     .action-btn.outline:hover {
       background: rgba(74, 144, 226, 0.05);
+    }
+
+    .action-btn.success {
+      background: linear-gradient(135deg, var(--success-color), #73D13D);
+      color: white;
+      border: none;
+      box-shadow: 0 2px 8px rgba(82, 196, 26, 0.3);
+    }
+
+    .action-btn.success:hover {
+      background: linear-gradient(135deg, #3CB816, #5BC42D);
+    }
+
+    /* 我的行程卡片 */
+    .my-trip-item {
+      border-left: 3px solid var(--primary-color);
+      background: linear-gradient(to right, rgba(74, 144, 226, 0.03), transparent);
+    }
+
+    .my-trip-section .section-title {
+      color: var(--primary-color);
     }
 
     /* 空状态 */
@@ -1067,6 +1089,50 @@
         </ul>
       </div>
 
+      <!-- 我的行程 -->
+      <div class="trip-section my-trip-section">
+        <div class="section-header">
+          <div class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            我发布的行程
+          </div>
+        </div>
+
+        <div class="trip-list">
+          <div class="trip-item my-trip-item" style="cursor: pointer; background: linear-gradient(135deg, #f8faff 0%, #fff 100%); border: 1px solid rgba(74, 144, 226, 0.15); border-radius: 16px; padding: 20px; margin: 0 0 16px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+              <div>
+                <h3 style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">东灵山 · 看日出</h3>
+                <div style="font-size: 13px; color: var(--text-secondary);">04月20日 周日出发</div>
+              </div>
+              <div style="background: linear-gradient(135deg, var(--primary-color), #6BA3E8); color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 500;">招募中</div>
+            </div>
+            
+            <div style="display: flex; gap: 24px; padding: 12px 0; border-top: 1px dashed var(--border-color); border-bottom: 1px dashed var(--border-color);">
+              <div style="text-align: center; flex: 1;">
+                <div style="font-size: 20px; font-weight: 600; color: var(--text-primary);">3/4</div>
+                <div style="font-size: 11px; color: var(--text-hint); margin-top: 2px;">人数</div>
+              </div>
+              <div style="text-align: center; flex: 1;">
+                <div style="font-size: 20px; font-weight: 600; color: var(--text-primary);">156</div>
+                <div style="font-size: 11px; color: var(--text-hint); margin-top: 2px;">浏览</div>
+              </div>
+              <div style="text-align: center; flex: 1;">
+                <div style="font-size: 20px; font-weight: 600; color: var(--primary-color);">1</div>
+                <div style="font-size: 11px; color: var(--text-hint); margin-top: 2px;">待加入</div>
+              </div>
+            </div>
+            
+            <div style="margin-top: 16px;">
+              <button style="width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 500; cursor: pointer;">查看详情</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 行程列表 -->
       <div class="trip-section">
         <div class="section-header">
@@ -1379,262 +1445,6 @@
     // 停止自动动画，使用JS控制
     carousel.classList.remove('animated');
   </script>
-
-  <!-- ========== 地点详情页 - 我的行程版本 ========== -->
-  <div class="phone-frame">
-    <!-- 状态栏 -->
-    <div class="status-bar">
-      <span class="time">21:41</span>
-      <div class="icons">
-        <svg viewBox="0 0 24 24"><path d="M12 3C6.95 3 3 6.95 3 12s3.95 9 9 9c.76 0 1.51-.09 2.23-.27C12.14 19.13 10 16.27 10 13c0-3.87 3.13-7 7-7 1.27 0 2.46.34 3.49.93C18.71 4.79 15.59 3 12 3z"/></svg>
-        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
-        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
-      </div>
-    </div>
-
-    <div class="scroll-container">
-      <!-- 顶部轮播图 -->
-      <div class="carousel-section">
-        <div class="carousel-container animated">
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop" alt="风景1">
-            <div class="carousel-overlay"></div>
-          </div>
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&h=300&fit=crop" alt="风景2">
-            <div class="carousel-overlay"></div>
-          </div>
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=400&h=300&fit=crop" alt="风景3">
-            <div class="carousel-overlay"></div>
-          </div>
-          <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=400&h=300&fit=crop" alt="风景4">
-            <div class="carousel-overlay"></div>
-          </div>
-        </div>
-
-        <!-- 轮播指示点 -->
-        <div class="carousel-dots">
-          <div class="carousel-dot active"></div>
-          <div class="carousel-dot"></div>
-          <div class="carousel-dot"></div>
-          <div class="carousel-dot"></div>
-        </div>
-
-        <!-- 返回按钮 -->
-        <div class="back-btn">
-          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
-        </div>
-
-        <!-- 分享按钮 -->
-        <div class="share-btn">
-          <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-        </div>
-      </div>
-
-      <!-- 基本信息卡片 -->
-      <div class="info-section">
-        <div class="place-header">
-          <h1 class="place-name">东灵山</h1>
-          <span class="place-category">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M8 21h8M12 21V11M12 11L7 6M12 11L17 6M17 6V3M17 6H20M7 6V3M7 6H4"/>
-            </svg>
-            山岳风光
-          </span>
-        </div>
-
-        <!-- 数据指标 -->
-        <div class="stats-row">
-          <div class="stat-item">
-            <div class="stat-value">150km</div>
-            <div class="stat-label">距北京市区</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">中等</div>
-            <div class="stat-label">难度等级</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">4.8</div>
-            <div class="stat-label">用户评分</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">1天</div>
-            <div class="stat-label">建议时长</div>
-          </div>
-        </div>
-
-        <!-- 标签 -->
-        <div class="tags-container">
-          <span class="tag">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 21V11M12 11L7 6M12 11L17 6"/></svg>
-            爬山
-          </span>
-          <span class="tag">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></svg>
-            看日出
-          </span>
-          <span class="tag">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-            露营
-          </span>
-        </div>
-
-        <!-- 地址和时间信息 -->
-        <div class="meta-info">
-          <div class="meta-item">
-            <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-              <circle cx="12" cy="10" r="3"></circle>
-            </svg>
-            <div class="meta-content">
-              <div class="meta-label">详细地址</div>
-              <div class="meta-value">北京市门头沟区清水镇</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 我的行程卡片 -->
-      <div class="trip-section">
-        <div class="section-header">
-          <div class="section-title">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-            我的行程
-          </div>
-          <span style="padding: 4px 10px; background: rgba(82, 196, 26, 0.1); color: var(--success-color); border-radius: 12px; font-size: 12px; font-weight: 500;">👑 我发起的</span>
-        </div>
-
-        <div class="trip-item" style="border-left: 3px solid var(--success-color);">
-          <div class="trip-top">
-            <div class="trip-user-info">
-              <div class="user-avatar">
-                <img src="https://i.pravatar.cc/100?img=1" alt="我的头像">
-              </div>
-              <span class="trip-user">我</span>
-              <span class="trip-status has-car">有车</span>
-            </div>
-          </div>
-          <div class="trip-meta-row">
-            <div class="trip-meta-item">
-              <span class="trip-meta-label">出发</span>
-              04月20日 周日
-            </div>
-            <div class="trip-meta-item">
-              <span class="trip-meta-label">人数</span>
-              3/4人
-            </div>
-          </div>
-          <div class="trip-remark">有车求队友，AA制，早上6点出发，可以顺路接人，欢迎一起去看日出！</div>
-          <div class="trip-footer">
-            <div class="trip-footer-stats">
-              <span class="trip-stat">👁 156次浏览</span>
-              <span class="trip-stat">招募中 · 还差1人</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 已加入成员 -->
-      <div class="trip-section">
-        <div class="section-header">
-          <div class="section-title">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-            </svg>
-            已加入成员
-            <span class="trip-count">3</span>
-          </div>
-        </div>
-
-        <div style="padding: 0 16px 16px; display: flex; gap: 16px; flex-wrap: wrap;">
-          <!-- 我 -->
-          <div style="text-align: center;">
-            <div style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; margin: 0 auto 8px; border: 2px solid var(--primary-color); position: relative;">
-              <img src="https://i.pravatar.cc/100?img=1" style="width: 100%; height: 100%; object-fit: cover;">
-              <span style="position: absolute; bottom: -2px; right: -2px; font-size: 12px;">👑</span>
-            </div>
-            <div style="font-size: 12px; color: var(--text-primary); font-weight: 500;">我</div>
-          </div>
-          <!-- 成员1 -->
-          <div style="text-align: center;">
-            <div style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; margin: 0 auto 8px;">
-              <img src="https://i.pravatar.cc/100?img=5" style="width: 100%; height: 100%; object-fit: cover;">
-            </div>
-            <div style="font-size: 12px; color: var(--text-primary);">小李</div>
-          </div>
-          <!-- 成员2 -->
-          <div style="text-align: center;">
-            <div style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; margin: 0 auto 8px;">
-              <img src="https://i.pravatar.cc/100?img=8" style="width: 100%; height: 100%; object-fit: cover;">
-            </div>
-            <div style="font-size: 12px; color: var(--text-primary);">小张</div>
-          </div>
-          <!-- 待加入 -->
-          <div style="text-align: center;">
-            <div style="width: 50px; height: 50px; background: var(--bg-color); border: 2px dashed var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; color: var(--text-hint); font-size: 22px;">+</div>
-            <div style="font-size: 12px; color: var(--text-hint);">待加入</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 底部操作栏 - 我的行程版本 -->
-    <div class="footer-bar">
-      <div style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; height: 54px; background: linear-gradient(135deg, var(--success-color), #73D13D); color: white; border-radius: 16px; font-size: 17px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px rgba(82, 196, 26, 0.4);">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-          <polyline points="14 2 14 8 20 8"></polyline>
-          <line x1="16" y1="13" x2="8" y2="13"></line>
-          <line x1="16" y1="17" x2="8" y2="17"></line>
-        </svg>
-        查看详情
-      </div>
-    </div>
-  </div>
-
-  <!-- 设计说明面板 -->
-  <div class="design-panel">
-    <div class="panel-header" style="background: linear-gradient(135deg, var(--success-color), #73D13D);">
-      <h2>🎨 设计说明</h2>
-      <p>地点详情页 - 我的行程版本</p>
-    </div>
-    <div class="panel-content">
-      <div class="section-block">
-        <h3>场景说明</h3>
-        <ul class="feature-list">
-          <li>用户查看自己发布的行程</li>
-          <li>不显示"申请加入"按钮</li>
-          <li>显示"查看详情"按钮</li>
-          <li>发起人标识：👑 我发起的</li>
-        </ul>
-      </div>
-      <div class="section-block">
-        <h3>视觉差异</h3>
-        <ul class="feature-list">
-          <li><strong>他人行程</strong>：蓝色按钮"发布我的行程"</li>
-          <li><strong>我的行程</strong>：绿色按钮"查看详情"</li>
-          <li>发起人标签：👑 我发起的（绿色）</li>
-          <li>行程卡片左侧绿色边框强调</li>
-        </ul>
-      </div>
-      <div class="section-block">
-        <h3>点击行为</h3>
-        <ul class="feature-list">
-          <li>点击"查看详情"进入行程管理页</li>
-          <li>可管理成员、停止招募、编辑行程等</li>
-        </ul>
-      </div>
-    </div>
-  </div>
 
   <!-- ========== 发布行程页 ========== -->
   <div class="phone-frame">
