@@ -65,6 +65,8 @@ Page({
 
   // 处理行程数据
   processTripData: async function (trip) {
+    const db = wx.cloud ? wx.cloud.database() : null;
+
     // 计算剩余名额
     const remainCount = trip.needCount || 0;
     const totalCount = (trip.currentCount || 0) + (trip.needCount || 0);
@@ -100,19 +102,18 @@ Page({
       dateText = `${trip.date} 周${weekDays[date.getDay()]}`;
     }
 
-    // 获取地点图片
-    const placeImages = {
-      '东灵山': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
-      '海坨山': 'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop',
-      '百花山': 'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=800&h=600&fit=crop',
-      '香山': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop',
-      '八达岭长城': 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=800&h=600&fit=crop',
-      '慕田峪长城': 'https://images.unsplash.com/photo-1529921879218-f99546d03a16?w=800&h=600&fit=crop',
-      '十渡': 'https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=800&h=600&fit=crop',
-      '青龙峡': 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=800&h=600&fit=crop',
-      '古北水镇': 'https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=800&h=600&fit=crop',
-      '爨底下村': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop'
-    };
+    // 获取地点图片（从 places 数据库获取）
+    let placeImage = '';
+    if (trip.placeId) {
+      try {
+        const placeRes = await db.collection('places').doc(trip.placeId).get();
+        if (placeRes.data && placeRes.data.images && placeRes.data.images.length > 0) {
+          placeImage = placeRes.data.images[0];
+        }
+      } catch (err) {
+        console.warn('获取地点图片失败', err);
+      }
+    }
 
     // 处理发起人头像（云存储链接）
     let creatorAvatar = trip.creatorAvatar || '';
@@ -168,7 +169,7 @@ Page({
       dateText,
       totalCount,
       status: remainCount <= 0 ? 'full' : trip.status,
-      placeImage: placeImages[trip.placeName] || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
+      placeImage: placeImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
       placeHighlight: this.getPlaceHighlight(trip.placeName)
     };
 
