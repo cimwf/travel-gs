@@ -181,8 +181,11 @@
 
         <!-- 空状态 -->
         <view class="empty-state" wx:else>
-          <text class="empty-icon">📭</text>
-          <text class="empty-text">暂无行程消息</text>
+          <view class="empty-icon-wrapper">
+            <view class="empty-icon">📭</view>
+          </view>
+          <view class="empty-title">暂无消息</view>
+          <view class="empty-desc">别人申请加入您的行程、邀请您一起游玩、<br/>或您发出申请后，消息会显示在这里</view>
         </view>
       </view>
 

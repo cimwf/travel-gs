@@ -474,5 +474,12 @@ Page({
       this.loadNotifications();
     }
     wx.stopPullDownRefresh();
+  },
+
+  // 去发现行程
+  onExploreTap: function () {
+    wx.switchTab({
+      url: '/pages/index/index'
+    });
   }
 });
