@@ -47,7 +47,7 @@
         </view>
         <view class="place-info">
           <view class="place-name">{{item.name}}</view>
-          <view class="place-desc">{{item.desc || '暂无简介'}}</view>
+          <view class="place-desc">{{item.intro || '暂无简介'}}</view>
           <view class="place-meta">
             <text class="meta-item">📍 {{item.distance}}km</text>
             <text class="meta-item">⚡ {{item.difficulty}}</text>
