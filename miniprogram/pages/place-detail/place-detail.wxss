@@ -311,6 +311,9 @@ page {
 }
 
 .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 28rpx;
 }
 
@@ -321,6 +324,19 @@ page {
   font-size: 32rpx;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.section-more {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  font-size: 26rpx;
+  color: var(--text-hint);
+}
+
+.more-arrow {
+  font-size: 32rpx;
+  font-weight: 300;
 }
 
 .trip-count {

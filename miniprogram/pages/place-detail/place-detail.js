@@ -210,6 +210,15 @@ Page({
     });
   },
 
+  // 点击更多行程
+  onMoreTripsTap: function () {
+    const placeId = this.data.place._id;
+    const placeName = this.data.place.name;
+    wx.navigateTo({
+      url: `/pages/trip-list/trip-list?placeId=${placeId}&placeName=${placeName}`
+    });
+  },
+
   // 返回
   onBackTap: function () {
     wx.navigateBack();
