@@ -67,8 +67,14 @@ Page({
       try {
         const result = await api.placeList({});
         if (result.places && result.places.length > 0) {
+          // 按 sortOrder 排序
+          const places = result.places.sort((a, b) => {
+            const orderA = a.sortOrder || 999;
+            const orderB = b.sortOrder || 999;
+            return orderA - orderB;
+          });
           this.setData({
-            places: result.places,
+            places: places,
             loading: false
           });
           return;
