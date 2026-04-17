@@ -375,9 +375,21 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+
+.user-avatar-img {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.user-avatar text {
   color: white;
   font-size: 36rpx;
   font-weight: 600;
+  line-height: 1;
 }
 
 .trip-user {

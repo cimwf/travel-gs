@@ -115,6 +115,33 @@ Page({
         if (res.data && res.data.length > 0) {
           const openid = app.globalData.openid;
 
+          console.log('原始行程数据:', res.data);
+
+          // 收集需要转换的云存储头像
+          const avatarFileIDs = [];
+          res.data.forEach(trip => {
+            if (trip.creatorAvatar && trip.creatorAvatar.startsWith('cloud://')) {
+              avatarFileIDs.push(trip.creatorAvatar);
+            }
+          });
+
+          // 批量获取临时链接
+          let avatarMap = {};
+          if (avatarFileIDs.length > 0) {
+            try {
+              const urlRes = await wx.cloud.getTempFileURL({ fileList: avatarFileIDs });
+              if (urlRes.fileList) {
+                urlRes.fileList.forEach(item => {
+                  if (item.tempFileURL) {
+                    avatarMap[item.fileID] = item.tempFileURL;
+                  }
+                });
+              }
+            } catch (err) {
+              console.warn('获取头像临时链接失败', err);
+            }
+          }
+
           // 处理行程数据，添加展示所需字段
           const trips = res.data.map(trip => {
             // 格式化日期
@@ -143,12 +170,23 @@ Page({
             // 判断是否是自己发布的行程
             const isMyTrip = trip.creatorId === openid;
 
+            // 生成头像背景色
+            const avatarBg = this.getAvatarBg(trip.creatorName);
+
+            // 处理头像链接
+            let creatorAvatar = trip.creatorAvatar || '';
+            if (creatorAvatar && creatorAvatar.startsWith('cloud://') && avatarMap[creatorAvatar]) {
+              creatorAvatar = avatarMap[creatorAvatar];
+            }
+
             return {
               ...trip,
               date: dateText,
               viewCount: trip.viewCount || Math.floor(Math.random() * 200) + 50,
               publishTime: publishTime,
-              isMyTrip: isMyTrip
+              isMyTrip: isMyTrip,
+              avatarBg: avatarBg,
+              creatorAvatar: creatorAvatar
             };
           });
 
@@ -274,5 +312,20 @@ Page({
       title: `一起去${this.data.place.name}吧！`,
       path: `/pages/place-detail/place-detail?id=${this.data.place._id}`
     };
+  },
+
+  // 根据名字生成头像背景色
+  getAvatarBg: function (name) {
+    const colors = [
+      'linear-gradient(135deg, #FF6B6B, #FF8E53)',
+      'linear-gradient(135deg, #4A90E2, #6BA3E8)',
+      'linear-gradient(135deg, #56AB2F, #A8E6CF)',
+      'linear-gradient(135deg, #f093fb, #f5576c)',
+      'linear-gradient(135deg, #667eea, #764ba2)',
+      'linear-gradient(135deg, #11998e, #38ef7d)'
+    ];
+    if (!name) return colors[0];
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
   }
 });
