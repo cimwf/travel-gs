@@ -21,36 +21,29 @@ page {
   width: 100%;
   min-height: 100vh;
   background: var(--bg-color);
-  padding-left: 20rpx;
-  padding-right: 20rpx;
   overflow-x: hidden;
   box-sizing: border-box;
+  padding-bottom: 180rpx;
 }
 
 /* ========== 表单内容 ========== */
 .form-content {
   padding: 32rpx;
   width: 100%;
-}
-
-.form-card {
-  background: white;
-  border-radius: 32rpx;
-  padding: 40rpx;
+  box-sizing: border-box;
 }
 
 .form-group {
-  margin-bottom: 40rpx;
-}
-
-.form-group:last-of-type {
-  margin-bottom: 0;
+  background: white;
+  border-radius: 32rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
 }
 
 .form-label {
   font-size: 28rpx;
   color: var(--text-secondary);
-  margin-bottom: 16rpx;
+  margin-bottom: 20rpx;
   font-weight: 500;
 }
 
@@ -60,10 +53,10 @@ page {
 
 .form-input {
   width: 100%;
-  height: 100rpx;
-  padding: 0rpx 32rpx;
+  height: 88rpx;
+  padding: 0 24rpx;
   border: 2rpx solid var(--border-color);
-  border-radius: 24rpx;
+  border-radius: 20rpx;
   font-size: 30rpx;
   background: var(--bg-color);
   box-sizing: border-box;
@@ -71,9 +64,9 @@ page {
 
 .form-textarea {
   width: 100%;
-  padding: 28rpx 32rpx;
+  padding: 24rpx;
   border: 2rpx solid var(--border-color);
-  border-radius: 24rpx;
+  border-radius: 20rpx;
   font-size: 30rpx;
   background: var(--bg-color);
   height: 240rpx;
@@ -84,27 +77,36 @@ page {
   font-size: 24rpx;
   color: var(--text-hint);
   text-align: right;
-  margin-top: 8rpx;
+  margin-top: 12rpx;
+}
+
+.input-placeholder {
+  color: var(--text-hint);
+}
+
+/* ========== 底部提交按钮 ========== */
+.submit-section {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24rpx 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  background: white;
+  border-top: 2rpx solid var(--border-color);
 }
 
 .submit-btn {
-  margin-top: 48rpx;
-  padding: 32rpx;
-  background: var(--primary-color);
+  padding: 28rpx;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
   color: white;
   text-align: center;
   border-radius: 28rpx;
   font-size: 34rpx;
   font-weight: 600;
+  box-shadow: 0 8rpx 24rpx rgba(74, 144, 226, 0.3);
 }
 
 .submit-btn:active {
   opacity: 0.9;
-}
-
-.input-placeholder {
-  color: var(--text-hint);
-  height: 100rpx;
-  display: flex;
-  align-items: center;
 }

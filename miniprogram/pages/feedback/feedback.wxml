@@ -2,28 +2,28 @@
 <view class="container">
   <!-- 表单内容 -->
   <view class="form-content">
-    <view class="form-card">
-      <!-- 标题 -->
-      <view class="form-group">
-        <view class="form-label">标题（选填）</view>
-        <input class="form-input" placeholder="简要描述您的建议" placeholder-class="input-placeholder" value="{{title}}" bindinput="onTitleInput" maxlength="50" />
-      </view>
-
-      <!-- 详细描述 -->
-      <view class="form-group">
-        <view class="form-label">详细描述 <text class="required">*</text></view>
-        <textarea class="form-textarea" placeholder="请详细描述您的建议或遇到的问题..." value="{{content}}" bindinput="onContentInput" maxlength="500" />
-        <view class="char-count">{{content.length}}/500</view>
-      </view>
-
-      <!-- 联系方式 -->
-      <view class="form-group">
-        <view class="form-label">联系方式（选填）</view>
-        <input class="form-input" placeholder="手机号或微信号" placeholder-class="input-placeholder" value="{{contact}}" bindinput="onContactInput" maxlength="30" />
-      </view>
-
-      <!-- 提交按钮 -->
-      <view class="submit-btn" bindtap="onSubmit">提交</view>
+    <!-- 标题 -->
+    <view class="form-group">
+      <view class="form-label">标题（选填）</view>
+      <input class="form-input" placeholder="简要描述您的建议" placeholder-class="input-placeholder" value="{{title}}" bindinput="onTitleInput" maxlength="50" />
     </view>
+
+    <!-- 详细描述 -->
+    <view class="form-group">
+      <view class="form-label">详细描述 <text class="required">*</text></view>
+      <textarea class="form-textarea" placeholder="请详细描述您的建议或遇到的问题..." value="{{content}}" bindinput="onContentInput" maxlength="500" />
+      <view class="char-count">{{content.length}}/500</view>
+    </view>
+
+    <!-- 联系方式 -->
+    <view class="form-group">
+      <view class="form-label">联系方式（选填）</view>
+      <input class="form-input" placeholder="手机号或微信号" placeholder-class="input-placeholder" value="{{contact}}" bindinput="onContactInput" maxlength="30" />
+    </view>
+  </view>
+
+  <!-- 底部提交按钮 -->
+  <view class="submit-section">
+    <view class="submit-btn" bindtap="onSubmit">提交</view>
   </view>
 </view>
