@@ -1,19 +1,5 @@
 <!--pages/feedback/feedback.wxml-->
 <view class="container">
-  <!-- 导航栏 -->
-  <view class="nav-header" style="padding-top: {{statusBarHeight}}px;">
-    <view class="nav-top">
-      <view class="nav-back" bindtap="onBackTap">
-        <text class="back-icon">‹</text>
-      </view>
-      <text class="nav-title">提交建议</text>
-      <view class="nav-placeholder"></view>
-    </view>
-  </view>
-
-  <!-- 占位区域 -->
-  <view class="nav-placeholder-area" style="height: {{statusBarHeight + 44}}px;"></view>
-
   <!-- 表单内容 -->
   <view class="form-content">
     <view class="form-card">

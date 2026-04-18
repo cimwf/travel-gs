@@ -1,5 +1,6 @@
 {
-  "navigationStyle": "custom",
   "navigationBarTitleText": "提交建议",
+  "navigationBarBackgroundColor": "#ffffff",
+  "navigationBarTextStyle": "black",
   "usingComponents": {}
 }

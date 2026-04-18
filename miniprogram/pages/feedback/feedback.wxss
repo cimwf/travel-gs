@@ -27,52 +27,6 @@ page {
   box-sizing: border-box;
 }
 
-/* ========== 导航栏 ========== */
-.nav-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: white;
-  z-index: 100;
-  border-bottom: 2rpx solid var(--border-color);
-}
-
-.nav-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16rpx 32rpx;
-}
-
-.nav-back {
-  width: 72rpx;
-  height: 72rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.back-icon {
-  font-size: 48rpx;
-  color: var(--text-hint);
-  font-weight: 300;
-}
-
-.nav-title {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.nav-placeholder {
-  width: 72rpx;
-}
-
-.nav-placeholder-area {
-  flex-shrink: 0;
-}
-
 /* ========== 表单内容 ========== */
 .form-content {
   padding: 32rpx;
