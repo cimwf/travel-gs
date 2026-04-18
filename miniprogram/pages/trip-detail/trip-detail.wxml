@@ -15,7 +15,7 @@
       <!-- 导航按钮 -->
       <view class="nav-btns" style="padding-top: {{statusBarHeight}}px;">
         <view class="nav-btn" bindtap="onBackTap">
-          <text class="nav-arrow">←</text>
+          <text class="nav-arrow">‹</text>
         </view>
       </view>
 

@@ -111,9 +111,11 @@ page {
 }
 
 .nav-arrow {
-  font-size: 40rpx;
   color: white;
+  font-size: 56rpx;
   font-weight: 300;
+  margin-top: -6rpx;
+  margin-left: -2rpx;
 }
 
 .nav-dots {
