@@ -101,10 +101,12 @@ Page({
         if (urlRes.fileList) {
           const updates = {};
           const newPhotos = [...(photos || [])];
-          const photoFileIDs = [];
-
+          // 创建 fileID 到 URL 的映射
+          const fileIDMap = {};
           urlRes.fileList.forEach(item => {
             if (item.tempFileURL) {
+              fileIDMap[item.fileID] = item.tempFileURL;
+
               if (item.fileID === avatar) {
                 updates['userInfo.avatar'] = item.tempFileURL;
                 updates['userInfo.avatarFileID'] = item.fileID;
@@ -113,13 +115,18 @@ Page({
                 updates['userInfo.background'] = item.tempFileURL;
                 updates['userInfo.backgroundFileID'] = item.fileID;
               }
-              // 处理照片
-              const photoIndex = newPhotos.indexOf(item.fileID);
-              if (photoIndex !== -1) {
-                newPhotos[photoIndex] = item.tempFileURL;
-                photoFileIDs.push(item.fileID);
-              }
             }
+          });
+
+          // 按照原顺序转换照片，并保存对应的 fileID
+          const photoFileIDs = [];
+          newPhotos.forEach((photo, index) => {
+            if (photo.startsWith('cloud://') && fileIDMap[photo]) {
+              // cloud:// 链接，转换为临时 URL，保存原始 fileID
+              newPhotos[index] = fileIDMap[photo];
+              photoFileIDs.push(photo);
+            }
+            // 非 cloud:// 链接（临时 URL 或其他）不处理，不加入 photoFileIDs
           });
 
           updates['userInfo.photos'] = newPhotos;
@@ -287,7 +294,7 @@ Page({
         if (wx.cloud) {
           wx.showLoading({ title: '上传中...' });
           const uploadedPhotos = [];
-          const fileIDs = [];
+          const newFileIDs = [];
 
           for (let i = 0; i < tempFiles.length; i++) {
             try {
@@ -298,7 +305,7 @@ Page({
               });
 
               if (uploadRes.fileID) {
-                fileIDs.push(uploadRes.fileID);
+                newFileIDs.push(uploadRes.fileID);
               }
             } catch (err) {
               console.warn('照片上传失败', err);
@@ -306,9 +313,9 @@ Page({
           }
 
           // 获取临时链接用于显示
-          if (fileIDs.length > 0) {
+          if (newFileIDs.length > 0) {
             try {
-              const urlRes = await wx.cloud.getTempFileURL({ fileList: fileIDs });
+              const urlRes = await wx.cloud.getTempFileURL({ fileList: newFileIDs });
               if (urlRes.fileList) {
                 urlRes.fileList.forEach(item => {
                   if (item.tempFileURL) {
@@ -318,17 +325,21 @@ Page({
               }
             } catch (err) {
               console.warn('获取照片链接失败', err);
-              uploadedPhotos.push(...fileIDs);  // 失败时使用 fileID
+              uploadedPhotos.push(...newFileIDs);  // 失败时使用 fileID
             }
           }
 
           wx.hideLoading();
 
-          // 更新照片列表
+          // 更新照片列表 - 合并已有照片和新上传的照片
           const allPhotos = [...this.data.userInfo.photos.slice(0, currentCount), ...uploadedPhotos];
+          // 合并已有的 fileID 和新上传的 fileID
+          const existingFileIDs = this.data.userInfo.photoFileIDs || [];
+          const allFileIDs = [...existingFileIDs, ...newFileIDs];
+
           this.setData({
             'userInfo.photos': allPhotos,
-            'userInfo.photoFileIDs': fileIDs  // 保存 fileID 用于上传
+            'userInfo.photoFileIDs': allFileIDs
           });
         }
       }
@@ -348,9 +359,18 @@ Page({
   onDeletePhoto: function (e) {
     const index = e.currentTarget.dataset.index;
     const photos = [...this.data.userInfo.photos];
+    const photoFileIDs = [...(this.data.userInfo.photoFileIDs || [])];
+
     photos.splice(index, 1);
+
+    // 如果 photoFileIDs 长度与 photos 一致，同步删除对应位置的 fileID
+    if (photoFileIDs.length === this.data.userInfo.photos.length) {
+      photoFileIDs.splice(index, 1);
+    }
+
     this.setData({
-      'userInfo.photos': photos
+      'userInfo.photos': photos,
+      'userInfo.photoFileIDs': photoFileIDs
     });
   },
 
@@ -454,8 +474,10 @@ Page({
         // 获取用户唯一标识 _id
         const userId = wx.getStorageSync('userId') || app.globalData.userId;
 
-        // 照片使用 fileID（如果有）
-        const photosForDb = userInfo.photoFileIDs || userData.photos;
+        // 照片使用 fileID（优先使用 photoFileIDs）
+        const photosForDb = (userInfo.photoFileIDs && userInfo.photoFileIDs.length > 0)
+          ? userInfo.photoFileIDs
+          : userInfo.photos.filter(p => p.startsWith('cloud://'));
 
         const updateRes = await api.userUpdate({
           _id: userId,  // 传递唯一标识
@@ -508,7 +530,10 @@ Page({
       const selectedScenicTypes = scenicTypes.filter(item => item.selected).map(item => item.id);
       const avatarForDb = userInfo.avatarFileID || userInfo.avatar;
       const backgroundForDb = userInfo.backgroundFileID || userInfo.background;
-      const photosForDb = userInfo.photoFileIDs || userInfo.photos;
+      // 照片使用 fileID（优先使用 photoFileIDs）
+      const photosForDb = (userInfo.photoFileIDs && userInfo.photoFileIDs.length > 0)
+        ? userInfo.photoFileIDs
+        : userInfo.photos.filter(p => p.startsWith('cloud://'));
 
       const userData = {
         ...userInfo,
