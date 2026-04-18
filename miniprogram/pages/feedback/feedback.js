@@ -34,7 +34,7 @@ Page({
   },
 
   // 提交
-  onSubmit: function () {
+  onSubmit: async function () {
     if (!this.data.content.trim()) {
       wx.showToast({ title: '请填写详细描述', icon: 'none' });
       return;
@@ -42,14 +42,32 @@ Page({
 
     wx.showLoading({ title: '提交中...' });
 
-    // 模拟提交
-    setTimeout(() => {
+    try {
+      const app = getApp();
+      const db = wx.cloud.database();
+
+      await db.collection('feedbacks').add({
+        data: {
+          title: this.data.title.trim() || '',
+          content: this.data.content.trim(),
+          contact: this.data.contact.trim() || '',
+          userId: app.globalData.openid || '',
+          userInfo: app.globalData.userInfo || null,
+          status: 'pending',
+          createdAt: Date.now()
+        }
+      });
+
       wx.hideLoading();
       wx.showToast({ title: '提交成功', icon: 'success' });
 
       setTimeout(() => {
         wx.navigateBack();
       }, 1500);
-    }, 500);
+    } catch (err) {
+      console.error('提交反馈失败:', err);
+      wx.hideLoading();
+      wx.showToast({ title: '提交失败，请重试', icon: 'none' });
+    }
   }
 });
