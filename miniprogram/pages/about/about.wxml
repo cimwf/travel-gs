@@ -7,13 +7,13 @@
       <view class="logo-icon">
         <text class="logo-emoji">🏔️</text>
       </view>
-      <view class="app-name">北京去哪玩</view>
+      <view class="app-name">北上周边行</view>
       <view class="app-version">版本 1.0.0</view>
     </view>
 
     <!-- 简介 -->
     <view class="intro-card">
-      <view class="intro-text">北京去哪玩是一款专注于北京周边旅行的小程序，帮助用户发现好玩的地方、规划行程、结伴出行。</view>
+      <view class="intro-text">北上周边行是一款专注于北京周边旅行的小程序，帮助用户发现好玩的地方、规划行程、结伴出行。</view>
     </view>
 
     <!-- 链接列表 -->

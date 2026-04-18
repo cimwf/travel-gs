@@ -5,7 +5,7 @@
     <view class="auth-logo">🏔️</view>
 
     <!-- 品牌标题 -->
-    <view class="auth-title">北京去哪玩</view>
+    <view class="auth-title">北上周边行</view>
     <view class="auth-subtitle">发现北京周边好去处</view>
 
     <!-- 登录表单卡片 -->

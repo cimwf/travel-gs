@@ -125,6 +125,6 @@
 
   <!-- 版本信息 -->
   <view class="version-info">
-    北京去哪玩 v{{version}}
+    北上周边行 v{{version}}
   </view>
 </view>

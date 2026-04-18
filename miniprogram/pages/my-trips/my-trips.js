@@ -459,7 +459,7 @@ Page({
   // 分享
   onShareAppMessage: function () {
     return {
-      title: '我的行程 - 北京去哪玩',
+      title: '我的行程 - 北上周边行',
       path: '/pages/my-trips/my-trips'
     };
   }
