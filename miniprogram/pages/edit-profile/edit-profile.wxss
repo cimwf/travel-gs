@@ -233,10 +233,15 @@ page {
   color: var(--text-secondary);
 }
 
-.info-input {
-  flex: 1;
-  text-align: right;
+.info-input-view {
+  height: 100rpx;
+  width: 100%;
   font-size: 30rpx;
+}
+
+.info-input {
+  height: 100%;
+  text-align: right;
   color: var(--text-primary);
   background: transparent;
 }
