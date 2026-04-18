@@ -5,20 +5,6 @@
 -->
 
 <view class="container">
-  <!-- 顶部导航 -->
-  <view class="nav-header" style="padding-top: {{statusBarHeight}}px;">
-    <view class="nav-top">
-      <view class="nav-back" bindtap="onBack">
-        <text class="back-icon">‹</text>
-      </view>
-      <text class="nav-title">编辑资料</text>
-      <view class="nav-placeholder"></view>
-    </view>
-  </view>
-
-  <!-- 占位区域 -->
-  <view class="nav-placeholder-area" style="height: {{statusBarHeight + 44}}px;"></view>
-
   <!-- 头像卡片 -->
   <view class="profile-header-card" style="{{userInfo.background ? 'background-image: url(' + userInfo.background + '); background-size: cover; background-position: center;' : ''}}" bindtap="onChooseBackground">
     <view class="avatar-container" catchtap="onChooseAvatar">
@@ -49,7 +35,7 @@
         <view class="group-content">
           <view class="info-row">
             <text class="info-label">昵称</text>
-            <input class="info-input" placeholder="请输入昵称" placeholder-class="input-placeholder" value="{{userInfo.nickname}}" maxlength="12" bindinput="onNicknameInput" />
+            <input class="info-input" placeholder="请输入昵称" placeholder-class="input-placeholder" value="{{userInfo.nickname}}" maxlength="12" bindinput="onNicknameInput" bindblur="onNicknameBlur" />
           </view>
           <view class="info-row">
             <text class="info-label">性别</text>
@@ -62,7 +48,7 @@
           <view class="info-row phone-row">
             <text class="info-label">联系方式 <text class="required">*</text></text>
             <view class="info-input-view">
-              <input class="info-input" type="text" placeholder="请输入手机号（同时也是微信号）" placeholder-class="input-placeholder" value="{{userInfo.phone}}" maxlength="11" bindinput="onPhoneInput" />
+              <input class="info-input" type="text" placeholder="请输入手机号（同时也是微信号）" placeholder-class="input-placeholder" value="{{userInfo.phone}}" maxlength="11" bindinput="onPhoneInput" bindblur="onPhoneBlur" />
             </view>
           </view>
           <view class="phone-tip">
@@ -72,7 +58,7 @@
         </view>
       </view>
 
-          <!-- 旅行照片分组 -->
+      <!-- 旅行照片分组 -->
       <view class="info-group">
         <view class="group-header">
           <view class="group-icon" style="background: linear-gradient(135deg, #FFF0E5, #FFF9F5);">
@@ -105,7 +91,7 @@
           <text class="group-arrow">▼</text>
         </view>
         <view class="group-content">
-          <textarea class="bio-textarea" placeholder="介绍一下自己，让队友更了解你～" placeholder-class="textarea-placeholder" value="{{userInfo.bio}}" maxlength="200" bindinput="onBioInput" />
+          <textarea class="bio-textarea" placeholder="介绍一下自己，让队友更了解你～" placeholder-class="textarea-placeholder" value="{{userInfo.bio}}" maxlength="200" bindinput="onBioInput" bindblur="onBioBlur" />
           <view class="textarea-count">{{userInfo.bio.length || 0}}/200字</view>
         </view>
       </view>

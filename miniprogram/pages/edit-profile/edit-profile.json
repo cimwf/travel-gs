@@ -1,4 +1,6 @@
 {
-  "navigationStyle": "custom",
+  "navigationBarTitleText": "编辑资料",
+  "navigationBarBackgroundColor": "#ffffff",
+  "navigationBarTextStyle": "black",
   "usingComponents": {}
 }
