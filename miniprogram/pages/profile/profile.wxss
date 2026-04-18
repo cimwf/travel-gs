@@ -43,6 +43,17 @@ page {
   height: 420rpx;
   color: #FFFFFF;
   position: relative;
+  overflow: hidden;
+}
+
+/* 背景图片 - 使用 image 标签避免 style 变化闪烁 */
+.profile-bg-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
 }
 
 /* 有背景图时的叠加层 */
@@ -54,12 +65,12 @@ page {
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.3);
-  z-index: 0;
+  z-index: 1;
 }
 
 .profile-header > view {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 /* 未登录状态 */

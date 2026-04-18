@@ -11,7 +11,9 @@
 
 <view class="container">
   <!-- 用户信息头部 -->
-  <view class="profile-header" style="{{userInfo.background ? 'background-image: url(' + userInfo.background + '); background-size: cover; background-position: center;' : ''}}">
+  <view class="profile-header">
+    <!-- 背景图片使用 image 标签，避免 style 变化导致闪烁 -->
+    <image class="profile-bg-image" wx:if="{{isLoggedIn}}" src="{{userInfo.background}}" mode="aspectFill" wx:if="{{userInfo.background}}"></image>
     <!-- 未登录状态 -->
     <view class="not-logged-in" wx:if="{{!isLoggedIn}}" bindtap="onLogin">
       <view class="avatar-placeholder">
