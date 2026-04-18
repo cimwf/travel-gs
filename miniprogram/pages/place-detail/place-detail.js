@@ -212,8 +212,13 @@ Page({
 
   // 点击更多行程
   onMoreTripsTap: function () {
-    const placeId = this.data.place._id;
-    const placeName = this.data.place.name;
+    const place = this.data.place;
+    if (!place) {
+      wx.showToast({ title: '加载中，请稍后', icon: 'none' });
+      return;
+    }
+    const placeId = place._id;
+    const placeName = encodeURIComponent(place.name);
     wx.navigateTo({
       url: `/pages/trip-list/trip-list?placeId=${placeId}&placeName=${placeName}`
     });
@@ -239,8 +244,14 @@ Page({
       return;
     }
 
+    const place = this.data.place;
+    if (!place) {
+      wx.showToast({ title: '加载中，请稍后', icon: 'none' });
+      return;
+    }
+
     const isCollected = !this.data.isCollected;
-    const placeId = this.data.place._id;
+    const placeId = place._id;
 
     // 更新本地收藏列表
     let collections = wx.getStorageSync('collections') || [];
@@ -272,8 +283,14 @@ Page({
       return;
     }
 
+    const place = this.data.place;
+    if (!place) {
+      wx.showToast({ title: '加载中，请稍后', icon: 'none' });
+      return;
+    }
+
     wx.navigateTo({
-      url: `/pages/trip-publish/trip-publish?placeId=${this.data.place._id}&placeName=${this.data.place.name}`
+      url: `/pages/trip-publish/trip-publish?placeId=${place._id}&placeName=${encodeURIComponent(place.name)}`
     });
   },
 
@@ -317,9 +334,16 @@ Page({
 
   // 分享
   onShareAppMessage: function () {
+    const place = this.data.place;
+    if (!place) {
+      return {
+        title: '北京周边游',
+        path: '/pages/index/index'
+      };
+    }
     return {
-      title: `一起去${this.data.place.name}吧！`,
-      path: `/pages/place-detail/place-detail?id=${this.data.place._id}`
+      title: `一起去${place.name}吧！`,
+      path: `/pages/place-detail/place-detail?id=${place._id}`
     };
   },
 

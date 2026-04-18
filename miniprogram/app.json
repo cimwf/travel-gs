@@ -20,7 +20,9 @@
     "pages/feedback/feedback",
     "pages/about/about",
     "pages/search/search",
-    "pages/agreement/agreement"
+    "pages/agreement/agreement",
+    "pages/user-profile/user-profile",
+    "pages/trip-list/trip-list"
   ],
   "window": {
     "backgroundTextStyle": "light",

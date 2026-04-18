@@ -185,10 +185,10 @@
 
 <!-- 底部操作栏 -->
 <view class="footer-bar">
-  <view class="collect-btn {{isCollected ? 'collected' : ''}}" bindtap="onCollectTap">
+  <!-- <view class="collect-btn {{isCollected ? 'collected' : ''}}" bindtap="onCollectTap">
     <text class="collect-icon">{{isCollected ? '❤️' : '🤍'}}</text>
     <text class="collect-text">{{isCollected ? '已收藏' : '收藏'}}</text>
-  </view>
+  </view> -->
   <view class="publish-btn" bindtap="onPublishTrip">
     <text class="publish-icon">+</text>
     <text>发布我的行程</text>
