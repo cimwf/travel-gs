@@ -28,7 +28,7 @@
     </view>
 
     <!-- 行程通知列表 -->
-    <scroll-view class="notification-list" scroll-y wx:else>
+    <scroll-view class="notification-list" scroll-y>
       <view class="list-content">
         <block wx:if="{{notifications.length > 0}}">
           <view class="notification-card" wx:for="{{notifications}}" wx:key="_id">
