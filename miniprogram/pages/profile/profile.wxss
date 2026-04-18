@@ -38,7 +38,7 @@ page {
    ======================================== */
 .profile-header {
   width: 100%;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
   padding: 56rpx 40rpx;
   height: 420rpx;
   color: #FFFFFF;
@@ -56,9 +56,8 @@ page {
   z-index: 0;
 }
 
-/* 有背景图时的叠加层 */
-.profile-header::before {
-  content: '';
+/* 叠加层 - 只在有背景图时显示 */
+.profile-bg-overlay {
   position: absolute;
   top: 0;
   left: 0;

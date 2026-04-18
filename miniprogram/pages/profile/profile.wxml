@@ -13,7 +13,9 @@
   <!-- 用户信息头部 -->
   <view class="profile-header">
     <!-- 背景图片使用 image 标签，避免 style 变化导致闪烁 -->
-    <image class="profile-bg-image" wx:if="{{isLoggedIn}}" src="{{userInfo.background}}" mode="aspectFill" wx:if="{{userInfo.background}}"></image>
+    <image class="profile-bg-image" src="{{userInfo.background}}" mode="aspectFill" wx:if="{{userInfo.background}}"></image>
+    <!-- 叠加层 - 只在有背景图时显示 -->
+    <view class="profile-bg-overlay" wx:if="{{userInfo.background}}"></view>
     <!-- 未登录状态 -->
     <view class="not-logged-in" wx:if="{{!isLoggedIn}}" bindtap="onLogin">
       <view class="avatar-placeholder">
