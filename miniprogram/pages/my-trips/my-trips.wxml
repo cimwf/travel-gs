@@ -1,16 +1,7 @@
 <!--pages/my-trips/my-trips.wxml-->
 <view class="container">
-  <!-- 自定义导航栏 -->
-  <view class="nav-header" style="padding-top: {{statusBarHeight}}px;">
-    <view class="nav-top">
-      <view class="nav-back" bindtap="onBackTap">
-        <text class="back-icon">←</text>
-      </view>
-      <text class="nav-title">我的行程</text>
-      <view class="nav-placeholder"></view>
-    </view>
-
-    <!-- 标签切换 -->
+  <!-- 标签切换 -->
+  <view class="tabs-container">
     <view class="tabs">
       <view class="tab {{activeTab === 'all' ? 'active' : ''}}" bindtap="onTabChange" data-tab="all">全部</view>
       <view class="tab {{activeTab === 'created' ? 'active' : ''}}" bindtap="onTabChange" data-tab="created">我发起的</view>
@@ -18,9 +9,6 @@
       <view class="tab {{activeTab === 'ended' ? 'active' : ''}}" bindtap="onTabChange" data-tab="ended">已结束</view>
     </view>
   </view>
-
-  <!-- 占位区域 -->
-  <view class="nav-placeholder-area" style="height: {{statusBarHeight + 100}}px;"></view>
 
   <!-- 内容区域 -->
   <view class="content">

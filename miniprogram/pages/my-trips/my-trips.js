@@ -3,7 +3,6 @@ const app = getApp();
 
 Page({
   data: {
-    statusBarHeight: 0,
     activeTab: 'all',
     trips: [],
     filteredTrips: [], // 过滤后的行程
@@ -15,10 +14,6 @@ Page({
   },
 
   onLoad: function (options) {
-    // 获取状态栏高度
-    const systemInfo = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: systemInfo.statusBarHeight });
-
     // 设置默认标签
     const tab = options.tab || 'all';
     this.setData({ activeTab: tab });
@@ -328,11 +323,6 @@ Page({
     }
 
     this.setData({ trips: filteredTrips });
-  },
-
-  // 返回
-  onBackTap: function () {
-    wx.navigateBack();
   },
 
   // 点击行程卡片
