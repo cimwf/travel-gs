@@ -174,12 +174,13 @@ page {
 }
 
 .trip-status {
-  padding: 8rpx 24rpx;
+  padding: 0rpx 24rpx;
   border-radius: 24rpx;
   font-size: 24rpx;
   font-weight: 500;
   flex-shrink: 0;
-  height: 30rpx;
+  height: 50rpx;
+  line-height: 50rpx;
 }
 
 .status-open {
