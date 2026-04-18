@@ -184,6 +184,15 @@ function commentList(placeId) {
   return callApi('comment/list', { placeId });
 }
 
+// ========== Banner相关 ==========
+
+/**
+ * 获取Banner列表
+ */
+function bannerList() {
+  return callApi('banner/list', {});
+}
+
 // ========== 导出 ==========
 
 module.exports = {
@@ -220,5 +229,8 @@ module.exports = {
   
   // 评论
   commentCreate,
-  commentList
+  commentList,
+
+  // Banner
+  bannerList
 };

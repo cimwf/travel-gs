@@ -23,9 +23,10 @@
   <!-- Banner轮播图 -->
   <view class="banner-section">
     <swiper class="banner-swiper" indicator-dots="{{true}}" autoplay="{{true}}" interval="4000" duration="500" indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#FFFFFF">
-      <swiper-item wx:for="{{banners}}" wx:key="id">
-        <view class="banner-item" style="background: {{item.bgColor}};" data-id="{{item.id}}" data-type="{{item.type}}" bindtap="onBannerTap">
-          <text class="banner-title">{{item.icon}} {{item.title}}</text>
+      <swiper-item wx:for="{{banners}}" wx:key="_id">
+        <view class="banner-item" data-linktype="{{item.linkType}}" data-linkid="{{item.linkId}}" bindtap="onBannerTap">
+          <image class="banner-image" src="{{item.image}}" mode="aspectFill" wx:if="{{item.image}}"></image>
+          <text class="banner-title">{{item.title}}</text>
         </view>
       </swiper-item>
     </swiper>

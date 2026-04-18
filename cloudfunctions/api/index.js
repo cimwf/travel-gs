@@ -82,6 +82,10 @@ exports.main = async (event, context) => {
       case 'comment/list':
         return await commentList(data.placeId);
 
+      // ========== Banner相关 ==========
+      case 'banner/list':
+        return await bannerList();
+
       default:
         return { success: false, error: '未知操作' };
     }
@@ -764,6 +768,17 @@ async function commentList(placeId) {
     .orderBy('createdAt', 'desc')
     .limit(50)
     .get();
-  
+
   return { success: true, comments: res.data };
+}
+
+// ========== Banner相关 ==========
+
+async function bannerList() {
+  const res = await db.collection('banners')
+    .orderBy('sort', 'asc')
+    .limit(10)
+    .get();
+
+  return { success: true, banners: res.data };
 }

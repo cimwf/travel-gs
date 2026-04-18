@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>隐私政策与用户协议 - 北京去哪玩</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary-color: #4A90E2;
+      --primary-light: #6BA3E8;
+      --text-primary: #1A1A2E;
+      --text-secondary: #4A4A68;
+      --text-hint: #8E8EA0;
+      --bg-color: #F5F7FA;
+      --border-color: #E8E8F0;
+      --success-color: #52C41A;
+      --warning-color: #FAAD14;
+      --danger-color: #FF4D4F;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      background: var(--bg-color);
+      color: var(--text-primary);
+      line-height: 1.8;
+    }
+    
+    .container { max-width: 900px; margin: 0 auto; display: flex; }
+    
+    /* 侧边导航 */
+    .sidebar {
+      width: 240px;
+      background: white;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      overflow-y: auto;
+      border-right: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+    
+    .sidebar-header {
+      padding: 24px 20px;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      color: white;
+    }
+    
+    .sidebar-header h1 { font-size: 18px; margin-bottom: 4px; }
+    .sidebar-header p { font-size: 11px; opacity: 0.9; }
+    
+    .nav-menu { padding: 16px 0; }
+    
+    .nav-section { margin-bottom: 16px; }
+    
+    .nav-section-title {
+      padding: 8px 20px;
+      font-size: 11px;
+      color: var(--text-hint);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .nav-item {
+      display: block;
+      padding: 10px 20px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 13px;
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+    }
+    
+    .nav-item:hover { background: var(--bg-color); color: var(--primary-color); }
+    .nav-item.active { background: rgba(74, 144, 226, 0.1); color: var(--primary-color); border-left-color: var(--primary-color); }
+    
+    /* 主内容区 */
+    .main-content {
+      flex: 1;
+      padding: 40px 60px;
+      background: white;
+      min-height: 100vh;
+    }
+    
+    .page-header {
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+      text-align: center;
+    }
+    
+    .page-header h1 {
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+    
+    .page-header .meta {
+      display: flex;
+      gap: 24px;
+      color: var(--text-hint);
+      font-size: 13px;
+      justify-content: center;
+    }
+    
+    /* 文档切换 */
+    .doc-tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 32px;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 16px;
+    }
+    
+    .doc-tab {
+      padding: 12px 24px;
+      background: var(--bg-color);
+      border-radius: 8px 8px 0 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+    
+    .doc-tab:hover { background: rgba(74, 144, 226, 0.1); color: var(--primary-color); }
+    .doc-tab.active { background: var(--primary-color); color: white; }
+    
+    /* 章节 */
+    .section {
+      margin-bottom: 40px;
+    }
+    
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--primary-color);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .section-title .number {
+      width: 28px;
+      height: 28px;
+      background: var(--primary-color);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    
+    .subsection {
+      margin-bottom: 24px;
+    }
+    
+    .subsection-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+    
+    /* 内容 */
+    .content-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 2;
+      text-align: justify;
+    }
+    
+    .content-text p { margin-bottom: 12px; }
+    
+    .content-text ul, .content-text ol {
+      margin: 12px 0;
+      padding-left: 24px;
+    }
+    
+    .content-text li { margin-bottom: 8px; }
+    
+    /* 表格 */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+    
+    .data-table th {
+      background: var(--bg-color);
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-bottom: 2px solid var(--border-color);
+    }
+    
+    .data-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-primary);
+      vertical-align: top;
+    }
+    
+    .data-table tr:hover td { background: var(--bg-color); }
+    
+    /* 提示框 */
+    .alert {
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin: 16px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    
+    .alert.info { background: rgba(74, 144, 226, 0.1); border-left: 4px solid var(--primary-color); }
+    .alert.warning { background: rgba(250, 173, 20, 0.1); border-left: 4px solid var(--warning-color); }
+    .alert.danger { background: rgba(255, 77, 79, 0.1); border-left: 4px solid var(--danger-color); }
+    
+    .alert-icon { font-size: 20px; }
+    .alert-content h4 { font-size: 14px; margin-bottom: 4px; }
+    .alert-content p { font-size: 13px; color: var(--text-hint); }
+    
+    /* 联系信息卡片 */
+    .contact-card {
+      background: linear-gradient(135deg, rgba(74, 144, 226, 0.1), rgba(107, 163, 232, 0.05));
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+    }
+    
+    .contact-card h4 {
+      font-size: 16px;
+      margin-bottom: 16px;
+      color: var(--primary-color);
+    }
+    
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      font-size: 14px;
+    }
+    
+    .contact-item .label {
+      color: var(--text-hint);
+      width: 80px;
+    }
+    
+    .contact-item .value {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+    
+    /* 更新记录 */
+    .update-log {
+      background: var(--bg-color);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 16px 0;
+    }
+    
+    .update-log h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    
+    .update-item {
+      display: flex;
+      gap: 12px;
+      padding: 8px 0;
+      font-size: 13px;
+      border-bottom: 1px dashed var(--border-color);
+    }
+    
+    .update-item:last-child { border-bottom: none; }
+    
+    .update-item .date {
+      color: var(--text-hint);
+      width: 100px;
+      flex-shrink: 0;
+    }
+    
+    .update-item .content {
+      color: var(--text-secondary);
+    }
+    
+    /* 响应式 */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main-content { padding: 24px; }
+      .doc-tabs { flex-direction: column; }
+    }
+    
+    @media print {
+      .sidebar { display: none; }
+      .main-content { padding: 0; }
+      .doc-tabs { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 侧边导航 -->
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h1>🏔️ 北京去哪玩</h1>
+        <p>法律合规文档</p>
+      </div>
+      
+      <div class="nav-menu">
+        <div class="nav-section">
+          <div class="nav-section-title">隐私政策</div>
+          <a href="#privacy-overview" class="nav-item">引言</a>
+          <a href="#privacy-collect" class="nav-item">信息收集</a>
+          <a href="#privacy-use" class="nav-item">信息使用</a>
+          <a href="#privacy-share" class="nav-item">信息共享</a>
+          <a href="#privacy-store" class="nav-item">信息存储</a>
+          <a href="#privacy-right" class="nav-item">用户权利</a>
+          <a href="#privacy-minor" class="nav-item">未成年人保护</a>
+          <a href="#privacy-update" class="nav-item">政策更新</a>
+          <a href="#privacy-contact" class="nav-item">联系我们</a>
+        </div>
+        
+        <div class="nav-section">
+          <div class="nav-section-title">用户协议</div>
+          <a href="#terms-service" class="nav-item">服务条款</a>
+          <a href="#terms-account" class="nav-item">账号管理</a>
+          <a href="#terms-behavior" class="nav-item">用户行为规范</a>
+          <a href="#terms-content" class="nav-item">内容规范</a>
+          <a href="#terms-ip" class="nav-item">知识产权</a>
+          <a href="#terms-liability" class="nav-item">免责声明</a>
+          <a href="#terms-dispute" class="nav-item">争议解决</a>
+          <a href="#terms-other" class="nav-item">其他条款</a>
+        </div>
+      </div>
+    </nav>
+    
+    <!-- 主内容 -->
+    <main class="main-content">
+      <header class="page-header">
+        <h1>📋 隐私政策与用户协议</h1>
+        <div class="meta">
+          <span>版本：v1.0.0</span>
+          <span>生效日期：2026年4月18日</span>
+          <span>制定者：产品团队</span>
+        </div>
+      </header>
+      
+      <!-- 文档切换 -->
+      <div class="doc-tabs">
+        <button class="doc-tab active" onclick="showDoc('privacy')">🔒 隐私政策</button>
+        <button class="doc-tab" onclick="showDoc('terms')">📄 用户协议</button>
+      </div>
+      
+      <!-- ==================== 隐私政策 ==================== -->
+      <div id="privacy-doc">
+        
+        <section class="section" id="privacy-overview">
+          <h2 class="section-title"><span class="number">1</span>引言</h2>
+          
+          <div class="alert info">
+            <span class="alert-icon">📖</span>
+            <div class="alert-content">
+              <h4>重要提示</h4>
+              <p>请您在使用「北京去哪玩」小程序前，仔细阅读并充分理解本隐私政策。一旦您开始使用我们的服务，即表示您已充分理解并同意本政策的全部内容。</p>
+            </div>
+          </div>
+          
+          <div class="content-text">
+            <p><strong>「北京去哪玩」</strong>（以下简称"我们"）非常重视用户的隐私保护。本隐私政策旨在向您说明我们如何收集、使用、存储、共享和保护您的个人信息，以及您如何行使您的个人信息权利。</p>
+            
+            <p>本隐私政策适用于「北京去哪玩」微信小程序及相关服务。如果您不同意本隐私政策的任何内容，请您立即停止使用我们的服务。</p>
+            
+            <p>本隐私政策将帮助您了解以下内容：</p>
+            <ul>
+              <li>我们如何收集和使用您的个人信息</li>
+              <li>我们如何使用Cookie和同类技术</li>
+              <li>我们如何共享、转让、公开披露您的个人信息</li>
+              <li>我们如何保护您的个人信息</li>
+              <li>您如何管理您的个人信息</li>
+              <li>我们如何处理未成年人的个人信息</li>
+              <li>本政策如何更新</li>
+              <li>如何联系我们</li>
+            </ul>
+          </div>
+        </section>
+        
+        <section class="section" id="privacy-collect">
+          <h2 class="section-title"><span class="number">2</span>信息收集</h2>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">2.1 我们收集的信息</h3>
+            <div class="content-text">
+              <p>为了向您提供服务，我们需要收集以下信息：</p>
+            </div>
+            
+            <table class="data-table">
+              <tr>
+                <th width="120">信息类型</th>
+                <th width="200">具体内容</th>
+                <th>收集目的</th>
+                <th width="120">是否必填</th>
+              </tr>
+              <tr>
+                <td><strong>手机号码</strong></td>
+                <td>用户手机号（微信授权获取）</td>
+                <td>账号注册登录、身份验证、安全保护</td>
+                <td>是</td>
+              </tr>
+              <tr>
+                <td><strong>基本信息</strong></td>
+                <td>昵称、性别</td>
+                <td>完善用户资料、个性化推荐、社交展示</td>
+                <td>是</td>
+              </tr>
+              <tr>
+                <td><strong>个人简介</strong></td>
+                <td>自我描述（文字）</td>
+                <td>社交展示、帮助其他用户了解您</td>
+                <td>否</td>
+              </tr>
+              <tr>
+                <td><strong>旅行照片</strong></td>
+                <td>用户上传的照片（最多9张）</td>
+                <td>个人主页展示、社交互动</td>
+                <td>否</td>
+              </tr>
+              <tr>
+                <td><strong>兴趣标签</strong></td>
+                <td>景点类型、行程节奏、预算范围</td>
+                <td>个性化推荐、匹配同行伙伴</td>
+                <td>否</td>
+              </tr>
+              <tr>
+                <td><strong>微信号</strong></td>
+                <td>用户填写的微信号</td>
+                <td>行程申请通过后展示给对方，便于联系</td>
+                <td>是</td>
+              </tr>
+              <tr>
+                <td><strong>位置信息</strong></td>
+                <td>出发地（如：海淀区）</td>
+                <td>发布行程、匹配附近用户</td>
+                <td>否</td>
+              </tr>
+              <tr>
+                <td><strong>设备信息</strong></td>
+                <td>设备型号、操作系统、微信版本</td>
+                <td>优化服务、问题排查、安全防护</td>
+                <td>自动获取</td>
+              </tr>
+              <tr>
+                <td><strong>日志信息</strong></td>
+                <td>操作记录、访问时间、IP地址</td>
+                <td>问题排查、安全防护、数据分析</td>
+                <td>自动获取</td>
+              </tr>
+            </table>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">2.2 信息收集方式</h3>
+            <div class="content-text">
+              <ul>
+                <li><strong>您主动提供</strong>：注册登录时填写昵称、性别、个人简介、旅行照片、微信号等</li>
+                <li><strong>微信授权获取</strong>：通过微信手机号授权快速登录获取手机号</li>
+                <li><strong>自动收集</strong>：使用服务过程中自动收集设备信息、日志信息</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">2.3 权限调用说明</h3>
+            <table class="data-table">
+              <tr>
+                <th width="120">权限名称</th>
+                <th>使用场景</th>
+                <th width="120">是否可拒绝</th>
+              </tr>
+              <tr>
+                <td>手机号权限</td>
+                <td>微信一键登录，获取手机号码用于账号注册</td>
+                <td>是（无法登录）</td>
+              </tr>
+              <tr>
+                <td>相册/相机权限</td>
+                <td>上传旅行照片、更换头像</td>
+                <td>是（无法上传）</td>
+              </tr>
+              <tr>
+                <td>位置权限</td>
+                <td>发布行程时选择出发地</td>
+                <td>是（手动输入）</td>
+              </tr>
+            </table>
+          </div>
+        </section>
+        
+        <section class="section" id="privacy-use">
+          <h2 class="section-title"><span class="number">3</span>信息使用</h2>
+          
+          <div class="content-text">
+            <p>我们收集的信息将用于以下目的：</p>
+            
+            <table class="data-table">
+              <tr>
+                <th width="180">使用目的</th>
+                <th>具体说明</th>
+              </tr>
+              <tr>
+                <td><strong>提供核心服务</strong></td>
+                <td>账号注册登录、发布行程、申请加入行程、消息通知等核心功能</td>
+              </tr>
+              <tr>
+                <td><strong>社交互动</strong></td>
+                <td>展示用户主页、关注/粉丝功能、行程群聊、私信沟通</td>
+              </tr>
+              <tr>
+                <td><strong>个性化推荐</strong></td>
+                <td>根据您的兴趣标签、浏览历史推荐地点和行程</td>
+              </tr>
+              <tr>
+                <td><strong>安全保障</strong></td>
+                <td>身份验证、安全防护、预防欺诈、违法违规行为处理</td>
+              </tr>
+              <tr>
+                <td><strong>服务优化</strong></td>
+                <td>分析用户行为、改进产品功能、提升用户体验</td>
+              </tr>
+              <tr>
+                <td><strong>通知推送</strong></td>
+                <td>行程申请通知、邀请通知、系统公告等服务消息</td>
+              </tr>
+            </table>
+            
+            <div class="alert warning">
+              <span class="alert-icon">⚠️</span>
+              <div class="alert-content">
+                <h4>重要说明</h4>
+                <p>我们不会将您的个人信息用于本政策未载明的其他目的。如需改变信息使用目的，我们将另行告知并征得您的同意。</p>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <section class="section" id="privacy-share">
+          <h2 class="section-title"><span class="number">4</span>信息共享</h2>
+          
+          <div class="content-text">
+            <p>我们承诺对您的个人信息保密，不会向第三方出售您的个人信息。但以下情况除外：</p>
+            
+            <table class="data-table">
+              <tr>
+                <th width="140">共享情形</th>
+                <th>具体说明</th>
+              </tr>
+              <tr>
+                <td><strong>用户主动共享</strong></td>
+                <td>您发布的行程信息、公开主页内容、评论等可被其他用户查看</td>
+              </tr>
+              <tr>
+                <td><strong>行程联系</strong></td>
+                <td>当您申请加入行程被同意后，您的微信号将展示给行程发起人</td>
+              </tr>
+              <tr>
+                <td><strong>服务提供商</strong></td>
+                <td>我们可能委托第三方服务提供商协助提供服务（如云存储、数据分析），我们将要求其遵守保密义务</td>
+              </tr>
+              <tr>
+                <td><strong>法律法规要求</strong></td>
+                <td>根据法律法规要求、法律程序、诉讼或政府部门的强制性要求</td>
+              </tr>
+              <tr>
+                <td><strong>保护用户权益</strong></td>
+                <td>为保护我们、用户或公众的权益、财产或安全所需</td>
+              </tr>
+            </table>
+            
+            <p><strong>我们不会共享的信息：</strong></p>
+            <ul>
+              <li>您的手机号不会向其他用户展示</li>
+              <li>您的微信号仅在行程申请通过后向对方展示</li>
+              <li>您的设备信息、日志信息不会向任何第三方共享（法律要求除外）</li>
+            </ul>
+          </div>
+        </section>
+        
+        <section class="section" id="privacy-store">
+          <h2 class="section-title"><span class="number">5</span>信息存储</h2>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">5.1 存储地点</h3>
+            <div class="content-text">
+              <p>您的个人信息存储在中华人民共和国境内的服务器。如需跨境传输，我们将单独征得您的授权同意。</p>
+            </div>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">5.2 存储期限</h3>
+            <table class="data-table">
+              <tr>
+                <th width="180">信息类型</th>
+                <th>存储期限</th>
+              </tr>
+              <tr>
+                <td>账号信息</td>
+                <td>账号存续期间，注销后即时删除或匿名化处理</td>
+              </tr>
+              <tr>
+                <td>行程信息</td>
+                <td>行程结束后保留6个月，之后匿名化处理</td>
+              </tr>
+              <tr>
+                <td>消息记录</td>
+                <td>用户可自行删除，或账号注销后删除</td>
+              </tr>
+              <tr>
+                <td>日志信息</td>
+                <td>最长保留6个月，用于安全审计</td>
+              </tr>
+            </table>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">5.3 安全保护措施</h3>
+            <div class="content-text">
+              <ul>
+                <li><strong>数据加密</strong>：敏感信息采用加密存储和传输</li>
+                <li><strong>访问控制</strong>：严格限制员工访问个人信息的权限</li>
+                <li><strong>安全审计</strong>：定期进行安全检测和漏洞修复</li>
+                <li><strong>应急响应</strong>：建立个人信息安全事件应急响应机制</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+        
+        <section class="section" id="privacy-right">
+          <h2 class="section-title"><span class="number">6</span>用户权利</h2>
+          
+          <div class="content-text">
+            <p>根据相关法律法规，您享有以下个人信息权利：</p>
+            
+            <table class="data-table">
+              <tr>
+                <th width="120">权利名称</th>
+                <th>具体内容</th>
+                <th width="180">行使方式</th>
+              </tr>
+              <tr>
+                <td><strong>访问权</strong></td>
+                <td>查看您的个人信息，包括账号资料、行程记录等</td>
+                <td>「我的」页面查看</td>
+              </tr>
+              <tr>
+                <td><strong>更正权</strong></td>
+                <td>更正或补充您的个人信息</td>
+                <td>「编辑资料」页面修改</td>
+              </tr>
+              <tr>
+                <td><strong>删除权</strong></td>
+                <td>删除您发布的行程、照片、评论等内容</td>
+                <td>各功能页面提供删除入口</td>
+              </tr>
+              <tr>
+                <td><strong>撤回同意权</strong></td>
+                <td>撤回您之前给予的信息收集、使用同意</td>
+                <td>联系我们处理</td>
+              </tr>
+              <tr>
+                <td><strong>注销账号权</strong></td>
+                <td>注销您的账号，我们将删除您的个人信息</td>
+                <td>「设置」→「注销账号」</td>
+              </tr>
+              <tr>
+                <td><strong>获取副本权</strong></td>
+                <td>获取您的个人信息副本</td>
+                <td>联系我们处理</td>
+              </tr>
+            </table>
+            
+            <div class="alert danger">
+              <span class="alert-icon">⚠️</span>
+              <div class="alert-content">
+                <h4>注销账号提示</h4>
+                <p>注销账号后，您的个人信息将被删除或匿名化处理，已发布的公开内容可能被保留但不再与您关联。注销后无法恢复账号，请谨慎操作。</p>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <section class="section" id="privacy-minor">
+          <h2 class="section-title"><span class="number">7</span>未成年人保护</h2>
+          
+          <div class="content-text">
+            <p>我们高度重视未成年人的个人信息保护：</p>
+            
+            <ul>
+              <li><strong>年龄限制</strong>：本服务面向14周岁及以上用户。未满14周岁的未成年人不得使用本服务。</li>
+              <li><strong>监护人同意</strong>：14周岁以上不满18周岁的未成年人，应在监护人监护、指导下使用本服务，并在监护人同意本政策后使用。</li>
+              <li><strong>特殊保护</strong>：我们不会主动向未成年人收集个人信息，如发现误收集，将尽快删除。</li>
+              <li><strong>监护人权利</strong>：监护人有权代为查阅、更正、删除未成年人的个人信息。</li>
+            </ul>
+            
+            <p>如您的监护人不同意您使用本服务或向我们提供信息，请您立即终止使用本服务并及时通知我们。</p>
+          </div>
+        </section>
+        
+        <section class="section" id="privacy-update">
+          <h2 class="section-title"><span class="number">8</span>政策更新</h2>
+          
+          <div class="content-text">
+            <p>我们可能适时修订本隐私政策。修订时，我们将：</p>
+            
+            <ul>
+              <li>在本小程序内公布修订后的隐私政策</li>
+              <li>通过弹窗、消息推送等方式通知您重大变更</li>
+              <li>在政策顶部更新"生效日期"</li>
+            </ul>
+            
+            <p><strong>重大变更包括但不限于：</strong></p>
+            <ul>
+              <li>我们的联系方式变更</li>
+              <li>个人信息收集、使用目的发生变化</li>
+              <li>个人信息共享的对象发生变化</li>
+              <li>您参与个人信息处理的权利发生变化</li>
+            </ul>
+            
+            <p>如您不同意变更后的隐私政策，您有权停止使用我们的服务。如您继续使用，即表示您接受变更后的隐私政策。</p>
+          </div>
+        </section>
+        
+        <section class="section" id="privacy-contact">
+          <h2 class="section-title"><span class="number">9</span>联系我们</h2>
+          
+          <div class="content-text">
+            <p>如您对本隐私政策或个人信息处理有任何疑问、意见或建议，可通过以下方式联系我们：</p>
+          </div>
+          
+          <div class="contact-card">
+            <h4>📧 联系方式</h4>
+            <div class="contact-item">
+              <span class="label">客服邮箱</span>
+              <span class="value">support@beijingtravel.com</span>
+            </div>
+            <div class="contact-item">
+              <span class="label">客服电话</span>
+              <span class="value">400-XXX-XXXX</span>
+            </div>
+            <div class="contact-item">
+              <span class="label">工作时间</span>
+              <span class="value">周一至周五 9:00-18:00</span>
+            </div>
+            <div class="contact-item">
+              <span class="label">通信地址</span>
+              <span class="value">北京市XX区XX路XX号</span>
+            </div>
+          </div>
+          
+          <div class="content-text">
+            <p>我们将在15个工作日内回复您的请求。</p>
+            
+            <p>如您对我们的回复不满意，特别是认为我们的个人信息处理行为损害了您的合法权益，您还可以向网信、公安、市场监管等部门投诉举报，或向被告住所地有管辖权的人民法院提起诉讼。</p>
+          </div>
+        </section>
+        
+      </div>
+      
+      <!-- ==================== 用户协议 ==================== -->
+      <div id="terms-doc" style="display: none;">
+        
+        <section class="section" id="terms-service">
+          <h2 class="section-title"><span class="number">1</span>服务条款</h2>
+          
+          <div class="alert info">
+            <span class="alert-icon">📖</span>
+            <div class="alert-content">
+              <h4>重要提示</h4>
+              <p>请您在使用「北京去哪玩」小程序前，仔细阅读并充分理解本用户协议。一旦您开始使用我们的服务，即表示您已充分理解并同意本协议的全部内容。</p>
+            </div>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">1.1 协议的接受与修改</h3>
+            <div class="content-text">
+              <p>本协议是您（以下简称"用户"）与「北京去哪玩」（以下简称"我们"或"平台"）之间关于使用本服务所订立的协议。</p>
+              <p>我们有权在必要时修改本协议条款。修改后的协议条款将在本小程序内公布，您可以在相关服务页面查阅最新版本的协议条款。</p>
+              <p>如您不同意修改后的协议条款，您有权停止使用本服务。如您继续使用，即表示您接受修改后的协议。</p>
+            </div>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">1.2 服务内容</h3>
+            <div class="content-text">
+              <p>「北京去哪玩」是一款面向北京及周边地区的户外旅行社交小程序，提供以下服务：</p>
+              <ul>
+                <li><strong>地点发现</strong>：浏览北京周边户外旅行地点信息</li>
+                <li><strong>行程发布</strong>：发布您的出行计划，招募同行伙伴</li>
+                <li><strong>找搭子</strong>：申请加入他人发布的行程，结识同行伙伴</li>
+                <li><strong>社交互动</strong>：关注用户、私信沟通、评论互动</li>
+                <li><strong>消息通知</strong>：行程申请、邀请、系统通知等</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">1.3 服务变更、中断或终止</h3>
+            <div class="content-text">
+              <p>我们保留随时修改、中断或终止部分或全部服务的权利。如发生以下任一情况，我们有权暂停或终止向您提供服务：</p>
+              <ul>
+                <li>您违反本协议或相关法律法规的规定</li>
+                <li>您存在使用外挂、插件、系统或第三方工具对本服务进行干扰、破坏的行为</li>
+                <li>您冒充他人身份或提供虚假信息</li>
+                <li>您的账号存在被盗风险</li>
+                <li>法律法规要求或政府机关要求</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+        
+        <section class="section" id="terms-account">
+          <h2 class="section-title"><span class="number">2</span>账号管理</h2>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">2.1 账号注册</h3>
+            <div class="content-text">
+              <p>您需要通过微信手机号授权完成账号注册。注册时，您应当：</p>
+              <ul>
+                <li>提供真实、准确、完整的个人信息</li>
+                <li>及时更新您的个人信息</li>
+                <li>对您的账号和密码的安全负责</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">2.2 账号安全</h3>
+            <div class="content-text">
+              <ul>
+                <li>您应妥善保管账号信息，因您保管不当可能导致的账号被盗、密码泄露等后果由您自行承担</li>
+                <li>如发现账号被盗或存在安全风险，请立即联系我们</li>
+                <li>您不得将账号转让、出借给他人使用</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">2.3 账号注销</h3>
+            <div class="content-text">
+              <p>您有权申请注销账号。注销后：</p>
+              <ul>
+                <li>您的个人信息将被删除或匿名化处理</li>
+                <li>您将无法继续使用本服务</li>
+                <li>账号无法恢复，请谨慎操作</li>
+              </ul>
+              <p>注销路径：「我的」→「设置」→「注销账号」</p>
+            </div>
+          </div>
+        </section>
+        
+        <section class="section" id="terms-behavior">
+          <h2 class="section-title"><span class="number">3</span>用户行为规范</h2>
+          
+          <div class="alert danger">
+            <span class="alert-icon">🚫</span>
+            <div class="alert-content">
+              <h4>禁止行为</h4>
+              <p>在使用本服务过程中，您不得从事以下行为：</p>
+            </div>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">3.1 违法违规行为</h3>
+            <div class="content-text">
+              <ul>
+                <li>发布、传播违反法律法规的信息</li>
+                <li>发布、传播危害国家安全、泄露国家秘密的信息</li>
+                <li>发布、传播颠覆国家政权、破坏国家统一的信息</li>
+                <li>发布、传播损害国家荣誉和利益的信息</li>
+                <li>发布、传播煽动民族仇恨、民族歧视的信息</li>
+                <li>发布、传播破坏民族团结的信息</li>
+                <li>发布、传播破坏国家宗教政策的信息</li>
+                <li>发布、传播宣扬邪教、封建迷信的信息</li>
+                <li>发布、传播散布谣言、扰乱社会秩序的信息</li>
+                <li>发布、传播淫秽、色情、赌博、暴力、凶杀、恐怖的信息</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">3.2 侵权行为</h3>
+            <div class="content-text">
+              <ul>
+                <li>冒充他人身份，盗用他人头像、昵称等</li>
+                <li>侵犯他人知识产权、肖像权、隐私权、名誉权等合法权益</li>
+                <li>未经授权使用他人信息</li>
+                <li>发布、传播侮辱或者诽谤他人的信息</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">3.3 不当行为</h3>
+            <div class="content-text">
+              <ul>
+                <li>发布虚假信息、诈骗信息</li>
+                <li>发布商业广告、垃圾信息</li>
+                <li>恶意刷屏、恶意举报</li>
+                <li>骚扰、恐吓、威胁他人</li>
+                <li>诱导他人进行不当行为</li>
+                <li>利用技术手段干扰、破坏本服务</li>
+                <li>未经授权获取或尝试获取本服务的数据</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">3.4 违规处理</h3>
+            <div class="content-text">
+              <p>如您违反上述规定，我们有权采取以下措施：</p>
+              <ul>
+                <li>警告、限制功能、暂停服务</li>
+                <li>删除违规内容</li>
+                <li>封禁账号</li>
+                <li>向有关主管部门报告</li>
+                <li>追究法律责任</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+        
+        <section class="section" id="terms-content">
+          <h2 class="section-title"><span class="number">4</span>内容规范</h2>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">4.1 内容发布</h3>
+            <div class="content-text">
+              <p>您发布的内容（包括但不限于行程、照片、评论、个人简介）应当：</p>
+              <ul>
+                <li>符合国家法律法规</li>
+                <li>真实、合法、健康</li>
+                <li>不侵犯他人合法权益</li>
+                <li>不违反公序良俗</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">4.2 内容审核</h3>
+            <div class="content-text">
+              <p>我们有权对您发布的内容进行审核，如发现内容违反本协议或相关法律法规，我们有权：</p>
+              <ul>
+                <li>拒绝发布</li>
+                <li>删除内容</li>
+                <li>对您的账号进行相应处理</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">4.3 投诉举报</h3>
+            <div class="content-text">
+              <p>如您发现其他用户发布的内容存在违法违规或侵权问题，可通过以下方式投诉举报：</p>
+              <ul>
+                <li>在内容页面点击「举报」按钮</li>
+                <li>联系客服邮箱：support@beijingtravel.com</li>
+              </ul>
+              <p>我们将在收到投诉后及时处理并反馈结果。</p>
+            </div>
+          </div>
+        </section>
+        
+        <section class="section" id="terms-ip">
+          <h2 class="section-title"><span class="number">5</span>知识产权</h2>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">5.1 平台知识产权</h3>
+            <div class="content-text">
+              <p>本服务中的以下内容归我们所有：</p>
+              <ul>
+                <li>「北京去哪玩」名称、Logo、图标等标识</li>
+                <li>本服务的软件、技术、程序、算法等</li>
+                <li>本服务中的文字、图片、音视频、数据等（用户发布的内容除外）</li>
+              </ul>
+              <p>未经我们书面许可，您不得使用、复制、修改、传播上述内容。</p>
+            </div>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">5.2 用户内容授权</h3>
+            <div class="content-text">
+              <p>您发布的内容（包括但不限于文字、图片、音视频）的知识产权归您所有。</p>
+              <p>您发布内容即视为您授权我们以下权利：</p>
+              <ul>
+                <li>存储、展示您发布的内容</li>
+                <li>为推广本服务而使用您发布的内容（我们将注明作者）</li>
+                <li>删除违规内容</li>
+              </ul>
+              <p>您保证您发布的内容不侵犯任何第三方的知识产权或其他合法权益。</p>
+            </div>
+          </div>
+        </section>
+        
+        <section class="section" id="terms-liability">
+          <h2 class="section-title"><span class="number">6</span>免责声明</h2>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">6.1 服务免责</h3>
+            <div class="content-text">
+              <p>在法律允许的范围内，以下情况我们不承担责任：</p>
+              <ul>
+                <li>因不可抗力、计算机病毒、黑客攻击、系统不稳定、网络故障等原因造成的服务中断或损失</li>
+                <li>因电信运营商原因导致的服务中断或损失</li>
+                <li>因您自身原因（如密码泄露、设备故障等）造成的损失</li>
+                <li>第三方使用您的账号造成的行为和后果</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">6.2 用户行为免责</h3>
+            <div class="content-text">
+              <p>您理解并同意，对于您在本服务中发布的内容，由您自行承担相应责任。我们不对用户发布的内容负责。</p>
+              <p>如您因使用本服务或他人在本服务中发布的内容遭受损失，应直接与相关当事人协商解决或通过法律途径解决。</p>
+            </div>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">6.3 第三方链接</h3>
+            <div class="content-text">
+              <p>本服务可能包含第三方链接。我们不对第三方网站或服务的内容、隐私政策或做法负责。</p>
+            </div>
+          </div>
+        </section>
+        
+        <section class="section" id="terms-dispute">
+          <h2 class="section-title"><span class="number">7</span>争议解决</h2>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">7.1 法律适用</h3>
+            <div class="content-text">
+              <p>本协议的订立、执行、解释及争议解决均适用中华人民共和国法律。</p>
+            </div>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">7.2 争议处理</h3>
+            <div class="content-text">
+              <p>如因本协议或本服务产生争议，双方应友好协商解决。</p>
+              <p>协商不成的，任何一方均可向我们所在地有管辖权的人民法院提起诉讼。</p>
+            </div>
+          </div>
+        </section>
+        
+        <section class="section" id="terms-other">
+          <h2 class="section-title"><span class="number">8</span>其他条款</h2>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">8.1 可分性</h3>
+            <div class="content-text">
+              <p>如本协议任一条款被认定为无效或不可执行，不影响其他条款的效力。</p>
+            </div>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">8.2 完整协议</h3>
+            <div class="content-text">
+              <p>本协议（包括隐私政策）构成您与我们之间的完整协议，取代您与我们之间之前就本服务达成的任何协议。</p>
+            </div>
+          </div>
+          
+          <div class="subsection">
+            <h3 class="subsection-title">8.3 联系我们</h3>
+            <div class="content-text">
+              <p>如您对本协议有任何疑问，可通过以下方式联系我们：</p>
+            </div>
+            
+            <div class="contact-card">
+              <h4>📧 联系方式</h4>
+              <div class="contact-item">
+                <span class="label">客服邮箱</span>
+                <span class="value">support@beijingtravel.com</span>
+              </div>
+              <div class="contact-item">
+                <span class="label">客服电话</span>
+                <span class="value">400-XXX-XXXX</span>
+              </div>
+              <div class="contact-item">
+                <span class="label">工作时间</span>
+                <span class="value">周一至周五 9:00-18:00</span>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+      </div>
+      
+      <!-- 更新记录 -->
+      <div class="update-log">
+        <h4>📝 文档更新记录</h4>
+        <div class="update-item">
+          <span class="date">2026-04-18</span>
+          <span class="content">v1.0.0 初始版本发布</span>
+        </div>
+      </div>
+      
+    </main>
+  </div>
+  
+  <script>
+    function showDoc(doc) {
+      const privacyDoc = document.getElementById('privacy-doc');
+      const termsDoc = document.getElementById('terms-doc');
+      const tabs = document.querySelectorAll('.doc-tab');
+      
+      if (doc === 'privacy') {
+        privacyDoc.style.display = 'block';
+        termsDoc.style.display = 'none';
+        tabs[0].classList.add('active');
+        tabs[1].classList.remove('active');
+      } else {
+        privacyDoc.style.display = 'none';
+        termsDoc.style.display = 'block';
+        tabs[0].classList.remove('active');
+        tabs[1].classList.add('active');
+      }
+    }
+  </script>
+</body>
+</html>
