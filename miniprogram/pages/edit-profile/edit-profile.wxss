@@ -92,6 +92,7 @@ page {
   width: 100%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 56rpx 40rpx;
+  height: 420rpx;
   text-align: center;
   position: relative;
 }

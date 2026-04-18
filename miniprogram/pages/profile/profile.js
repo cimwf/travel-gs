@@ -26,7 +26,7 @@ Page({
   },
 
   // 检查登录状态
-  checkLogin: function () {
+  checkLogin: async function () {
     // 优先从storage读取最新数据
     const storedUserInfo = wx.getStorageSync('userInfo');
     const storedLoginTime = wx.getStorageSync('lastLoginTime');
@@ -46,6 +46,46 @@ Page({
       isLoggedIn,
       userInfo: storedUserInfo || null
     });
+
+    // 处理云存储链接
+    if (storedUserInfo) {
+      await this.convertCloudUrls();
+    }
+  },
+
+  // 转换云存储链接为临时URL
+  convertCloudUrls: async function () {
+    const { avatar, background } = this.data.userInfo || {};
+    const cloudUrls = [];
+
+    if (avatar && avatar.startsWith('cloud://')) {
+      cloudUrls.push(avatar);
+    }
+    if (background && background.startsWith('cloud://')) {
+      cloudUrls.push(background);
+    }
+
+    if (cloudUrls.length > 0 && wx.cloud) {
+      try {
+        const urlRes = await wx.cloud.getTempFileURL({ fileList: cloudUrls });
+        if (urlRes.fileList) {
+          const updates = { userInfo: { ...this.data.userInfo } };
+          urlRes.fileList.forEach(item => {
+            if (item.tempFileURL) {
+              if (item.fileID === avatar) {
+                updates.userInfo.avatar = item.tempFileURL;
+              }
+              if (item.fileID === background) {
+                updates.userInfo.background = item.tempFileURL;
+              }
+            }
+          });
+          this.setData(updates);
+        }
+      } catch (err) {
+        console.warn('转换云存储链接失败', err);
+      }
+    }
   },
 
   // 加载用户统计

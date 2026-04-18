@@ -39,8 +39,27 @@ page {
 .profile-header {
   width: 100%;
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-  padding: 48rpx 32rpx;
+  padding: 56rpx 40rpx;
+  height: 420rpx;
   color: #FFFFFF;
+  position: relative;
+}
+
+/* 有背景图时的叠加层 */
+.profile-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 0;
+}
+
+.profile-header > view {
+  position: relative;
+  z-index: 1;
 }
 
 /* 未登录状态 */
