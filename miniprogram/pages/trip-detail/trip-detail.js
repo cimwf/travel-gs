@@ -16,7 +16,10 @@ Page({
     isCreator: false,
     maskedPhone: '',
     showApplyModal: false,
-    userInfo: null
+    userInfo: null,
+    showMemberModal: false,
+    selectedMember: null,
+    showRemoveConfirm: false
   },
 
   onLoad: function (options) {
@@ -408,6 +411,117 @@ Page({
   // 提交申请成功回调
   onSubmitApplySuccess: function () {
     this.setData({ showApplyModal: false });
+  },
+
+  // 点击成员头像
+  onMemberTap: function (e) {
+    const member = e.currentTarget.dataset.member;
+    if (!member) return;
+
+    // 格式化加入时间
+    let joinTimeText = '刚刚';
+    if (member.joinTime) {
+      const now = Date.now();
+      const diff = now - member.joinTime;
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      if (days > 0) {
+        joinTimeText = `${days}天前`;
+      } else {
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        if (hours > 0) {
+          joinTimeText = `${hours}小时前`;
+        } else {
+          joinTimeText = '刚刚';
+        }
+      }
+    }
+
+    this.setData({
+      showMemberModal: true,
+      selectedMember: {
+        ...member,
+        joinTimeText
+      }
+    });
+  },
+
+  // 关闭成员弹窗
+  onCloseMemberModal: function () {
+    this.setData({
+      showMemberModal: false,
+      selectedMember: null
+    });
+  },
+
+  // 查看资料
+  onViewProfile: function () {
+    const member = this.data.selectedMember;
+    if (member && member.userId) {
+      // 关闭弹窗
+      this.onCloseMemberModal();
+      // 跳转到用户资料页
+      wx.navigateTo({
+        url: `/pages/user-profile/user-profile?id=${member.userId}`
+      });
+    }
+  },
+
+  // 移除成员
+  onRemoveMember: function () {
+    this.setData({
+      showMemberModal: false,
+      showRemoveConfirm: true
+    });
+  },
+
+  // 关闭移除确认弹窗
+  onCloseRemoveConfirm: function () {
+    this.setData({
+      showRemoveConfirm: false
+    });
+  },
+
+  // 确认移除成员
+  onConfirmRemove: async function () {
+    const member = this.data.selectedMember;
+    const trip = this.data.trip;
+
+    if (!member || !trip) return;
+
+    wx.showLoading({ title: '处理中...' });
+
+    try {
+      const db = wx.cloud.database();
+
+      // 从参与者列表中移除该成员
+      const newParticipants = trip.participants.filter(p => p.userId !== member.userId);
+
+      await db.collection('trips').doc(trip._id).update({
+        data: {
+          participants: newParticipants,
+          currentCount: db.command.inc(-1),
+          needCount: db.command.inc(1)
+        }
+      });
+
+      wx.hideLoading();
+      wx.showToast({ title: '已移除成员', icon: 'success' });
+
+      // 关闭弹窗并刷新数据
+      this.setData({
+        showRemoveConfirm: false,
+        selectedMember: null
+      });
+
+      // 重新加载行程详情
+      setTimeout(() => {
+        this.loadTripDetail(trip._id);
+      }, 500);
+    } catch (err) {
+      wx.hideLoading();
+      console.error('移除成员失败', err);
+      wx.showToast({ title: '移除失败，请重试', icon: 'none' });
+    }
   },
 
   // 分享

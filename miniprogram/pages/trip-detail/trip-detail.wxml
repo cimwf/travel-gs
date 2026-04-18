@@ -100,7 +100,7 @@
           <text class="members-count">{{trip.currentCount}}/{{trip.totalCount || (trip.currentCount + trip.needCount)}}人</text>
         </view>
         <view class="members-grid">
-          <view class="member-item" wx:for="{{participants}}" wx:key="userId">
+          <view class="member-item" wx:for="{{participants}}" wx:key="userId" bindtap="onMemberTap" data-member="{{item}}">
             <image class="member-avatar" src="{{item.avatar}}" wx:if="{{item.avatar}}" mode="aspectFill"></image>
             <view class="member-avatar-text" style="background: linear-gradient(135deg, #56AB2F, #A8E6CF);" wx:else>
               <text>{{item.nickname ? item.nickname[0] : '旅'}}</text>
@@ -155,3 +155,44 @@
   bind:close="onCloseApplyModal"
   bind:submit="onSubmitApplySuccess"
 />
+
+<!-- 成员管理弹窗 -->
+<view class="member-modal-mask" wx:if="{{showMemberModal}}" bindtap="onCloseMemberModal">
+  <view class="member-modal" catchtap>
+    <!-- 关闭按钮 -->
+    <view class="modal-close-btn" bindtap="onCloseMemberModal">
+      <text class="modal-close-icon">×</text>
+    </view>
+
+    <!-- 成员信息 -->
+    <view class="modal-member-info">
+      <image class="modal-avatar" src="{{selectedMember.avatar}}" wx:if="{{selectedMember.avatar}}" mode="aspectFill"></image>
+      <view class="modal-avatar-text" style="background: linear-gradient(135deg, #56AB2F, #A8E6CF);" wx:else>
+        <text>{{selectedMember.nickname ? selectedMember.nickname[0] : '旅'}}</text>
+      </view>
+      <view class="modal-name">{{selectedMember.nickname || '旅行者'}}</view>
+      <view class="modal-join-time">已加入 · {{selectedMember.joinTimeText || '刚刚'}}</view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="modal-actions">
+      <view class="modal-btn modal-btn-primary" bindtap="onViewProfile">查看资料</view>
+      <view class="modal-btn modal-btn-danger" wx:if="{{isCreator && selectedMember.userId !== trip.creatorId}}" bindtap="onRemoveMember">移除成员</view>
+    </view>
+  </view>
+</view>
+
+<!-- 移除成员确认弹窗 -->
+<view class="member-modal-mask" wx:if="{{showRemoveConfirm}}" bindtap="onCloseRemoveConfirm">
+  <view class="confirm-modal" catchtap>
+    <view class="confirm-icon-wrap">
+      <text class="confirm-icon">✕</text>
+    </view>
+    <view class="confirm-title">确认移除成员？</view>
+    <view class="confirm-desc">移除后，该成员将退出此行程，无法查看行程信息。此操作不可撤销。</view>
+    <view class="confirm-actions">
+      <view class="confirm-btn confirm-btn-cancel" bindtap="onCloseRemoveConfirm">取消</view>
+      <view class="confirm-btn confirm-btn-danger" bindtap="onConfirmRemove">确认移除</view>
+    </view>
+  </view>
+</view>
