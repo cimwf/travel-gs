@@ -8,7 +8,9 @@ Page({
     statusBarHeight: 0,
     userInfo: {
       avatar: '',
+      avatarFileID: '',
       background: '',
+      backgroundFileID: '',
       nickname: '',
       gender: '',
       phone: '',
@@ -16,6 +18,7 @@ Page({
       birthday: '',
       userId: '',
       photos: [],
+      photoFileIDs: [],
       travelPreferences: {
         adults: 2,
         children: 0,
@@ -36,7 +39,7 @@ Page({
     ]
   },
 
-  onLoad: function (options) {
+  onLoad: async function (options) {
     // 获取状态栏高度
     const systemInfo = wx.getSystemInfoSync();
     this.setData({ statusBarHeight: systemInfo.statusBarHeight });
@@ -64,12 +67,69 @@ Page({
       }
 
       this.setData({ userInfo: mergedInfo });
+
+      // 处理云存储链接，转换为临时URL用于显示
+      await this.convertCloudUrls();
     }
 
     // 生成用户ID
     if (!this.data.userInfo.userId) {
       const userId = 'BJ' + new Date().toISOString().slice(0, 10).replace(/-/g, '');
       this.setData({ 'userInfo.userId': userId });
+    }
+  },
+
+  // 转换云存储链接为临时URL
+  convertCloudUrls: async function () {
+    const { avatar, background, photos } = this.data.userInfo;
+    const cloudUrls = [];
+
+    if (avatar && avatar.startsWith('cloud://')) {
+      cloudUrls.push(avatar);
+    }
+    if (background && background.startsWith('cloud://')) {
+      cloudUrls.push(background);
+    }
+
+    // 处理照片中的云存储链接
+    const cloudPhotos = (photos || []).filter(p => p.startsWith('cloud://'));
+    cloudUrls.push(...cloudPhotos);
+
+    if (cloudUrls.length > 0 && wx.cloud) {
+      try {
+        const urlRes = await wx.cloud.getTempFileURL({ fileList: cloudUrls });
+        if (urlRes.fileList) {
+          const updates = {};
+          const newPhotos = [...(photos || [])];
+          const photoFileIDs = [];
+
+          urlRes.fileList.forEach(item => {
+            if (item.tempFileURL) {
+              if (item.fileID === avatar) {
+                updates['userInfo.avatar'] = item.tempFileURL;
+                updates['userInfo.avatarFileID'] = item.fileID;
+              }
+              if (item.fileID === background) {
+                updates['userInfo.background'] = item.tempFileURL;
+                updates['userInfo.backgroundFileID'] = item.fileID;
+              }
+              // 处理照片
+              const photoIndex = newPhotos.indexOf(item.fileID);
+              if (photoIndex !== -1) {
+                newPhotos[photoIndex] = item.tempFileURL;
+                photoFileIDs.push(item.fileID);
+              }
+            }
+          });
+
+          updates['userInfo.photos'] = newPhotos;
+          updates['userInfo.photoFileIDs'] = photoFileIDs;
+
+          this.setData(updates);
+        }
+      } catch (err) {
+        console.warn('转换云存储链接失败', err);
+      }
     }
   },
 
@@ -97,10 +157,15 @@ Page({
             });
 
             if (uploadRes.fileID) {
-              this.setData({
-                'userInfo.avatar': uploadRes.fileID
-              });
-              console.log('头像上传成功:', uploadRes.fileID);
+              // 获取临时链接用于显示
+              const urlRes = await wx.cloud.getTempFileURL({ fileList: [uploadRes.fileID] });
+              if (urlRes.fileList && urlRes.fileList[0] && urlRes.fileList[0].tempFileURL) {
+                this.setData({
+                  'userInfo.avatar': urlRes.fileList[0].tempFileURL,
+                  'userInfo.avatarFileID': uploadRes.fileID  // 保存 fileID 用于上传
+                });
+                console.log('头像上传成功:', uploadRes.fileID);
+              }
             }
           } catch (err) {
             console.warn('头像上传失败，使用临时路径', err);
@@ -134,10 +199,15 @@ Page({
             });
 
             if (uploadRes.fileID) {
-              this.setData({
-                'userInfo.background': uploadRes.fileID
-              });
-              console.log('背景图上传成功:', uploadRes.fileID);
+              // 获取临时链接用于显示
+              const urlRes = await wx.cloud.getTempFileURL({ fileList: [uploadRes.fileID] });
+              if (urlRes.fileList && urlRes.fileList[0] && urlRes.fileList[0].tempFileURL) {
+                this.setData({
+                  'userInfo.background': urlRes.fileList[0].tempFileURL,
+                  'userInfo.backgroundFileID': uploadRes.fileID  // 保存 fileID 用于上传
+                });
+                console.log('背景图上传成功:', uploadRes.fileID);
+              }
             }
           } catch (err) {
             console.warn('背景图上传失败，使用临时路径', err);
@@ -217,6 +287,7 @@ Page({
         if (wx.cloud) {
           wx.showLoading({ title: '上传中...' });
           const uploadedPhotos = [];
+          const fileIDs = [];
 
           for (let i = 0; i < tempFiles.length; i++) {
             try {
@@ -227,20 +298,37 @@ Page({
               });
 
               if (uploadRes.fileID) {
-                uploadedPhotos.push(uploadRes.fileID);
+                fileIDs.push(uploadRes.fileID);
               }
             } catch (err) {
               console.warn('照片上传失败', err);
-              uploadedPhotos.push(tempFiles[i]); // 失败时保留临时路径
+            }
+          }
+
+          // 获取临时链接用于显示
+          if (fileIDs.length > 0) {
+            try {
+              const urlRes = await wx.cloud.getTempFileURL({ fileList: fileIDs });
+              if (urlRes.fileList) {
+                urlRes.fileList.forEach(item => {
+                  if (item.tempFileURL) {
+                    uploadedPhotos.push(item.tempFileURL);
+                  }
+                });
+              }
+            } catch (err) {
+              console.warn('获取照片链接失败', err);
+              uploadedPhotos.push(...fileIDs);  // 失败时使用 fileID
             }
           }
 
           wx.hideLoading();
 
-          // 更新为云存储路径
+          // 更新照片列表
           const allPhotos = [...this.data.userInfo.photos.slice(0, currentCount), ...uploadedPhotos];
           this.setData({
-            'userInfo.photos': allPhotos
+            'userInfo.photos': allPhotos,
+            'userInfo.photoFileIDs': fileIDs  // 保存 fileID 用于上传
           });
         }
       }
@@ -334,17 +422,27 @@ Page({
       // 获取选中的景点类型
       const selectedScenicTypes = scenicTypes.filter(item => item.selected).map(item => item.id);
 
+      // 使用 fileID 保存到数据库（如果有）
+      const avatarForDb = userInfo.avatarFileID || userInfo.avatar;
+      const backgroundForDb = userInfo.backgroundFileID || userInfo.background;
+
       // 构建用户数据
       const userData = {
         ...userInfo,
+        avatar: avatarForDb,
+        background: backgroundForDb,
         scenicTypes: selectedScenicTypes,
         updatedAt: Date.now()
       };
 
       console.log('保存的用户数据:', userData);
 
-      // 保存到本地存储
-      wx.setStorageSync('userInfo', userData);
+      // 保存到本地存储（使用临时URL用于显示）
+      wx.setStorageSync('userInfo', {
+        ...userData,
+        avatar: userInfo.avatar,  // 本地保存临时URL用于显示
+        background: userInfo.background
+      });
       wx.setStorageSync('lastLoginTime', Date.now());
 
       // 更新全局数据
@@ -356,15 +454,18 @@ Page({
         // 获取用户唯一标识 _id
         const userId = wx.getStorageSync('userId') || app.globalData.userId;
 
+        // 照片使用 fileID（如果有）
+        const photosForDb = userInfo.photoFileIDs || userData.photos;
+
         const updateRes = await api.userUpdate({
           _id: userId,  // 传递唯一标识
           nickname: userData.nickname,
-          avatar: userData.avatar,
+          avatar: avatarForDb,
           gender: userData.gender,
           phone: userData.phone,
           bio: userData.bio,
-          background: userData.background,
-          photos: userData.photos
+          background: backgroundForDb,
+          photos: photosForDb
         });
         console.log('云函数更新结果:', updateRes);
       } catch (err) {
