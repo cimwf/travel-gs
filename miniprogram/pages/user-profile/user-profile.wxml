@@ -31,7 +31,7 @@
       <view class="section-card" wx:if="{{photos.length > 0}}">
         <view class="section-title">📸 旅行照片</view>
         <view class="photos-grid">
-          <view class="photo-item" wx:for="{{photos}}" wx:key="index">
+          <view class="photo-item" wx:for="{{photos}}" wx:key="index" bindtap="onPhotoTap" data-index="{{index}}">
             <image class="photo-img" src="{{item}}" mode="aspectFill"></image>
           </view>
         </view>

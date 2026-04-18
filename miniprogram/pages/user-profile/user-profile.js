@@ -276,6 +276,16 @@ Page({
     }
   },
 
+  // 点击照片预览
+  onPhotoTap: function (e) {
+    const index = e.currentTarget.dataset.index;
+    const photos = this.data.photos;
+    wx.previewImage({
+      current: photos[index],
+      urls: photos
+    });
+  },
+
   // 分享
   onShareAppMessage: function () {
     const userInfo = this.data.userInfo;
