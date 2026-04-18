@@ -394,24 +394,24 @@ Page({
     // 验证必填项
     if (!userInfo.nickname || userInfo.nickname.length < 2) {
       wx.showToast({ title: '请输入2-12个字符的昵称', icon: 'none' });
-      return;
+      return false;
     }
 
     if (!userInfo.gender) {
       wx.showToast({ title: '请选择性别', icon: 'none' });
-      return;
+      return false;
     }
 
     // 验证手机号
     if (!userInfo.phone) {
       wx.showToast({ title: '请输入联系方式', icon: 'none' });
-      return;
+      return false;
     }
 
     const phoneReg = /^1[3-9]\d{9}$/;
     if (!phoneReg.test(userInfo.phone)) {
       wx.showToast({ title: '请输入正确的手机号', icon: 'none' });
-      return;
+      return false;
     }
 
     this.setData({ saving: true });
@@ -476,21 +476,74 @@ Page({
       wx.hideLoading();
       wx.showToast({ title: '保存成功', icon: 'success' });
 
-      setTimeout(() => {
-        wx.navigateBack();
-      }, 1000);
+      return true;
 
     } catch (err) {
       wx.hideLoading();
       console.error('保存用户信息失败', err);
       wx.showToast({ title: '保存失败，请重试', icon: 'none' });
+      return false;
     } finally {
       this.setData({ saving: false });
     }
   },
 
-  // 返回
-  onBack: function () {
-    wx.navigateBack();
+  // 返回（自动保存）
+  onBack: async function () {
+    const success = await this.onSave();
+    if (success !== false) {
+      wx.navigateBack();
+    }
+  },
+
+  // 页面卸载时自动保存
+  onUnload: async function () {
+    // 如果正在保存，不重复保存
+    if (this.data.saving) return;
+
+    const { userInfo, scenicTypes } = this.data;
+
+    // 简单保存，不验证（快速保存）
+    try {
+      const selectedScenicTypes = scenicTypes.filter(item => item.selected).map(item => item.id);
+      const avatarForDb = userInfo.avatarFileID || userInfo.avatar;
+      const backgroundForDb = userInfo.backgroundFileID || userInfo.background;
+      const photosForDb = userInfo.photoFileIDs || userInfo.photos;
+
+      const userData = {
+        ...userInfo,
+        avatar: avatarForDb,
+        background: backgroundForDb,
+        scenicTypes: selectedScenicTypes,
+        updatedAt: Date.now()
+      };
+
+      // 保存到本地存储
+      wx.setStorageSync('userInfo', {
+        ...userData,
+        avatar: userInfo.avatar,
+        background: userInfo.background
+      });
+
+      // 更新全局数据
+      app.globalData.userInfo = userData;
+
+      // 异步同步到数据库
+      const userId = wx.getStorageSync('userId') || app.globalData.userId;
+      if (userId) {
+        api.userUpdate({
+          _id: userId,
+          nickname: userData.nickname,
+          avatar: avatarForDb,
+          gender: userData.gender,
+          phone: userData.phone,
+          bio: userData.bio,
+          background: backgroundForDb,
+          photos: photosForDb
+        }).catch(err => console.warn('同步到数据库失败', err));
+      }
+    } catch (err) {
+      console.warn('自动保存失败', err);
+    }
   }
 });

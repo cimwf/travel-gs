@@ -107,11 +107,6 @@
           <view class="textarea-count">{{userInfo.bio.length || 0}}/200字</view>
         </view>
       </view>
-
-      <!-- 保存按钮 -->
-      <view class="save-section-bottom">
-        <button class="save-btn" bindtap="onSave" loading="{{saving}}">保存修改</button>
-      </view>
     </view>
   </view>
 </view>
