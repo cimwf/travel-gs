@@ -124,6 +124,13 @@ function tripGet(tripId) {
 }
 
 /**
+ * 记录行程浏览量
+ */
+function tripView(tripId) {
+  return callApi('trip/view', { tripId });
+}
+
+/**
  * 加入行程
  */
 function tripJoin(tripId) {
@@ -242,6 +249,7 @@ module.exports = {
   tripCreate,
   tripList,
   tripGet,
+  tripView,
   tripJoin,
   tripMy,
 

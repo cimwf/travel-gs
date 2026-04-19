@@ -53,6 +53,8 @@ exports.main = async (event, context) => {
         return await tripList(data);
       case 'trip/get':
         return await tripGet(data.tripId);
+      case 'trip/view':
+        return await tripView(data.tripId);
       case 'trip/join':
         return await tripJoin(openid, data);
       case 'trip/my':
@@ -652,6 +654,23 @@ async function tripList(data) {
 async function tripGet(tripId) {
   const res = await db.collection('trips').doc(tripId).get();
   return { success: true, trip: res.data };
+}
+
+// 记录行程浏览量
+async function tripView(tripId) {
+  if (!tripId) {
+    return { success: false, error: '行程ID不能为空' };
+  }
+
+  try {
+    await db.collection('trips').doc(tripId).update({
+      data: { viewCount: _.inc(1) }
+    });
+    return { success: true };
+  } catch (err) {
+    console.error('记录行程浏览量失败:', err);
+    return { success: false, error: err.message };
+  }
 }
 
 async function tripJoin(openid, data) {

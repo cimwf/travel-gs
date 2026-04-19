@@ -194,7 +194,7 @@ Page({
             return {
               ...trip,
               date: dateText,
-              viewCount: trip.viewCount || Math.floor(Math.random() * 200) + 50,
+              viewCount: trip.viewCount || 0,
               publishTime: publishTime,
               isMyTrip: isMyTrip,
               avatarBg: avatarBg,

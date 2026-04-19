@@ -146,11 +146,11 @@
 <!-- 申请加入弹窗组件 -->
 <apply-modal
   show="{{showApplyModal}}"
-  placeName="{{trip.placeName}}"
-  remainCount="{{remainCount}}"
-  tripId="{{trip._id}}"
-  toUserId="{{trip.creatorId}}"
-  toUserName="{{trip.creatorName}}"
+  placeName="{{trip.placeName || ''}}"
+  remainCount="{{remainCount || 0}}"
+  tripId="{{trip._id || ''}}"
+  toUserId="{{trip.creatorId || ''}}"
+  toUserName="{{trip.creatorName || ''}}"
   defaultPhone="{{userInfo.phone || ''}}"
   bind:close="onCloseApplyModal"
   bind:submit="onSubmitApplySuccess"

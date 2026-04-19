@@ -1,5 +1,6 @@
 // pages/trip-detail/trip-detail.js
 const app = getApp();
+const api = require('../../utils/api.js');
 
 Page({
   data: {
@@ -35,11 +36,23 @@ Page({
 
     if (tripId) {
       this.loadTripDetail(tripId);
+      this.recordView(tripId);
     }
   },
 
   onShow: function () {
     this.setData({ userInfo: app.globalData.userInfo });
+  },
+
+  // 记录浏览量
+  recordView: async function (tripId) {
+    if (wx.cloud) {
+      try {
+        await api.tripView(tripId);
+      } catch (err) {
+        console.warn('记录浏览量失败', err);
+      }
+    }
   },
 
   // 加载行程详情
