@@ -18,8 +18,8 @@ Page({
 
   onLoad: function (options) {
     // 获取状态栏高度
-    const systemInfo = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: systemInfo.statusBarHeight });
+    const windowInfo = wx.getWindowInfo();
+    this.setData({ statusBarHeight: windowInfo.statusBarHeight });
 
     const placeId = options.id || 'place_001';
     this.loadPlaceDetail(placeId);

@@ -202,11 +202,11 @@
 <!-- 申请加入弹窗组件 -->
 <apply-modal
   show="{{showApplyModal}}"
-  placeName="{{place.name}}"
+  placeName="{{place.name || ''}}"
   remainCount="{{currentTrip.needCount || 0}}"
-  tripId="{{currentTrip._id}}"
-  toUserId="{{currentTrip.creatorId}}"
-  toUserName="{{currentTrip.creatorName}}"
+  tripId="{{currentTrip._id || ''}}"
+  toUserId="{{currentTrip.creatorId || ''}}"
+  toUserName="{{currentTrip.creatorName || ''}}"
   defaultPhone="{{userInfo.phone || ''}}"
   bind:close="onCloseApplyModal"
   bind:submit="onSubmitApplySuccess"

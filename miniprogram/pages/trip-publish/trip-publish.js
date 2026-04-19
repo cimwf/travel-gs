@@ -4,7 +4,6 @@ const auth = require('../../utils/auth.js');
 
 Page({
   data: {
-    statusBarHeight: 0,
     placeId: '',
     placeName: '',
     departure: '海淀区',
@@ -27,10 +26,6 @@ Page({
   },
 
   onLoad: function (options) {
-    // 获取状态栏高度
-    const systemInfo = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: systemInfo.statusBarHeight });
-
     // 检查登录（发布页需要登录）
     if (!auth.checkNeedLogin()) {
       this.initPage(options);
