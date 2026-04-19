@@ -6,6 +6,7 @@ Page({
   data: {
     isLoggedIn: false,
     loading: true,
+    isRefreshing: false,
     notifications: [],
 
     // 取消弹窗
@@ -469,11 +470,12 @@ Page({
   },
 
   // 下拉刷新
-  onPullDownRefresh: function () {
+  onRefresh: async function () {
+    this.setData({ isRefreshing: true });
     if (this.data.isLoggedIn) {
-      this.loadNotifications();
+      await this.loadNotifications();
     }
-    wx.stopPullDownRefresh();
+    this.setData({ isRefreshing: false });
   },
 
   // 去发现行程

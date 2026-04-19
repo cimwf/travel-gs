@@ -22,13 +22,19 @@
   <!-- 已登录状态 -->
   <block wx:else>
     <!-- 加载中 -->
-    <view class="loading-state" wx:if="{{loading}}">
+    <!-- <view class="loading-state" wx:if="{{loading}}">
       <view class="loading-spinner"></view>
       <text>加载中...</text>
-    </view>
+    </view> -->
 
     <!-- 行程通知列表 -->
-    <scroll-view class="notification-list" scroll-y>
+    <scroll-view
+      class="notification-list"
+      scroll-y
+      refresher-enabled
+      refresher-triggered="{{isRefreshing}}"
+      bindrefresherrefresh="onRefresh"
+    >
       <view class="list-content">
         <block wx:if="{{notifications.length > 0}}">
           <view class="notification-card" wx:for="{{notifications}}" wx:key="_id">
@@ -112,6 +118,26 @@
                   <view class="rejected-tip">😔 您已拒绝对方的申请</view>
                 </view>
               </block>
+
+              <!-- 已移除 -->
+              <block wx:if="{{item.isHandled && item.status === 'removed'}}">
+                <view class="sent-header">
+                  <view class="trip-icon" style="background: {{item.placeBg}}">
+                    <image wx:if="{{item.placeCoverImage}}" class="trip-cover" src="{{item.placeCoverImage}}" mode="aspectFill"></image>
+                    <text wx:else class="trip-emoji">{{item.placeEmoji}}</text>
+                  </view>
+                  <view class="sent-info">
+                    <view class="sent-title">{{item.placeName}}</view>
+                    <view class="sent-meta">申请人：{{item.userName}}</view>
+                    <view class="sent-date">📅 {{item.tripDate}}</view>
+                  </view>
+                  <view class="sent-status rejected">✕ 已移除</view>
+                </view>
+
+                <view class="rejected-card">
+                  <view class="rejected-tip">😔 该申请已被移除</view>
+                </view>
+              </block>
             </block>
 
             <!-- 我发出的申请：我申请加入别人的行程 -->
@@ -130,6 +156,7 @@
                   <text wx:if="{{item.status === 'pending'}}">⏳</text>
                   <text wx:if="{{item.status === 'accepted'}}">✓</text>
                   <text wx:if="{{item.status === 'rejected'}}">✕</text>
+                  <text wx:if="{{item.status === 'removed'}}">✕</text>
                   {{item.statusText}}
                 </view>
               </view>
@@ -172,6 +199,16 @@
                 <view class="sent-actions">
                   <view class="action-btn cancel" catchtap="onReapply" data-tripid="{{item.tripId}}">重新申请</view>
                   <view class="action-btn primary" catchtap="onViewTrip" data-tripid="{{item.tripId}}">查看行程</view>
+                </view>
+              </block>
+
+              <!-- 已移除 -->
+              <block wx:if="{{item.status === 'removed'}}">
+                <view class="rejected-card">
+                  <view class="rejected-tip">😔 该行程已被取消或删除</view>
+                </view>
+                <view class="sent-actions">
+                  <view class="action-btn primary full" catchtap="onViewTrip" data-tripid="{{item.tripId}}">查看行程</view>
                 </view>
               </block>
             </block>

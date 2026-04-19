@@ -515,6 +515,11 @@ page {
   color: var(--danger-color);
 }
 
+.sent-status.removed {
+  background: rgba(255, 77, 79, 0.1);
+  color: var(--danger-color);
+}
+
 /* 申请详情区域（申请中） */
 .apply-detail {
   background: var(--bg-color);
