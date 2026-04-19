@@ -36,7 +36,7 @@ page {
 }
 
 .container {
-  min-height: 100vh;
+  height: 100vh;
   background: var(--bg-color);
   display: flex;
   flex-direction: column;
@@ -51,9 +51,9 @@ page {
    居中布局，图标+标题+描述+按钮
    ======================================== */
 .not-login {
-  min-height: 100vh;
+  flex: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   background: var(--card-bg);
 }
@@ -197,7 +197,7 @@ page {
    ======================================== */
 .notification-list {
   flex: 1;
-  height: 100vh;
+  height: 0;
 }
 
 .list-content {

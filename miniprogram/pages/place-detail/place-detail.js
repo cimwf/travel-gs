@@ -127,8 +127,6 @@ Page({
         if (res.data && res.data.length > 0) {
           const openid = app.globalData.openid;
 
-          console.log('原始行程数据:', res.data);
-
           // 收集需要转换的云存储头像
           const avatarFileIDs = [];
           res.data.forEach(trip => {

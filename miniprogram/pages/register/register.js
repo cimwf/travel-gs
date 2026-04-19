@@ -139,8 +139,6 @@ Page({
         }
       });
 
-      console.log('注册结果:', res);
-
       if (res.result && res.result.success) {
         const { user } = res.result;
         await this.handleRegisterSuccess(user);

@@ -31,8 +31,6 @@ Page({
     const storedUserInfo = wx.getStorageSync('userInfo');
     const storedLoginTime = wx.getStorageSync('lastLoginTime');
 
-    console.log('profile checkLogin - storedUserInfo:', storedUserInfo);
-
     // 判断是否已登录：有用户信息且有登录时间
     const isLoggedIn = !!(storedUserInfo && storedUserInfo.nickname) && !!storedLoginTime;
 

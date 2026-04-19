@@ -94,8 +94,6 @@ Page({
         }
       });
 
-      console.log('登录结果:', res);
-
       if (res.result && res.result.success) {
         const { user } = res.result;
         await this.handleLoginSuccess(user);

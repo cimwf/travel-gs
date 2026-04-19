@@ -235,13 +235,11 @@ Page({
       createdAt: Date.now()
     };
 
-    console.log('发布行程数据:', tripData);
 
     // 直接操作数据库
     try {
       const db = wx.cloud.database();
       const res = await db.collection('trips').add({ data: tripData });
-      console.log('发布成功:', res);
 
       wx.hideLoading();
 

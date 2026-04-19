@@ -44,8 +44,6 @@ Page({
       }
     }
 
-    console.log('当前用户openid:', openid);
-
     if (!openid) {
       this.setData({ loading: false, trips: [], allTrips: [] });
       this.updateEmptyState();
@@ -66,7 +64,6 @@ Page({
           .limit(50)
           .get();
 
-        console.log('查询到的行程:', res.data);
 
         // 获取云存储头像的临时链接
         const fileIDs = [];

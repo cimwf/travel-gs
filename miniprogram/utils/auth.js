@@ -60,8 +60,6 @@ function handleLoginSuccess(userInfo) {
   wx.setStorageSync('userInfo', userInfo);
   wx.setStorageSync('lastLoginTime', Date.now());
   
-  console.log('登录成功，时间戳:', Date.now());
-  
   // 检查是否有待跳转的页面
   const pendingRedirect = wx.getStorageSync('pendingRedirect');
   if (pendingRedirect) {
