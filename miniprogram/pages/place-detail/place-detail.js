@@ -24,7 +24,19 @@ Page({
     const placeId = options.id || 'place_001';
     this.loadPlaceDetail(placeId);
     this.loadTrips(placeId);
+    this.recordView(placeId);
     this.setData({ userInfo: app.globalData.userInfo });
+  },
+
+  // 记录浏览量
+  recordView: async function (placeId) {
+    if (wx.cloud) {
+      try {
+        await api.placeView(placeId);
+      } catch (err) {
+        console.warn('记录浏览量失败', err);
+      }
+    }
   },
 
   onShow: function () {

@@ -39,6 +39,8 @@ exports.main = async (event, context) => {
         return await placeList(data);
       case 'place/get':
         return await placeGet(data.placeId);
+      case 'place/view':
+        return await placeView(data.placeId);
       case 'place/search':
         return await placeSearch(data.keyword);
 
@@ -418,6 +420,59 @@ async function placeList(data) {
 async function placeGet(placeId) {
   const res = await db.collection('places').doc(placeId).get();
   return { success: true, place: res.data };
+}
+
+// 记录地点浏览量
+async function placeView(placeId) {
+  if (!placeId) {
+    return { success: false, error: '地点ID不能为空' };
+  }
+
+  // 获取今天的日期字符串
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  try {
+    // 更新地点总浏览量
+    await db.collection('places').doc(placeId).update({
+      data: { viewCount: _.inc(1) }
+    });
+
+    // 更新每日浏览量统计
+    const viewStatsRes = await db.collection('place_view_stats')
+      .where({ placeId, date: dateStr })
+      .get();
+
+    if (viewStatsRes.data.length > 0) {
+      // 更新今日浏览量
+      await db.collection('place_view_stats').doc(viewStatsRes.data[0]._id).update({
+        data: {
+          count: _.inc(1),
+          updatedAt: Date.now()
+        }
+      });
+    } else {
+      // 创建今日浏览记录
+      const placeRes = await db.collection('places').doc(placeId).get();
+      const place = placeRes.data;
+
+      await db.collection('place_view_stats').add({
+        data: {
+          placeId,
+          placeName: place.name,
+          date: dateStr,
+          count: 1,
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        }
+      });
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('记录浏览量失败:', err);
+    return { success: false, error: err.message };
+  }
 }
 
 async function placeSearch(keyword) {

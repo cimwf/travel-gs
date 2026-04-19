@@ -69,6 +69,13 @@ function placeSearch(keyword) {
   return callApi('place/search', { keyword });
 }
 
+/**
+ * 记录地点浏览量
+ */
+function placeView(placeId) {
+  return callApi('place/view', { placeId });
+}
+
 // ========== 行程相关 ==========
 
 /**
@@ -200,33 +207,34 @@ module.exports = {
   userLogin,
   userUpdate,
   userGet,
-  
+
   // 地点
   placeList,
   placeGet,
   placeSearch,
-  
+  placeView,
+
   // 行程
   tripCreate,
   tripList,
   tripGet,
   tripJoin,
   tripMy,
-  
+
   // 申请
   applyCreate,
   applyList,
   applyHandle,
-  
+
   // 想去
   wantToggle,
   wantList,
-  
+
   // 消息
   messageSend,
   messageList,
   messageRead,
-  
+
   // 评论
   commentCreate,
   commentList,
