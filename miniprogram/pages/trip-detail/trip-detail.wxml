@@ -171,7 +171,7 @@
         <text>{{selectedMember.nickname ? selectedMember.nickname[0] : '旅'}}</text>
       </view>
       <view class="modal-name">{{selectedMember.nickname || '旅行者'}}</view>
-      <view class="modal-join-time">已加入 · {{selectedMember.joinTimeText || '刚刚'}}</view>
+      <!-- <view class="modal-join-time">已加入 · {{selectedMember.joinTimeText || '刚刚'}}</view> -->
     </view>
 
     <!-- 操作按钮 -->
