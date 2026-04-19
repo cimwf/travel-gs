@@ -147,11 +147,15 @@
             </view>
           </view>
 
-          <!-- 信息栏：出发日期 | 人数 -->
+          <!-- 信息栏：出发日期 | 出发地 | 人数 -->
           <view class="trip-meta-row">
             <view class="trip-meta-item">
               <text class="trip-meta-label">出发</text>
               <text>{{item.date}}</text>
+            </view>
+            <view class="trip-meta-item" wx:if="{{item.departure}}">
+              <!-- <text class="trip-meta-label">出发地</text> -->
+              <text>{{item.departure}}</text>
             </view>
             <view class="trip-meta-item">
               <text class="trip-meta-label">人数</text>

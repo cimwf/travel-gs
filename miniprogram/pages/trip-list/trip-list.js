@@ -84,11 +84,13 @@ Page({
             creatorAvatar: trip.creatorAvatar || '',
             date: trip.date,
             dateText: dateText,
+            departure: trip.departure || '',
             currentCount: trip.currentCount || 1,
             totalCount: (trip.currentCount || 0) + (trip.needCount || 0),
             hasCar: trip.hasCar || false,
             remark: trip.remark || '',
-            viewCount: trip.viewCount || Math.floor(Math.random() * 500)
+            viewCount: trip.viewCount || Math.floor(Math.random() * 500),
+            publishTime: publishTime
           };
         });
 
