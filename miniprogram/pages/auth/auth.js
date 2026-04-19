@@ -1,6 +1,7 @@
 // pages/auth/auth.js
 const app = getApp();
 const auth = require('../../utils/auth.js');
+const api = require('../../utils/api.js');
 
 Page({
   data: {
@@ -12,8 +13,15 @@ Page({
   },
 
   onLoad() {
+    // 记录访问登录页
+    this.trackPageVisit();
     // 检查是否已登录（且在15天内）
     this.checkLoginStatus();
+  },
+
+  // 记录访问登录页
+  async trackPageVisit() {
+    await api.trackEvent('loginPageVisit');
   },
 
   // 检查登录状态
@@ -111,6 +119,9 @@ Page({
 
   // 处理登录成功
   async handleLoginSuccess(user) {
+    // 记录登录成功
+    await api.trackEvent('loginSuccess');
+
     // 直接使用云函数返回的用户数据（包含最新的 nickname, avatar, gender, bio 等）
     const userInfo = user;
 

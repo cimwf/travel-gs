@@ -1,6 +1,7 @@
 // pages/register/register.js
 const app = getApp();
 const auth = require('../../utils/auth.js');
+const api = require('../../utils/api.js');
 
 Page({
   data: {
@@ -15,6 +16,16 @@ Page({
     strengthLevel: 0,
     strengthText: '未设置',
     strengthColors: ['weak', 'medium', 'strong']
+  },
+
+  onLoad() {
+    // 记录访问注册页
+    this.trackPageVisit();
+  },
+
+  // 记录访问注册页
+  async trackPageVisit() {
+    await api.trackEvent('registerPageVisit');
   },
 
   // 手机号输入
@@ -146,6 +157,9 @@ Page({
 
   // 处理注册成功
   async handleRegisterSuccess(user) {
+    // 记录注册成功
+    await api.trackEvent('registerSuccess');
+
     auth.handleLoginSuccess(user);
     app.globalData.openid = user.openid;
     wx.setStorageSync('openid', user.openid);

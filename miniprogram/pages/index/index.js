@@ -14,8 +14,15 @@ Page({
   },
 
   onLoad: function () {
+    // 记录活跃用户
+    this.trackActiveUser();
     this.loadBanners();
     this.loadPlaces();
+  },
+
+  // 记录活跃用户
+  async trackActiveUser() {
+    await api.trackEvent('activeUser');
   },
 
   onShow: function () {

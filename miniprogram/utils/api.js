@@ -23,6 +23,30 @@ function callApi(action, data = {}) {
   });
 }
 
+/**
+ * 记录用户行为事件（用于转化率统计）
+ * @param {string} eventType 事件类型
+ */
+async function trackEvent(eventType) {
+  try {
+    // 先获取 openid
+    const loginRes = await wx.cloud.callFunction({ name: 'login' });
+    const openid = loginRes.result.openid;
+
+    if (!openid) return;
+
+    await wx.cloud.callFunction({
+      name: 'api',
+      data: {
+        action: 'auth/trackEvent',
+        data: { eventType, openid }
+      }
+    });
+  } catch (err) {
+    console.warn('记录事件失败:', err);
+  }
+}
+
 // ========== 用户相关 ==========
 
 /**
@@ -240,5 +264,8 @@ module.exports = {
   commentList,
 
   // Banner
-  bannerList
+  bannerList,
+
+  // 统计
+  trackEvent
 };
