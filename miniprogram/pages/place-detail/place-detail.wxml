@@ -11,7 +11,7 @@
       circular
       interval="4000"
     >
-      <swiper-item wx:for="{{place.images}}" wx:key="*this">
+      <swiper-item wx:for="{{place.images}}" wx:key="index">
         <image class="banner-image" src="{{item}}" mode="aspectFill"></image>
       </swiper-item>
     </swiper>

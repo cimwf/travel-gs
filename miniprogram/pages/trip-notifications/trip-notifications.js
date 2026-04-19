@@ -52,7 +52,7 @@ Page({
           db.collection('applies')
             .where({
               toUserId: openid,
-              type: db.command.neq('invite')
+              type: db.command.in(['apply'])
             })
             .orderBy('createdAt', 'desc')
             .limit(30)
