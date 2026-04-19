@@ -1,17 +1,5 @@
 <!--pages/trip-publish/trip-publish.wxml-->
 <view class="container">
-  <!-- 自定义导航栏 -->
-  <view class="custom-nav" style="padding-top: {{statusBarHeight}}px;">
-    <view class="nav-back" bindtap="onBackTap">
-      <text class="nav-icon">‹</text>
-    </view>
-    <view class="nav-title">发布行程</view>
-    <view class="nav-placeholder"></view>
-  </view>
-
-  <!-- 占位区域 -->
-  <view class="nav-placeholder-area" style="height: {{statusBarHeight + 44}}px;"></view>
-
   <!-- 表单内容 -->
   <view class="form-content">
     <!-- 选择地点 -->

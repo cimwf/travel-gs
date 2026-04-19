@@ -17,7 +17,7 @@ page {
 }
 
 page {
-  background: var(--bg-color);
+  background: white;
   width: 100%;
   overflow-x: hidden;
 }
@@ -26,55 +26,11 @@ page {
   min-height: 100vh;
   width: 100%;
   padding: 0 20rpx;
-  background: var(--bg-color);
+  background: white;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
   box-sizing: border-box;
-}
-
-/* ========== 自定义导航栏 ========== */
-.custom-nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 32rpx;
-  padding-bottom: 24rpx;
-  background: white;
-  z-index: 100;
-  border-bottom: 2rpx solid var(--border-color);
-}
-
-.nav-back {
-  width: 72rpx;
-  height: 72rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.nav-icon {
-  font-size: 48rpx;
-  color: var(--text-hint);
-  font-weight: 300;
-}
-
-.nav-title {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.nav-placeholder {
-  width: 72rpx;
-}
-
-.nav-placeholder-area {
-  flex-shrink: 0;
 }
 
 /* ========== 表单内容区域 ========== */
