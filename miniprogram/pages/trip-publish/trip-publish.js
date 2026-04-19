@@ -46,7 +46,7 @@ Page({
   // 初始化页面
   initPage: function (options) {
     const placeId = options.placeId || '';
-    const placeName = options.placeName || '';
+    const placeName = decodeURIComponent(options.placeName || '');
 
     // 设置最小日期为今天
     const today = new Date();
