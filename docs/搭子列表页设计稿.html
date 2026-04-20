@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>搭子列表页设计稿 - 北上周边行</title>
+  <style>
+    :root {
+      --primary-color: #4A90E2;
+      --primary-light: #E3F2FD;
+      --primary-dark: #357ABD;
+      --success-color: #48BB78;
+      --success-light: #E8F5E9;
+      --warning: #F6AD55;
+      --urgent: #FF6B6B;
+      --text-primary: #1A1A2E;
+      --text-secondary: #4A5568;
+      --text-tertiary: #718096;
+      --text-hint: #A0AEC0;
+      --bg-primary: #FFFFFF;
+      --bg-secondary: #F7F8FA;
+      --bg-tertiary: #EDF2F7;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+      --shadow-glow: 0 0 20px rgba(255,107,107,0.4);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 20px;
+      --radius-full: 9999px;
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      padding: var(--space-8);
+    }
+    
+    .page-title {
+      text-align: center;
+      color: white;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: var(--space-3);
+    }
+    
+    .page-subtitle {
+      text-align: center;
+      color: rgba(255,255,255,0.6);
+      font-size: 14px;
+      margin-bottom: var(--space-8);
+    }
+    
+    .section {
+      margin-bottom: var(--space-8);
+    }
+    
+    .section-title {
+      color: white;
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: var(--space-6);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .screen-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .screen-title {
+      color: rgba(255,255,255,0.8);
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: var(--space-3);
+      text-align: center;
+    }
+    
+    .phone-frame {
+      width: 375px;
+      background: var(--bg-primary);
+      border-radius: 40px;
+      padding: 12px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    
+    .phone-frame::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 28px;
+      background: #1a1a2e;
+      border-radius: 0 0 20px 20px;
+    }
+    
+    .phone-screen {
+      background: var(--bg-secondary);
+      border-radius: 32px;
+      overflow: hidden;
+      min-height: 600px;
+    }
+    
+    .status-bar {
+      background: var(--bg-primary);
+      padding: 12px 24px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .nav-bar {
+      background: var(--bg-primary);
+      padding: var(--space-3) var(--space-4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--bg-tertiary);
+    }
+    
+    .nav-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    
+    .nav-actions {
+      display: flex;
+      gap: var(--space-3);
+    }
+    
+    .nav-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--bg-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+    }
+    
+    .filter-bar {
+      background: var(--bg-primary);
+      padding: var(--space-3) var(--space-4);
+      display: flex;
+      gap: var(--space-2);
+      overflow-x: auto;
+      border-bottom: 1px solid var(--bg-tertiary);
+    }
+    
+    .filter-chip {
+      padding: var(--space-2) var(--space-4);
+      background: var(--bg-secondary);
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    
+    .filter-chip.active {
+      background: var(--primary-color);
+      color: white;
+    }
+    
+    .content-area {
+      padding: var(--space-4);
+    }
+    
+    .card {
+      background: var(--bg-primary);
+      border-radius: var(--radius-xl);
+      padding: var(--space-4);
+      margin-bottom: var(--space-3);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+    }
+    
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background-size: cover;
+      background-position: center;
+      flex-shrink: 0;
+      position: relative;
+    }
+    
+    .avatar-badge {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 18px;
+      height: 18px;
+      background: var(--success-color);
+      border-radius: 50%;
+      border: 2px solid white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: white;
+    }
+    
+    .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .user-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .user-meta {
+      font-size: 12px;
+      color: var(--text-tertiary);
+    }
+    
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 600;
+    }
+    
+    .status-active {
+      background: #E8F5E9;
+      color: #2E7D32;
+    }
+    
+    .status-matched {
+      background: var(--bg-tertiary);
+      color: var(--text-hint);
+    }
+    
+    .trip-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: var(--space-2);
+    }
+    
+    .trip-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: var(--space-3);
+    }
+    
+    .tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      margin-bottom: var(--space-3);
+    }
+    
+    .tag {
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .tag-location { background: #E3F2FD; color: #1565C0; }
+    .tag-date { background: #FFF3E0; color: #E65100; }
+    .tag-budget { background: #E8F5E9; color: #2E7D32; }
+    .tag-feature { background: #F3E5F5; color: #7B1FA2; }
+    
+    .action-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: var(--space-3);
+      border-top: 1px solid var(--bg-tertiary);
+    }
+    
+    .stats {
+      font-size: 12px;
+      color: var(--text-hint);
+    }
+    
+    .btn {
+      padding: var(--space-2) var(--space-5);
+      border-radius: var(--radius-full);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: var(--primary-color);
+      color: white;
+    }
+    
+    .btn-outline {
+      background: transparent;
+      color: var(--primary-color);
+      border: 1px solid var(--primary-color);
+    }
+    
+    .fab {
+      position: fixed;
+      bottom: 80px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      color: white;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-lg);
+      cursor: pointer;
+      border: none;
+    }
+    
+    .tab-bar {
+      background: var(--bg-primary);
+      padding: var(--space-2) 0;
+      display: flex;
+      border-top: 1px solid var(--bg-tertiary);
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+    
+    .tab-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--space-2);
+      font-size: 10px;
+      color: var(--text-hint);
+    }
+    
+    .tab-item.active {
+      color: var(--primary-color);
+    }
+    
+    .tab-icon {
+      font-size: 20px;
+      margin-bottom: 2px;
+    }
+    
+    .list-item {
+      padding: var(--space-4);
+      border-bottom: 1px solid var(--bg-tertiary);
+    }
+    
+    .list-item:last-child {
+      border-bottom: none;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-title">👯 找搭子列表页设计稿</div>
+  <div class="page-subtitle">发布出行需求，寻找志同道合的搭子 | 北上周边行</div>
+
+  <!-- 完整页面示例 -->
+  <div class="section">
+    <h2 class="section-title">📱 完整页面示例</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(375px, 1fr)); gap: var(--space-8);">
+      
+      <!-- 页面1: 经典卡片列表 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">经典卡片列表</div>
+        <div class="phone-frame">
+          <div class="phone-screen" style="position: relative; padding-bottom: 60px;">
+            <!-- 状态栏 -->
+            <div class="status-bar">
+              <span>9:41</span>
+              <span>📶 📡 🔋</span>
+            </div>
+            
+            <!-- 导航栏 -->
+            <div class="nav-bar">
+              <div style="width: 36px;"></div>
+              <div class="nav-title">找搭子</div>
+              <div class="nav-actions">
+                <button class="nav-btn">🔍</button>
+              </div>
+            </div>
+            
+            <!-- 筛选栏 -->
+            <div class="filter-bar">
+              <button class="filter-chip active">全部</button>
+              <button class="filter-chip">附近</button>
+              <button class="filter-chip">本周末</button>
+              <button class="filter-chip">有车</button>
+              <button class="filter-chip">已认证</button>
+            </div>
+            
+            <!-- 内容区 -->
+            <div class="content-area">
+              <!-- 卡片1 -->
+              <div class="card">
+                <div class="user-row">
+                  <div class="avatar" style="background-image: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face');">
+                    <div class="avatar-badge">✓</div>
+                  </div>
+                  <div class="user-info">
+                    <div class="user-name">小明同学</div>
+                    <div class="user-meta">男 · 28岁 · 已认证</div>
+                  </div>
+                  <span class="status-badge status-active">🟢 找搭子中</span>
+                </div>
+                <div class="trip-title">🎯 找长城旅游搭子</div>
+                <div class="trip-desc">周末想去爬八达岭长城，一个人不太方便，希望找个搭子一起拼车，费用AA，可以帮忙拍照📸</div>
+                <div class="tags-row">
+                  <span class="tag tag-location">📍 延庆</span>
+                  <span class="tag tag-date">📅 本周六</span>
+                  <span class="tag tag-budget">💰 ¥150-200</span>
+                  <span class="tag tag-feature">🚗 可拼车</span>
+                </div>
+                <div class="action-row">
+                  <span class="stats">👀 23人浏览</span>
+                  <button class="btn btn-primary">做TA搭子</button>
+                </div>
+              </div>
+              
+              <!-- 卡片2 -->
+              <div class="card">
+                <div class="user-row">
+                  <div class="avatar" style="background-image: url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face');"></div>
+                  <div class="user-info">
+                    <div class="user-name">花花花</div>
+                    <div class="user-meta">女 · 25岁</div>
+                  </div>
+                  <span class="status-badge status-active">🟢 找搭子中</span>
+                </div>
+                <div class="trip-title">🌸 玉渊潭赏樱花找搭子</div>
+                <div class="trip-desc">看天气预报这周末樱花正盛，想去看！一个人拍照不方便，求会拍照的搭子～</div>
+                <div class="tags-row">
+                  <span class="tag tag-location">📍 海淀</span>
+                  <span class="tag tag-date">📅 周日</span>
+                  <span class="tag tag-budget">💰 ¥50-100</span>
+                </div>
+                <div class="action-row">
+                  <span class="stats">👀 45人浏览</span>
+                  <button class="btn btn-primary">做TA搭子</button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 发布按钮 -->
+            <button class="fab" style="position: absolute; bottom: 80px; right: 16px;">➕</button>
+            
+            <!-- 底部Tab -->
+            <div class="tab-bar">
+              <div class="tab-item">
+                <span class="tab-icon">🏠</span>
+                <span>首页</span>
+              </div>
+              <div class="tab-item active">
+                <span class="tab-icon">👯</span>
+                <span>搭子</span>
+              </div>
+              <div class="tab-item">
+                <span class="tab-icon">➕</span>
+                <span>发布</span>
+              </div>
+              <div class="tab-item">
+                <span class="tab-icon">💬</span>
+                <span>消息</span>
+              </div>
+              <div class="tab-item">
+                <span class="tab-icon">👤</span>
+                <span>我的</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 页面2: 紧凑列表 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">紧凑列表样式</div>
+        <div class="phone-frame">
+          <div class="phone-screen" style="position: relative; padding-bottom: 60px;">
+            <div class="status-bar">
+              <span>9:41</span>
+              <span>📶 📡 🔋</span>
+            </div>
+            
+            <div class="nav-bar">
+              <div style="width: 36px;"></div>
+              <div class="nav-title">找搭子</div>
+              <div class="nav-actions">
+                <button class="nav-btn">🔍</button>
+                <button class="nav-btn">➕</button>
+              </div>
+            </div>
+            
+            <div class="filter-bar">
+              <button class="filter-chip active">全部</button>
+              <button class="filter-chip">附近</button>
+              <button class="filter-chip">本周末</button>
+              <button class="filter-chip">有车</button>
+            </div>
+            
+            <div style="background: var(--bg-primary);">
+              <!-- 列表项1 -->
+              <div class="list-item">
+                <div style="display: flex; align-items: center; gap: var(--space-3);">
+                  <div style="width: 44px; height: 44px; border-radius: 50%; background: url('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face') center/cover; flex-shrink: 0;"></div>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                      <span style="font-size: 15px; font-weight: 600; color: var(--text-primary);">阿杰</span>
+                      <span style="font-size: 11px; color: var(--success-color);">🟢 找搭子中</span>
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">🏕️ 密云露营，有车找搭子</div>
+                  </div>
+                  <div style="text-align: right; flex-shrink: 0;">
+                    <div style="font-size: 11px; color: var(--text-tertiary);">📍 密云</div>
+                    <div style="font-size: 13px; color: var(--primary-color); font-weight: 600;">¥200-300</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 列表项2 -->
+              <div class="list-item">
+                <div style="display: flex; align-items: center; gap: var(--space-3);">
+                  <div style="width: 44px; height: 44px; border-radius: 50%; background: url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face') center/cover; flex-shrink: 0;"></div>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                      <span style="font-size: 15px; font-weight: 600; color: var(--text-primary);">小雨</span>
+                      <span style="font-size: 11px; color: var(--success-color);">🟢 找搭子中</span>
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">🎢 环球影城找搭子</div>
+                  </div>
+                  <div style="text-align: right; flex-shrink: 0;">
+                    <div style="font-size: 11px; color: var(--text-tertiary);">📍 通州</div>
+                    <div style="font-size: 13px; color: var(--primary-color); font-weight: 600;">¥400-500</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 列表项3 -->
+              <div class="list-item">
+                <div style="display: flex; align-items: center; gap: var(--space-3);">
+                  <div style="width: 44px; height: 44px; border-radius: 50%; background: url('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face') center/cover; flex-shrink: 0;"></div>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                      <span style="font-size: 15px; font-weight: 600; color: var(--text-primary);">旅行达人Leo</span>
+                      <span style="font-size: 11px; color: var(--success-color);">🟢 找搭子中</span>
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">🏯 古北水镇两日游找搭子</div>
+                  </div>
+                  <div style="text-align: right; flex-shrink: 0;">
+                    <div style="font-size: 11px; color: var(--text-tertiary);">📍 密云</div>
+                    <div style="font-size: 13px; color: var(--primary-color); font-weight: 600;">¥300-500</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 列表项4 - 已匹配 -->
+              <div class="list-item" style="opacity: 0.6;">
+                <div style="display: flex; align-items: center; gap: var(--space-3);">
+                  <div style="width: 44px; height: 44px; border-radius: 50%; background: url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face') center/cover; flex-shrink: 0;"></div>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                      <span style="font-size: 15px; font-weight: 600; color: var(--text-primary);">阿喵</span>
+                      <span style="font-size: 11px; color: var(--text-hint);">✅ 已匹配</span>
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">🎨 798艺术区打卡</div>
+                  </div>
+                  <div style="text-align: right; flex-shrink: 0;">
+                    <div style="font-size: 11px; color: var(--text-tertiary);">📍 朝阳</div>
+                    <div style="font-size: 11px; color: var(--text-hint);">已满</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 列表项5 -->
+              <div class="list-item">
+                <div style="display: flex; align-items: center; gap: var(--space-3);">
+                  <div style="width: 44px; height: 44px; border-radius: 50%; background: url('https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=100&h=100&fit=crop&crop=face') center/cover; flex-shrink: 0;"></div>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                      <span style="font-size: 15px; font-weight: 600; color: var(--text-primary);">小王</span>
+                      <span style="font-size: 11px; color: var(--success-color);">🟢 找搭子中</span>
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">🏔️ 欢乐谷万圣节找搭子</div>
+                  </div>
+                  <div style="text-align: right; flex-shrink: 0;">
+                    <div style="font-size: 11px; color: var(--text-tertiary);">📍 朝阳</div>
+                    <div style="font-size: 13px; color: var(--primary-color); font-weight: 600;">¥200-300</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="tab-bar">
+              <div class="tab-item">
+                <span class="tab-icon">🏠</span>
+                <span>首页</span>
+              </div>
+              <div class="tab-item active">
+                <span class="tab-icon">👯</span>
+                <span>搭子</span>
+              </div>
+              <div class="tab-item">
+                <span class="tab-icon">➕</span>
+                <span>发布</span>
+              </div>
+              <div class="tab-item">
+                <span class="tab-icon">💬</span>
+                <span>消息</span>
+              </div>
+              <div class="tab-item">
+                <span class="tab-icon">👤</span>
+                <span>我的</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 页面3: 带封面图 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">带封面图卡片</div>
+        <div class="phone-frame">
+          <div class="phone-screen" style="position: relative; padding-bottom: 60px;">
+            <div class="status-bar">
+              <span>9:41</span>
+              <span>📶 📡 🔋</span>
+            </div>
+            
+            <div class="nav-bar">
+              <div style="width: 36px;"></div>
+              <div class="nav-title">找搭子</div>
+              <div class="nav-actions">
+                <button class="nav-btn">🔍</button>
+              </div>
+            </div>
+            
+            <div class="filter-bar">
+              <button class="filter-chip active">全部</button>
+              <button class="filter-chip">附近</button>
+              <button class="filter-chip">本周末</button>
+            </div>
+            
+            <div class="content-area">
+              <!-- 卡片1 -->
+              <div style="background: var(--bg-primary); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-sm); margin-bottom: var(--space-3);">
+                <div style="height: 120px; background: url('https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=400&h=200&fit=crop') center/cover; position: relative;">
+                  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.7) 100%);"></div>
+                  <div style="position: absolute; bottom: var(--space-3); left: var(--space-3); right: var(--space-3);">
+                    <div style="color: white; font-size: 16px; font-weight: 700;">🎯 找长城旅游搭子</div>
+                    <div style="color: rgba(255,255,255,0.8); font-size: 11px; margin-top: 2px;">📍 延庆 · 📅 本周六 · 💰 ¥150-200</div>
+                  </div>
+                  <div style="position: absolute; top: var(--space-2); right: var(--space-2); background: var(--success-color); color: white; padding: 3px 8px; border-radius: var(--radius-full); font-size: 10px; font-weight: 600;">🟢 找搭子中</div>
+                </div>
+                <div style="padding: var(--space-3);">
+                  <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
+                    <div style="width: 28px; height: 28px; border-radius: 50%; background: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face') center/cover;"></div>
+                    <div style="flex: 1;">
+                      <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">小明同学</div>
+                      <div style="font-size: 10px; color: var(--text-tertiary);">男 · 28岁 · 刚刚发布</div>
+                    </div>
+                    <button class="btn btn-primary" style="padding: 6px 14px; font-size: 12px;">做搭子</button>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 卡片2 -->
+              <div style="background: var(--bg-primary); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-sm); margin-bottom: var(--space-3);">
+                <div style="height: 120px; background: url('https://images.unsplash.com/photo-1522383225653-ed111181a951?w=400&h=200&fit=crop') center/cover; position: relative;">
+                  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.7) 100%);"></div>
+                  <div style="position: absolute; bottom: var(--space-3); left: var(--space-3); right: var(--space-3);">
+                    <div style="color: white; font-size: 16px; font-weight: 700;">🌸 玉渊潭赏樱花找搭子</div>
+                    <div style="color: rgba(255,255,255,0.8); font-size: 11px; margin-top: 2px;">📍 海淀 · 📅 周日 · 💰 ¥50-100</div>
+                  </div>
+                  <div style="position: absolute; top: var(--space-2); right: var(--space-2); background: var(--success-color); color: white; padding: 3px 8px; border-radius: var(--radius-full); font-size: 10px; font-weight: 600;">🟢 找搭子中</div>
+                </div>
+                <div style="padding: var(--space-3);">
+                  <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
+                    <div style="width: 28px; height: 28px; border-radius: 50%; background: url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&h=60&fit=crop&crop=face') center/cover;"></div>
+                    <div style="flex: 1;">
+                      <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">花花花</div>
+                      <div style="font-size: 10px; color: var(--text-tertiary);">女 · 25岁 · 5分钟前</div>
+                    </div>
+                    <button class="btn btn-primary" style="padding: 6px 14px; font-size: 12px;">做搭子</button>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 卡片3 - 已匹配 -->
+              <div style="background: var(--bg-primary); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-sm); opacity: 0.6;">
+                <div style="height: 120px; background: url('https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=400&h=200&fit=crop') center/cover; position: relative;">
+                  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.7) 100%);"></div>
+                  <div style="position: absolute; bottom: var(--space-3); left: var(--space-3); right: var(--space-3);">
+                    <div style="color: white; font-size: 16px; font-weight: 700;">🏕️ 密云露营找搭子</div>
+                    <div style="color: rgba(255,255,255,0.8); font-size: 11px; margin-top: 2px;">📍 密云 · 📅 下周末</div>
+                  </div>
+                  <div style="position: absolute; top: var(--space-2); right: var(--space-2); background: var(--bg-tertiary); color: var(--text-hint); padding: 3px 8px; border-radius: var(--radius-full); font-size: 10px; font-weight: 500;">✅ 已匹配</div>
+                </div>
+                <div style="padding: var(--space-3);">
+                  <div style="display: flex; align-items: center; gap: var(--space-2);">
+                    <div style="width: 28px; height: 28px; border-radius: 50%; background: url('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=60&h=60&fit=crop&crop=face') center/cover;"></div>
+                    <div style="flex: 1;">
+                      <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">阿杰</div>
+                      <div style="font-size: 10px; color: var(--text-tertiary);">男 · 25岁</div>
+                    </div>
+                    <span style="font-size: 11px; color: var(--text-hint);">已找到搭子</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <button class="fab" style="position: absolute; bottom: 80px; right: 16px;">➕</button>
+            
+            <div class="tab-bar">
+              <div class="tab-item">
+                <span class="tab-icon">🏠</span>
+                <span>首页</span>
+              </div>
+              <div class="tab-item active">
+                <span class="tab-icon">👯</span>
+                <span>搭子</span>
+              </div>
+              <div class="tab-item">
+                <span class="tab-icon">➕</span>
+                <span>发布</span>
+              </div>
+              <div class="tab-item">
+                <span class="tab-icon">💬</span>
+                <span>消息</span>
+              </div>
+              <div class="tab-item">
+                <span class="tab-icon">👤</span>
+                <span>我的</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- 卡片样式对比 -->
+  <div class="section">
+    <h2 class="section-title">🎨 卡片样式对比</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(375px, 1fr)); gap: var(--space-8);">
+      
+      <!-- 样式A: 用户信息突出 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">样式 A · 用户信息突出</div>
+        <div style="width: 375px; background: var(--bg-secondary); border-radius: var(--radius-xl); padding: var(--space-4);">
+          <div class="card">
+            <div style="display: flex; align-items: flex-start; gap: var(--space-4);">
+              <div style="position: relative;">
+                <div style="width: 64px; height: 64px; border-radius: 50%; background: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=130&h=130&fit=crop&crop=face') center/cover; border: 3px solid var(--primary-color);"></div>
+                <div style="position: absolute; bottom: -4px; right: -4px; background: var(--success-color); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; border: 2px solid white;">✓</div>
+              </div>
+              <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-1);">
+                  <span style="font-size: 17px; font-weight: 700; color: var(--text-primary);">小明同学</span>
+                  <span style="background: #FFF8E1; color: #F57C00; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600;">Lv.3</span>
+                </div>
+                <div style="font-size: 12px; color: var(--text-tertiary); margin-bottom: var(--space-3);">男 · 28岁 · 已认证 · 5次出行</div>
+                <div style="font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-2);">🎯 找长城旅游搭子</div>
+                <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">周末想去爬长城，一个人不太方便，希望找个搭子一起拼车...</div>
+              </div>
+            </div>
+            <div class="tags-row" style="margin-top: var(--space-4);">
+              <span class="tag tag-location">📍 延庆</span>
+              <span class="tag tag-date">📅 本周六</span>
+              <span class="tag tag-budget">💰 ¥150-200</span>
+              <span class="tag tag-feature">🚗 可拼车</span>
+            </div>
+            <div class="action-row">
+              <span class="stats">👀 23浏览 · 💬 5私信</span>
+              <button class="btn btn-primary">做TA搭子</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 样式B: 需求内容突出 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">样式 B · 需求内容突出</div>
+        <div style="width: 375px; background: var(--bg-secondary); border-radius: var(--radius-xl); padding: var(--space-4);">
+          <div class="card">
+            <div style="background: linear-gradient(135deg, var(--primary-light), #E8F5E9); border-radius: var(--radius-lg); padding: var(--space-4); margin-bottom: var(--space-3);">
+              <div style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: var(--space-2);">
+                🎯 找长城旅游搭子
+              </div>
+              <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.6;">
+                周末想去爬八达岭长城，一个人不太方便，希望找个搭子一起拼车，费用AA，可以帮忙拍照📸
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: var(--space-2);">
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face') center/cover;"></div>
+                <div>
+                  <div style="font-size: 14px; font-weight: 600; color: var(--text-primary);">小明同学</div>
+                  <div style="font-size: 11px; color: var(--text-tertiary);">男 · 28岁 · 刚刚发布</div>
+                </div>
+              </div>
+              <div style="display: flex; gap: var(--space-2); font-size: 12px; color: var(--text-tertiary);">
+                <span>📍 延庆</span>
+                <span>📅 周六</span>
+                <span style="color: var(--primary-color); font-weight: 600;">¥150-200</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 样式C: 标签化 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">样式 C · 标签化信息</div>
+        <div style="width: 375px; background: var(--bg-secondary); border-radius: var(--radius-xl); padding: var(--space-4);">
+          <div class="card">
+            <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3);">
+              <div style="width: 44px; height: 44px; border-radius: 50%; background: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face') center/cover;"></div>
+              <div style="flex: 1;">
+                <div style="font-size: 15px; font-weight: 600; color: var(--text-primary);">小明同学</div>
+                <div style="font-size: 11px; color: var(--text-tertiary);">男 · 28岁</div>
+              </div>
+              <span class="status-badge status-active">🟢 找搭子中</span>
+            </div>
+            
+            <div style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-3);">
+              🎯 八达岭长城找搭子
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-2); margin-bottom: var(--space-3);">
+              <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2); background: var(--bg-secondary); border-radius: var(--radius-md);">
+                <span>📍</span>
+                <div>
+                  <div style="font-size: 10px; color: var(--text-hint);">目的地</div>
+                  <div style="font-size: 12px; color: var(--text-primary); font-weight: 500;">延庆八达岭</div>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2); background: var(--bg-secondary); border-radius: var(--radius-md);">
+                <span>📅</span>
+                <div>
+                  <div style="font-size: 10px; color: var(--text-hint);">出行时间</div>
+                  <div style="font-size: 12px; color: var(--text-primary); font-weight: 500;">本周六</div>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2); background: var(--bg-secondary); border-radius: var(--radius-md);">
+                <span>💰</span>
+                <div>
+                  <div style="font-size: 10px; color: var(--text-hint);">预算</div>
+                  <div style="font-size: 12px; color: var(--text-primary); font-weight: 500;">¥150-200</div>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2); background: var(--bg-secondary); border-radius: var(--radius-md);">
+                <span>👤</span>
+                <div>
+                  <div style="font-size: 10px; color: var(--text-hint);">人数</div>
+                  <div style="font-size: 12px; color: var(--text-primary); font-weight: 500;">1人找搭子</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="action-row">
+              <div style="display: flex; gap: var(--space-2);">
+                <span class="tag tag-feature" style="font-size: 11px; padding: 3px 8px;">🚗 可拼车</span>
+                <span class="tag tag-feature" style="font-size: 11px; padding: 3px 8px;">📸 会拍照</span>
+              </div>
+              <button class="btn btn-primary" style="padding: 6px 16px; font-size: 13px;">做搭子</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 样式D: 横向紧凑 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">样式 D · 横向紧凑</div>
+        <div style="width: 375px; background: var(--bg-secondary); border-radius: var(--radius-xl); padding: var(--space-4);">
+          <div class="card" style="display: flex; gap: var(--space-3);">
+            <div style="width: 80px; height: 80px; border-radius: var(--radius-lg); background: url('https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=160&h=160&fit=crop') center/cover; flex-shrink: 0;"></div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-1);">
+                <span style="font-size: 15px; font-weight: 600; color: var(--text-primary);">🎯 长城找搭子</span>
+                <span style="font-size: 11px; color: var(--success-color);">🟢 找搭子中</span>
+              </div>
+              <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.4; margin-bottom: var(--space-2);">
+                周末想去爬长城，求搭子拼车...
+              </div>
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; gap: var(--space-2); font-size: 11px; color: var(--text-tertiary);">
+                  <span>📍 延庆</span>
+                  <span>📅 周六</span>
+                </div>
+                <span style="font-size: 14px; color: var(--primary-color); font-weight: 700;">¥150-200</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card" style="display: flex; gap: var(--space-3); margin-bottom: 0;">
+            <div style="width: 80px; height: 80px; border-radius: var(--radius-lg); background: url('https://images.unsplash.com/photo-1522383225653-ed111181a951?w=160&h=160&fit=crop') center/cover; flex-shrink: 0;"></div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-1);">
+                <span style="font-size: 15px; font-weight: 600; color: var(--text-primary);">🌸 玉渊潭找搭子</span>
+                <span style="font-size: 11px; color: var(--success-color);">🟢 找搭子中</span>
+              </div>
+              <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.4; margin-bottom: var(--space-2);">
+                看樱花正盛，求会拍照搭子～
+              </div>
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; gap: var(--space-2); font-size: 11px; color: var(--text-tertiary);">
+                  <span>📍 海淀</span>
+                  <span>📅 周日</span>
+                </div>
+                <span style="font-size: 14px; color: var(--primary-color); font-weight: 700;">¥50-100</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- 状态变体 -->
+  <div class="section">
+    <h2 class="section-title">📊 状态变体</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-4);">
+      
+      <!-- 找搭子中 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">🟢 找搭子中</div>
+        <div style="width: 100%; max-width: 350px; background: var(--bg-primary); border-radius: var(--radius-xl); padding: var(--space-4); box-shadow: var(--shadow-md); border-left: 4px solid var(--success-color);">
+          <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3);">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face') center/cover;"></div>
+            <div style="flex: 1;">
+              <div style="font-size: 15px; font-weight: 600; color: var(--text-primary);">小明同学</div>
+              <div style="font-size: 11px; color: var(--text-tertiary);">男 · 28岁</div>
+            </div>
+            <span style="background: #E8F5E9; color: #2E7D32; padding: 4px 10px; border-radius: var(--radius-full); font-size: 11px; font-weight: 600;">🟢 找搭子中</span>
+          </div>
+          <div style="font-size: 14px; color: var(--text-primary); margin-bottom: var(--space-2);">🎯 找长城旅游搭子</div>
+          <div style="display: flex; gap: var(--space-2); font-size: 11px; color: var(--text-tertiary);">
+            <span>📍 延庆</span>
+            <span>📅 本周六</span>
+            <span style="color: var(--primary-color); font-weight: 600;">¥150-200</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 即将过期 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">🟡 即将过期</div>
+        <div style="width: 100%; max-width: 350px; background: var(--bg-primary); border-radius: var(--radius-xl); padding: var(--space-4); box-shadow: var(--shadow-md); border-left: 4px solid var(--warning);">
+          <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3);">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face') center/cover;"></div>
+            <div style="flex: 1;">
+              <div style="font-size: 15px; font-weight: 600; color: var(--text-primary);">花花花</div>
+              <div style="font-size: 11px; color: var(--text-tertiary);">女 · 25岁</div>
+            </div>
+            <span style="background: #FFF8E1; color: #F57C00; padding: 4px 10px; border-radius: var(--radius-full); font-size: 11px; font-weight: 600;">🟡 即将过期</span>
+          </div>
+          <div style="font-size: 14px; color: var(--text-primary); margin-bottom: var(--space-2);">🌸 玉渊潭赏樱花找搭子</div>
+          <div style="display: flex; gap: var(--space-2); font-size: 11px; color: var(--text-tertiary);">
+            <span>📍 海淀</span>
+            <span>📅 明天</span>
+            <span style="color: var(--warning); font-weight: 600;">剩余2小时</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 已匹配 -->
+      <div class="screen-wrapper">
+        <div class="screen-title">✅ 已匹配</div>
+        <div style="width: 100%; max-width: 350px; background: var(--bg-primary); border-radius: var(--radius-xl); padding: var(--space-4); box-shadow: var(--shadow-md); border-left: 4px solid var(--text-hint); opacity: 0.7;">
+          <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3);">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: url('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face') center/cover;"></div>
+            <div style="flex: 1;">
+              <div style="font-size: 15px; font-weight: 600; color: var(--text-primary);">阿杰</div>
+              <div style="font-size: 11px; color: var(--text-tertiary);">男 · 25岁</div>
+            </div>
+            <span style="background: var(--bg-tertiary); color: var(--text-hint); padding: 4px 10px; border-radius: var(--radius-full); font-size: 11px; font-weight: 500;">✅ 已匹配</span>
+          </div>
+          <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: var(--space-2);">🏕️ 密云露营找搭子</div>
+          <div style="display: flex; gap: var(--space-2); font-size: 11px; color: var(--text-hint);">
+            <span>📍 密云</span>
+            <span>📅 已结束</span>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- 文案说明 -->
+  <div class="section">
+    <h2 class="section-title">📝 文案说明</h2>
+    
+    <div style="background: rgba(255,255,255,0.05); border-radius: var(--radius-xl); padding: var(--space-6);">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-6); color: rgba(255,255,255,0.9);">
+        
+        <div>
+          <h3 style="font-size: 16px; font-weight: 600; margin-bottom: var(--space-3); color: white;">导航标题</h3>
+          <ul style="list-style: none; font-size: 14px; line-height: 2;">
+            <li>• 页面标题：<strong>找搭子</strong></li>
+            <li>• Tab标签：<strong>搭子</strong> (emoji: 👯)</li>
+            <li>• 筛选标签：<strong>已认证</strong></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3 style="font-size: 16px; font-weight: 600; margin-bottom: var(--space-3); color: white;">状态标签</h3>
+          <ul style="list-style: none; font-size: 14px; line-height: 2;">
+            <li>• 🟢 <strong>找搭子中</strong> - 正常状态</li>
+            <li>• 🟡 <strong>即将过期</strong> - 剩余时间提醒</li>
+            <li>• ✅ <strong>已匹配</strong> - 已找到搭子</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3 style="font-size: 16px; font-weight: 600; margin-bottom: var(--space-3); color: white;">按钮文案</h3>
+          <ul style="list-style: none; font-size: 14px; line-height: 2;">
+            <li>• 主按钮：<strong>做TA搭子</strong> / <strong>做搭子</strong></li>
+            <li>• 发布按钮：<strong>发布找搭子</strong></li>
+            <li>• 卡片标题：<strong>找XX旅游搭子</strong></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3 style="font-size: 16px; font-weight: 600; margin-bottom: var(--space-3); color: white;">示例标题</h3>
+          <ul style="list-style: none; font-size: 14px; line-height: 2;">
+            <li>• 🎯 找长城旅游搭子</li>
+            <li>• 🌸 玉渊潭赏樱花找搭子</li>
+            <li>• 🏕️ 密云露营找搭子</li>
+            <li>• 🎢 环球影城找搭子</li>
+          </ul>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
