@@ -47,6 +47,13 @@
         </view>
         <text class="menu-arrow">›</text>
       </view>
+      <view class="menu-item" bindtap="onTapTripNotifications">
+        <view class="menu-left">
+          <view class="menu-icon" style="background: rgba(82, 196, 26, 0.1);">🔔</view>
+          <text class="menu-text">行程通知</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
       <!-- <view class="menu-item" bindtap="onTapCollections">
         <view class="menu-left">
           <view class="menu-icon" style="background: rgba(250, 173, 20, 0.1);">⭐</view>

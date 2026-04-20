@@ -43,16 +43,16 @@
         </view>
         <view class="info-list">
           <view class="info-row">
-            <text class="info-label">📅 出发日期</text>
+            <text class="info-label">出发日期</text>
             <text class="info-value">{{trip.dateText || trip.date}}</text>
           </view>
           <view class="info-row">
-            <text class="info-label">📍 出发地</text>
+            <text class="info-label">出发地</text>
             <text class="info-value">{{trip.departure || '待定'}}</text>
           </view>
           <view class="info-row">
-            <text class="info-label">👥 招募人数</text>
-            <text class="info-value">{{trip.currentCount}}-{{trip.totalCount || (trip.currentCount + trip.needCount)}}人</text>
+            <text class="info-label">招募人数</text>
+            <text class="info-value">{{trip.currentCount}}/{{trip.totalCount || (trip.currentCount + trip.needCount)}}人</text>
           </view>
         </view>
       </view>
