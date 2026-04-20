@@ -129,6 +129,17 @@ Page({
     }
   },
 
+  // 行程通知
+  onTapTripNotifications: function () {
+    if (!auth.checkNeedLogin()) {
+      wx.navigateTo({
+        url: '/pages/trip-notifications/trip-notifications'
+      });
+    } else {
+      auth.goToLogin('/pages/trip-notifications/trip-notifications');
+    }
+  },
+
   // 我的收藏
   onTapCollections: function () {
     if (!auth.checkNeedLogin()) {
