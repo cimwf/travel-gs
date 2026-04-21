@@ -142,9 +142,7 @@ Page({
           const emoji = this.getEmoji(trip.category);
 
           // 计算状态
-          const maxParticipants = trip.maxParticipants || 6;
-          const currentCount = participants.length;
-          const needCount = Math.max(0, maxParticipants - currentCount);
+          const needCount = trip.needCount || 0;
 
           let statusClass = 'recruiting';
           let statusText = '招募中';
@@ -172,8 +170,6 @@ Page({
             placeCoverImage,
             imgBg,
             emoji,
-            maxParticipants,
-            currentCount,
             needCount,
             statusClass,
             statusText

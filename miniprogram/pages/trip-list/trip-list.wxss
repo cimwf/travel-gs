@@ -32,6 +32,7 @@ page {
 
 /* ========== 筛选栏 ========== */
 .filter-bar {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 16rpx;
@@ -40,6 +41,7 @@ page {
   border-bottom: 1rpx solid var(--border-color);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  
 }
 
 .filter-bar::-webkit-scrollbar {
