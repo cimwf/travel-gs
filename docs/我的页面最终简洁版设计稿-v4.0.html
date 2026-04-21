@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>我的页面 - 最终简洁版设计稿 v4.0</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      background: #1a1a2e;
+      padding: 20px;
+    }
+    
+    .design-title {
+      text-align: center;
+      color: white;
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    
+    .design-subtitle {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+      margin-bottom: 40px;
+    }
+    
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(375px, 1fr));
+      gap: 30px;
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+    
+    .phone-wrapper {
+      text-align: center;
+    }
+    
+    .phone-label {
+      color: white;
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      padding: 8px 20px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+    
+    .phone-frame {
+      width: 375px;
+      height: 812px;
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      position: relative;
+      margin: 0 auto;
+    }
+    
+    .scroll-container {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-bottom: 100px;
+      scroll-behavior: smooth;
+    }
+    
+    .scroll-container::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .status-bar {
+      height: 44px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      font-size: 14px;
+      color: white;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* ========================================
+       配色方案
+       ======================================== */
+    
+    /* 方案A: 天空蓝 */
+    .theme-sky {
+      --primary: #8FB8DE;
+      --primary-light: #B5D4E8;
+      --primary-bg: #F0F7FC;
+      --accent: #FFB6B9;
+      --accent-light: #FFDDE0;
+      --secondary: #A8E6CF;
+      --secondary-light: #D4F0E4;
+      --tertiary: #C5B4E3;
+      --tertiary-light: #E8E0F4;
+      --bg: #FAFCFD;
+      --text-primary: #3D4852;
+      --text-secondary: #6B7C8A;
+      --text-hint: #9EAAB5;
+      --border: #EDF2F5;
+    }
+    
+    .theme-sky .phone-frame { background: var(--bg); }
+    .theme-sky .phone-label { background: linear-gradient(135deg, #8FB8DE, #B5D4E8); }
+    
+    /* 方案B: 樱花粉 */
+    .theme-sakura {
+      --primary: #FFB6C1;
+      --primary-light: #FFD1DC;
+      --primary-bg: #FFF0F3;
+      --accent: #FFA07A;
+      --accent-light: #FFD4C1;
+      --secondary: #B5D8EB;
+      --secondary-light: #E3F2F9;
+      --tertiary: #D8BFD8;
+      --tertiary-light: #F0E6F0;
+      --bg: #FFFAFB;
+      --text-primary: #4A3D48;
+      --text-secondary: #7A6B78;
+      --text-hint: #A99AAB;
+      --border: #FFE8EC;
+    }
+    
+    .theme-sakura .phone-frame { background: var(--bg); }
+    .theme-sakura .phone-label { background: linear-gradient(135deg, #FFB6C1, #FFD1DC); }
+    
+    /* 方案C: 薄荷绿 */
+    .theme-mint {
+      --primary: #A8E6CF;
+      --primary-light: #D4F0E4;
+      --primary-bg: #F0FAF5;
+      --accent: #88D8B0;
+      --accent-light: #C8F0DC;
+      --secondary: #FFEAA7;
+      --secondary-light: #FFF8E1;
+      --tertiary: #81D4FA;
+      --tertiary-light: #E1F5FE;
+      --bg: #FAFFFC;
+      --text-primary: #2D4A3E;
+      --text-secondary: #5A7C6E;
+      --text-hint: #8BA99E;
+      --border: #E8F5ED;
+    }
+    
+    .theme-mint .phone-frame { background: var(--bg); }
+    .theme-mint .phone-label { background: linear-gradient(135deg, #A8E6CF, #88D8B0); }
+    
+    /* 方案D: 薰衣草紫 */
+    .theme-lavender {
+      --primary: #C5B4E3;
+      --primary-light: #E0D4F0;
+      --primary-bg: #F5F0FA;
+      --accent: #B4A5D8;
+      --accent-light: #DDD4F0;
+      --secondary: #FFB6D9;
+      --secondary-light: #FFE0ED;
+      --tertiary: #A8D8EA;
+      --tertiary-light: #E0F4FA;
+      --bg: #FAF8FC;
+      --text-primary: #3D3852;
+      --text-secondary: #6B6580;
+      --text-hint: #9A95A8;
+      --border: #EDE8F4;
+    }
+    
+    .theme-lavender .phone-frame { background: var(--bg); }
+    .theme-lavender .phone-label { background: linear-gradient(135deg, #C5B4E3, #B4A5D8); }
+    
+    /* 方案E: 暖阳橙 */
+    .theme-sunshine {
+      --primary: #FFB347;
+      --primary-light: #FFD199;
+      --primary-bg: #FFF8E8;
+      --accent: #FF8C69;
+      --accent-light: #FFD4C4;
+      --secondary: #87CEEB;
+      --secondary-light: #E0F2F8;
+      --tertiary: #F0E68C;
+      --tertiary-light: #FAFAD2;
+      --bg: #FFFBF5;
+      --text-primary: #4A4038;
+      --text-secondary: #786E62;
+      --text-hint: #A89E92;
+      --border: #F5EDE0;
+    }
+    
+    .theme-sunshine .phone-frame { background: var(--bg); }
+    .theme-sunshine .phone-label { background: linear-gradient(135deg, #FFB347, #FFD199); }
+    
+    /* 方案F: 莫兰迪蓝 */
+    .theme-morandi-blue {
+      --primary: #9DB4C0;
+      --primary-light: #C2D1D9;
+      --primary-bg: #EDF2F5;
+      --accent: #C4A484;
+      --accent-light: #E8D5C4;
+      --secondary: #AFC8AD;
+      --secondary-light: #D6E5D4;
+      --tertiary: #B8A9C9;
+      --tertiary-light: #DDD5E8;
+      --bg: #F5F7F9;
+      --text-primary: #3E4A52;
+      --text-secondary: #6A7880;
+      --text-hint: #9AA5AB;
+      --border: #E5EAED;
+    }
+    
+    .theme-morandi-blue .phone-frame { background: var(--bg); }
+    .theme-morandi-blue .phone-label { background: linear-gradient(135deg, #9DB4C0, #C2D1D9); }
+    
+    /* 方案G: 奶油杏 */
+    .theme-cream {
+      --primary: #E8C4A0;
+      --primary-light: #F2DCC4;
+      --primary-bg: #FAF4ED;
+      --accent: #D4A5A5;
+      --accent-light: #EAD4D4;
+      --secondary: #B8D4B8;
+      --secondary-light: #D9E8D9;
+      --tertiary: #C4B8D4;
+      --tertiary-light: #E0D8E8;
+      --bg: #FFFBF7;
+      --text-primary: #4A4038;
+      --text-secondary: #787068;
+      --text-hint: #A89E94;
+      --border: #F0E8DC;
+    }
+    
+    .theme-cream .phone-frame { background: var(--bg); }
+    .theme-cream .phone-label { background: linear-gradient(135deg, #E8C4A0, #F2DCC4); }
+    
+    /* 方案H: 雾霾蓝 */
+    .theme-haze {
+      --primary: #A0B2C6;
+      --primary-light: #C4D0DC;
+      --primary-bg: #EDF1F5;
+      --accent: #D4A5B8;
+      --accent-light: #EAD4DE;
+      --secondary: #A5C4B8;
+      --secondary-light: #D4E8E0;
+      --tertiary: #B8A5C4;
+      --tertiary-light: #DED4E8;
+      --bg: #F5F7F9;
+      --text-primary: #3A4A58;
+      --text-secondary: #687888;
+      --text-hint: #98A8B8;
+      --border: #E4E8EC;
+    }
+    
+    .theme-haze .phone-frame { background: var(--bg); }
+    .theme-haze .phone-label { background: linear-gradient(135deg, #A0B2C6, #C4D0DC); }
+    
+    /* ========================================
+       通用组件样式
+       ======================================== */
+    
+    /* 头部 - 带背景图 */
+    .profile-header {
+      padding: 60px 24px 40px;
+      position: relative;
+      overflow: hidden;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    
+    /* 渐变遮罩层 */
+    .profile-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.3) 0%,
+        rgba(0, 0, 0, 0.4) 50%,
+        rgba(0, 0, 0, 0.5) 100%
+      );
+      z-index: 1;
+    }
+    
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: relative;
+      z-index: 10;
+    }
+    
+    .avatar {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-light), var(--accent-light));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      border: 3px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      flex-shrink: 0;
+    }
+    
+    .user-info {
+      flex: 1;
+      text-align: left;
+    }
+    
+    .user-name {
+      font-size: 22px;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 6px;
+      letter-spacing: 0.3px;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    .user-id {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.85);
+      font-weight: 400;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* 信息条 - 简洁版 */
+    .info-list {
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .info-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      background: white;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    }
+    
+    .info-bar:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+    
+    .info-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--primary-bg), var(--secondary-light));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+    
+    .info-content {
+      flex: 1;
+      text-align: left;
+    }
+    
+    .info-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .info-arrow {
+      font-size: 20px;
+      color: var(--text-hint);
+    }
+    
+    .info-badge {
+      background: var(--accent);
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+    
+    .safe-bottom {
+      height: 40px;
+    }
+    
+    /* 不同背景图样式 */
+    .bg-travel-1 {
+      background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80');
+    }
+    
+    .bg-travel-2 {
+      background-image: url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80');
+    }
+    
+    .bg-travel-3 {
+      background-image: url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&q=80');
+    }
+    
+    .bg-travel-4 {
+      background-image: url('https://images.unsplash.com/photo-1530789253388-582c481c54b0?w=800&q=80');
+    }
+    
+    .bg-travel-5 {
+      background-image: url('https://images.unsplash.com/photo-1488085061387-422e29b40080?w=800&q=80');
+    }
+    
+    .bg-travel-6 {
+      background-image: url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&q=80');
+    }
+    
+    .bg-travel-7 {
+      background-image: url('https://images.unsplash.com/photo-1433838552652-f9a46b332c40?w=800&q=80');
+    }
+    
+    .bg-travel-8 {
+      background-image: url('https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80');
+    }
+  </style>
+</head>
+<body>
+  <div class="design-title">🌸 信息条格式 - 最终简洁版设计稿 v4.0</div>
+  <div class="design-subtitle">排版格式：用户信息靠左 + 功能条无副标题 + 无设置按钮 | 提供8套配色方案</div>
+  
+  <div class="screens-grid">
+    <!-- 方案A: 天空蓝 -->
+    <div class="phone-wrapper theme-sky">
+      <div class="phone-label">方案A: 天空蓝 🌤️</div>
+      <div class="phone-frame">
+        <div class="status-bar">
+          <span>21:41</span>
+          <span>📶 📡 🔋</span>
+        </div>
+        
+        <div class="scroll-container">
+          <div class="profile-header bg-travel-1">
+            <div class="user-card">
+              <div class="avatar">👨‍💻</div>
+              <div class="user-info">
+                <div class="user-name">旅行达人小王</div>
+                <div class="user-id">ID: BJ2024001</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="info-list">
+            <div class="info-bar">
+              <div class="info-icon">📅</div>
+              <div class="info-content">
+                <div class="info-title">我的行程</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">🔔</div>
+              <div class="info-content">
+                <div class="info-title">行程通知</div>
+              </div>
+              <span class="info-badge">3</span>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">💡</div>
+              <div class="info-content">
+                <div class="info-title">提交建议</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">ℹ️</div>
+              <div class="info-content">
+                <div class="info-title">关于我们</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+          </div>
+          
+          <div class="safe-bottom"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 方案B: 樱花粉 -->
+    <div class="phone-wrapper theme-sakura">
+      <div class="phone-label">方案B: 樱花粉 🌸</div>
+      <div class="phone-frame">
+        <div class="status-bar">
+          <span>21:41</span>
+          <span>📶 📡 🔋</span>
+        </div>
+        
+        <div class="scroll-container">
+          <div class="profile-header bg-travel-2">
+            <div class="user-card">
+              <div class="avatar">👨‍💻</div>
+              <div class="user-info">
+                <div class="user-name">旅行达人小王</div>
+                <div class="user-id">ID: BJ2024001</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="info-list">
+            <div class="info-bar">
+              <div class="info-icon">📅</div>
+              <div class="info-content">
+                <div class="info-title">我的行程</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">🔔</div>
+              <div class="info-content">
+                <div class="info-title">行程通知</div>
+              </div>
+              <span class="info-badge">3</span>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">💡</div>
+              <div class="info-content">
+                <div class="info-title">提交建议</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">ℹ️</div>
+              <div class="info-content">
+                <div class="info-title">关于我们</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+          </div>
+          
+          <div class="safe-bottom"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 方案C: 薄荷绿 -->
+    <div class="phone-wrapper theme-mint">
+      <div class="phone-label">方案C: 薄荷绿 🌿</div>
+      <div class="phone-frame">
+        <div class="status-bar">
+          <span>21:41</span>
+          <span>📶 📡 🔋</span>
+        </div>
+        
+        <div class="scroll-container">
+          <div class="profile-header bg-travel-3">
+            <div class="user-card">
+              <div class="avatar">👨‍💻</div>
+              <div class="user-info">
+                <div class="user-name">旅行达人小王</div>
+                <div class="user-id">ID: BJ2024001</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="info-list">
+            <div class="info-bar">
+              <div class="info-icon">📅</div>
+              <div class="info-content">
+                <div class="info-title">我的行程</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">🔔</div>
+              <div class="info-content">
+                <div class="info-title">行程通知</div>
+              </div>
+              <span class="info-badge">3</span>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">💡</div>
+              <div class="info-content">
+                <div class="info-title">提交建议</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">ℹ️</div>
+              <div class="info-content">
+                <div class="info-title">关于我们</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+          </div>
+          
+          <div class="safe-bottom"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 方案D: 薰衣草紫 -->
+    <div class="phone-wrapper theme-lavender">
+      <div class="phone-label">方案D: 薰衣草紫 💜</div>
+      <div class="phone-frame">
+        <div class="status-bar">
+          <span>21:41</span>
+          <span>📶 📡 🔋</span>
+        </div>
+        
+        <div class="scroll-container">
+          <div class="profile-header bg-travel-4">
+            <div class="user-card">
+              <div class="avatar">👨‍💻</div>
+              <div class="user-info">
+                <div class="user-name">旅行达人小王</div>
+                <div class="user-id">ID: BJ2024001</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="info-list">
+            <div class="info-bar">
+              <div class="info-icon">📅</div>
+              <div class="info-content">
+                <div class="info-title">我的行程</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">🔔</div>
+              <div class="info-content">
+                <div class="info-title">行程通知</div>
+              </div>
+              <span class="info-badge">3</span>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">💡</div>
+              <div class="info-content">
+                <div class="info-title">提交建议</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">ℹ️</div>
+              <div class="info-content">
+                <div class="info-title">关于我们</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+          </div>
+          
+          <div class="safe-bottom"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 方案E: 暖阳橙 -->
+    <div class="phone-wrapper theme-sunshine">
+      <div class="phone-label">方案E: 暖阳橙 ☀️</div>
+      <div class="phone-frame">
+        <div class="status-bar">
+          <span>21:41</span>
+          <span>📶 📡 🔋</span>
+        </div>
+        
+        <div class="scroll-container">
+          <div class="profile-header bg-travel-5">
+            <div class="user-card">
+              <div class="avatar">👨‍💻</div>
+              <div class="user-info">
+                <div class="user-name">旅行达人小王</div>
+                <div class="user-id">ID: BJ2024001</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="info-list">
+            <div class="info-bar">
+              <div class="info-icon">📅</div>
+              <div class="info-content">
+                <div class="info-title">我的行程</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">🔔</div>
+              <div class="info-content">
+                <div class="info-title">行程通知</div>
+              </div>
+              <span class="info-badge">3</span>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">💡</div>
+              <div class="info-content">
+                <div class="info-title">提交建议</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">ℹ️</div>
+              <div class="info-content">
+                <div class="info-title">关于我们</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+          </div>
+          
+          <div class="safe-bottom"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 方案F: 莫兰迪蓝 -->
+    <div class="phone-wrapper theme-morandi-blue">
+      <div class="phone-label">方案F: 莫兰迪蓝 🎨</div>
+      <div class="phone-frame">
+        <div class="status-bar">
+          <span>21:41</span>
+          <span>📶 📡 🔋</span>
+        </div>
+        
+        <div class="scroll-container">
+          <div class="profile-header bg-travel-6">
+            <div class="user-card">
+              <div class="avatar">👨‍💻</div>
+              <div class="user-info">
+                <div class="user-name">旅行达人小王</div>
+                <div class="user-id">ID: BJ2024001</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="info-list">
+            <div class="info-bar">
+              <div class="info-icon">📅</div>
+              <div class="info-content">
+                <div class="info-title">我的行程</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">🔔</div>
+              <div class="info-content">
+                <div class="info-title">行程通知</div>
+              </div>
+              <span class="info-badge">3</span>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">💡</div>
+              <div class="info-content">
+                <div class="info-title">提交建议</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">ℹ️</div>
+              <div class="info-content">
+                <div class="info-title">关于我们</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+          </div>
+          
+          <div class="safe-bottom"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 方案G: 奶油杏 -->
+    <div class="phone-wrapper theme-cream">
+      <div class="phone-label">方案G: 奶油杏 🧡</div>
+      <div class="phone-frame">
+        <div class="status-bar">
+          <span>21:41</span>
+          <span>📶 📡 🔋</span>
+        </div>
+        
+        <div class="scroll-container">
+          <div class="profile-header bg-travel-7">
+            <div class="user-card">
+              <div class="avatar">👨‍💻</div>
+              <div class="user-info">
+                <div class="user-name">旅行达人小王</div>
+                <div class="user-id">ID: BJ2024001</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="info-list">
+            <div class="info-bar">
+              <div class="info-icon">📅</div>
+              <div class="info-content">
+                <div class="info-title">我的行程</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">🔔</div>
+              <div class="info-content">
+                <div class="info-title">行程通知</div>
+              </div>
+              <span class="info-badge">3</span>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">💡</div>
+              <div class="info-content">
+                <div class="info-title">提交建议</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">ℹ️</div>
+              <div class="info-content">
+                <div class="info-title">关于我们</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+          </div>
+          
+          <div class="safe-bottom"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 方案H: 雾霾蓝 -->
+    <div class="phone-wrapper theme-haze">
+      <div class="phone-label">方案H: 雾霾蓝 🌫️</div>
+      <div class="phone-frame">
+        <div class="status-bar">
+          <span>21:41</span>
+          <span>📶 📡 🔋</span>
+        </div>
+        
+        <div class="scroll-container">
+          <div class="profile-header bg-travel-8">
+            <div class="user-card">
+              <div class="avatar">👨‍💻</div>
+              <div class="user-info">
+                <div class="user-name">旅行达人小王</div>
+                <div class="user-id">ID: BJ2024001</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="info-list">
+            <div class="info-bar">
+              <div class="info-icon">📅</div>
+              <div class="info-content">
+                <div class="info-title">我的行程</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">🔔</div>
+              <div class="info-content">
+                <div class="info-title">行程通知</div>
+              </div>
+              <span class="info-badge">3</span>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">💡</div>
+              <div class="info-content">
+                <div class="info-title">提交建议</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+            
+            <div class="info-bar">
+              <div class="info-icon">ℹ️</div>
+              <div class="info-content">
+                <div class="info-title">关于我们</div>
+              </div>
+              <span class="info-arrow">›</span>
+            </div>
+          </div>
+          
+          <div class="safe-bottom"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
