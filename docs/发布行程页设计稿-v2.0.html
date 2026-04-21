@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>发布行程页设计稿 v2.0 - 北上周边行</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-color: #4A90E2;
+      --primary-light: #6BA3E8;
+      --primary-dark: #3A7BC8;
+      --bg-color: #F5F7FA;
+      --card-bg: #FFFFFF;
+      --text-primary: #1A1A2E;
+      --text-secondary: #4A4A68;
+      --text-hint: #8E8EA0;
+      --border-color: #E8E8F0;
+      --success-color: #52C41A;
+      --warning-color: #FAAD14;
+      --danger-color: #FF4D4F;
+      --shadow-sm: 0 2rpx 8rpx rgba(0,0,0,0.04);
+      --shadow-md: 0 4rpx 16rpx rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: #E8E8F0;
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .phone-frame {
+      width: 375px;
+      height: 812px;
+      background: var(--bg-color);
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      position: relative;
+    }
+
+    .status-bar {
+      height: 44px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+
+    .status-bar.white {
+      color: white;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .scroll-container {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-bottom: 100px;
+      scroll-behavior: smooth;
+    }
+
+    .scroll-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* 卡片样式 */
+    .content-card {
+      background: white;
+      margin: 12px;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title .emoji {
+      font-size: 20px;
+    }
+
+    /* 表单项 */
+    .form-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--bg-color);
+    }
+
+    .form-item:last-child {
+      border-bottom: none;
+    }
+
+    .form-label {
+      font-size: 15px;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .form-label .required {
+      color: var(--danger-color);
+      margin-left: 2px;
+    }
+
+    .form-label .optional {
+      font-size: 12px;
+      color: var(--text-hint);
+      font-weight: 400;
+      margin-left: 4px;
+    }
+
+    .form-value {
+      display: flex;
+      align-items: center;
+      color: var(--text-hint);
+      font-size: 15px;
+    }
+
+    .form-value.active {
+      color: var(--text-primary);
+    }
+
+    .form-arrow {
+      margin-left: 8px;
+      font-size: 20px;
+      color: #CCCCCC;
+    }
+
+    /* 输入框 */
+    .input-field {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid #E8E8E8;
+      border-radius: 12px;
+      font-size: 15px;
+      background: #FAFAFA;
+      margin-top: 8px;
+      transition: all 0.2s;
+    }
+
+    .input-field:focus {
+      border-color: var(--primary-color);
+      background: white;
+      outline: none;
+    }
+
+    .input-field::placeholder {
+      color: var(--text-hint);
+    }
+
+    .input-with-label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .input-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* 切换按钮组 */
+    .toggle-group {
+      display: flex;
+      gap: 12px;
+    }
+
+    .toggle-btn {
+      padding: 9px 24px;
+      border-radius: 20px;
+      font-size: 14px;
+      background: var(--bg-color);
+      color: var(--text-hint);
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+
+    .toggle-btn.active {
+      background: rgba(74, 144, 226, 0.15);
+      color: var(--primary-color);
+      font-weight: 500;
+    }
+
+    /* 数量调节器 */
+    .counter {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .counter-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--bg-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: var(--text-hint);
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .counter-btn:active {
+      background: var(--border-color);
+    }
+
+    .counter-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      min-width: 40px;
+      text-align: center;
+    }
+
+    /* 底部操作栏 */
+    .footer-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px 24px;
+      background: white;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+    }
+
+    .publish-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 54px;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      color: white;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4);
+      border: none;
+    }
+
+    .publish-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .publish-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* 返回按钮 */
+    .back-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .back-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: white;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    /* 导航栏 */
+    .nav-bar {
+      background: white;
+      padding: 12px 16px;
+      padding-top: 44px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .nav-title {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .nav-right {
+      width: 32px;
+    }
+
+    /* 提示框 */
+    .tip-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(74, 144, 226, 0.08);
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+
+    .tip-box .emoji {
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .tip-box .text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .tip-box .text strong {
+      color: var(--text-primary);
+    }
+
+    /* 可选字段容器 */
+    .optional-fields {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border-color);
+    }
+
+    .optional-fields .input-field {
+      margin-top: 8px;
+    }
+
+    /* 字数统计 */
+    .char-count {
+      text-align: right;
+      font-size: 13px;
+      color: var(--text-hint);
+      margin-top: 8px;
+    }
+
+    /* 字段组标题 */
+    .field-group-title {
+      font-size: 12px;
+      color: var(--text-hint);
+      margin-bottom: 8px;
+      margin-top: 16px;
+    }
+
+    .field-group-title:first-child {
+      margin-top: 0;
+    }
+
+    /* 标签 */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 12px;
+      background: rgba(74, 144, 226, 0.08);
+      color: var(--primary-color);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .tag.required {
+      background: rgba(250, 173, 20, 0.1);
+      color: var(--warning-color);
+    }
+  </style>
+</head>
+<body>
+  <!-- ========== 发布行程页 - 有车 ========== -->
+  <div class="phone-frame">
+    <div class="status-bar">
+      <span>21:41</span>
+      <div style="display: flex; gap: 4px;">
+        <span>📶</span>
+        <span>🔋</span>
+      </div>
+    </div>
+
+    <div class="nav-bar">
+      <div class="back-btn">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </div>
+      <span class="nav-title">发布行程</span>
+      <div class="nav-right"></div>
+    </div>
+
+    <div class="scroll-container" style="padding: 16px; padding-bottom: 120px;">
+      
+      <!-- 选择地点 -->
+      <div class="content-card">
+        <div class="card-title">
+          <span class="emoji">📍</span>
+          选择地点
+        </div>
+        <div class="form-item">
+          <span class="form-label">目的地<span class="required">*</span></span>
+          <div class="form-value active">
+            <span>东灵山</span>
+            <span class="form-arrow">›</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 行程信息 -->
+      <div class="content-card">
+        <div class="card-title">
+          <span class="emoji">📅</span>
+          行程信息
+          <span class="tag required">必填</span>
+        </div>
+        
+        <!-- 行程标题 -->
+        <div class="input-with-label">
+          <label class="input-label">行程标题<span class="required">*</span></label>
+          <input type="text" class="input-field" placeholder="给行程起个名字吧，如：东灵山一日游" value="东灵山看日出之旅">
+        </div>
+
+        <div class="form-item">
+          <span class="form-label">出发地<span class="required">*</span></span>
+          <div class="form-value active">
+            <span>海淀区</span>
+            <span class="form-arrow">›</span>
+          </div>
+        </div>
+
+        <div class="form-item">
+          <span class="form-label">出行日期<span class="required">*</span></span>
+          <div class="form-value active">
+            <span>2026-04-05 周六</span>
+            <span class="form-arrow">›</span>
+          </div>
+        </div>
+
+        <div class="form-item">
+          <span class="form-label">出行方式<span class="required">*</span></span>
+          <div class="toggle-group">
+            <button class="toggle-btn active">有车</button>
+            <button class="toggle-btn">无车</button>
+          </div>
+        </div>
+
+        <!-- 有车时的可选字段 -->
+        <div class="optional-fields">
+          <div class="field-group-title">🚗 车辆信息（可选）</div>
+          
+          <div class="form-item">
+            <span class="form-label">车辆座位<span class="optional">选填</span></span>
+            <div class="toggle-group">
+              <button class="toggle-btn">4座</button>
+              <button class="toggle-btn active">5座</button>
+              <button class="toggle-btn">7座</button>
+              <button class="toggle-btn">其他</button>
+            </div>
+          </div>
+
+          <div class="input-with-label">
+            <label class="input-label">车辆型号<span class="optional">选填</span></label>
+            <input type="text" class="input-field" placeholder="如：大众途观、丰田汉兰达" value="大众途观L">
+          </div>
+        </div>
+
+        <div class="form-item">
+          <span class="form-label">已有人数<span class="required">*</span></span>
+          <div class="counter">
+            <button class="counter-btn">−</button>
+            <span class="counter-value">1人</span>
+            <button class="counter-btn">+</button>
+          </div>
+        </div>
+
+        <div class="form-item">
+          <span class="form-label">还需人数<span class="required">*</span></span>
+          <div class="counter">
+            <button class="counter-btn">−</button>
+            <span class="counter-value">3人</span>
+            <button class="counter-btn">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 可选信息 -->
+      <div class="content-card">
+        <div class="card-title">
+          <span class="emoji">⚙️</span>
+          可选信息
+          <span class="tag">选填</span>
+        </div>
+
+        <!-- 集合地点 -->
+        <div class="input-with-label">
+          <label class="input-label">集合地点</label>
+          <input type="text" class="input-field" placeholder="如：海淀黄庄地铁站B口" value="海淀黄庄地铁站B口">
+        </div>
+
+        <!-- 集合时间 -->
+        <div class="form-item">
+          <span class="form-label">集合时间<span class="optional">选填</span></span>
+          <div class="form-value active">
+            <span>08:00</span>
+            <span class="form-arrow">›</span>
+          </div>
+        </div>
+
+        <!-- 预计返程时间 -->
+        <div class="form-item">
+          <span class="form-label">预计返程<span class="optional">选填</span></span>
+          <div class="form-value active">
+            <span>当天 17:00</span>
+            <span class="form-arrow">›</span>
+          </div>
+        </div>
+
+        <!-- 人均预算 -->
+        <div class="form-item">
+          <span class="form-label">人均预算<span class="optional">选填</span></span>
+          <div class="form-value active">
+            <span>约150元/人</span>
+            <span class="form-arrow">›</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 联系方式 -->
+      <div class="content-card">
+        <div class="card-title">
+          <span class="emoji">📞</span>
+          联系方式
+          <span class="tag required">必填</span>
+        </div>
+        <div class="input-with-label">
+          <input type="text" class="input-field" placeholder="请输入手机号（同时也是微信号）" value="13912345678">
+        </div>
+        <div class="tip-box">
+          <span class="emoji">💡</span>
+          <div class="text">
+            <strong>提示：</strong>此号码将同时作为手机号和微信号展示给已加入的成员，方便他们联系你。
+          </div>
+        </div>
+      </div>
+
+      <!-- 补充说明 -->
+      <div class="content-card">
+        <div class="card-title">
+          <span class="emoji">📝</span>
+          补充说明
+          <span class="tag">选填</span>
+        </div>
+        <textarea class="input-field" style="height: 100px; resize: none; font-family: inherit; line-height: 1.6;" placeholder="说说你的计划、要求或期望（如：希望队友有户外经验、费用AA等）">周六早上8点集合，自驾前往灵山。预计10:30到达，下午4点返程。费用AA，油费+门票约150元/人。希望队友有户外徒步经验。</textarea>
+        <div class="char-count">76/200</div>
+      </div>
+    </div>
+
+    <!-- 底部发布按钮 -->
+    <div class="footer-bar">
+      <button class="publish-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        发布行程
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== 发布行程页 - 无车 ========== -->
+  <div class="phone-frame">
+    <div class="status-bar">
+      <span>21:41</span>
+      <div style="display: flex; gap: 4px;">
+        <span>📶</span>
+        <span>🔋</span>
+      </div>
+    </div>
+
+    <div class="nav-bar">
+      <div class="back-btn">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </div>
+      <span class="nav-title">发布行程</span>
+      <div class="nav-right"></div>
+    </div>
+
+    <div class="scroll-container" style="padding: 16px; padding-bottom: 120px;">
+      
+      <!-- 选择地点 -->
+      <div class="content-card">
+        <div class="card-title">
+          <span class="emoji">📍</span>
+          选择地点
+        </div>
+        <div class="form-item">
+          <span class="form-label">目的地<span class="required">*</span></span>
+          <div class="form-value active">
+            <span>东灵山</span>
+            <span class="form-arrow">›</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 行程信息 -->
+      <div class="content-card">
+        <div class="card-title">
+          <span class="emoji">📅</span>
+          行程信息
+          <span class="tag required">必填</span>
+        </div>
+        
+        <!-- 行程标题 -->
+        <div class="input-with-label">
+          <label class="input-label">行程标题<span class="required">*</span></label>
+          <input type="text" class="input-field" placeholder="给行程起个名字吧，如：东灵山一日游" value="周末灵山徒步">
+        </div>
+
+        <div class="form-item">
+          <span class="form-label">出发地<span class="required">*</span></span>
+          <div class="form-value active">
+            <span>朝阳区</span>
+            <span class="form-arrow">›</span>
+          </div>
+        </div>
+
+        <div class="form-item">
+          <span class="form-label">出行日期<span class="required">*</span></span>
+          <div class="form-value active">
+            <span>2026-04-06 周日</span>
+            <span class="form-arrow">›</span>
+          </div>
+        </div>
+
+        <div class="form-item">
+          <span class="form-label">出行方式<span class="required">*</span></span>
+          <div class="toggle-group">
+            <button class="toggle-btn">有车</button>
+            <button class="toggle-btn active">无车</button>
+          </div>
+        </div>
+
+        <!-- 无车时的可选字段 -->
+        <div class="optional-fields">
+          <div class="field-group-title">🚌 出行方式（可选）</div>
+          
+          <div class="input-with-label">
+            <label class="input-label">如何出行<span class="optional">选填</span></label>
+            <input type="text" class="input-field" placeholder="如：拼车、公共交通、想搭顺风车等" value="希望能拼车，可分摊油费和高速费">
+          </div>
+        </div>
+
+        <div class="form-item">
+          <span class="form-label">已有人数<span class="required">*</span></span>
+          <div class="counter">
+            <button class="counter-btn">−</button>
+            <span class="counter-value">2人</span>
+            <button class="counter-btn">+</button>
+          </div>
+        </div>
+
+        <div class="form-item">
+          <span class="form-label">还需人数<span class="required">*</span></span>
+          <div class="counter">
+            <button class="counter-btn">−</button>
+            <span class="counter-value">2人</span>
+            <button class="counter-btn">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 可选信息 -->
+      <div class="content-card">
+        <div class="card-title">
+          <span class="emoji">⚙️</span>
+          可选信息
+          <span class="tag">选填</span>
+        </div>
+
+        <!-- 集合地点 -->
+        <div class="input-with-label">
+          <label class="input-label">集合地点</label>
+          <input type="text" class="input-field" placeholder="如：望京地铁站">
+        </div>
+
+        <!-- 集合时间 -->
+        <div class="form-item">
+          <span class="form-label">集合时间<span class="optional">选填</span></span>
+          <div class="form-value">
+            <span>请选择</span>
+            <span class="form-arrow">›</span>
+          </div>
+        </div>
+
+        <!-- 预计返程时间 -->
+        <div class="form-item">
+          <span class="form-label">预计返程<span class="optional">选填</span></span>
+          <div class="form-value">
+            <span>请选择</span>
+            <span class="form-arrow">›</span>
+          </div>
+        </div>
+
+        <!-- 人均预算 -->
+        <div class="form-item">
+          <span class="form-label">人均预算<span class="optional">选填</span></span>
+          <div class="form-value">
+            <span>请选择</span>
+            <span class="form-arrow">›</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 联系方式 -->
+      <div class="content-card">
+        <div class="card-title">
+          <span class="emoji">📞</span>
+          联系方式
+          <span class="tag required">必填</span>
+        </div>
+        <div class="input-with-label">
+          <input type="text" class="input-field" placeholder="请输入手机号（同时也是微信号）" value="13800138000">
+        </div>
+        <div class="tip-box">
+          <span class="emoji">💡</span>
+          <div class="text">
+            <strong>提示：</strong>此号码将同时作为手机号和微信号展示给已加入的成员，方便他们联系你。
+          </div>
+        </div>
+      </div>
+
+      <!-- 补充说明 -->
+      <div class="content-card">
+        <div class="card-title">
+          <span class="emoji">📝</span>
+          补充说明
+          <span class="tag">选填</span>
+        </div>
+        <textarea class="input-field" style="height: 100px; resize: none; font-family: inherit; line-height: 1.6;" placeholder="说说你的计划、要求或期望（如：希望队友有户外经验、费用AA等）">我们两个人，希望能找到有车的朋友一起拼车。时间灵活，可以协商。费用可以AA或者商量。</textarea>
+        <div class="char-count">48/200</div>
+      </div>
+    </div>
+
+    <!-- 底部发布按钮 -->
+    <div class="footer-bar">
+      <button class="publish-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        发布行程
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== 发布行程页 - 空状态 ========== -->
+  <div class="phone-frame">
+    <div class="status-bar">
+      <span>21:41</span>
+      <div style="display: flex; gap: 4px;">
+        <span>📶</span>
+        <span>🔋</span>
+      </div>
+    </div>
+
+    <div class="nav-bar">
+      <div class="back-btn">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </div>
+      <span class="nav-title">发布行程</span>
+      <div class="nav-right"></div>
+    </div>
+
+    <div class="scroll-container" style="padding: 16px; padding-bottom: 120px;">
+      
+      <!-- 选择地点 -->
+      <div class="content-card">
+        <div class="card-title">
+          <span class="emoji">📍</span>
+          选择地点
+        </div>
+        <div class="form-item">
+          <span class="form-label">目的地<span class="required">*</span></span>
+          <div class="form-value">
+            <span>请选择</span>
+            <span class="form-arrow">›</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 行程信息 -->
+      <div class="content-card">
+        <div class="card-title">
+          <span class="emoji">📅</span>
+          行程信息
+          <span class="tag required">必填</span>
+        </div>
+        
+        <!-- 行程标题 -->
+        <div class="input-with-label">
+          <label class="input-label">行程标题<span class="required">*</span></label>
+          <input type="text" class="input-field" placeholder="给行程起个名字吧，如：东灵山一日游">
+        </div>
+
+        <div class="form-item">
+          <span class="form-label">出发地<span class="required">*</span></span>
+          <div class="form-value">
+            <span>请选择</span>
+            <span class="form-arrow">›</span>
+          </div>
+        </div>
+
+        <div class="form-item">
+          <span class="form-label">出行日期<span class="required">*</span></span>
+          <div class="form-value">
+            <span>请选择</span>
+            <span class="form-arrow">›</span>
+          </div>
+        </div>
+
+        <div class="form-item">
+          <span class="form-label">出行方式<span class="required">*</span></span>
+          <div class="toggle-group">
+            <button class="toggle-btn">有车</button>
+            <button class="toggle-btn">无车</button>
+          </div>
+        </div>
+
+        <div class="form-item">
+          <span class="form-label">已有人数<span class="required">*</span></span>
+          <div class="counter">
+            <button class="counter-btn">−</button>
+            <span class="counter-value">1人</span>
+            <button class="counter-btn">+</button>
+          </div>
+        </div>
+
+        <div class="form-item">
+          <span class="form-label">还需人数<span class="required">*</span></span>
+          <div class="counter">
+            <button class="counter-btn">−</button>
+            <span class="counter-value">1人</span>
+            <button class="counter-btn">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 可选信息 -->
+      <div class="content-card">
+        <div class="card-title">
+          <span class="emoji">⚙️</span>
+          可选信息
+          <span class="tag">选填</span>
+        </div>
+
+        <div class="input-with-label">
+          <label class="input-label">集合地点</label>
+          <input type="text" class="input-field" placeholder="如：海淀黄庄地铁站B口">
+        </div>
+
+        <div class="form-item">
+          <span class="form-label">集合时间<span class="optional">选填</span></span>
+          <div class="form-value">
+            <span>请选择</span>
+            <span class="form-arrow">›</span>
+          </div>
+        </div>
+
+        <div class="form-item">
+          <span class="form-label">预计返程<span class="optional">选填</span></span>
+          <div class="form-value">
+            <span>请选择</span>
+            <span class="form-arrow">›</span>
+          </div>
+        </div>
+
+        <div class="form-item">
+          <span class="form-label">人均预算<span class="optional">选填</span></span>
+          <div class="form-value">
+            <span>请选择</span>
+            <span class="form-arrow">›</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 联系方式 -->
+      <div class="content-card">
+        <div class="card-title">
+          <span class="emoji">📞</span>
+          联系方式
+          <span class="tag required">必填</span>
+        </div>
+        <div class="input-with-label">
+          <input type="text" class="input-field" placeholder="请输入手机号（同时也是微信号）">
+        </div>
+        <div class="tip-box">
+          <span class="emoji">💡</span>
+          <div class="text">
+            <strong>提示：</strong>此号码将同时作为手机号和微信号展示给已加入的成员，方便他们联系你。
+          </div>
+        </div>
+      </div>
+
+      <!-- 补充说明 -->
+      <div class="content-card">
+        <div class="card-title">
+          <span class="emoji">📝</span>
+          补充说明
+          <span class="tag">选填</span>
+        </div>
+        <textarea class="input-field" style="height: 100px; resize: none; font-family: inherit; line-height: 1.6;" placeholder="说说你的计划、要求或期望（如：希望队友有户外经验、费用AA等）"></textarea>
+        <div class="char-count">0/200</div>
+      </div>
+    </div>
+
+    <!-- 底部发布按钮 -->
+    <div class="footer-bar">
+      <button class="publish-btn" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        发布行程
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== 字段说明面板 ========== -->
+  <div style="background: white; border-radius: 16px; padding: 24px; max-width: 400px; box-shadow: 0 4px 16px rgba(0,0,0,0.1);">
+    <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 20px; color: var(--text-primary);">📋 字段说明</h2>
+    
+    <div style="margin-bottom: 24px;">
+      <h3 style="font-size: 16px; font-weight: 600; color: var(--primary-color); margin-bottom: 12px;">✅ 必填字段</h3>
+      <ul style="list-style: none; font-size: 14px; color: var(--text-secondary); line-height: 1.8;">
+        <li>• <strong>目的地</strong> - 选择要去的地方</li>
+        <li>• <strong>行程标题</strong> - 如"东灵山一日游"</li>
+        <li>• <strong>出发地</strong> - 选择北京某区</li>
+        <li>• <strong>出行日期</strong> - 选择出发日期</li>
+        <li>• <strong>出行方式</strong> - 有车/无车</li>
+        <li>• <strong>已有人数</strong> - 已有几个人</li>
+        <li>• <strong>还需人数</strong> - 还需要几个人</li>
+        <li>• <strong>联系方式</strong> - 手机号（同时也是微信号）</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom: 24px;">
+      <h3 style="font-size: 16px; font-weight: 600; color: var(--primary-color); margin-bottom: 12px;">🚗 有车时的可选字段</h3>
+      <ul style="list-style: none; font-size: 14px; color: var(--text-secondary); line-height: 1.8;">
+        <li>• <strong>车辆座位</strong> - 4座/5座/7座/其他</li>
+        <li>• <strong>车辆型号</strong> - 如"大众途观"</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom: 24px;">
+      <h3 style="font-size: 16px; font-weight: 600; color: var(--primary-color); margin-bottom: 12px;">🚌 无车时的可选字段</h3>
+      <ul style="list-style: none; font-size: 14px; color: var(--text-secondary); line-height: 1.8;">
+        <li>• <strong>如何出行</strong> - 如"拼车、公共交通、想搭顺风车"</li>
+      </ul>
+    </div>
+
+    <div>
+      <h3 style="font-size: 16px; font-weight: 600; color: var(--primary-color); margin-bottom: 12px;">⚙️ 其他可选字段</h3>
+      <ul style="list-style: none; font-size: 14px; color: var(--text-secondary); line-height: 1.8;">
+        <li>• <strong>集合地点</strong> - 如"海淀黄庄地铁站B口"</li>
+        <li>• <strong>集合时间</strong> - 如"早上8:00"</li>
+        <li>• <strong>预计返程</strong> - 如"当天17:00"</li>
+        <li>• <strong>人均预算</strong> - 如"约150元/人"</li>
+        <li>• <strong>补充说明</strong> - 其他想说的话（200字）</li>
+      </ul>
+    </div>
+  </div>
+
+</body>
+</html>

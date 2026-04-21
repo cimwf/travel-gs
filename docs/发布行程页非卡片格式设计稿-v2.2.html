@@ -1,0 +1,1783 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>发布行程页 - 非卡片格式设计稿</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      background: #1a1a2e;
+      padding: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      justify-content: center;
+    }
+
+    .design-wrapper {
+      text-align: center;
+    }
+
+    .design-label {
+      color: white;
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      padding: 8px 20px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+
+    .phone-frame {
+      width: 375px;
+      height: 812px;
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      position: relative;
+      margin: 0 auto;
+    }
+
+    .scroll-container {
+      height: 100%;
+      overflow-y: auto;
+      padding-bottom: 100px;
+    }
+
+    .scroll-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    .status-bar {
+      height: 44px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      font-size: 14px;
+    }
+
+    /* ========================================
+       方案1: 列表式
+       ======================================== */
+    .style-list {
+      --bg: #FFFFFF;
+      --divider: #F0F0F5;
+      --text: #1A1A2E;
+      --text-sub: #6B6B80;
+      --text-hint: #A0A0B0;
+      --accent: #4A90E2;
+    }
+
+    .style-list .phone-frame { background: var(--bg); }
+    .style-list .design-label { background: linear-gradient(135deg, #4A90E2, #6BA3E8); }
+
+    .style-list .nav-bar {
+      background: white;
+      padding: 12px 16px;
+      padding-top: 44px;
+      border-bottom: 8px solid #F5F7FA;
+      display: flex;
+      align-items: center;
+    }
+
+    .style-list .nav-title {
+      flex: 1;
+      text-align: center;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .style-list .section-title {
+      font-size: 13px;
+      color: var(--text-hint);
+      padding: 16px 16px 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .style-list .list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      border-bottom: 1px solid var(--divider);
+      background: white;
+    }
+
+    .style-list .list-item:active {
+      background: #F8F9FA;
+    }
+
+    .style-list .item-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .style-list .item-label {
+      font-size: 16px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .style-list .item-label .required {
+      color: #FF6B6B;
+      margin-left: 2px;
+    }
+
+    .style-list .item-label .optional {
+      font-size: 11px;
+      color: var(--text-hint);
+      font-weight: 400;
+      margin-left: 6px;
+      padding: 2px 6px;
+      background: #F5F7FA;
+      border-radius: 4px;
+    }
+
+    .style-list .item-sub {
+      font-size: 13px;
+      color: var(--text-hint);
+    }
+
+    .style-list .item-right {
+      display: flex;
+      align-items: center;
+      color: var(--text-hint);
+      font-size: 15px;
+    }
+
+    .style-list .item-right.active {
+      color: var(--text);
+    }
+
+    .style-list .item-arrow {
+      margin-left: 8px;
+      color: #D0D0D8;
+    }
+
+    .style-list .input-row {
+      padding: 16px;
+      border-bottom: 1px solid var(--divider);
+      background: white;
+    }
+
+    .style-list .input-label {
+      font-size: 13px;
+      color: var(--text-hint);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .style-list .input-field {
+      width: 100%;
+      padding: 0;
+      border: none;
+      font-size: 16px;
+      color: var(--text);
+      background: transparent;
+      outline: none;
+    }
+
+    .style-list .input-field::placeholder {
+      color: var(--text-hint);
+    }
+
+    .style-list .tag-group {
+      display: flex;
+      gap: 10px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--divider);
+      background: white;
+    }
+
+    .style-list .tag-btn {
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      background: #F5F7FA;
+      color: var(--text-sub);
+      border: none;
+    }
+
+    .style-list .tag-btn.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    .style-list .counter-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      border-bottom: 1px solid var(--divider);
+      background: white;
+    }
+
+    .style-list .counter-wrap {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .style-list .counter-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #F5F7FA;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: var(--text-sub);
+      border: none;
+    }
+
+    .style-list .counter-num {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text);
+      min-width: 40px;
+      text-align: center;
+    }
+
+    .style-list .textarea-row {
+      padding: 16px;
+      background: white;
+    }
+
+    .style-list .textarea-field {
+      width: 100%;
+      height: 100px;
+      border: none;
+      font-size: 15px;
+      color: var(--text);
+      background: transparent;
+      resize: none;
+      font-family: inherit;
+      line-height: 1.6;
+      outline: none;
+    }
+
+    .style-list .char-count {
+      text-align: right;
+      font-size: 12px;
+      color: var(--text-hint);
+      margin-top: 8px;
+    }
+
+    .style-list .footer-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 16px 28px;
+      background: white;
+      border-top: 1px solid var(--divider);
+    }
+
+    .style-list .submit-btn {
+      width: 100%;
+      height: 50px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    /* ========================================
+       方案2: 分组式（无卡片边框）
+       ======================================== */
+    .style-group {
+      --bg: #F8F9FC;
+      --divider: #EBECF0;
+      --text: #1D1D2C;
+      --text-sub: #5E5E72;
+      --text-hint: #9E9EB0;
+      --accent: #6366F1;
+    }
+
+    .style-group .phone-frame { background: var(--bg); }
+    .style-group .design-label { background: linear-gradient(135deg, #6366F1, #818CF8); }
+
+    .style-group .nav-bar {
+      background: white;
+      padding: 12px 16px;
+      padding-top: 44px;
+      display: flex;
+      align-items: center;
+    }
+
+    .style-group .nav-title {
+      flex: 1;
+      text-align: center;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .style-group .group-section {
+      margin-bottom: 12px;
+      background: white;
+    }
+
+    .style-group .group-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--divider);
+    }
+
+    .style-group .group-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #EEF0FF, #E8EAF8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .style-group .group-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .style-group .form-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--divider);
+    }
+
+    .style-group .form-row:last-child {
+      border-bottom: none;
+    }
+
+    .style-group .form-label {
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    .style-group .form-label .required {
+      color: #F87171;
+      margin-left: 2px;
+    }
+
+    .style-group .form-label .optional {
+      font-size: 11px;
+      color: var(--text-hint);
+      margin-left: 6px;
+    }
+
+    .style-group .form-value {
+      display: flex;
+      align-items: center;
+      color: var(--text-hint);
+      font-size: 15px;
+    }
+
+    .style-group .form-value.active {
+      color: var(--text);
+    }
+
+    .style-group .form-arrow {
+      margin-left: 6px;
+      color: #D0D0DC;
+    }
+
+    .style-group .input-wrap {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--divider);
+    }
+
+    .style-group .input-field {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--divider);
+      border-radius: 10px;
+      font-size: 15px;
+      background: #F8F9FC;
+      color: var(--text);
+    }
+
+    .style-group .tag-group {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--divider);
+    }
+
+    .style-group .tag-btn {
+      padding: 7px 16px;
+      border-radius: 18px;
+      font-size: 14px;
+      background: #F0F1F5;
+      color: var(--text-sub);
+      border: none;
+    }
+
+    .style-group .tag-btn.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    .style-group .counter-wrap {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .style-group .counter-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #F0F1F5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: var(--text-sub);
+      border: none;
+    }
+
+    .style-group .counter-num {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      min-width: 36px;
+      text-align: center;
+    }
+
+    .style-group .textarea-wrap {
+      padding: 14px 16px;
+    }
+
+    .style-group .textarea-field {
+      width: 100%;
+      height: 90px;
+      padding: 12px 14px;
+      border: 1px solid var(--divider);
+      border-radius: 10px;
+      font-size: 15px;
+      background: #F8F9FC;
+      resize: none;
+      font-family: inherit;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    .style-group .char-count {
+      text-align: right;
+      font-size: 12px;
+      color: var(--text-hint);
+      margin-top: 6px;
+    }
+
+    .style-group .footer-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 16px 28px;
+      background: white;
+    }
+
+    .style-group .submit-btn {
+      width: 100%;
+      height: 52px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    /* ========================================
+       方案3: 步骤流程式
+       ======================================== */
+    .style-step {
+      --bg: #FAFCFD;
+      --divider: #E8ECF0;
+      --text: #18212C;
+      --text-sub: #4A5568;
+      --text-hint: #A0AEC0;
+      --accent: #10B981;
+      --step-line: #D1D5DB;
+    }
+
+    .style-step .phone-frame { background: var(--bg); }
+    .style-step .design-label { background: linear-gradient(135deg, #10B981, #34D399); }
+
+    .style-step .nav-bar {
+      background: white;
+      padding: 12px 16px;
+      padding-top: 44px;
+      border-bottom: 1px solid var(--divider);
+      display: flex;
+      align-items: center;
+    }
+
+    .style-step .nav-title {
+      flex: 1;
+      text-align: center;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .style-step .step-container {
+      padding: 20px 16px;
+    }
+
+    .style-step .step-item {
+      position: relative;
+      padding-left: 36px;
+      padding-bottom: 24px;
+    }
+
+    .style-step .step-item:last-child {
+      padding-bottom: 0;
+    }
+
+    .style-step .step-item::before {
+      content: '';
+      position: absolute;
+      left: 11px;
+      top: 28px;
+      bottom: 0;
+      width: 2px;
+      background: var(--step-line);
+    }
+
+    .style-step .step-item:last-child::before {
+      display: none;
+    }
+
+    .style-step .step-dot {
+      position: absolute;
+      left: 0;
+      top: 2px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: white;
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .style-step .step-dot.done {
+      background: var(--accent);
+      color: white;
+    }
+
+    .style-step .step-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .style-step .step-content {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--divider);
+    }
+
+    .style-step .form-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 14px;
+      border-bottom: 1px solid var(--divider);
+    }
+
+    .style-step .form-row:last-child {
+      border-bottom: none;
+    }
+
+    .style-step .form-label {
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .style-step .form-label .required {
+      color: #EF4444;
+      margin-left: 2px;
+    }
+
+    .style-step .form-label .optional {
+      font-size: 11px;
+      color: var(--text-hint);
+      margin-left: 4px;
+    }
+
+    .style-step .form-value {
+      display: flex;
+      align-items: center;
+      color: var(--text-hint);
+      font-size: 14px;
+    }
+
+    .style-step .form-value.active {
+      color: var(--text);
+    }
+
+    .style-step .form-arrow {
+      margin-left: 6px;
+      color: #CBD5E0;
+    }
+
+    .style-step .input-wrap {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--divider);
+    }
+
+    .style-step .input-field {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--divider);
+      border-radius: 8px;
+      font-size: 14px;
+      background: white;
+      color: var(--text);
+    }
+
+    .style-step .tag-group {
+      display: flex;
+      gap: 8px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--divider);
+    }
+
+    .style-step .tag-btn {
+      padding: 6px 14px;
+      border-radius: 16px;
+      font-size: 13px;
+      background: #F0FDF4;
+      color: var(--text-sub);
+      border: 1px solid var(--divider);
+    }
+
+    .style-step .tag-btn.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .style-step .counter-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .style-step .counter-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #F0FDF4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: var(--accent);
+      border: 1px solid var(--divider);
+    }
+
+    .style-step .counter-num {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      min-width: 32px;
+      text-align: center;
+    }
+
+    .style-step .footer-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 16px 28px;
+      background: white;
+      border-top: 1px solid var(--divider);
+    }
+
+    .style-step .submit-btn {
+      width: 100%;
+      height: 50px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    /* ========================================
+       方案4: 表格式
+       ======================================== */
+    .style-table {
+      --bg: #FFFFFF;
+      --divider: #F0F0F5;
+      --text: #18181B;
+      --text-sub: #52525B;
+      --text-hint: #A1A1AA;
+      --accent: #F97316;
+    }
+
+    .style-table .phone-frame { background: var(--bg); }
+    .style-table .design-label { background: linear-gradient(135deg, #F97316, #FB923C); }
+
+    .style-table .nav-bar {
+      background: white;
+      padding: 12px 16px;
+      padding-top: 44px;
+      border-bottom: 1px solid var(--divider);
+      display: flex;
+      align-items: center;
+    }
+
+    .style-table .nav-title {
+      flex: 1;
+      text-align: center;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .style-table .form-table {
+      width: 100%;
+    }
+
+    .style-table .table-row {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      border-bottom: 1px solid var(--divider);
+    }
+
+    .style-table .table-cell {
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+    }
+
+    .style-table .cell-label {
+      background: #FAFAFC;
+      font-size: 14px;
+      color: var(--text-sub);
+      font-weight: 500;
+    }
+
+    .style-table .cell-label .required {
+      color: #EF4444;
+      margin-left: 2px;
+    }
+
+    .style-table .cell-value {
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    .style-table .cell-value.hint {
+      color: var(--text-hint);
+    }
+
+    .style-table .input-field {
+      width: 100%;
+      padding: 0;
+      border: none;
+      font-size: 15px;
+      background: transparent;
+      color: var(--text);
+      outline: none;
+    }
+
+    .style-table .input-field::placeholder {
+      color: var(--text-hint);
+    }
+
+    .style-table .tag-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .style-table .tag-btn {
+      padding: 6px 14px;
+      border-radius: 16px;
+      font-size: 13px;
+      background: #FFF7ED;
+      color: var(--text-sub);
+      border: 1px solid #FED7AA;
+    }
+
+    .style-table .tag-btn.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .style-table .counter-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .style-table .counter-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #FFF7ED;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: var(--accent);
+      border: none;
+    }
+
+    .style-table .counter-num {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      min-width: 32px;
+      text-align: center;
+    }
+
+    .style-table .section-divider {
+      height: 12px;
+      background: #FAFAFC;
+    }
+
+    .style-table .textarea-row {
+      display: block;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--divider);
+    }
+
+    .style-table .textarea-label {
+      font-size: 14px;
+      color: var(--text-sub);
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .style-table .textarea-field {
+      width: 100%;
+      height: 80px;
+      border: none;
+      font-size: 15px;
+      background: transparent;
+      resize: none;
+      font-family: inherit;
+      line-height: 1.6;
+      color: var(--text);
+      outline: none;
+    }
+
+    .style-table .footer-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 16px 28px;
+      background: white;
+      border-top: 1px solid var(--divider);
+    }
+
+    .style-table .submit-btn {
+      width: 100%;
+      height: 50px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    /* ========================================
+       方案5: 浮动式
+       ======================================== */
+    .style-float {
+      --bg: #F0F4F8;
+      --divider: #E2E8F0;
+      --text: #1E293B;
+      --text-sub: #475569;
+      --text-hint: #94A3B8;
+      --accent: #0EA5E9;
+    }
+
+    .style-float .phone-frame { background: var(--bg); }
+    .style-float .design-label { background: linear-gradient(135deg, #0EA5E9, #38BDF8); }
+
+    .style-float .nav-bar {
+      background: white;
+      padding: 12px 16px;
+      padding-top: 44px;
+      display: flex;
+      align-items: center;
+    }
+
+    .style-float .nav-title {
+      flex: 1;
+      text-align: center;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .style-float .float-container {
+      padding: 16px;
+    }
+
+    .style-float .float-item {
+      background: white;
+      border-radius: 14px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .style-float .float-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 14px 0;
+    }
+
+    .style-float .float-icon {
+      font-size: 18px;
+    }
+
+    .style-float .float-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .style-float .form-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 14px;
+      border-top: 1px solid var(--divider);
+    }
+
+    .style-float .form-row:first-of-type {
+      border-top: none;
+      padding-top: 14px;
+    }
+
+    .style-float .form-label {
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .style-float .form-label .required {
+      color: #F43F5E;
+      margin-left: 2px;
+    }
+
+    .style-float .form-label .optional {
+      font-size: 11px;
+      color: var(--text-hint);
+      margin-left: 4px;
+    }
+
+    .style-float .form-value {
+      display: flex;
+      align-items: center;
+      color: var(--text-hint);
+      font-size: 14px;
+    }
+
+    .style-float .form-value.active {
+      color: var(--text);
+    }
+
+    .style-float .form-arrow {
+      margin-left: 6px;
+      color: #CBD5E1;
+    }
+
+    .style-float .input-wrap {
+      padding: 10px 14px 14px;
+    }
+
+    .style-float .input-field {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--divider);
+      border-radius: 10px;
+      font-size: 14px;
+      background: #F8FAFC;
+      color: var(--text);
+    }
+
+    .style-float .tag-group {
+      display: flex;
+      gap: 8px;
+      padding: 10px 14px 14px;
+    }
+
+    .style-float .tag-btn {
+      padding: 7px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      background: #F0F9FF;
+      color: var(--text-sub);
+      border: none;
+    }
+
+    .style-float .tag-btn.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    .style-float .counter-wrap {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .style-float .counter-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #F0F9FF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: var(--accent);
+      border: none;
+    }
+
+    .style-float .counter-num {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      min-width: 36px;
+      text-align: center;
+    }
+
+    .style-float .textarea-wrap {
+      padding: 10px 14px 14px;
+    }
+
+    .style-float .textarea-field {
+      width: 100%;
+      height: 80px;
+      padding: 12px 14px;
+      border: 1px solid var(--divider);
+      border-radius: 10px;
+      font-size: 14px;
+      background: #F8FAFC;
+      resize: none;
+      font-family: inherit;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    .style-float .char-count {
+      text-align: right;
+      font-size: 12px;
+      color: var(--text-hint);
+      margin-top: 6px;
+    }
+
+    .style-float .footer-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 16px 28px;
+      background: white;
+      border-top: 1px solid var(--divider);
+    }
+
+    .style-float .submit-btn {
+      width: 100%;
+      height: 52px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========== 方案1: 列表式 ========== -->
+  <div class="design-wrapper style-list">
+    <div class="design-label">方案1: 列表式 📝</div>
+    <div class="phone-frame">
+      <div class="status-bar">
+        <span>21:18</span>
+        <div>📶 🔋</div>
+      </div>
+
+      <div class="nav-bar">
+        <div style="width: 32px;"></div>
+        <span class="nav-title">发布行程</span>
+        <div style="width: 32px;"></div>
+      </div>
+
+      <div class="scroll-container">
+        <div class="section-title">目的地</div>
+        <div class="list-item">
+          <span class="item-label">目的地<span class="required">*</span></span>
+          <div class="item-right active">
+            <span>东灵山</span>
+            <span class="item-arrow">›</span>
+          </div>
+        </div>
+
+        <div class="section-title">行程信息</div>
+        <div class="input-row">
+          <label class="input-label">行程标题<span style="color: #FF6B6B;">*</span></label>
+          <input type="text" class="input-field" placeholder="给行程起个名字" value="东灵山看日出之旅">
+        </div>
+        <div class="list-item">
+          <span class="item-label">出发地<span class="required">*</span></span>
+          <div class="item-right active">
+            <span>海淀区</span>
+            <span class="item-arrow">›</span>
+          </div>
+        </div>
+        <div class="list-item">
+          <span class="item-label">出行日期<span class="required">*</span></span>
+          <div class="item-right active">
+            <span>2026-04-05</span>
+            <span class="item-arrow">›</span>
+          </div>
+        </div>
+        <div class="tag-group">
+          <span style="font-size: 16px; color: var(--text); font-weight: 500;">出行方式<span style="color: #FF6B6B;">*</span></span>
+        </div>
+        <div class="tag-group" style="padding-top: 0;">
+          <button class="tag-btn active">有车</button>
+          <button class="tag-btn">无车</button>
+        </div>
+        <div class="input-row">
+          <label class="input-label">车辆座位<span class="optional">选填</span></label>
+          <input type="text" class="input-field" placeholder="如：5座" value="5座">
+        </div>
+        <div class="input-row">
+          <label class="input-label">车辆型号<span class="optional">选填</span></label>
+          <input type="text" class="input-field" placeholder="如：大众途观" value="大众途观L">
+        </div>
+        <div class="counter-row">
+          <span class="item-label">已有人数<span class="required">*</span></span>
+          <div class="counter-wrap">
+            <button class="counter-btn">−</button>
+            <span class="counter-num">1</span>
+            <button class="counter-btn">+</button>
+          </div>
+        </div>
+        <div class="counter-row">
+          <span class="item-label">还需人数<span class="required">*</span></span>
+          <div class="counter-wrap">
+            <button class="counter-btn">−</button>
+            <span class="counter-num">3</span>
+            <button class="counter-btn">+</button>
+          </div>
+        </div>
+
+        <div class="section-title">可选信息</div>
+        <div class="input-row">
+          <label class="input-label">集合地点</label>
+          <input type="text" class="input-field" placeholder="如：海淀黄庄地铁站" value="海淀黄庄地铁站B口">
+        </div>
+        <div class="list-item">
+          <span class="item-label">集合时间</span>
+          <div class="item-right active">
+            <span>08:00</span>
+            <span class="item-arrow">›</span>
+          </div>
+        </div>
+        <div class="list-item">
+          <span class="item-label">人均预算</span>
+          <div class="item-right active">
+            <span>约150元</span>
+            <span class="item-arrow">›</span>
+          </div>
+        </div>
+
+        <div class="section-title">联系方式</div>
+        <div class="input-row">
+          <label class="input-label">手机号<span style="color: #FF6B6B;">*</span></label>
+          <input type="text" class="input-field" placeholder="同时也是微信号" value="13912345678">
+        </div>
+
+        <div class="section-title">补充说明</div>
+        <div class="textarea-row">
+          <textarea class="textarea-field" placeholder="说说你的计划、要求或期望">周六早上8点集合，自驾前往灵山。费用AA。</textarea>
+          <div class="char-count">28/200</div>
+        </div>
+
+        <div style="height: 100px;"></div>
+      </div>
+
+      <div class="footer-bar">
+        <button class="submit-btn">发布行程</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 方案2: 分组式 ========== -->
+  <div class="design-wrapper style-group">
+    <div class="design-label">方案2: 分组式 📂</div>
+    <div class="phone-frame">
+      <div class="status-bar">
+        <span>21:18</span>
+        <div>📶 🔋</div>
+      </div>
+
+      <div class="nav-bar">
+        <div style="width: 32px;"></div>
+        <span class="nav-title">发布行程</span>
+        <div style="width: 32px;"></div>
+      </div>
+
+      <div class="scroll-container">
+        <div class="group-section">
+          <div class="group-header">
+            <div class="group-icon">📍</div>
+            <span class="group-title">选择地点</span>
+          </div>
+          <div class="form-row">
+            <span class="form-label">目的地<span class="required">*</span></span>
+            <div class="form-value active">
+              <span>东灵山</span>
+              <span class="form-arrow">›</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="group-section">
+          <div class="group-header">
+            <div class="group-icon">📅</div>
+            <span class="group-title">行程信息</span>
+          </div>
+          <div class="input-wrap">
+            <input type="text" class="input-field" placeholder="行程标题（必填）" value="东灵山看日出之旅">
+          </div>
+          <div class="form-row">
+            <span class="form-label">出发地<span class="required">*</span></span>
+            <div class="form-value active">
+              <span>海淀区</span>
+              <span class="form-arrow">›</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <span class="form-label">出行日期<span class="required">*</span></span>
+            <div class="form-value active">
+              <span>2026-04-05</span>
+              <span class="form-arrow">›</span>
+            </div>
+          </div>
+          <div class="tag-group">
+            <span class="form-label">出行方式<span class="required">*</span></span>
+          </div>
+          <div class="tag-group" style="padding-top: 0;">
+            <button class="tag-btn active">有车</button>
+            <button class="tag-btn">无车</button>
+          </div>
+          <div class="input-wrap">
+            <input type="text" class="input-field" placeholder="车辆座位（选填）" value="5座">
+          </div>
+          <div class="input-wrap">
+            <input type="text" class="input-field" placeholder="车辆型号（选填）" value="大众途观L">
+          </div>
+          <div class="form-row">
+            <span class="form-label">已有人数<span class="required">*</span></span>
+            <div class="counter-wrap">
+              <button class="counter-btn">−</button>
+              <span class="counter-num">1</span>
+              <button class="counter-btn">+</button>
+            </div>
+          </div>
+          <div class="form-row">
+            <span class="form-label">还需人数<span class="required">*</span></span>
+            <div class="counter-wrap">
+              <button class="counter-btn">−</button>
+              <span class="counter-num">3</span>
+              <button class="counter-btn">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="group-section">
+          <div class="group-header">
+            <div class="group-icon">⚙️</div>
+            <span class="group-title">可选信息</span>
+          </div>
+          <div class="input-wrap">
+            <input type="text" class="input-field" placeholder="集合地点">
+          </div>
+          <div class="form-row">
+            <span class="form-label">集合时间</span>
+            <div class="form-value active">
+              <span>08:00</span>
+              <span class="form-arrow">›</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <span class="form-label">人均预算</span>
+            <div class="form-value active">
+              <span>约150元</span>
+              <span class="form-arrow">›</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="group-section">
+          <div class="group-header">
+            <div class="group-icon">📞</div>
+            <span class="group-title">联系方式</span>
+          </div>
+          <div class="input-wrap">
+            <input type="text" class="input-field" placeholder="手机号（必填）" value="13912345678">
+          </div>
+        </div>
+
+        <div class="group-section">
+          <div class="group-header">
+            <div class="group-icon">📝</div>
+            <span class="group-title">补充说明</span>
+          </div>
+          <div class="textarea-wrap">
+            <textarea class="textarea-field" placeholder="说说你的计划、要求或期望">周六早上8点集合，自驾前往灵山。费用AA。</textarea>
+            <div class="char-count">28/200</div>
+          </div>
+        </div>
+
+        <div style="height: 100px;"></div>
+      </div>
+
+      <div class="footer-bar">
+        <button class="submit-btn">发布行程</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 方案3: 步骤流程式 ========== -->
+  <div class="design-wrapper style-step">
+    <div class="design-label">方案3: 步骤流程式 📍</div>
+    <div class="phone-frame">
+      <div class="status-bar">
+        <span>21:18</span>
+        <div>📶 🔋</div>
+      </div>
+
+      <div class="nav-bar">
+        <div style="width: 32px;"></div>
+        <span class="nav-title">发布行程</span>
+        <div style="width: 32px;"></div>
+      </div>
+
+      <div class="scroll-container">
+        <div class="step-container">
+          <!-- Step 1 -->
+          <div class="step-item">
+            <div class="step-dot done">✓</div>
+            <div class="step-title">选择地点</div>
+            <div class="step-content">
+              <div class="form-row">
+                <span class="form-label">目的地<span class="required">*</span></span>
+                <div class="form-value active">
+                  <span>东灵山</span>
+                  <span class="form-arrow">›</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="step-item">
+            <div class="step-dot done">✓</div>
+            <div class="step-title">行程信息</div>
+            <div class="step-content">
+              <div class="input-wrap">
+                <input type="text" class="input-field" placeholder="行程标题*" value="东灵山看日出之旅">
+              </div>
+              <div class="form-row">
+                <span class="form-label">出发地<span class="required">*</span></span>
+                <div class="form-value active">
+                  <span>海淀区</span>
+                  <span class="form-arrow">›</span>
+                </div>
+              </div>
+              <div class="form-row">
+                <span class="form-label">出行日期<span class="required">*</span></span>
+                <div class="form-value active">
+                  <span>2026-04-05</span>
+                  <span class="form-arrow">›</span>
+                </div>
+              </div>
+              <div class="tag-group">
+                <button class="tag-btn active">有车</button>
+                <button class="tag-btn">无车</button>
+              </div>
+              <div class="input-wrap">
+                <input type="text" class="input-field" placeholder="车辆座位" value="5座">
+              </div>
+              <div class="form-row">
+                <span class="form-label">已有人数<span class="required">*</span></span>
+                <div class="counter-wrap">
+                  <button class="counter-btn">−</button>
+                  <span class="counter-num">1</span>
+                  <button class="counter-btn">+</button>
+                </div>
+              </div>
+              <div class="form-row">
+                <span class="form-label">还需人数<span class="required">*</span></span>
+                <div class="counter-wrap">
+                  <button class="counter-btn">−</button>
+                  <span class="counter-num">3</span>
+                  <button class="counter-btn">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="step-item">
+            <div class="step-dot">3</div>
+            <div class="step-title">可选信息</div>
+            <div class="step-content">
+              <div class="input-wrap">
+                <input type="text" class="input-field" placeholder="集合地点">
+              </div>
+              <div class="form-row">
+                <span class="form-label">集合时间</span>
+                <div class="form-value">
+                  <span>请选择</span>
+                  <span class="form-arrow">›</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="step-item">
+            <div class="step-dot">4</div>
+            <div class="step-title">联系方式</div>
+            <div class="step-content">
+              <div class="input-wrap">
+                <input type="text" class="input-field" placeholder="手机号*" value="13912345678">
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 5 -->
+          <div class="step-item">
+            <div class="step-dot">5</div>
+            <div class="step-title">补充说明</div>
+            <div class="step-content">
+              <div style="padding: 12px;">
+                <textarea style="width: 100%; height: 70px; border: none; font-size: 14px; background: transparent; resize: none; font-family: inherit; line-height: 1.6; outline: none;" placeholder="说说你的计划">周六早上出发，费用AA。</textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="height: 100px;"></div>
+      </div>
+
+      <div class="footer-bar">
+        <button class="submit-btn">发布行程</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 方案4: 表格式 ========== -->
+  <div class="design-wrapper style-table">
+    <div class="design-label">方案4: 表格式 📊</div>
+    <div class="phone-frame">
+      <div class="status-bar">
+        <span>21:18</span>
+        <div>📶 🔋</div>
+      </div>
+
+      <div class="nav-bar">
+        <div style="width: 32px;"></div>
+        <span class="nav-title">发布行程</span>
+        <div style="width: 32px;"></div>
+      </div>
+
+      <div class="scroll-container">
+        <div class="form-table">
+          <div class="table-row">
+            <div class="table-cell cell-label">目的地<span class="required">*</span></div>
+            <div class="table-cell cell-value active">东灵山 ›</div>
+          </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="form-table">
+          <div class="table-row">
+            <div class="table-cell cell-label">行程标题<span class="required">*</span></div>
+            <div class="table-cell cell-value">
+              <input type="text" class="input-field" value="东灵山看日出之旅">
+            </div>
+          </div>
+          <div class="table-row">
+            <div class="table-cell cell-label">出发地<span class="required">*</span></div>
+            <div class="table-cell cell-value active">海淀区 ›</div>
+          </div>
+          <div class="table-row">
+            <div class="table-cell cell-label">出行日期<span class="required">*</span></div>
+            <div class="table-cell cell-value active">2026-04-05 ›</div>
+          </div>
+          <div class="table-row">
+            <div class="table-cell cell-label">出行方式<span class="required">*</span></div>
+            <div class="table-cell cell-value">
+              <div class="tag-group">
+                <button class="tag-btn active">有车</button>
+                <button class="tag-btn">无车</button>
+              </div>
+            </div>
+          </div>
+          <div class="table-row">
+            <div class="table-cell cell-label">车辆座位</div>
+            <div class="table-cell cell-value">
+              <input type="text" class="input-field" value="5座">
+            </div>
+          </div>
+          <div class="table-row">
+            <div class="table-cell cell-label">已有人数<span class="required">*</span></div>
+            <div class="table-cell cell-value">
+              <div class="counter-wrap">
+                <button class="counter-btn">−</button>
+                <span class="counter-num">1</span>
+                <button class="counter-btn">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="table-row">
+            <div class="table-cell cell-label">还需人数<span class="required">*</span></div>
+            <div class="table-cell cell-value">
+              <div class="counter-wrap">
+                <button class="counter-btn">−</button>
+                <span class="counter-num">3</span>
+                <button class="counter-btn">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="form-table">
+          <div class="table-row">
+            <div class="table-cell cell-label">集合地点</div>
+            <div class="table-cell cell-value">
+              <input type="text" class="input-field" value="海淀黄庄地铁站" placeholder="选填">
+            </div>
+          </div>
+          <div class="table-row">
+            <div class="table-cell cell-label">集合时间</div>
+            <div class="table-cell cell-value active">08:00 ›</div>
+          </div>
+          <div class="table-row">
+            <div class="table-cell cell-label">人均预算</div>
+            <div class="table-cell cell-value active">约150元 ›</div>
+          </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="form-table">
+          <div class="table-row">
+            <div class="table-cell cell-label">手机号<span class="required">*</span></div>
+            <div class="table-cell cell-value">
+              <input type="text" class="input-field" value="13912345678">
+            </div>
+          </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="textarea-row">
+          <label class="textarea-label">补充说明</label>
+          <textarea class="textarea-field" placeholder="说说你的计划、要求或期望">周六早上8点集合，自驾前往灵山。费用AA。</textarea>
+        </div>
+
+        <div style="height: 100px;"></div>
+      </div>
+
+      <div class="footer-bar">
+        <button class="submit-btn">发布行程</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 方案5: 浮动式 ========== -->
+  <div class="design-wrapper style-float">
+    <div class="design-label">方案5: 浮动式 🎈</div>
+    <div class="phone-frame">
+      <div class="status-bar">
+        <span>21:18</span>
+        <div>📶 🔋</div>
+      </div>
+
+      <div class="nav-bar">
+        <div style="width: 32px;"></div>
+        <span class="nav-title">发布行程</span>
+        <div style="width: 32px;"></div>
+      </div>
+
+      <div class="scroll-container">
+        <div class="float-container">
+          <div class="float-item">
+            <div class="float-header">
+              <span class="float-icon">📍</span>
+              <span class="float-title">选择地点</span>
+            </div>
+            <div class="form-row">
+              <span class="form-label">目的地<span class="required">*</span></span>
+              <div class="form-value active">
+                <span>东灵山</span>
+                <span class="form-arrow">›</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="float-item">
+            <div class="float-header">
+              <span class="float-icon">📅</span>
+              <span class="float-title">行程信息</span>
+            </div>
+            <div class="input-wrap">
+              <input type="text" class="input-field" placeholder="行程标题*" value="东灵山看日出之旅">
+            </div>
+            <div class="form-row">
+              <span class="form-label">出发地<span class="required">*</span></span>
+              <div class="form-value active">
+                <span>海淀区</span>
+                <span class="form-arrow">›</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <span class="form-label">出行日期<span class="required">*</span></span>
+              <div class="form-value active">
+                <span>2026-04-05</span>
+                <span class="form-arrow">›</span>
+              </div>
+            </div>
+            <div class="tag-group">
+              <button class="tag-btn active">有车</button>
+              <button class="tag-btn">无车</button>
+            </div>
+            <div class="input-wrap">
+              <input type="text" class="input-field" placeholder="车辆座位" value="5座">
+            </div>
+            <div class="input-wrap">
+              <input type="text" class="input-field" placeholder="车辆型号" value="大众途观L">
+            </div>
+            <div class="form-row">
+              <span class="form-label">已有人数<span class="required">*</span></span>
+              <div class="counter-wrap">
+                <button class="counter-btn">−</button>
+                <span class="counter-num">1</span>
+                <button class="counter-btn">+</button>
+              </div>
+            </div>
+            <div class="form-row">
+              <span class="form-label">还需人数<span class="required">*</span></span>
+              <div class="counter-wrap">
+                <button class="counter-btn">−</button>
+                <span class="counter-num">3</span>
+                <button class="counter-btn">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="float-item">
+            <div class="float-header">
+              <span class="float-icon">⚙️</span>
+              <span class="float-title">可选信息</span>
+            </div>
+            <div class="input-wrap">
+              <input type="text" class="input-field" placeholder="集合地点" value="海淀黄庄地铁站">
+            </div>
+            <div class="form-row">
+              <span class="form-label">集合时间</span>
+              <div class="form-value active">
+                <span>08:00</span>
+                <span class="form-arrow">›</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <span class="form-label">人均预算</span>
+              <div class="form-value active">
+                <span>约150元</span>
+                <span class="form-arrow">›</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="float-item">
+            <div class="float-header">
+              <span class="float-icon">📞</span>
+              <span class="float-title">联系方式</span>
+            </div>
+            <div class="input-wrap">
+              <input type="text" class="input-field" placeholder="手机号*" value="13912345678">
+            </div>
+          </div>
+
+          <div class="float-item">
+            <div class="float-header">
+              <span class="float-icon">📝</span>
+              <span class="float-title">补充说明</span>
+            </div>
+            <div class="textarea-wrap">
+              <textarea class="textarea-field" placeholder="说说你的计划、要求或期望">周六早上8点集合，自驾前往灵山。费用AA。</textarea>
+              <div class="char-count">28/200</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="height: 100px;"></div>
+      </div>
+
+      <div class="footer-bar">
+        <button class="submit-btn">发布行程</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
