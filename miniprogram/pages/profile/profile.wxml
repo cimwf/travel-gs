@@ -1,98 +1,77 @@
 <!--
   我的页面 (profile)
   ================================
-  设计稿：docs/design-spec.html
-
-  未登录状态：头像居中 + 登录提示
-  已登录状态：头像 + 用户信息 + 编辑按钮
-  功能入口：我的行程 / 我的收藏 / 我的评论 / 关注粉丝
-  其他入口：提交建议 / 关于我们
+  设计稿：我的页面最终简洁版设计稿-v4.0.html - 方案G: 奶油杏
 -->
 
 <view class="container">
   <!-- 用户信息头部 -->
-  <view class="profile-header">
-    <!-- 背景图片使用 image 标签，避免 style 变化导致闪烁 -->
-    <image class="profile-bg-image" src="{{userInfo.background}}" mode="aspectFill" wx:if="{{userInfo.background}}"></image>
-    <!-- 叠加层 - 只在有背景图时显示 -->
-    <view class="profile-bg-overlay" wx:if="{{userInfo.background}}"></view>
+  <view class="profile-header" style="padding-top: {{statusBarHeight + 20}}px;">
+    <!-- 背景图片 -->
+    <image class="profile-bg-image" src="{{userInfo.background || 'https://images.unsplash.com/photo-1433838552652-f9a46b332c40?w=800&q=80'}}" mode="aspectFill"></image>
+    <!-- 渐变遮罩层 -->
+    <view class="profile-bg-overlay"></view>
+
     <!-- 未登录状态 -->
-    <view class="not-logged-in" wx:if="{{!isLoggedIn}}" bindtap="onLogin">
-      <view class="avatar-placeholder">
+    <view class="user-card" wx:if="{{!isLoggedIn}}" bindtap="onLogin">
+      <view class="avatar">
         <text class="avatar-icon">👤</text>
       </view>
-      <view class="login-hint">点击登录</view>
-      <view class="login-desc">登录后查看个人信息</view>
+      <view class="user-info">
+        <view class="user-name">点击登录</view>
+        <view class="user-id">登录后查看个人信息</view>
+      </view>
     </view>
 
     <!-- 已登录状态 -->
-    <view class="logged-in" wx:else>
-      <view class="user-info" bindtap="onEditProfile">
-        <image class="avatar" src="{{userInfo.avatar || userInfo.avatarUrl}}" mode="aspectFill"></image>
-        <view class="user-detail">
-          <view class="nickname">{{userInfo.nickname || userInfo.nickName}}</view>
-          <view class="user-bio">{{userInfo.bio || '喜欢户外运动，周末出游'}}</view>
-        </view>
+    <view class="user-card" wx:else bindtap="onEditProfile">
+      <image class="avatar-img" src="{{userInfo.avatar || userInfo.avatarUrl}}" mode="aspectFill" wx:if="{{userInfo.avatar || userInfo.avatarUrl}}"></image>
+      <view class="avatar" wx:else>
+        <text class="avatar-icon">{{userInfo.nickname ? userInfo.nickname[0] : '旅'}}</text>
+      </view>
+      <view class="user-info">
+        <view class="user-name">{{userInfo.nickname || userInfo.nickName || '旅行者'}}</view>
+        <view class="user-id">{{userInfo.bio || '喜欢户外运动，周末出游'}}</view>
       </view>
     </view>
   </view>
 
-  <view class="menu-section-view">
-    <!-- 功能入口 -->
-    <view class="menu-section">
-      <view class="menu-item" bindtap="onTapMyTrips">
-        <view class="menu-left">
-          <view class="menu-icon" style="background: rgba(74, 144, 226, 0.1);">📅</view>
-          <text class="menu-text">我的行程</text>
-        </view>
-        <text class="menu-arrow">›</text>
+  <!-- 信息列表 -->
+  <view class="info-list">
+    <view class="info-bar" bindtap="onTapMyTrips">
+      <view class="info-icon" style="background: linear-gradient(135deg, var(--primary-bg), var(--secondary-light));">📅</view>
+      <view class="info-content">
+        <view class="info-title">我的行程</view>
       </view>
-      <view class="menu-item" bindtap="onTapTripNotifications">
-        <view class="menu-left">
-          <view class="menu-icon" style="background: rgba(82, 196, 26, 0.1);">🔔</view>
-          <text class="menu-text">行程通知</text>
-        </view>
-        <text class="menu-arrow">›</text>
-      </view>
-      <!-- <view class="menu-item" bindtap="onTapCollections">
-        <view class="menu-left">
-          <view class="menu-icon" style="background: rgba(250, 173, 20, 0.1);">⭐</view>
-          <text class="menu-text">我的收藏</text>
-        </view>
-        <text class="menu-arrow">›</text>
-      </view> -->
-      <!-- <view class="menu-item" bindtap="onTapComments">
-        <view class="menu-left">
-          <view class="menu-icon" style="background: rgba(82, 196, 26, 0.1);">💬</view>
-          <text class="menu-text">我的评论</text>
-        </view>
-        <text class="menu-arrow">›</text>
-      </view>
-      <view class="menu-item" bindtap="onTapFollow">
-        <view class="menu-left">
-          <view class="menu-icon" style="background: rgba(255, 77, 79, 0.1);">👥</view>
-          <text class="menu-text">关注 / 粉丝</text>
-        </view>
-        <text class="menu-arrow">›</text>
-      </view> -->
+      <text class="info-arrow">›</text>
     </view>
 
-    <!-- 其他入口 -->
-    <view class="menu-section">
-      <view class="menu-item" bindtap="onTapFeedback">
-        <view class="menu-left">
-          <view class="menu-icon" style="background: rgba(142, 142, 160, 0.1);">💡</view>
-          <text class="menu-text">提交建议</text>
-        </view>
-        <text class="menu-arrow">›</text>
+    <view class="info-bar" bindtap="onTapTripNotifications">
+      <view class="info-icon" style="background: linear-gradient(135deg, var(--primary-bg), var(--accent-light));">🔔</view>
+      <view class="info-content">
+        <view class="info-title">行程通知</view>
       </view>
-      <view class="menu-item" bindtap="onTapAbout">
-        <view class="menu-left">
-          <view class="menu-icon" style="background: rgba(142, 142, 160, 0.1);">ℹ️</view>
-          <text class="menu-text">关于我们</text>
-        </view>
-        <text class="menu-arrow">›</text>
+      <view class="info-badge" wx:if="{{unreadCount > 0}}">{{unreadCount}}</view>
+      <text class="info-arrow">›</text>
+    </view>
+
+    <view class="info-bar" bindtap="onTapFeedback">
+      <view class="info-icon" style="background: linear-gradient(135deg, var(--primary-bg), var(--tertiary-light));">💡</view>
+      <view class="info-content">
+        <view class="info-title">提交建议</view>
       </view>
+      <text class="info-arrow">›</text>
+    </view>
+
+    <view class="info-bar" bindtap="onTapAbout">
+      <view class="info-icon" style="background: linear-gradient(135deg, var(--primary-bg), var(--primary-light));">ℹ️</view>
+      <view class="info-content">
+        <view class="info-title">关于我们</view>
+      </view>
+      <text class="info-arrow">›</text>
     </view>
   </view>
+
+  <!-- 底部安全区 -->
+  <view class="safe-bottom"></view>
 </view>

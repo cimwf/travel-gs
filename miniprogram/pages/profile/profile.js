@@ -7,6 +7,8 @@ Page({
   data: {
     userInfo: null,
     isLoggedIn: false,
+    statusBarHeight: 0,
+    unreadCount: 0,
     stats: {
       following: 0,
       followers: 0,
@@ -15,6 +17,10 @@ Page({
   },
 
   onLoad: function () {
+    // 获取状态栏高度
+    const windowInfo = wx.getWindowInfo();
+    this.setData({ statusBarHeight: windowInfo.statusBarHeight });
+
     this.checkLogin();
   },
 
@@ -22,6 +28,7 @@ Page({
     this.checkLogin();
     if (this.data.isLoggedIn) {
       this.loadUserStats();
+      this.loadUnreadCount();
     }
   },
 
@@ -99,6 +106,32 @@ Page({
       });
     } catch (err) {
       console.error('加载统计数据失败', err);
+    }
+  },
+
+  // 加载未读消息数量
+  loadUnreadCount: async function () {
+    const openid = app.globalData.openid;
+    if (!openid || !wx.cloud) return;
+
+    try {
+      const db = wx.cloud.database();
+      const _ = db.command;
+
+      // 查询未处理的申请数量
+      const res = await db.collection('applies')
+        .where({
+          toUserId: openid,
+          type: _.in(['apply']),
+          status: 'pending'
+        })
+        .count();
+
+      this.setData({
+        unreadCount: res.total || 0
+      });
+    } catch (err) {
+      console.warn('加载未读消息数量失败', err);
     }
   },
 
