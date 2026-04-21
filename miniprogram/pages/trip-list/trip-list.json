@@ -1,6 +1,7 @@
 {
-  "navigationBarTitleText": "想去的人",
+  "navigationBarTitleText": "行程",
   "navigationBarBackgroundColor": "#ffffff",
   "navigationBarTextStyle": "black",
+  "enablePullDownRefresh": false,
   "usingComponents": {}
 }

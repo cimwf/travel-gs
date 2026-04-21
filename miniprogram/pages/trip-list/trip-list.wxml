@@ -1,71 +1,136 @@
 <!--pages/trip-list/trip-list.wxml-->
 <view class="container">
-  <!-- 列表区域 -->
-  <view class="list-container">
-    <view class="trip-list" wx:if="{{trips.length > 0}}">
-      <view class="trip-item" wx:for="{{trips}}" wx:key="_id" bindtap="onTripTap" data-id="{{item._id}}">
-        <!-- 顶部：头像+用户名+状态标签 | 操作按钮 -->
-        <view class="trip-top">
-          <view class="trip-user-info">
-            <image class="user-avatar-img" src="{{item.creatorAvatar}}" wx:if="{{item.creatorAvatar}}" mode="aspectFill"></image>
-            <view class="user-avatar" style="background: linear-gradient(135deg, #4A90E2, #6BA3E8);" wx:else>
-              <text>{{item.creatorName ? item.creatorName[0] : '旅'}}</text>
-            </view>
-            <text class="trip-user">{{item.creatorName || '旅行者'}}</text>
-            <!-- <view class="trip-status {{item.hasCar ? 'has-car' : 'need-car'}}">
-              <text>{{item.hasCar ? '有车' : '需拼车'}}</text>
-            </view> -->
-          </view>
-          <view class="action-btn {{item.hasCar ? 'primary' : 'outline'}}" catchtap="onActionTap" data-id="{{item._id}}" data-index="{{index}}" data-hascar="{{item.hasCar}}">
-            {{item.hasCar ? '申请加入' : '邀请他'}}
-          </view>
-        </view>
-
-        <!-- 信息栏：出发日期 | 出发地 | 人数 -->
-        <view class="trip-meta-row">
-          <view class="trip-meta-item">
-            <text class="trip-meta-label">出发</text>
-            <text>{{item.dateText || item.date}}</text>
-          </view>
-          <view class="trip-meta-item" wx:if="{{item.departure}}">
-            <text>{{item.departure}}</text>
-          </view>
-          <view class="trip-meta-item">
-            <text class="trip-meta-label">人数</text>
-            <text>{{item.currentCount}}/{{item.totalCount}}人</text>
-          </view>
-        </view>
-
-        <!-- 备注区域 -->
-        <view class="trip-remark" wx:if="{{item.remark}}">{{item.remark}}</view>
-
-        <!-- 底部：浏览量 + 发布时间 -->
-        <view class="trip-footer">
-          <view class="trip-footer-stats">
-            <text class="trip-stat">👁 {{item.viewCount || 0}}次浏览</text>
-            <text class="trip-stat">{{item.publishTime || '刚刚发布'}}</text>
-          </view>
-        </view>
-      </view>
+  <!-- 筛选栏 -->
+  <view class="filter-bar">
+    <view class="filter-item {{activeFilter === 'destination' ? 'active' : ''}}" bindtap="onFilterTap" data-filter="destination">
+      <text>{{destinationText || '目的地'}}</text>
+      <text class="filter-arrow">▾</text>
     </view>
-
-    <!-- 空状态 -->
-    <view class="empty-state" wx:if="{{!loading && trips.length === 0}}">
-      <text class="empty-icon">🏕️</text>
-      <text class="empty-text">暂无行程，快来发布第一个吧！</text>
+    <view class="filter-item {{activeFilter === 'departure' ? 'active' : ''}}" bindtap="onFilterTap" data-filter="departure">
+      <text>{{departureText || '出发地'}}</text>
+      <text class="filter-arrow">▾</text>
     </view>
-
-    <!-- 加载更多 -->
-    <view class="load-more" wx:if="{{hasMore && trips.length > 0}}">
-      <text>加载更多...</text>
+    <view class="filter-item {{activeFilter === 'date' ? 'active' : ''}}" bindtap="onFilterTap" data-filter="date">
+      <text>{{dateText || '出行时间'}}</text>
+      <text class="filter-arrow">▾</text>
     </view>
   </view>
 
-  <!-- 底部操作栏 -->
-  <view class="footer-bar">
-    <view class="publish-btn" bindtap="onPublishTrip">
-      <text class="publish-icon">+</text>
-      <text>发布我的行程</text>
+  <!-- 列表区域 -->
+  <scroll-view class="list-container" scroll-y enhanced show-scrollbar="{{false}}" refresher-enabled="{{true}}" refresher-triggered="{{refreshing}}" bindrefresherrefresh="onRefresh">
+    <view class="list-content">
+      <!-- 行程列表 -->
+      <view class="trip-list" wx:if="{{trips.length > 0}}">
+        <view class="trip-card" wx:for="{{trips}}" wx:key="_id" bindtap="onTripTap" data-id="{{item._id}}">
+          <!-- 卡片头部 -->
+          <view class="trip-header">
+            <image class="trip-img" src="{{item.placeCoverImage}}" mode="aspectFill" wx:if="{{item.placeCoverImage}}"></image>
+            <view class="trip-img" style="background: {{item.imgBg}};" wx:else>
+              <text class="trip-emoji">{{item.emoji}}</text>
+            </view>
+            <view class="trip-info">
+              <view class="trip-title-row">
+                <view class="trip-title">{{item.placeName}}</view>
+                <view class="trip-status {{item.statusClass}}">{{item.statusText}}</view>
+              </view>
+              <view class="trip-meta">
+                <text>📅 {{item.dateText}}</text>
+                <text class="meta-dot">·</text>
+                <text>📍 {{item.departure || '待定'}}</text>
+                <text class="meta-dot">·</text>
+                <text>{{item.hasCar ? '🚗 有车' : '🚗 无车'}}</text>
+              </view>
+            </view>
+          </view>
+
+          <!-- 参与者 -->
+          <view class="trip-footer">
+            <view class="trip-footer-left">
+              <view class="participants">
+                <image class="participant-avatar" wx:for="{{item.participants}}" wx:for-item="p" wx:for-index="pIndex" wx:key="userId" src="{{p.avatar}}" mode="aspectFill"></image>
+              </view>
+              <text class="trip-need" wx:if="{{item.needCount > 0}}">还差{{item.needCount}}人</text>
+            </view>
+            <text class="publish-time">{{item.publishTime}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="empty-state" wx:if="{{!loading && trips.length === 0}}">
+        <view class="empty-icon-wrapper">
+          <text class="empty-icon">🗺️</text>
+        </view>
+        <view class="empty-title">暂无行程</view>
+        <view class="empty-desc">快来发布第一个行程吧！</view>
+        <view class="empty-btn" bindtap="onPublishTrip">发布行程</view>
+      </view>
+
+      <!-- 加载中 -->
+      <view class="loading-state" wx:if="{{loading}}">
+        <view class="loading-spinner"></view>
+        <text>加载中...</text>
+      </view>
+
+      <!-- 加载更多 -->
+      <view class="load-more" wx:if="{{hasMore && trips.length > 0 && !loading}}">
+        <text>上拉加载更多</text>
+      </view>
+
+      <!-- 没有更多 -->
+      <view class="no-more" wx:if="{{!hasMore && trips.length > 0}}">
+        <text>— 没有更多了 —</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 悬浮发布按钮 -->
+  <view class="fab" bindtap="onPublishTrip">
+    <view class="fab-inner">
+      <text class="fab-icon">+</text>
+    </view>
+  </view>
+</view>
+
+<!-- 目的地筛选弹窗 -->
+<view class="filter-modal" wx:if="{{showDestinationFilter}}" bindtap="onCloseFilter">
+  <view class="filter-panel" catchtap="">
+    <view class="filter-panel-header">
+      <text class="filter-panel-title">选择目的地</text>
+    </view>
+    <view class="filter-options">
+      <view class="filter-option {{!filterDestination ? 'selected' : ''}}" bindtap="onSelectDestination" data-value="">全部</view>
+      <view class="filter-option {{filterDestination === item ? 'selected' : ''}}" wx:for="{{destinationOptions}}" wx:key="*this" bindtap="onSelectDestination" data-value="{{item}}">{{item}}</view>
+    </view>
+  </view>
+</view>
+
+<!-- 出发地筛选弹窗 -->
+<view class="filter-modal" wx:if="{{showDepartureFilter}}" bindtap="onCloseFilter">
+  <view class="filter-panel" catchtap="">
+    <view class="filter-panel-header">
+      <text class="filter-panel-title">选择出发地</text>
+    </view>
+    <view class="filter-options">
+      <view class="filter-option {{!filterDeparture ? 'selected' : ''}}" bindtap="onSelectDeparture" data-value="">全部</view>
+      <view class="filter-option {{filterDeparture === item ? 'selected' : ''}}" wx:for="{{departureOptions}}" wx:key="*this" bindtap="onSelectDeparture" data-value="{{item}}">{{item}}</view>
+    </view>
+  </view>
+</view>
+
+<!-- 出行时间筛选弹窗 -->
+<view class="filter-modal" wx:if="{{showDateFilter}}" bindtap="onCloseFilter">
+  <view class="filter-panel" catchtap="">
+    <view class="filter-panel-header">
+      <text class="filter-panel-title">选择出行时间</text>
+    </view>
+    <view class="filter-options">
+      <view class="filter-option {{!filterDate ? 'selected' : ''}}" bindtap="onSelectDate" data-value="">全部</view>
+      <view class="filter-option {{filterDate === 'today' ? 'selected' : ''}}" bindtap="onSelectDate" data-value="today">今天</view>
+      <view class="filter-option {{filterDate === 'tomorrow' ? 'selected' : ''}}" bindtap="onSelectDate" data-value="tomorrow">明天</view>
+      <view class="filter-option {{filterDate === 'thisWeek' ? 'selected' : ''}}" bindtap="onSelectDate" data-value="thisWeek">本周</view>
+      <view class="filter-option {{filterDate === 'nextWeek' ? 'selected' : ''}}" bindtap="onSelectDate" data-value="nextWeek">下周</view>
+      <view class="filter-option {{filterDate === 'thisMonth' ? 'selected' : ''}}" bindtap="onSelectDate" data-value="thisMonth">本月</view>
     </view>
   </view>
 </view>

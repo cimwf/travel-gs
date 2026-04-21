@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>近期行程卡片设计方案</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary-color: #4A90E2;
+      --primary-light: #6BA3E8;
+      --text-primary: #1A1A2E;
+      --text-secondary: #4A4A68;
+      --text-hint: #8E8EA0;
+      --bg-color: #F5F7FA;
+      --card-bg: #FFFFFF;
+      --border-color: #E8E8F0;
+      --success-color: #52C41A;
+      --warning-color: #FAAD14;
+      --danger-color: #FF4D4F;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      background: #1a1a2e;
+      color: white;
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+
+    .container { max-width: 1400px; margin: 0 auto; }
+
+    .header {
+      text-align: center;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 24px;
+      margin-bottom: 40px;
+    }
+
+    .header h1 { font-size: 36px; font-weight: 700; margin-bottom: 12px; }
+    .header p { font-size: 16px; opacity: 0.9; }
+
+    .section {
+      background: rgba(255,255,255,0.05);
+      border-radius: 24px;
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 24px;
+      background: var(--primary-color);
+      border-radius: 2px;
+    }
+
+    .section-desc {
+      opacity: 0.7;
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+    }
+
+    .card-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .card-label {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .phone-frame {
+      width: 375px;
+      background: white;
+      border-radius: 32px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .phone-content {
+      padding: 16px;
+      background: var(--bg-color);
+    }
+
+    /* 行程卡片基础样式 */
+    .trip-card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .trip-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .trip-header {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .trip-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .trip-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .trip-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .trip-meta {
+      font-size: 13px;
+      color: var(--text-hint);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .trip-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .trip-meta-dot {
+      color: var(--border-color);
+    }
+
+    .trip-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .trip-status {
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+
+    .trip-status.recruiting {
+      background: rgba(82, 196, 26, 0.1);
+      color: #52C41A;
+    }
+
+    .trip-status.almost-full {
+      background: rgba(250, 173, 20, 0.1);
+      color: #FAAD14;
+    }
+
+    .trip-status.full {
+      background: rgba(140, 140, 160, 0.1);
+      color: #8E8EA0;
+    }
+
+    .trip-status.stopped {
+      background: rgba(255, 77, 79, 0.1);
+      color: #FF4D4F;
+    }
+
+    .trip-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .trip-footer-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .trip-need {
+      font-size: 12px;
+      color: var(--primary-color);
+      font-weight: 500;
+    }
+
+    .avatars {
+      display: flex;
+    }
+
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      border: 2px solid white;
+    }
+
+    .avatar + .avatar {
+      margin-left: -8px;
+    }
+
+    .creator-info {
+      font-size: 12px;
+      color: var(--text-hint);
+    }
+
+    /* 标签样式 */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .tag-primary {
+      background: rgba(74, 144, 226, 0.1);
+      color: var(--primary-color);
+    }
+
+    .tag-success {
+      background: rgba(82, 196, 26, 0.1);
+      color: var(--success-color);
+    }
+
+    .tag-warning {
+      background: rgba(250, 173, 20, 0.1);
+      color: var(--warning-color);
+    }
+
+    /* 分隔线 */
+    .divider {
+      height: 1px;
+      background: var(--bg-color);
+      margin: 12px 0;
+    }
+
+    /* 底部信息行 */
+    .bottom-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .trip-need {
+      font-size: 12px;
+      color: var(--primary-color);
+      font-weight: 500;
+    }
+
+    .publish-time {
+      font-size: 11px;
+      color: var(--text-hint);
+    }
+
+    /* 说明面板 */
+    .note-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+
+    .note-card h4 {
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .note-card p {
+      font-size: 12px;
+      opacity: 0.7;
+      line-height: 1.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🚗 近期行程卡片设计</h1>
+      <p>首页 - 地点推荐部分</p>
+      <p style="margin-top: 8px; font-size: 13px; opacity: 0.8;">新增：出发地、发布时间 | 去除：评价、已有几人</p>
+    </div>
+
+    <!-- 方案一：简洁横向布局 -->
+    <div class="section">
+      <h2 class="section-title">方案一：简洁横向布局（已选）</h2>
+      <p class="section-desc">信息横向排列，一目了然，适合快速浏览</p>
+
+      <div class="cards-grid">
+        <div class="card-wrapper">
+          <div class="card-label">效果预览</div>
+          <div class="phone-frame">
+            <div class="phone-content">
+              <!-- 卡片1 - 招募中 -->
+              <div class="trip-card">
+                <div class="trip-header">
+                  <div class="trip-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">🏔️</div>
+                  <div class="trip-info">
+                    <div class="trip-title-row">
+                      <div class="trip-title">东灵山日出徒步</div>
+                      <div class="trip-status recruiting">招募中</div>
+                    </div>
+                    <div class="trip-meta">
+                      <span class="trip-meta-item">📅 4月5日 周六</span>
+                      <span class="trip-meta-dot">·</span>
+                      <span class="trip-meta-item">📍 海淀区</span>
+                      <span class="trip-meta-dot">·</span>
+                      <span class="trip-meta-item">🚗 有车</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="trip-footer">
+                  <div class="trip-footer-left">
+                    <div class="avatars">
+                      <div class="avatar" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">张</div>
+                      <div class="avatar" style="background: linear-gradient(135deg, #4A90E2, #6BA3E8);">李</div>
+                      <div class="avatar" style="background: linear-gradient(135deg, #56AB2F, #A8E6CF);">王</div>
+                    </div>
+                    <span class="trip-need">还差2人</span>
+                  </div>
+                  <span class="publish-time">2小时前</span>
+                </div>
+              </div>
+
+              <!-- 卡片2 - 即将满员 -->
+              <div class="trip-card">
+                <div class="trip-header">
+                  <div class="trip-icon" style="background: linear-gradient(135deg, #56AB2F, #A8E6CF);">🌸</div>
+                  <div class="trip-info">
+                    <div class="trip-title-row">
+                      <div class="trip-title">百花山赏花踏青</div>
+                      <div class="trip-status almost-full">即将满员</div>
+                    </div>
+                    <div class="trip-meta">
+                      <span class="trip-meta-item">📅 4月8日 周二</span>
+                      <span class="trip-meta-dot">·</span>
+                      <span class="trip-meta-item">📍 朝阳区</span>
+                      <span class="trip-meta-dot">·</span>
+                      <span class="trip-meta-item">🚗 无车</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="trip-footer">
+                  <div class="trip-footer-left">
+                    <div class="avatars">
+                      <div class="avatar" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">小</div>
+                      <div class="avatar" style="background: linear-gradient(135deg, #4A90E2, #6BA3E8);">红</div>
+                    </div>
+                    <span class="trip-need">还差1人</span>
+                  </div>
+                  <span class="publish-time">5小时前</span>
+                </div>
+              </div>
+
+              <!-- 卡片3 - 已满员 -->
+              <div class="trip-card">
+                <div class="trip-header">
+                  <div class="trip-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">💧</div>
+                  <div class="trip-info">
+                    <div class="trip-title-row">
+                      <div class="trip-title">十渡漂流玩水</div>
+                      <div class="trip-status full">已满员</div>
+                    </div>
+                    <div class="trip-meta">
+                      <span class="trip-meta-item">📅 4月12日 周五</span>
+                      <span class="trip-meta-dot">·</span>
+                      <span class="trip-meta-item">📍 西城区</span>
+                      <span class="trip-meta-dot">·</span>
+                      <span class="trip-meta-item">🚗 有车</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="trip-footer">
+                  <div class="trip-footer-left">
+                    <div class="avatars">
+                      <div class="avatar" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">王</div>
+                      <div class="avatar" style="background: linear-gradient(135deg, #4A90E2, #6BA3E8);">李</div>
+                      <div class="avatar" style="background: linear-gradient(135deg, #56AB2F, #A8E6CF);">张</div>
+                      <div class="avatar" style="background: linear-gradient(135deg, #f093fb, #f5576c);">赵</div>
+                    </div>
+                  </div>
+                  <span class="publish-time">昨天</span>
+                </div>
+              </div>
+
+              <!-- 卡片4 - 停止招募 -->
+              <div class="trip-card">
+                <div class="trip-header">
+                  <div class="trip-icon" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">🏯</div>
+                  <div class="trip-info">
+                    <div class="trip-title-row">
+                      <div class="trip-title">古北水镇一日游</div>
+                      <div class="trip-status stopped">停止招募</div>
+                    </div>
+                    <div class="trip-meta">
+                      <span class="trip-meta-item">📅 4月15日 周一</span>
+                      <span class="trip-meta-dot">·</span>
+                      <span class="trip-meta-item">📍 东城区</span>
+                      <span class="trip-meta-dot">·</span>
+                      <span class="trip-meta-item">🚗 有车</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="trip-footer">
+                  <div class="trip-footer-left">
+                    <div class="avatars">
+                      <div class="avatar" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">赵</div>
+                    </div>
+                  </div>
+                  <span class="publish-time">3天前</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="note-card">
+            <h4>💡 设计说明</h4>
+            <p>
+              <strong>状态标签：</strong><br>
+              • 招募中（绿色）- 正常招募状态<br>
+              • 即将满员（橙色）- 还差1人<br>
+              • 已满员（灰色）- 人数已满<br>
+              • 停止招募（红色）- 发起人主动停止<br><br>
+              <strong>人数提示：</strong><br>
+              • "还差X人" - 显示在头像右侧<br>
+              • 已满员时不显示人数提示
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 方案二：分行信息布局 -->
+    <div class="section">
+      <h2 class="section-title">方案二：分行信息布局</h2>
+      <p class="section-desc">信息分行展示，层次分明，信息更易读</p>
+
+      <div class="cards-grid">
+        <div class="card-wrapper">
+          <div class="card-label">效果预览</div>
+          <div class="phone-frame">
+            <div class="phone-content">
+              <!-- 卡片1 -->
+              <div class="trip-card">
+                <div class="trip-header">
+                  <div class="trip-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">🏔️</div>
+                  <div class="trip-info">
+                    <div class="trip-title">东灵山日出徒步</div>
+                    <div style="display: flex; gap: 6px; margin-top: 6px;">
+                      <span class="tag tag-primary">📅 4月5日 周六</span>
+                      <span class="tag tag-success">🚗 有车</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="divider"></div>
+                <div class="bottom-row">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 13px; color: var(--text-hint);">📍 出发地</span>
+                    <span style="font-size: 13px; color: var(--text-secondary);">海淀区</span>
+                  </div>
+                  <span class="publish-time">2小时前发布</span>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px;">
+                  <div class="avatars">
+                    <div class="avatar" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">张</div>
+                    <div class="avatar" style="background: linear-gradient(135deg, #4A90E2, #6BA3E8);">+2</div>
+                  </div>
+                  <span class="creator-info">发起人：张伟</span>
+                </div>
+              </div>
+
+              <!-- 卡片2 -->
+              <div class="trip-card">
+                <div class="trip-header">
+                  <div class="trip-icon" style="background: linear-gradient(135deg, #56AB2F, #A8E6CF);">🌸</div>
+                  <div class="trip-info">
+                    <div class="trip-title">百花山赏花踏青</div>
+                    <div style="display: flex; gap: 6px; margin-top: 6px;">
+                      <span class="tag tag-primary">📅 4月8日 周二</span>
+                      <span class="tag tag-warning">🚗 需拼车</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="divider"></div>
+                <div class="bottom-row">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 13px; color: var(--text-hint);">📍 出发地</span>
+                    <span style="font-size: 13px; color: var(--text-secondary);">朝阳区</span>
+                  </div>
+                  <span class="publish-time">5小时前发布</span>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px;">
+                  <div class="avatars">
+                    <div class="avatar" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">小</div>
+                    <div class="avatar" style="background: linear-gradient(135deg, #4A90E2, #6BA3E8);">红</div>
+                  </div>
+                  <span class="creator-info">发起人：小明</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="note-card">
+            <h4>💡 设计说明</h4>
+            <p>
+              • 日期和有车/无车使用标签形式展示<br>
+              • 出发地单独一行，更加突出<br>
+              • 发布时间放在出发地右侧<br>
+              • 底部单独展示参与者和发起人
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 方案三：紧凑两行布局 -->
+    <div class="section">
+      <h2 class="section-title">方案三：紧凑两行布局（已选）</h2>
+      <p class="section-desc">信息紧凑，适合信息量大的场景</p>
+
+      <div class="cards-grid">
+        <div class="card-wrapper">
+          <div class="card-label">效果预览</div>
+          <div class="phone-frame">
+            <div class="phone-content">
+              <!-- 卡片1 -->
+              <div class="trip-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                  <div style="display: flex; gap: 10px; flex: 1;">
+                    <div class="trip-icon" style="width: 48px; height: 48px; font-size: 24px; background: linear-gradient(135deg, #667eea, #764ba2);">🏔️</div>
+                    <div class="trip-info">
+                      <div class="trip-title" style="font-size: 15px;">东灵山日出徒步</div>
+                      <div class="trip-meta" style="font-size: 12px;">
+                        📅 4月5日 · 📍 海淀区 · 🚗 有车
+                      </div>
+                    </div>
+                  </div>
+                  <span class="publish-time">2小时前</span>
+                </div>
+                <div class="trip-footer">
+                  <div class="avatars">
+                    <div class="avatar" style="width: 24px; height: 24px; font-size: 10px; background: linear-gradient(135deg, #FF6B6B, #FF8E53);">张</div>
+                    <div class="avatar" style="width: 24px; height: 24px; font-size: 10px; background: linear-gradient(135deg, #4A90E2, #6BA3E8);">李</div>
+                    <div class="avatar" style="width: 24px; height: 24px; font-size: 10px; background: linear-gradient(135deg, #56AB2F, #A8E6CF);">王</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 卡片2 -->
+              <div class="trip-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                  <div style="display: flex; gap: 10px; flex: 1;">
+                    <div class="trip-icon" style="width: 48px; height: 48px; font-size: 24px; background: linear-gradient(135deg, #56AB2F, #A8E6CF);">🌸</div>
+                    <div class="trip-info">
+                      <div class="trip-title" style="font-size: 15px;">百花山赏花踏青</div>
+                      <div class="trip-meta" style="font-size: 12px;">
+                        📅 4月8日 · 📍 朝阳区 · 🚗 无车
+                      </div>
+                    </div>
+                  </div>
+                  <span class="publish-time">5小时前</span>
+                </div>
+                <div class="trip-footer">
+                  <div class="avatars">
+                    <div class="avatar" style="width: 24px; height: 24px; font-size: 10px; background: linear-gradient(135deg, #FF6B6B, #FF8E53);">小</div>
+                    <div class="avatar" style="width: 24px; height: 24px; font-size: 10px; background: linear-gradient(135deg, #4A90E2, #6BA3E8);">红</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 卡片3 -->
+              <div class="trip-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                  <div style="display: flex; gap: 10px; flex: 1;">
+                    <div class="trip-icon" style="width: 48px; height: 48px; font-size: 24px; background: linear-gradient(135deg, #4facfe, #00f2fe);">💧</div>
+                    <div class="trip-info">
+                      <div class="trip-title" style="font-size: 15px;">十渡漂流玩水</div>
+                      <div class="trip-meta" style="font-size: 12px;">
+                        📅 4月12日 · 📍 西城区 · 🚗 有车
+                      </div>
+                    </div>
+                  </div>
+                  <span class="publish-time">昨天</span>
+                </div>
+                <div class="trip-footer">
+                  <div class="avatars">
+                    <div class="avatar" style="width: 24px; height: 24px; font-size: 10px; background: linear-gradient(135deg, #FF6B6B, #FF8E53);">王</div>
+                    <div class="avatar" style="width: 24px; height: 24px; font-size: 10px; background: linear-gradient(135deg, #4A90E2, #6BA3E8);">李</div>
+                    <div class="avatar" style="width: 24px; height: 24px; font-size: 10px; background: linear-gradient(135deg, #56AB2F, #A8E6CF);">张</div>
+                    <div class="avatar" style="width: 24px; height: 24px; font-size: 10px; background: linear-gradient(135deg, #f093fb, #f5576c);">赵</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="note-card">
+            <h4>💡 设计说明</h4>
+            <p>
+              • 缩小图标尺寸，信息更紧凑<br>
+              • 发布时间放在右上角<br>
+              • 日期、出发地、有车合并为一行<br>
+              • 底部展示所有参与者头像<br>
+              • 适合展示更多行程的场景
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 方案四：带头像的左侧布局 -->
+    <div class="section">
+      <h2 class="section-title">方案四：发起人头像突出布局</h2>
+      <p class="section-desc">突出发起人，增强社交属性</p>
+
+      <div class="cards-grid">
+        <div class="card-wrapper">
+          <div class="card-label">效果预览</div>
+          <div class="phone-frame">
+            <div class="phone-content">
+              <!-- 卡片1 -->
+              <div class="trip-card">
+                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                  <!-- 发起人头像 -->
+                  <div style="text-align: center;">
+                    <div class="avatar" style="width: 40px; height: 40px; font-size: 14px; border-radius: 50%; background: linear-gradient(135deg, #FF6B6B, #FF8E53); border: none;">张</div>
+                    <span style="font-size: 11px; color: var(--text-hint); margin-top: 4px; display: block;">发起人</span>
+                  </div>
+                  <!-- 行程信息 -->
+                  <div style="flex: 1;">
+                    <div class="trip-title" style="margin-bottom: 6px;">东灵山日出徒步</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+                      <span class="tag tag-primary">📅 4月5日</span>
+                      <span class="tag" style="background: rgba(142, 142, 160, 0.1); color: var(--text-hint);">📍 海淀区</span>
+                      <span class="tag tag-success">🚗 有车</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <div class="avatars">
+                        <div class="avatar" style="width: 24px; height: 24px; font-size: 10px; background: linear-gradient(135deg, #4A90E2, #6BA3E8);">李</div>
+                        <div class="avatar" style="width: 24px; height: 24px; font-size: 10px; background: linear-gradient(135deg, #56AB2F, #A8E6CF);">+2</div>
+                      </div>
+                      <span class="publish-time">2小时前发布</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 卡片2 -->
+              <div class="trip-card">
+                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                  <div style="text-align: center;">
+                    <div class="avatar" style="width: 40px; height: 40px; font-size: 14px; border-radius: 50%; background: linear-gradient(135deg, #4A90E2, #6BA3E8); border: none;">小</div>
+                    <span style="font-size: 11px; color: var(--text-hint); margin-top: 4px; display: block;">发起人</span>
+                  </div>
+                  <div style="flex: 1;">
+                    <div class="trip-title" style="margin-bottom: 6px;">百花山赏花踏青</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+                      <span class="tag tag-primary">📅 4月8日</span>
+                      <span class="tag" style="background: rgba(142, 142, 160, 0.1); color: var(--text-hint);">📍 朝阳区</span>
+                      <span class="tag tag-warning">🚗 需拼车</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <div class="avatars">
+                        <div class="avatar" style="width: 24px; height: 24px; font-size: 10px; background: linear-gradient(135deg, #FF6B6B, #FF8E53);">红</div>
+                      </div>
+                      <span class="publish-time">5小时前发布</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="note-card">
+            <h4>💡 设计说明</h4>
+            <p>
+              • 发起人头像放在最左侧并标注<br>
+              • 日期、出发地、有车使用标签展示<br>
+              • 参与者头像较小，显示在右下角<br>
+              • 突出社交属性，适合以人为中心的场景
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 方案五：带封面的卡片布局 -->
+    <div class="section">
+      <h2 class="section-title">方案五：带景点封面布局</h2>
+      <p class="section-desc">使用景点图片作为视觉重点，更有吸引力</p>
+
+      <div class="cards-grid">
+        <div class="card-wrapper">
+          <div class="card-label">效果预览</div>
+          <div class="phone-frame">
+            <div class="phone-content">
+              <!-- 卡片1 -->
+              <div class="trip-card" style="padding: 0; overflow: hidden;">
+                <div style="display: flex;">
+                  <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; font-size: 40px;">🏔️</div>
+                  <div style="flex: 1; padding: 12px;">
+                    <div class="trip-title" style="font-size: 15px; margin-bottom: 6px;">东灵山日出徒步</div>
+                    <div class="trip-meta" style="font-size: 12px; margin-bottom: 6px;">
+                      📅 4月5日 · 📍 海淀区 · 🚗 有车
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <div style="display: flex; align-items: center; gap: 6px;">
+                        <div class="avatar" style="width: 20px; height: 20px; font-size: 9px; background: linear-gradient(135deg, #FF6B6B, #FF8E53); border: none;">张</div>
+                        <span style="font-size: 11px; color: var(--text-hint);">发起人：张伟</span>
+                      </div>
+                      <span class="publish-time">2小时前</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 卡片2 -->
+              <div class="trip-card" style="padding: 0; overflow: hidden; margin-top: 12px;">
+                <div style="display: flex;">
+                  <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #56AB2F, #A8E6CF); display: flex; align-items: center; justify-content: center; font-size: 40px;">🌸</div>
+                  <div style="flex: 1; padding: 12px;">
+                    <div class="trip-title" style="font-size: 15px; margin-bottom: 6px;">百花山赏花踏青</div>
+                    <div class="trip-meta" style="font-size: 12px; margin-bottom: 6px;">
+                      📅 4月8日 · 📍 朝阳区 · 🚗 无车
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <div style="display: flex; align-items: center; gap: 6px;">
+                        <div class="avatar" style="width: 20px; height: 20px; font-size: 9px; background: linear-gradient(135deg, #4A90E2, #6BA3E8); border: none;">小</div>
+                        <span style="font-size: 11px; color: var(--text-hint);">发起人：小明</span>
+                      </div>
+                      <span class="publish-time">5小时前</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 卡片3 -->
+              <div class="trip-card" style="padding: 0; overflow: hidden; margin-top: 12px;">
+                <div style="display: flex;">
+                  <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #4facfe, #00f2fe); display: flex; align-items: center; justify-content: center; font-size: 40px;">💧</div>
+                  <div style="flex: 1; padding: 12px;">
+                    <div class="trip-title" style="font-size: 15px; margin-bottom: 6px;">十渡漂流玩水</div>
+                    <div class="trip-meta" style="font-size: 12px; margin-bottom: 6px;">
+                      📅 4月12日 · 📍 西城区 · 🚗 有车
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <div style="display: flex; align-items: center; gap: 6px;">
+                        <div class="avatar" style="width: 20px; height: 20px; font-size: 9px; background: linear-gradient(135deg, #56AB2F, #A8E6CF); border: none;">王</div>
+                        <span style="font-size: 11px; color: var(--text-hint);">发起人：王芳</span>
+                      </div>
+                      <span class="publish-time">昨天</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="note-card">
+            <h4>💡 设计说明</h4>
+            <p>
+              • 左侧使用景点图片/图标作为封面<br>
+              • 信息紧凑在右侧展示<br>
+              • 视觉吸引力强，适合图片丰富的场景<br>
+              • 可以替换为真实景点图片
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 对比总结 -->
+    <div class="section">
+      <h2 class="section-title">方案对比总结</h2>
+      <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 24px; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <thead>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+              <th style="text-align: left; padding: 12px 16px;">方案</th>
+              <th style="text-align: left; padding: 12px 16px;">特点</th>
+              <th style="text-align: left; padding: 12px 16px;">适用场景</th>
+              <th style="text-align: left; padding: 12px 16px;">信息密度</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+              <td style="padding: 12px 16px; color: var(--primary-color);">方案一</td>
+              <td style="padding: 12px 16px;">简洁横向布局，信息一目了然</td>
+              <td style="padding: 12px 16px;">通用场景</td>
+              <td style="padding: 12px 16px;">中等</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+              <td style="padding: 12px 16px; color: var(--primary-color);">方案二</td>
+              <td style="padding: 12px 16px;">分行信息，层次分明，出发地突出</td>
+              <td style="padding: 12px 16px;">出发地重要的场景</td>
+              <td style="padding: 12px 16px;">较低</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+              <td style="padding: 12px 16px; color: var(--primary-color);">方案三</td>
+              <td style="padding: 12px 16px;">紧凑两行，信息密集</td>
+              <td style="padding: 12px 16px;">需要展示大量行程</td>
+              <td style="padding: 12px 16px;">高</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+              <td style="padding: 12px 16px; color: var(--primary-color);">方案四</td>
+              <td style="padding: 12px 16px;">发起人突出，社交属性强</td>
+              <td style="padding: 12px 16px;">以人为中心的社交场景</td>
+              <td style="padding: 12px 16px;">中等</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px 16px; color: var(--primary-color);">方案五</td>
+              <td style="padding: 12px 16px;">带景点封面，视觉吸引力强</td>
+              <td style="padding: 12px 16px;">图片丰富的场景</td>
+              <td style="padding: 12px 16px;">中等</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <footer style="text-align: center; padding: 40px 20px; opacity: 0.6;">
+      <p style="font-size: 14px;">北上周边行 · 近期行程卡片设计</p>
+      <p style="font-size: 12px; margin-top: 8px;">2026-04-21</p>
+    </footer>
+  </div>
+</body>
+</html>
