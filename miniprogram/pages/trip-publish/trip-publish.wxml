@@ -1,5 +1,11 @@
 <!--pages/trip-publish/trip-publish.wxml-->
 <view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <view class="page-title">发布行程</view>
+    <view class="page-subtitle">填写行程信息，邀请志同道合的伙伴一起出发</view>
+  </view>
+
   <!-- 表单内容 -->
   <view class="form-content">
     <!-- 选择地点 -->
@@ -46,21 +52,12 @@
       </view>
       -->
 
-      <view class="form-item">
-        <text class="form-label">已有人数</text>
-        <view class="count-picker">
-          <view class="count-btn" data-type="minus" data-field="currentCount" bindtap="onCountChange">−</view>
-          <text class="count-value">{{currentCount}}人</text>
-          <view class="count-btn" data-type="plus" data-field="currentCount" bindtap="onCountChange">+</view>
-        </view>
-      </view>
-
       <view class="form-item last-item">
-        <text class="form-label">还需人数</text>
+        <text class="form-label">招募人数</text>
         <view class="count-picker">
-          <view class="count-btn" data-type="minus" data-field="needCount" bindtap="onCountChange">−</view>
-          <text class="count-value">{{needCount}}人</text>
-          <view class="count-btn" data-type="plus" data-field="needCount" bindtap="onCountChange">+</view>
+          <view class="count-btn" data-type="minus" bindtap="onCountChange">−</view>
+          <text class="count-value">{{recruitCount}}人</text>
+          <view class="count-btn" data-type="plus" bindtap="onCountChange">+</view>
         </view>
       </view>
     </view>

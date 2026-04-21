@@ -33,6 +33,24 @@ page {
   box-sizing: border-box;
 }
 
+/* ========== 页面标题 ========== */
+.page-header {
+  padding: 40rpx 24rpx 24rpx;
+}
+
+.page-title {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 12rpx;
+}
+
+.page-subtitle {
+  font-size: 28rpx;
+  color: var(--text-hint);
+  line-height: 1.5;
+}
+
 /* ========== 表单内容区域 ========== */
 .form-content {
   flex: 1;

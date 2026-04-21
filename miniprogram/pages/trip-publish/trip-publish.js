@@ -10,8 +10,7 @@ Page({
     date: '',
     minDate: '',
     hasCar: true,
-    currentCount: 1,
-    needCount: 3,
+    recruitCount: 3, // 招募人数
     phone: '',
     remark: '',
     userInfo: null,
@@ -131,11 +130,10 @@ Page({
     this.setData({ hasCar });
   },
 
-  // 人数调整
+  // 招募人数调整
   onCountChange: function (e) {
     const type = e.currentTarget.dataset.type;
-    const field = e.currentTarget.dataset.field;
-    let value = this.data[field];
+    let value = this.data.recruitCount;
     const min = 1;
     const max = 10;
 
@@ -145,7 +143,7 @@ Page({
       value++;
     }
 
-    this.setData({ [field]: value });
+    this.setData({ recruitCount: value });
   },
 
   // 备注输入
@@ -211,14 +209,19 @@ Page({
     const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
 
     // 构造行程数据
+    const currentCount = 1; // 已有人数默认为1（发起人）
+    const needCount = this.data.recruitCount; // 还需人数 = 招募人数
+    const totalParticipants = currentCount + needCount; // 总人数
+
     const tripData = {
       placeId: this.data.placeId,
       placeName: this.data.placeName,
       departure: this.data.departure,
       date: this.data.date,
       hasCar: this.data.hasCar,
-      currentCount: this.data.currentCount,
-      needCount: this.data.needCount,
+      currentCount: currentCount,
+      needCount: needCount,
+      totalParticipants: totalParticipants,
       phone: this.data.phone,
       remark: this.data.remark,
       status: 'open',
@@ -254,8 +257,8 @@ Page({
         'placeName=' + encodeURIComponent(this.data.placeName),
         'placeAddress=' + encodeURIComponent('北京市'),
         'dateText=' + encodeURIComponent(dateText),
-        'currentCount=' + this.data.currentCount,
-        'needCount=' + this.data.needCount
+        'currentCount=' + currentCount,
+        'needCount=' + needCount
       ].join('&');
 
       wx.redirectTo({
