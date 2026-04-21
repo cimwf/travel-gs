@@ -131,6 +131,34 @@
       <view class="filter-option {{filterDate === 'thisWeek' ? 'selected' : ''}}" bindtap="onSelectDate" data-value="thisWeek">本周</view>
       <view class="filter-option {{filterDate === 'nextWeek' ? 'selected' : ''}}" bindtap="onSelectDate" data-value="nextWeek">下周</view>
       <view class="filter-option {{filterDate === 'thisMonth' ? 'selected' : ''}}" bindtap="onSelectDate" data-value="thisMonth">本月</view>
+      <view class="filter-option {{filterDate === 'custom' ? 'selected' : ''}}" bindtap="onCustomDateTap">自定义时间</view>
+    </view>
+  </view>
+</view>
+
+<!-- 自定义时间选择弹窗 -->
+<view class="filter-modal" wx:if="{{showCustomDatePicker}}" catchtap="onCloseCustomDatePicker">
+  <view class="date-picker-panel" catchtap="preventBubble">
+    <view class="filter-panel-header">
+      <text class="filter-panel-title">选择日期范围</text>
+    </view>
+    <view class="date-picker-content">
+      <view class="date-row" catchtap="preventBubble">
+        <text class="date-label">开始日期</text>
+        <picker mode="date" value="{{customStartDate}}" bindchange="onStartDateChange">
+          <view class="date-value">{{customStartDate || '请选择'}}</view>
+        </picker>
+      </view>
+      <view class="date-row" catchtap="preventBubble">
+        <text class="date-label">结束日期</text>
+        <picker mode="date" value="{{customEndDate}}" bindchange="onEndDateChange">
+          <view class="date-value">{{customEndDate || '请选择'}}</view>
+        </picker>
+      </view>
+    </view>
+    <view class="date-picker-footer">
+      <view class="date-btn date-btn-cancel" catchtap="onCloseCustomDatePicker">取消</view>
+      <view class="date-btn date-btn-confirm" catchtap="onConfirmCustomDate">确定</view>
     </view>
   </view>
 </view>

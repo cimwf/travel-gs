@@ -414,3 +414,66 @@ page {
 .filter-option:active {
   background: var(--bg-color);
 }
+
+/* ========== 自定义日期选择弹窗 ========== */
+.date-picker-panel {
+  position: absolute;
+  top: 300rpx;
+  left: 32rpx;
+  right: 32rpx;
+  background: white;
+  border-radius: 24rpx;
+  overflow: hidden;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
+}
+
+.date-picker-content {
+  padding: 32rpx;
+}
+
+.date-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.date-row:last-child {
+  border-bottom: none;
+}
+
+.date-label {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+}
+
+.date-value {
+  font-size: 28rpx;
+  color: var(--primary-color);
+  padding: 12rpx 24rpx;
+  background: rgba(74, 144, 226, 0.1);
+  border-radius: 12rpx;
+}
+
+.date-picker-footer {
+  display: flex;
+  border-top: 1rpx solid var(--border-color);
+}
+
+.date-btn {
+  flex: 1;
+  text-align: center;
+  padding: 28rpx 0;
+  font-size: 28rpx;
+}
+
+.date-btn-cancel {
+  color: var(--text-hint);
+  border-right: 1rpx solid var(--border-color);
+}
+
+.date-btn-confirm {
+  color: var(--primary-color);
+  font-weight: 500;
+}

@@ -24,7 +24,12 @@ Page({
     departureText: '',
     dateText: '',
     destinationOptions: [],
-    departureOptions: []
+    departureOptions: [],
+
+    // 自定义时间选择
+    showCustomDatePicker: false,
+    customStartDate: '',
+    customEndDate: ''
   },
 
   onLoad: function () {
@@ -249,6 +254,12 @@ Page({
             return tripDateOnly >= startOfNextWeek && tripDateOnly <= endOfNextWeek;
           case 'thisMonth':
             return tripDate.getMonth() === now.getMonth() && tripDate.getFullYear() === now.getFullYear();
+          case 'custom':
+            const startDate = new Date(this.data.customStartDate);
+            const endDate = new Date(this.data.customEndDate);
+            const startOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+            const endOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+            return tripDateOnly >= startOnly && tripDateOnly <= endOnly;
           default:
             return true;
         }
@@ -406,6 +417,83 @@ Page({
       dateText: '',
       showDateFilter: false,
       activeFilter: ''
+    });
+    this.setData({
+      trips: this.filterTrips(this.data.allTrips)
+    });
+  },
+
+  // 点击自定义时间
+  onCustomDateTap: function () {
+    this.setData({
+      showDateFilter: false,
+      showCustomDatePicker: true,
+      customStartDate: '',
+      customEndDate: ''
+    });
+  },
+
+  // 关闭自定义时间选择器
+  onCloseCustomDatePicker: function () {
+    this.setData({
+      showCustomDatePicker: false,
+      activeFilter: ''
+    });
+  },
+
+  // 阻止事件冒泡
+  preventBubble: function () {},
+
+  // 选择开始日期
+  onStartDateChange: function (e) {
+    this.setData({
+      customStartDate: e.detail.value
+    });
+  },
+
+  // 选择结束日期
+  onEndDateChange: function (e) {
+    this.setData({
+      customEndDate: e.detail.value
+    });
+  },
+
+  // 确认自定义日期
+  onConfirmCustomDate: function () {
+    const { customStartDate, customEndDate } = this.data;
+
+    if (!customStartDate || !customEndDate) {
+      wx.showToast({ title: '请选择完整日期', icon: 'none' });
+      return;
+    }
+
+    if (new Date(customEndDate) < new Date(customStartDate)) {
+      wx.showToast({ title: '结束日期不能早于开始日期', icon: 'none' });
+      return;
+    }
+
+    // 格式化显示文本
+    const startDate = new Date(customStartDate);
+    const endDate = new Date(customEndDate);
+    const startMonth = startDate.getMonth() + 1;
+    const startDay = startDate.getDate();
+    const endMonth = endDate.getMonth() + 1;
+    const endDay = endDate.getDate();
+
+    let dateText = '';
+    if (customStartDate === customEndDate) {
+      dateText = `${startMonth}/${startDay}`;
+    } else {
+      dateText = `${startMonth}/${startDay}-${endMonth}/${endDay}`;
+    }
+
+    this.setData({
+      filterDate: 'custom',
+      dateText,
+      showCustomDatePicker: false,
+      activeFilter: '',
+      customStartDate,
+      customEndDate
     });
     this.setData({
       trips: this.filterTrips(this.data.allTrips)
