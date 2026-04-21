@@ -36,13 +36,6 @@ Page({
     this.loadTrips();
   },
 
-  onShow: function () {
-    // 每次显示时刷新数据
-    if (this.data.trips.length > 0) {
-      this.onRefresh();
-    }
-  },
-
   // 加载行程列表
   loadTrips: async function (reset = true) {
     if (reset) {
