@@ -1,6 +1,7 @@
 // pages/trip-detail/trip-detail.js
 const app = getApp();
 const api = require('../../utils/api.js');
+const auth = require('../../utils/auth.js');
 
 Page({
   data: {
@@ -24,6 +25,18 @@ Page({
   },
 
   onLoad: function (options) {
+    // 检查登录状态
+    if (auth.checkNeedLogin()) {
+      // 未登录，记录当前页面并跳转到登录页
+      const tripId = options.id || '';
+      const currentUrl = `/pages/trip-detail/trip-detail?id=${tripId}`;
+      wx.setStorageSync('pendingRedirect', currentUrl);
+      wx.redirectTo({
+        url: '/pages/auth/auth'
+      });
+      return;
+    }
+
     // 获取状态栏高度
     const windowInfo = wx.getWindowInfo();
     this.setData({
