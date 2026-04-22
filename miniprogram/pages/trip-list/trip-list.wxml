@@ -40,6 +40,8 @@
               </view>
               <view class="trip-meta trip-meta-second">
                 <text>{{item.carText}}</text>
+                <text class="meta-dot" wx:if="{{item.priceText}}">·</text>
+                <text wx:if="{{item.priceText}}">{{item.priceText}}</text>
               </view>
             </view>
           </view>

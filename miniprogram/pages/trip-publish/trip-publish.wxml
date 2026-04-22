@@ -106,7 +106,8 @@
         <view class="table-row" wx:if="{{hasCar}}">
           <view class="table-cell table-label">车辆座位</view>
           <view class="table-cell table-value">
-            <input class="table-input" placeholder="如：5座" value="{{carSeats}}" bindinput="onCarSeatsInput" />
+            <input class="table-input" type="number" placeholder="如：5座" value="{{carSeats}}" bindinput="onCarSeatsInput" />
+            <text class="input-suffix" wx:if="{{carSeats}}">座</text>
           </view>
         </view>
         <view class="table-row" wx:if="{{hasCar}}">
@@ -125,7 +126,8 @@
         <view class="table-row">
           <view class="table-cell table-label">人均价格</view>
           <view class="table-cell table-value">
-            <input class="table-input" placeholder="如：150元/人" value="{{price}}" bindinput="onPriceInput" />
+            <input class="table-input" type="number" placeholder="如：150元/人" value="{{price}}" bindinput="onPriceInput" />
+            <text class="input-suffix" wx:if="{{price}}">元/人</text>
           </view>
         </view>
       </view>

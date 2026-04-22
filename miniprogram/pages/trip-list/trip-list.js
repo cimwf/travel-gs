@@ -161,13 +161,19 @@ Page({
           const carSeats = trip.carSeats || '';
           const carModel = trip.carModel || '';
           if (carSeats && carModel) {
-            carText = `🚗 ${carSeats}·${carModel}`;
+            carText = `🚗 ${carSeats}座·${carModel}`;
           } else if (carSeats) {
-            carText = `🚗 ${carSeats}`;
+            carText = `🚗 ${carSeats}座`;
           } else if (carModel) {
             carText = `🚗 ${carModel}`;
           } else {
             carText = trip.hasCar ? '🚗 有车' : '🚗 无车';
+          }
+
+          // 计算人均价格展示文本
+          let priceText = '';
+          if (trip.price) {
+            priceText = `${trip.price}元/人`;
           }
 
           trips.push({
@@ -178,6 +184,7 @@ Page({
             departure: trip.departure || '',
             hasCar: trip.hasCar,
             carText,
+            priceText,
             publishTime,
             participants,
             placeCoverImage,

@@ -162,9 +162,10 @@ Page({
     this.setData({ meetingTime: e.detail.value });
   },
 
-  // 车辆座位输入
+  // 车辆座位输入（只保存数字）
   onCarSeatsInput: function (e) {
-    this.setData({ carSeats: e.detail.value });
+    const value = e.detail.value.replace(/\D/g, '');
+    this.setData({ carSeats: value });
   },
 
   // 车辆型号输入
@@ -177,9 +178,10 @@ Page({
     this.setData({ travelDesc: e.detail.value });
   },
 
-  // 人均价格输入
+  // 人均价格输入（只保存数字）
   onPriceInput: function (e) {
-    this.setData({ price: e.detail.value });
+    const value = e.detail.value.replace(/\D/g, '');
+    this.setData({ price: value });
   },
 
   // 备注输入

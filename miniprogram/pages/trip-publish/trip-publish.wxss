@@ -78,6 +78,9 @@ page {
   justify-content: flex-end;
   font-size: 30rpx;
   color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .table-value.hint {
@@ -85,7 +88,7 @@ page {
 }
 
 .table-input {
-  width: 100%;
+  flex: 1;
   padding: 0;
   border: none;
   font-size: 30rpx;
@@ -96,6 +99,13 @@ page {
 
 .table-input::placeholder {
   color: var(--text-hint);
+}
+
+.input-suffix {
+  font-size: 30rpx;
+  color: var(--text-primary);
+  margin-left: 8rpx;
+  flex-shrink: 0;
 }
 
 .required {
