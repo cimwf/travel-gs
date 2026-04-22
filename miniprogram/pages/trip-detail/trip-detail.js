@@ -42,6 +42,10 @@ Page({
 
   onShow: function () {
     this.setData({ userInfo: app.globalData.userInfo });
+    // 如果已加载过数据，刷新一下
+    if (this.data.tripId && this.data.trip) {
+      this.loadTripDetail(this.data.tripId);
+    }
   },
 
   // 记录浏览量
