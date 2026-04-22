@@ -100,6 +100,10 @@ Page({
       statusText = '已取消';
       canJoin = false;
       joinBtnText = '已取消';
+    } else if (trip.status === 'stopped') {
+      statusText = '停止招募';
+      canJoin = false;
+      joinBtnText = '停止招募';
     } else if (trip.status === 'ended') {
       statusText = '已结束';
       canJoin = false;

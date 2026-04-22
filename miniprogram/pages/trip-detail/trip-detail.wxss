@@ -156,7 +156,8 @@ page {
 }
 
 .status-ended,
-.status-cancelled {
+.status-cancelled,
+.status-stopped {
   background: rgba(255,255,255,0.25);
   color: white;
 }
