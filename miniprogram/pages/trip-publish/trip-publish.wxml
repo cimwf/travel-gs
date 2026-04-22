@@ -120,7 +120,7 @@
         <view class="table-row" wx:if="{{!hasCar}}">
           <view class="table-cell table-label">出行描述</view>
           <view class="table-cell table-value">
-            <input class="table-input" placeholder="如：地铁+公交（10字内）" value="{{travelDesc}}" bindinput="onTravelDescInput" maxlength="10" />
+            <input class="table-input" placeholder="如：一起包车，费用AA" value="{{travelDesc}}" bindinput="onTravelDescInput" maxlength="10" />
           </view>
         </view>
         <view class="table-row">

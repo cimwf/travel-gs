@@ -111,6 +111,9 @@ Page({
           if (status === 'cancelled') {
             statusText = '已取消';
             statusClass = 'cancelled';
+          } else if (status === 'stopped') {
+            statusText = '停止招募';
+            statusClass = 'stopped';
           } else if (tripDate < now) {
             // 出行日期已过，标记为已结束
             statusText = '已结束';
@@ -342,7 +345,7 @@ Page({
   onManageTap: async function (e) {
     const tripId = e.currentTarget.dataset.id;
     wx.showActionSheet({
-      itemList: ['编辑行程', '取消行程', '分享行程'],
+      itemList: ['编辑行程', '停止招募', '取消行程', '分享行程'],
       success: (res) => {
         switch (res.tapIndex) {
           case 0:
@@ -351,14 +354,52 @@ Page({
             });
             break;
           case 1:
-            this.cancelTrip(tripId);
+            this.stopRecruit(tripId);
             break;
           case 2:
+            this.cancelTrip(tripId);
+            break;
+          case 3:
             wx.showShareMenu({
               withShareTicket: true,
               menus: ['shareAppMessage']
             });
             break;
+        }
+      }
+    });
+  },
+
+  // 停止招募
+  stopRecruit: async function (tripId) {
+    wx.showModal({
+      title: '确认停止招募',
+      content: '停止招募后其他用户将无法加入，确定要停止吗？',
+      success: async (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '处理中...' });
+
+          if (wx.cloud) {
+            try {
+              const db = wx.cloud.database();
+              await db.collection('trips').doc(tripId).update({
+                data: {
+                  status: 'stopped',
+                  updatedAt: Date.now()
+                }
+              });
+
+              wx.hideLoading();
+              wx.showToast({ title: '已停止招募', icon: 'success' });
+
+              // 刷新列表
+              this.loadTrips();
+            } catch (err) {
+              wx.hideLoading();
+              console.error('停止招募失败', err);
+              wx.showToast({ title: '操作失败', icon: 'none' });
+            }
+          }
         }
       }
     });

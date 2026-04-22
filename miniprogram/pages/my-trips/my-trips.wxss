@@ -158,6 +158,16 @@ page {
   color: var(--text-hint);
 }
 
+.status-stopped {
+  background: #FFEBEE;
+  color: #E53935;
+}
+
+.status-cancelled {
+  background: #F5F5F5;
+  color: var(--text-hint);
+}
+
 /* ========== 参与者 ========== */
 .trip-participants {
   display: flex;
