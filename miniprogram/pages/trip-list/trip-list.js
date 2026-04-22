@@ -176,9 +176,13 @@ Page({
             priceText = `${trip.price}元/人`;
           }
 
+          // 计算展示标题：优先展示行程标题，否则展示目的地名称
+          const displayTitle = trip.tripTitle || trip.placeName;
+
           trips.push({
             _id: trip._id,
             placeName: trip.placeName,
+            displayTitle,
             dateText,
             date: trip.date,
             departure: trip.departure || '',
