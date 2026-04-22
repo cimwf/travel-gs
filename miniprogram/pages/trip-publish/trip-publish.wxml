@@ -73,7 +73,7 @@
       <view class="table-row">
         <view class="table-cell table-label">手机号<text class="required">*</text></view>
         <view class="table-cell table-value">
-          <input class="table-input" type="text" placeholder="同时也是微信号" value="{{phone}}" bindinput="onPhoneInput" maxlength="11" />
+          <input class="table-input" type="text" placeholder="同时也是微信号" value="{{contactPhone}}" bindinput="onPhoneInput" maxlength="11" />
         </view>
       </view>
     </view>

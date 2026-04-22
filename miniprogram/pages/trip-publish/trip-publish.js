@@ -13,7 +13,7 @@ Page({
     minDate: '',
     hasCar: true,
     recruitCount: 3,
-    phone: '',
+    contactPhone: '',     // 联系方式
 
     // 可选信息
     optionalExpanded: false,
@@ -54,12 +54,17 @@ Page({
     const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
     const defaultDate = this.formatDate(tomorrow);
 
+    // 从用户信息中获取默认联系方式
+    const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
+    const contactPhone = userInfo.contactPhone || '';
+
     this.setData({
       placeId,
       placeName,
       minDate,
       date: defaultDate,
-      departure: '海淀区'
+      departure: '海淀区',
+      contactPhone
     });
   },
 
@@ -137,9 +142,9 @@ Page({
     this.setData({ recruitCount: value });
   },
 
-  // 手机号输入
+  // 联系方式输入
   onPhoneInput: function (e) {
-    this.setData({ phone: e.detail.value });
+    this.setData({ contactPhone: e.detail.value });
   },
 
   // 展开/收起可选信息
@@ -204,14 +209,14 @@ Page({
       return;
     }
 
-    if (!this.data.phone) {
+    if (!this.data.contactPhone) {
       wx.showToast({ title: '请输入联系方式', icon: 'none' });
       return;
     }
 
     // 验证手机号格式
     const phoneReg = /^1[3-9]\d{9}$/;
-    if (!phoneReg.test(this.data.phone)) {
+    if (!phoneReg.test(this.data.contactPhone)) {
       wx.showToast({ title: '请输入正确的手机号', icon: 'none' });
       return;
     }
@@ -249,7 +254,7 @@ Page({
       currentCount: currentCount,
       needCount: needCount,
       totalParticipants: totalParticipants,
-      phone: this.data.phone,
+      contactPhone: this.data.contactPhone,
       // 可选信息
       meetingPlace: this.data.meetingPlace,
       meetingTime: this.data.meetingTime,

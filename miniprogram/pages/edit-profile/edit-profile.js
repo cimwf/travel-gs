@@ -11,7 +11,7 @@ Page({
       backgroundFileID: '',
       nickname: '',
       gender: '',
-      phone: '',
+      contactPhone: '',  // 联系方式
       bio: '',
       birthday: '',
       userId: '',
@@ -118,7 +118,7 @@ Page({
       nickname: userInfo.nickname,
       avatar: avatarForDb,
       gender: userInfo.gender,
-      phone: userInfo.phone,
+      contactPhone: userInfo.contactPhone,
       bio: userInfo.bio,
       background: backgroundForDb,
       photos: photosForDb
@@ -277,11 +277,11 @@ Page({
     this.autoSave();
   },
 
-  // 手机号输入
+  // 联系方式输入
   onPhoneInput: function (e) {
     let value = e.detail.value;
     value = value.replace(/\D/g, '').slice(0, 11);
-    this.setData({ 'userInfo.phone': value });
+    this.setData({ 'userInfo.contactPhone': value });
   },
 
   onPhoneBlur: function () {

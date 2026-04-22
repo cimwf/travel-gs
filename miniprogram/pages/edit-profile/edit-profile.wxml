@@ -48,7 +48,7 @@
           <view class="info-row phone-row">
             <text class="info-label">联系方式 <text class="required">*</text></text>
             <view class="info-input-view">
-              <input class="info-input" type="text" placeholder="请输入手机号（同时也是微信号）" placeholder-class="input-placeholder" value="{{userInfo.phone}}" maxlength="11" bindinput="onPhoneInput" bindblur="onPhoneBlur" />
+              <input class="info-input" type="text" placeholder="请输入手机号（同时也是微信号）" placeholder-class="input-placeholder" value="{{userInfo.contactPhone}}" maxlength="11" bindinput="onPhoneInput" bindblur="onPhoneBlur" />
             </view>
           </view>
           <view class="phone-tip">

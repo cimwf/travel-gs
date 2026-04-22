@@ -236,6 +236,7 @@ async function userRegister(openid, data) {
     openid,
     phone,
     phoneMask: crypto.maskPhone(phone), // 脱敏手机号
+    contactPhone: phone, // 联系方式，默认等于手机号
     password: hashedPassword,
     nickname: defaultNickname.trim(),
     avatar: avatar || '',
@@ -471,6 +472,7 @@ async function userUpdate(openid, data) {
     nickname: data.nickname,
     avatar: data.avatar,
     gender: data.gender,
+    contactPhone: data.contactPhone,
     bio: data.bio,
     background: data.background,
     photos: data.photos,
