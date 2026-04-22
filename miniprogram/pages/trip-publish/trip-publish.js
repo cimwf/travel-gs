@@ -194,7 +194,7 @@ Page({
       return;
     }
 
-    if (!this.data.placeId) {
+    if (!this.data.placeName) {
       wx.showToast({ title: '请选择目的地', icon: 'none' });
       return;
     }

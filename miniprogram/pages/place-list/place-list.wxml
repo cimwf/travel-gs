@@ -1,21 +1,49 @@
-<!--
-  地点列表页 (place-list)
-  ================================
-  设计要点：
-  1. 分类标题：爬山/水上/古镇/露营等
-  2. 搜索栏：搜索该分类地点
-  3. 筛选排序：综合/距离/热度/难度
-  4. 地点卡片：图片+名称+描述+距离+热度
-  5. 筛选面板：距离/难度/标签
-
-  组件结构：
-  - 地点卡片
-  - 筛选面板
-  - 排序标签
-
-  参考：E:\beijing-travel\docs\缺失页面设计方案.md
--->
-
+<!--pages/place-list/place-list.wxml-->
 <view class="container">
-  <!-- TODO: 实现地点列表页 -->
+  <!-- 景点列表 -->
+  <scroll-view class="list-container" scroll-y enhanced show-scrollbar="{{false}}">
+    <!-- 自定义景点 -->
+    <view class="custom-place" bindtap="onCustomPlace">
+      <view class="custom-icon">✏️</view>
+      <text class="custom-text">自定义景点</text>
+    </view>
+
+    <view class="place-list" wx:if="{{places.length > 0}}">
+      <view class="place-item" wx:for="{{places}}" wx:key="_id" bindtap="onSelectPlace" data-item="{{item}}">
+        <image class="place-cover" src="{{item.coverImage}}" mode="aspectFill" wx:if="{{item.coverImage}}"></image>
+        <view class="place-cover place-cover-placeholder" wx:else>
+          <text>🏔️</text>
+        </view>
+        <view class="place-info">
+          <text class="place-name">{{item.name}}</text>
+          <text class="place-location" wx:if="{{item.location}}">{{item.location}}</text>
+        </view>
+        <text class="place-arrow">›</text>
+      </view>
+    </view>
+
+    <!-- 加载中 -->
+    <view class="loading-state" wx:if="{{loading}}">
+      <text>加载中...</text>
+    </view>
+  </scroll-view>
+</view>
+
+<!-- 自定义景点弹窗 -->
+<view class="modal-mask" wx:if="{{showCustomModal}}" catchtap="onCloseCustomModal">
+  <view class="modal-content" catchtap="preventBubble">
+    <view class="modal-header">
+      <text class="modal-title">自定义景点</text>
+      <view class="modal-close" catchtap="onCloseCustomModal">
+        <text class="close-icon">×</text>
+      </view>
+    </view>
+    <view class="modal-body">
+      <input class="custom-input" placeholder="请输入景点名称" value="{{customPlaceName}}" bindinput="onCustomInput" maxlength="20" />
+    </view>
+    <view class="modal-footer">
+      <view class="modal-btn modal-btn-cancel" catchtap="onCloseCustomModal">取消</view>
+      <view class="modal-btn modal-btn-confirm" catchtap="onConfirmCustom">确定</view>
+    </view>
+  </view>
 </view>
