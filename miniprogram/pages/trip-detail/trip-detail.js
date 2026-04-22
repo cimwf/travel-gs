@@ -340,7 +340,7 @@ Page({
   onEditTrip: function () {
     const trip = this.data.trip;
     wx.navigateTo({
-      url: `/pages/trip-edit/trip-edit?id=${trip._id}`
+      url: `/pages/trip-publish/trip-publish?id=${trip._id}`
     });
   },
 

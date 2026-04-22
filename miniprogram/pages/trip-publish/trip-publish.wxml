@@ -146,7 +146,7 @@
 
 <!-- 底部发布按钮 -->
 <view class="footer-bar">
-  <view class="submit-btn" bindtap="onSubmit">发布行程</view>
+  <view class="submit-btn" bindtap="onSubmit">{{isEdit ? '保存修改' : '发布行程'}}</view>
 </view>
 
 <!-- ========== 出发地选择弹窗 ========== -->

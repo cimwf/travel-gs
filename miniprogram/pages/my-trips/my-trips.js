@@ -346,7 +346,9 @@ Page({
       success: (res) => {
         switch (res.tapIndex) {
           case 0:
-            wx.showToast({ title: '功能开发中', icon: 'none' });
+            wx.navigateTo({
+              url: `/pages/trip-publish/trip-publish?id=${tripId}`
+            });
             break;
           case 1:
             this.cancelTrip(tripId);

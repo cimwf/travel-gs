@@ -4,6 +4,10 @@ const auth = require('../../utils/auth.js');
 
 Page({
   data: {
+    // 编辑模式
+    isEdit: false,
+    tripId: '',
+
     // 必填信息
     tripTitle: '',        // 行程标题（可选）
     placeId: '',
@@ -46,6 +50,7 @@ Page({
 
   // 初始化页面
   initPage: function (options) {
+    const tripId = options.id || '';
     const placeId = options.placeId || '';
     const placeName = decodeURIComponent(options.placeName || '');
 
@@ -58,14 +63,67 @@ Page({
     const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
     const contactPhone = userInfo.contactPhone || '';
 
-    this.setData({
-      placeId,
-      placeName,
-      minDate,
-      date: defaultDate,
-      departure: '海淀区',
-      contactPhone
-    });
+    // 编辑模式
+    if (tripId) {
+      wx.setNavigationBarTitle({ title: '编辑行程' });
+      this.setData({
+        isEdit: true,
+        tripId,
+        minDate
+      });
+      this.loadTripData(tripId);
+    } else {
+      // 发布模式
+      wx.setNavigationBarTitle({ title: '发布行程' });
+      this.setData({
+        placeId,
+        placeName,
+        minDate,
+        date: defaultDate,
+        departure: '海淀区',
+        contactPhone
+      });
+    }
+  },
+
+  // 加载行程数据（编辑模式）
+  loadTripData: async function (tripId) {
+    wx.showLoading({ title: '加载中...' });
+
+    try {
+      const db = wx.cloud.database();
+      const res = await db.collection('trips').doc(tripId).get();
+
+      if (res.data) {
+        const trip = res.data;
+        this.setData({
+          tripTitle: trip.tripTitle || '',
+          placeId: trip.placeId || '',
+          placeName: trip.placeName || '',
+          departure: trip.departure || '海淀区',
+          date: trip.date || '',
+          hasCar: trip.hasCar !== false,
+          recruitCount: trip.needCount || 3,
+          contactPhone: trip.contactPhone || '',
+          meetingPlace: trip.meetingPlace || '',
+          meetingTime: trip.meetingTime || '',
+          carSeats: trip.carSeats || '',
+          carModel: trip.carModel || '',
+          travelDesc: trip.travelDesc || '',
+          price: trip.price || '',
+          remark: trip.remark || ''
+        });
+      }
+
+      wx.hideLoading();
+    } catch (err) {
+      wx.hideLoading();
+      console.error('加载行程数据失败', err);
+      wx.showToast({ title: '加载失败', icon: 'none' });
+      setTimeout(() => {
+        wx.navigateBack();
+      }, 1500);
+    }
   },
 
   // 格式化日期
@@ -221,6 +279,13 @@ Page({
       return;
     }
 
+    // 编辑模式
+    if (this.data.isEdit) {
+      this.updateTrip();
+      return;
+    }
+
+    // 发布模式
     wx.showLoading({ title: '发布中...' });
 
     // 确保获取到 openid
@@ -319,6 +384,52 @@ Page({
       wx.hideLoading();
       console.error('发布失败', err);
       wx.showToast({ title: '发布失败，请重试', icon: 'none' });
+    }
+  },
+
+  // 更新行程（编辑模式）
+  updateTrip: async function () {
+    wx.showLoading({ title: '保存中...' });
+
+    const needCount = this.data.recruitCount;
+
+    const updateData = {
+      tripTitle: this.data.tripTitle,
+      placeId: this.data.placeId,
+      placeName: this.data.placeName,
+      departure: this.data.departure,
+      date: this.data.date,
+      hasCar: this.data.hasCar,
+      needCount: needCount,
+      totalParticipants: this.data.currentCount + needCount,
+      contactPhone: this.data.contactPhone,
+      // 可选信息
+      meetingPlace: this.data.meetingPlace,
+      meetingTime: this.data.meetingTime,
+      carSeats: this.data.hasCar ? this.data.carSeats : '',
+      carModel: this.data.hasCar ? this.data.carModel : '',
+      travelDesc: this.data.hasCar ? '' : this.data.travelDesc,
+      price: this.data.price,
+      remark: this.data.remark,
+      updatedAt: Date.now()
+    };
+
+    try {
+      const db = wx.cloud.database();
+      await db.collection('trips').doc(this.data.tripId).update({
+        data: updateData
+      });
+
+      wx.hideLoading();
+      wx.showToast({ title: '保存成功', icon: 'success' });
+
+      setTimeout(() => {
+        wx.navigateBack();
+      }, 1500);
+    } catch (err) {
+      wx.hideLoading();
+      console.error('更新失败', err);
+      wx.showToast({ title: '保存失败，请重试', icon: 'none' });
     }
   }
 });
