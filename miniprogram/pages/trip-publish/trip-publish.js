@@ -104,16 +104,14 @@ Page({
   // 选择区域
   onSelectDistrict: function (e) {
     const district = e.currentTarget.dataset.district;
-    this.setData({ tempDeparture: district });
-  },
-
-  // 确认选择出发地
-  onConfirmDeparture: function () {
     this.setData({
-      departure: this.data.tempDeparture,
+      departure: district,
       showDepartureModal: false
     });
   },
+
+  // 阻止事件冒泡
+  preventBubble: function () {},
 
   // 选择日期
   onDateChange: function (e) {

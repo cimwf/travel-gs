@@ -151,7 +151,7 @@
 
 <!-- ========== 出发地选择弹窗 ========== -->
 <view class="modal-mask" wx:if="{{showDepartureModal}}" bindtap="onCloseDepartureModal">
-  <view class="modal-content" catchtap="">
+  <view class="modal-content" catchtap="preventBubble">
     <view class="modal-header">
       <view class="modal-title">选择出发地</view>
       <view class="modal-close" bindtap="onCloseDepartureModal">
@@ -164,6 +164,5 @@
         <view class="district-item {{tempDeparture === item ? 'active' : ''}}" wx:for="{{districts}}" wx:key="*this" bindtap="onSelectDistrict" data-district="{{item}}">{{item}}</view>
       </view>
     </view>
-    <view class="modal-confirm" bindtap="onConfirmDeparture">确认选择</view>
   </view>
 </view>
