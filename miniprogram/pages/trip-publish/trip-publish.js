@@ -4,16 +4,28 @@ const auth = require('../../utils/auth.js');
 
 Page({
   data: {
+    // 必填信息
+    tripTitle: '',        // 行程标题（可选）
     placeId: '',
     placeName: '',
-    departure: '海淀区',
+    departure: '',
     date: '',
     minDate: '',
     hasCar: true,
-    recruitCount: 3, // 招募人数
+    recruitCount: 3,
     phone: '',
-    remark: '',
-    userInfo: null,
+
+    // 可选信息
+    optionalExpanded: false,
+    meetingPlace: '',     // 集合地点
+    meetingTime: '',      // 集合时间
+    carSeats: '',         // 车辆座位
+    carModel: '',         // 车辆型号
+    travelDesc: '',       // 出行描述（无车时）
+    price: '',            // 人均价格
+    remark: '',           // 行程说明
+
+    // 出发地选择
     showDepartureModal: false,
     tempDeparture: '',
     districts: [
@@ -25,7 +37,6 @@ Page({
   },
 
   onLoad: function (options) {
-    // 检查登录（发布页需要登录）
     if (!auth.checkNeedLogin()) {
       this.initPage(options);
     } else {
@@ -33,20 +44,13 @@ Page({
     }
   },
 
-  onShow: function () {
-    this.setData({ userInfo: app.globalData.userInfo });
-  },
-
   // 初始化页面
   initPage: function (options) {
     const placeId = options.placeId || '';
     const placeName = decodeURIComponent(options.placeName || '');
 
-    // 设置最小日期为今天
     const today = new Date();
     const minDate = this.formatDate(today);
-
-    // 默认日期为明天
     const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
     const defaultDate = this.formatDate(tomorrow);
 
@@ -55,7 +59,7 @@ Page({
       placeName,
       minDate,
       date: defaultDate,
-      userInfo: app.globalData.userInfo
+      departure: '海淀区'
     });
   },
 
@@ -67,29 +71,16 @@ Page({
     return `${year}-${month}-${day}`;
   },
 
-  // 返回
-  onBackTap: function () {
-    wx.navigateBack();
+  // 行程标题输入
+  onTitleInput: function (e) {
+    this.setData({ tripTitle: e.detail.value });
   },
 
   // 选择地点
   onSelectPlace: function () {
-    if (!this.data.placeId) {
-      wx.navigateTo({
-        url: '/pages/place-list/place-list?mode=select'
-      });
-    } else {
-      wx.showActionSheet({
-        itemList: ['重新选择地点'],
-        success: (res) => {
-          if (res.tapIndex === 0) {
-            wx.navigateTo({
-              url: '/pages/place-list/place-list?mode=select'
-            });
-          }
-        }
-      });
-    }
+    wx.navigateTo({
+      url: '/pages/place-list/place-list?mode=select'
+    });
   },
 
   // 打开出发地选择弹窗
@@ -146,14 +137,49 @@ Page({
     this.setData({ recruitCount: value });
   },
 
-  // 备注输入
-  onRemarkInput: function (e) {
-    this.setData({ remark: e.detail.value });
-  },
-
   // 手机号输入
   onPhoneInput: function (e) {
     this.setData({ phone: e.detail.value });
+  },
+
+  // 展开/收起可选信息
+  toggleOptional: function () {
+    this.setData({ optionalExpanded: !this.data.optionalExpanded });
+  },
+
+  // 集合地点输入
+  onMeetingPlaceInput: function (e) {
+    this.setData({ meetingPlace: e.detail.value });
+  },
+
+  // 集合时间选择
+  onMeetingTimeChange: function (e) {
+    this.setData({ meetingTime: e.detail.value });
+  },
+
+  // 车辆座位输入
+  onCarSeatsInput: function (e) {
+    this.setData({ carSeats: e.detail.value });
+  },
+
+  // 车辆型号输入
+  onCarModelInput: function (e) {
+    this.setData({ carModel: e.detail.value });
+  },
+
+  // 出行描述输入
+  onTravelDescInput: function (e) {
+    this.setData({ travelDesc: e.detail.value });
+  },
+
+  // 人均价格输入
+  onPriceInput: function (e) {
+    this.setData({ price: e.detail.value });
+  },
+
+  // 备注输入
+  onRemarkInput: function (e) {
+    this.setData({ remark: e.detail.value });
   },
 
   // 提交发布
@@ -205,15 +231,16 @@ Page({
       }
     }
 
-    // 获取最新的用户信息（优先从 storage 读取）
+    // 获取最新的用户信息
     const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
 
     // 构造行程数据
-    const currentCount = 1; // 已有人数默认为1（发起人）
-    const needCount = this.data.recruitCount; // 还需人数 = 招募人数
-    const totalParticipants = currentCount + needCount; // 总人数
+    const currentCount = 1;
+    const needCount = this.data.recruitCount;
+    const totalParticipants = currentCount + needCount;
 
     const tripData = {
+      tripTitle: this.data.tripTitle,
       placeId: this.data.placeId,
       placeName: this.data.placeName,
       departure: this.data.departure,
@@ -223,6 +250,13 @@ Page({
       needCount: needCount,
       totalParticipants: totalParticipants,
       phone: this.data.phone,
+      // 可选信息
+      meetingPlace: this.data.meetingPlace,
+      meetingTime: this.data.meetingTime,
+      carSeats: this.data.hasCar ? this.data.carSeats : '',
+      carModel: this.data.hasCar ? this.data.carModel : '',
+      travelDesc: this.data.hasCar ? '' : this.data.travelDesc,
+      price: this.data.price,
       remark: this.data.remark,
       status: 'open',
       // 发起人信息
@@ -238,8 +272,6 @@ Page({
       createdAt: Date.now()
     };
 
-
-    // 直接操作数据库
     try {
       const db = wx.cloud.database();
       const res = await db.collection('trips').add({ data: tripData });

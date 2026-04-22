@@ -4,20 +4,17 @@ page {
   --primary-color: #4A90E2;
   --primary-light: #6BA3E8;
   --primary-dark: #357ABD;
-  --bg-color: #F5F7FA;
   --text-primary: #1A1A2E;
-  --text-secondary: #4A4A68;
-  --text-hint: #8E8EA0;
-  --border-color: #E8E8F0;
-  --success-color: #52C41A;
-  --warning-color: #FAAD14;
-  --danger-color: #FF4D4F;
-  --shadow-sm: 0 2rpx 8rpx rgba(0,0,0,0.04);
-  --shadow-md: 0 4rpx 16rpx rgba(0,0,0,0.08);
+  --text-secondary: #6B6B80;
+  --text-hint: #A0A0B0;
+  --bg-color: #F5F7FA;
+  --card-bg: #FFFFFF;
+  --border-color: #F0F0F5;
+  --danger-color: #EF4444;
 }
 
 page {
-  background: var(--bg-color);
+  background: white;
   width: 100%;
   overflow-x: hidden;
 }
@@ -25,229 +22,222 @@ page {
 .container {
   min-height: 100vh;
   width: 100%;
-  padding: 0 20rpx;
-  background: var(--bg-color);
+  background: white;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
   box-sizing: border-box;
 }
 
-/* ========== 页面标题 ========== */
-.page-header {
-  padding: 40rpx 24rpx 24rpx;
-}
-
-.page-title {
-  font-size: 44rpx;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 12rpx;
-}
-
-.page-subtitle {
-  font-size: 28rpx;
-  color: var(--text-hint);
-  line-height: 1.5;
-}
-
 /* ========== 表单内容区域 ========== */
 .form-content {
   flex: 1;
   width: 100%;
-  padding: 24rpx;
   padding-bottom: 200rpx;
 }
 
-/* ========== 表单区块 ========== */
-.form-section {
-  background: white;
-  border-radius: 32rpx;
-  padding: 32rpx;
-  margin-bottom: 24rpx;
-  box-shadow: var(--shadow-sm);
+/* ========== 表格样式 ========== */
+.form-table {
+  width: 100%;
 }
 
-.section-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 28rpx;
-  padding-bottom: 24rpx;
-  border-bottom: 2rpx solid var(--border-color);
-}
-
-/* ========== 表单项 ========== */
-.form-item {
+.table-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 28rpx 0;
-  border-bottom: 2rpx solid var(--bg-color);
+  min-height: 100rpx;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
-.form-item.last-item {
+.table-row:last-child {
   border-bottom: none;
-  padding-bottom: 0;
 }
 
-.form-label {
-  font-size: 30rpx;
-  color: var(--text-primary);
+.table-picker {
+  width: 100%;
+}
+
+.table-cell {
+  padding: 28rpx 32rpx;
+  display: flex;
+  align-items: center;
+}
+
+.table-label {
+  width: 200rpx;
+  background: #FAFAFC;
+  font-size: 28rpx;
+  color: var(--text-secondary);
   font-weight: 500;
   flex-shrink: 0;
 }
 
-.form-value {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
+.table-value {
+  flex: 1;
+  justify-content: flex-end;
+  font-size: 30rpx;
+  color: var(--text-primary);
 }
 
-.value-text {
-  font-size: 30rpx;
+.table-value.hint {
   color: var(--text-hint);
 }
 
-.placeholder-text {
+.table-input {
+  width: 100%;
+  padding: 0;
+  border: none;
   font-size: 30rpx;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.table-input::placeholder {
   color: var(--text-hint);
+}
+
+.required {
+  color: var(--danger-color);
+  margin-left: 4rpx;
 }
 
 .arrow {
-  font-size: 40rpx;
-  color: #CCCCCC;
-  font-weight: 300;
-}
-
-/* ========== 单选按钮组 ========== */
-.radio-group {
-  display: flex;
-  gap: 24rpx;
-}
-
-.radio-item {
-  padding: 18rpx 48rpx;
-  border-radius: 40rpx;
-  font-size: 28rpx;
-  background: var(--bg-color);
+  margin-left: 16rpx;
   color: var(--text-hint);
-  transition: all 0.2s ease;
+  font-size: 32rpx;
 }
 
-.radio-item.active {
-  background: rgba(74, 144, 226, 0.15);
-  color: var(--primary-color);
-  font-weight: 500;
+/* ========== 分隔线 ========== */
+.section-divider {
+  height: 24rpx;
+  background: var(--bg-color);
+}
+
+/* ========== 标签组 ========== */
+.tag-group {
+  display: flex;
+  gap: 16rpx;
+  justify-content: flex-end;
+}
+
+.tag-btn {
+  padding: 12rpx 28rpx;
+  border-radius: 32rpx;
+  font-size: 26rpx;
+  background: rgba(74, 144, 226, 0.1);
+  color: var(--text-secondary);
+  border: 1rpx solid rgba(74, 144, 226, 0.3);
+}
+
+.tag-btn.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
 }
 
 /* ========== 数字选择器 ========== */
-.count-picker {
+.counter-wrap {
   display: flex;
   align-items: center;
-  gap: 32rpx;
+  gap: 28rpx;
+  justify-content: flex-end;
 }
 
-.count-btn {
-  width: 72rpx;
-  height: 72rpx;
+.counter-btn {
+  width: 56rpx;
+  height: 56rpx;
   border-radius: 50%;
-  background: var(--bg-color);
+  background: rgba(74, 144, 226, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 48rpx;
-  color: var(--text-hint);
-  transition: all 0.2s ease;
+  font-size: 36rpx;
+  color: var(--primary-color);
 }
 
-.count-btn:active {
+.counter-btn:active {
   background: var(--primary-color);
   color: white;
 }
 
-.count-value {
-  font-size: 40rpx;
+.counter-num {
+  font-size: 32rpx;
   font-weight: 600;
   color: var(--text-primary);
-  min-width: 80rpx;
+  min-width: 64rpx;
   text-align: center;
 }
 
-/* ========== 文本域 ========== */
-.remark-input {
-  width: 100%;
-  height: 240rpx;
-  padding: 24rpx;
-  border: 2rpx solid var(--border-color);
-  border-radius: 20rpx;
-  font-size: 30rpx;
-  line-height: 1.6;
-  background: #FAFAFA;
-  box-sizing: border-box;
+/* ========== 折叠区域 ========== */
+.collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx 32rpx;
+  background: white;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
-.remark-input::placeholder {
+.collapsible-title {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.collapsible-arrow {
+  font-size: 28rpx;
+  color: var(--text-hint);
+  transition: transform 0.2s ease;
+}
+
+.collapsible-arrow.expanded {
+  transform: rotate(180deg);
+}
+
+.collapsible-content {
+  display: none;
+}
+
+.collapsible-content.expanded {
+  display: block;
+}
+
+/* ========== 文本域 ========== */
+.textarea-row {
+  padding: 28rpx 32rpx;
+  border-bottom: 1rpx solid var(--border-color);
+  text-align: left;
+}
+
+.textarea-label {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  margin-bottom: 20rpx;
+  display: block;
+  text-align: left;
+}
+
+.textarea-field {
+  width: 100%;
+  height: 160rpx;
+  border: none;
+  font-size: 30rpx;
+  background: transparent;
+  resize: none;
+  line-height: 1.6;
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.textarea-field::placeholder {
   color: var(--text-hint);
 }
 
 .char-count {
   text-align: right;
-  font-size: 26rpx;
+  font-size: 24rpx;
   color: var(--text-hint);
-  margin-top: 16rpx;
-}
-
-/* ========== 输入框 ========== */
-.form-item-input {
-  margin-bottom: 24rpx;
-}
-
-.text-input {
-  width: 100%;
-  height: 88rpx;
-  padding: 0 32rpx;
-  border: 2rpx solid var(--border-color);
-  border-radius: 24rpx;
-  font-size: 30rpx;
-  background: var(--bg-color);
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  line-height: 88rpx;
-}
-
-.input-placeholder {
-  color: var(--text-hint);
-  line-height: 88rpx;
-  height: 88rpx;
-  display: flex;
-  align-items: center;
-}
-
-.text-input::placeholder {
-  color: var(--text-hint);
-}
-
-/* ========== 提示信息 ========== */
-.form-tip {
-  display: flex;
-  align-items: flex-start;
-  gap: 16rpx;
-  padding: 20rpx 24rpx;
-  background: rgba(74, 144, 226, 0.08);
-  border-radius: 16rpx;
-}
-
-.tip-icon {
-  font-size: 32rpx;
-  line-height: 1;
-}
-
-.tip-text {
-  font-size: 26rpx;
-  color: var(--text-secondary);
-  line-height: 1.5;
+  margin-top: 12rpx;
 }
 
 /* ========== 底部安全区 ========== */
@@ -264,7 +254,7 @@ page {
   padding: 24rpx 32rpx;
   padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
   background: white;
-  box-shadow: 0 -8rpx 32rpx rgba(0,0,0,0.06);
+  box-shadow: 0 -8rpx 32rpx rgba(0, 0, 0, 0.06);
   z-index: 100;
 }
 
@@ -272,24 +262,17 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16rpx;
   padding: 32rpx;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  background: var(--primary-color);
   color: white;
   border-radius: 32rpx;
   font-size: 34rpx;
   font-weight: 600;
-  box-shadow: 0 8rpx 32rpx rgba(74, 144, 226, 0.4);
 }
 
 .submit-btn:active {
   opacity: 0.9;
   transform: scale(0.98);
-}
-
-.submit-icon {
-  font-size: 40rpx;
-  font-weight: 300;
 }
 
 /* ========== 出发地选择弹窗 ========== */
@@ -365,7 +348,6 @@ page {
   text-align: center;
   font-size: 28rpx;
   color: var(--text-secondary);
-  transition: all 0.2s ease;
 }
 
 .district-item.active {
@@ -376,13 +358,12 @@ page {
 
 .modal-confirm {
   padding: 32rpx;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  background: var(--primary-color);
   color: white;
   text-align: center;
   border-radius: 28rpx;
   font-size: 32rpx;
   font-weight: 500;
-  box-shadow: 0 8rpx 32rpx rgba(74, 144, 226, 0.3);
 }
 
 .modal-confirm:active {
