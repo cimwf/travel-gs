@@ -198,8 +198,8 @@ Page({
 
     // 脱敏手机号
     let maskedPhone = '';
-    if (trip.phone) {
-      const phone = trip.phone;
+    if (trip.contactPhone) {
+      const phone = trip.contactPhone;
       maskedPhone = phone.substring(0, 3) + '****' + phone.substring(7);
     }
 
@@ -238,17 +238,23 @@ Page({
   loadMockTripDetail: function () {
     const mockTrip = {
       _id: 'trip_001',
-      title: '周六灵山徒步',
+      tripTitle: '周六灵山徒步',
       placeName: '东灵山',
       placeHighlight: '北京最高峰',
       placeImage: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
       date: '2026-04-12',
       dateText: '2026-04-12 周六',
-      departure: '海淀区集合',
+      departure: '海淀区',
+      meetingPlace: '海淀黄庄地铁站B口',
+      meetingTime: '08:00',
       currentCount: 2,
       totalCount: 4,
       needCount: 2,
       hasCar: true,
+      carSeats: '5',
+      carModel: 'SUV',
+      price: '150',
+      contactPhone: '13800138000',
       status: 'open',
       remark: '周六早上8点在海淀黄庄地铁站B口集合，自驾前往灵山，预计10:30到达。下午4点返程。费用AA，油费+门票约150元/人。',
       creatorId: 'user_001',
@@ -268,6 +274,12 @@ Page({
     const canJoin = true;
     const joinBtnText = '申请加入';
 
+    // 脱敏手机号
+    let maskedPhone = '';
+    if (mockTrip.contactPhone) {
+      maskedPhone = mockTrip.contactPhone.substring(0, 3) + '****' + mockTrip.contactPhone.substring(7);
+    }
+
     this.setData({
       trip: mockTrip,
       participants: mockParticipants,
@@ -275,6 +287,7 @@ Page({
       remainCount,
       canJoin,
       joinBtnText,
+      maskedPhone,
       loading: false
     });
   },
@@ -312,7 +325,7 @@ Page({
 
   // 复制手机号
   onCopyPhone: function () {
-    const phone = this.data.trip.phone;
+    const phone = this.data.trip.contactPhone;
     if (phone) {
       wx.setClipboardData({
         data: phone,
@@ -540,8 +553,9 @@ Page({
   // 分享
   onShareAppMessage: function () {
     const trip = this.data.trip;
+    const title = trip.tripTitle || `${trip.creatorName} 邀你一起去 ${trip.placeName}`;
     return {
-      title: `${trip.creatorName} 邀你一起去 ${trip.placeName}`,
+      title: title,
       path: `/pages/trip-detail/trip-detail?id=${trip._id}`,
       imageUrl: trip.placeImage
     };

@@ -26,7 +26,7 @@
           <view class="status-tag status-{{trip.status}}" wx:else>{{statusText}}</view>
           <view class="status-tag remain-tag" wx:if="{{remainCount > 0 && !hasJoined}}">还剩{{remainCount}}个名额</view>
         </view>
-        <view class="trip-title">{{trip.title || trip.placeName}}</view>
+        <view class="trip-title">{{trip.tripTitle || trip.placeName}}</view>
         <view class="trip-location">🏔️ {{trip.placeName}} · {{trip.placeHighlight || '北京周边'}}</view>
       </view>
     </view>
@@ -49,6 +49,30 @@
           <view class="info-row">
             <text class="info-label">出发地</text>
             <text class="info-value">{{trip.departure || '待定'}}</text>
+          </view>
+          <view class="info-row" wx:if="{{trip.meetingPlace}}">
+            <text class="info-label">集合地点</text>
+            <text class="info-value">{{trip.meetingPlace}}</text>
+          </view>
+          <view class="info-row" wx:if="{{trip.meetingTime}}">
+            <text class="info-label">集合时间</text>
+            <text class="info-value">{{trip.meetingTime}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">出行方式</text>
+            <text class="info-value">{{trip.hasCar ? '有车' : '无车'}}</text>
+          </view>
+          <view class="info-row" wx:if="{{trip.hasCar && (trip.carSeats || trip.carModel)}}">
+            <text class="info-label">车辆信息</text>
+            <text class="info-value">{{trip.carSeats ? trip.carSeats + '座' : ''}}{{trip.carSeats && trip.carModel ? '·' : ''}}{{trip.carModel || ''}}</text>
+          </view>
+          <view class="info-row" wx:if="{{!trip.hasCar && trip.travelDesc}}">
+            <text class="info-label">出行描述</text>
+            <text class="info-value">{{trip.travelDesc}}</text>
+          </view>
+          <view class="info-row" wx:if="{{trip.price}}">
+            <text class="info-label">人均价格</text>
+            <text class="info-value">{{trip.price}}元/人</text>
           </view>
           <view class="info-row">
             <text class="info-label">招募人数</text>
@@ -74,7 +98,7 @@
           </view>
         </view>
         <!-- 联系方式 - 已加入可见 -->
-        <view class="contact-info" wx:if="{{hasJoined && trip.phone}}">
+        <view class="contact-info" wx:if="{{hasJoined && trip.contactPhone}}">
           <view class="contact-tip">🎉 您已加入，可联系发起人</view>
           <view class="contact-row">
             <text class="contact-icon">💬</text>
@@ -151,7 +175,7 @@
   tripId="{{trip._id || ''}}"
   toUserId="{{trip.creatorId || ''}}"
   toUserName="{{trip.creatorName || ''}}"
-  defaultPhone="{{userInfo.phone || ''}}"
+  defaultPhone="{{userInfo.contactPhone || userInfo.phone || ''}}"
   bind:close="onCloseApplyModal"
   bind:submit="onSubmitApplySuccess"
 />
