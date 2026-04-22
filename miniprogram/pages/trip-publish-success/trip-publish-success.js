@@ -17,7 +17,7 @@ Page({
     const placeId = options.placeId || '';
     const placeName = decodeURIComponent(options.placeName || '未知地点');
     const placeAddress = decodeURIComponent(options.placeAddress || '北京市');
-    const tripImage = options.tripImage ? decodeURIComponent(options.tripImage) : '';
+    const tripImage = options.tripImage ? decodeURIComponent(options.tripImage) : 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop';
     const dateText = decodeURIComponent(options.dateText || '');
     const currentCount = parseInt(options.currentCount) || 1;
     const needCount = parseInt(options.needCount) || 3;

@@ -281,6 +281,19 @@ Page({
       const db = wx.cloud.database();
       const res = await db.collection('trips').add({ data: tripData });
 
+      // 获取景点图片
+      let tripImage = '';
+      if (this.data.placeId) {
+        try {
+          const placeRes = await db.collection('places').doc(this.data.placeId).get();
+          if (placeRes.data && placeRes.data.coverImage) {
+            tripImage = placeRes.data.coverImage;
+          }
+        } catch (err) {
+          console.warn('获取景点图片失败', err);
+        }
+      }
+
       wx.hideLoading();
 
       // 格式化日期显示
@@ -293,6 +306,7 @@ Page({
         'placeId=' + this.data.placeId,
         'placeName=' + encodeURIComponent(this.data.placeName),
         'placeAddress=' + encodeURIComponent('北京市'),
+        'tripImage=' + encodeURIComponent(tripImage),
         'dateText=' + encodeURIComponent(dateText),
         'currentCount=' + currentCount,
         'needCount=' + needCount
