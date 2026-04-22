@@ -44,7 +44,7 @@ page {
 .table-row {
   display: flex;
   align-items: center;
-  min-height: 100rpx;
+  height: 100rpx;
   border-bottom: 1rpx solid var(--border-color);
 }
 
@@ -57,6 +57,7 @@ page {
 }
 
 .table-cell {
+  height: 100%;
   padding: 28rpx 32rpx;
   display: flex;
   align-items: center;
@@ -64,6 +65,7 @@ page {
 
 .table-label {
   width: 200rpx;
+  height: 100%;
   background: #FAFAFC;
   font-size: 28rpx;
   color: var(--text-secondary);
