@@ -333,3 +333,101 @@ page {
   color: white;
   font-weight: 300;
 }
+
+/* ========== 分享弹窗 ========== */
+.share-modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.share-modal {
+  width: 600rpx;
+  background: white;
+  border-radius: 32rpx;
+  overflow: hidden;
+}
+
+.share-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32rpx;
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.share-modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.share-modal-close {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.share-modal-content {
+  padding: 40rpx 32rpx;
+}
+
+.share-trip-info {
+  text-align: center;
+  margin-bottom: 24rpx;
+}
+
+.share-trip-name {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12rpx;
+}
+
+.share-trip-date {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+}
+
+.share-tip {
+  text-align: center;
+  font-size: 26rpx;
+  color: var(--text-hint);
+}
+
+.share-modal-footer {
+  padding: 24rpx 32rpx 40rpx;
+}
+
+.share-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  width: 100%;
+  padding: 28rpx;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 48rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+  border: none;
+}
+
+.share-btn::after {
+  border: none;
+}
+
+.share-btn-icon {
+  font-size: 36rpx;
+}

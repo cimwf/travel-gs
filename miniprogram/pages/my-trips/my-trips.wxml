@@ -75,3 +75,28 @@
 <view class="fab" bindtap="onPublishTap">
   <text class="fab-icon">+</text>
 </view>
+
+<!-- 分享弹窗 -->
+<view class="share-modal-mask" wx:if="{{showShareModal}}" bindtap="onCloseShareModal">
+  <view class="share-modal" catchtap="">
+    <view class="share-modal-header">
+      <text class="share-modal-title">分享行程</text>
+      <view class="share-modal-close" bindtap="onCloseShareModal">
+        <text class="close-icon">×</text>
+      </view>
+    </view>
+    <view class="share-modal-content" wx:if="{{shareTrip}}">
+      <view class="share-trip-info">
+        <text class="share-trip-name">{{shareTrip.placeName}}</text>
+        <text class="share-trip-date">📅 {{shareTrip.dateText}}</text>
+      </view>
+      <view class="share-tip">点击下方按钮分享给微信好友</view>
+    </view>
+    <view class="share-modal-footer">
+      <button class="share-btn" open-type="share">
+        <text class="share-btn-icon">📤</text>
+        <text>分享给好友</text>
+      </button>
+    </view>
+  </view>
+</view>

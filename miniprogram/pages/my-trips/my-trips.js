@@ -10,7 +10,11 @@ Page({
     loading: true,
     emptyIcon: '🗺️',
     emptyTitle: '还没有行程',
-    emptyDesc: '快去发现有趣的地方吧！'
+    emptyDesc: '快去发现有趣的地方吧！',
+
+    // 分享弹窗
+    showShareModal: false,
+    shareTrip: null
   },
 
   onLoad: function (options) {
@@ -344,6 +348,9 @@ Page({
   // 管理行程
   onManageTap: async function (e) {
     const tripId = e.currentTarget.dataset.id;
+    // 获取行程信息用于分享
+    const trip = this.data.trips.find(t => t._id === tripId);
+
     wx.showActionSheet({
       itemList: ['编辑行程', '停止招募', '取消行程', '分享行程'],
       success: (res) => {
@@ -360,13 +367,22 @@ Page({
             this.cancelTrip(tripId);
             break;
           case 3:
-            wx.showShareMenu({
-              withShareTicket: true,
-              menus: ['shareAppMessage']
+            // 显示分享弹窗
+            this.setData({
+              showShareModal: true,
+              shareTrip: trip
             });
             break;
         }
       }
+    });
+  },
+
+  // 关闭分享弹窗
+  onCloseShareModal: function () {
+    this.setData({
+      showShareModal: false,
+      shareTrip: null
     });
   },
 
@@ -498,6 +514,13 @@ Page({
 
   // 分享
   onShareAppMessage: function () {
+    const trip = this.data.shareTrip;
+    if (trip) {
+      return {
+        title: `一起去${trip.placeName}吧！`,
+        path: `/pages/trip-detail/trip-detail?id=${trip._id}`
+      };
+    }
     return {
       title: '我的行程 - 北上周边行',
       path: '/pages/my-trips/my-trips'
