@@ -513,8 +513,17 @@ Page({
   },
 
   // 分享
-  onShareAppMessage: function () {
-    const trip = this.data.shareTrip;
+  onShareAppMessage: function (e) {
+
+    // 优先从按钮的 data-trip 获取行程信息
+    if (e.target && e.target.dataset && e.target.dataset.trip) {
+      const trip = e.target.dataset.trip;
+      return {
+        title: `一起去${trip.placeName}吧！`,
+        path: `/pages/trip-detail/trip-detail?id=${trip._id}`
+      };
+    }
+
     if (trip) {
       return {
         title: `一起去${trip.placeName}吧！`,

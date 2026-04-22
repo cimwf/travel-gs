@@ -93,7 +93,7 @@
       <view class="share-tip">点击下方按钮分享给微信好友</view>
     </view>
     <view class="share-modal-footer">
-      <button class="share-btn" open-type="share">
+      <button class="share-btn" open-type="share" data-trip="{{shareTrip}}">
         <text class="share-btn-icon">📤</text>
         <text>分享给好友</text>
       </button>
