@@ -1,12 +1,6 @@
 <!--pages/trip-detail/trip-detail.wxml-->
 <view class="container">
-  <!-- 加载中 -->
-  <view class="loading-state" wx:if="{{loading}}">
-    <view class="loading-spinner"></view>
-    <text>加载中...</text>
-  </view>
-
-  <block wx:else>
+  <block wx:if="{{trip}}">
     <!-- 顶部图片区域 -->
     <view class="header">
       <image class="header-image" src="{{trip.placeImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop'}}" mode="aspectFill"></image>
@@ -146,7 +140,7 @@
 </view>
 
 <!-- 底部按钮区域 -->
-<view class="footer-bar" wx:if="{{!loading}}">
+<view class="footer-bar" wx:if="{{trip}}">
   <!-- 发起人视角：编辑行程 + 分享招募 -->
   <block wx:if="{{isCreator}}">
     <view class="footer-btn-secondary" bindtap="onEditTrip">编辑行程</view>

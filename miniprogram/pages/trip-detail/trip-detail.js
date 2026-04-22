@@ -61,7 +61,7 @@ Page({
 
   // 加载行程详情
   loadTripDetail: async function (tripId) {
-    this.setData({ loading: true });
+    wx.showLoading({ title: '加载中...', mask: true });
 
     // 尝试从数据库加载
     if (wx.cloud) {
@@ -219,6 +219,8 @@ Page({
       maskedPhone,
       loading: false
     });
+
+    wx.hideLoading();
   },
 
   // 获取地点亮点描述
@@ -294,6 +296,8 @@ Page({
       maskedPhone,
       loading: false
     });
+
+    wx.hideLoading();
   },
 
   // 返回
