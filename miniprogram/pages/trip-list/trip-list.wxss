@@ -176,6 +176,10 @@ page {
   gap: 4rpx;
 }
 
+.trip-meta-second {
+  margin-top: 8rpx;
+}
+
 .meta-dot {
   color: var(--border-color);
   margin: 0 4rpx;

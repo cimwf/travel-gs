@@ -37,8 +37,9 @@
                 <text>📅 {{item.dateText}}</text>
                 <text class="meta-dot">·</text>
                 <text>📍 {{item.departure || '待定'}}</text>
-                <text class="meta-dot">·</text>
-                <text>{{item.hasCar ? '🚗 有车' : '🚗 无车'}}</text>
+              </view>
+              <view class="trip-meta trip-meta-second">
+                <text>{{item.carText}}</text>
               </view>
             </view>
           </view>

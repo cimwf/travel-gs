@@ -156,6 +156,20 @@ Page({
             statusText = '即将满员';
           }
 
+          // 计算车辆信息展示文本
+          let carText = '';
+          const carSeats = trip.carSeats || '';
+          const carModel = trip.carModel || '';
+          if (carSeats && carModel) {
+            carText = `🚗 ${carSeats}·${carModel}`;
+          } else if (carSeats) {
+            carText = `🚗 ${carSeats}`;
+          } else if (carModel) {
+            carText = `🚗 ${carModel}`;
+          } else {
+            carText = trip.hasCar ? '🚗 有车' : '🚗 无车';
+          }
+
           trips.push({
             _id: trip._id,
             placeName: trip.placeName,
@@ -163,6 +177,7 @@ Page({
             date: trip.date,
             departure: trip.departure || '',
             hasCar: trip.hasCar,
+            carText,
             publishTime,
             participants,
             placeCoverImage,
