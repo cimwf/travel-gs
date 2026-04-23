@@ -3,23 +3,27 @@
     <!-- 地点名称 -->
     <view class="form-item">
       <view class="form-label">地点名称</view>
-      <input
-        class="form-input"
-        placeholder="请输入景点名称"
-        value="{{placeName}}"
-        bindinput="onPlaceNameInput"
-      />
+      <view class="input-wrap">
+        <input
+          class="form-input"
+          placeholder="请输入景点名称"
+          value="{{placeName}}"
+          bindinput="onPlaceNameInput"
+        />
+      </view>
     </view>
 
     <!-- 所在地方 -->
     <view class="form-item">
       <view class="form-label">所在地方</view>
-      <input
-        class="form-input"
-        placeholder="例如：北京市延庆区"
-        value="{{location}}"
-        bindinput="onLocationInput"
-      />
+      <view class="input-wrap">
+        <input
+          class="form-input"
+          placeholder="例如：北京市延庆区"
+          value="{{location}}"
+          bindinput="onLocationInput"
+        />
+      </view>
     </view>
 
     <!-- 景点头像 -->
