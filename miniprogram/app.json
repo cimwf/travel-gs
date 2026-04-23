@@ -22,7 +22,8 @@
     "pages/about/about",
     "pages/search/search",
     "pages/agreement/agreement",
-    "pages/user-profile/user-profile"
+    "pages/user-profile/user-profile",
+    "pages/upload-spot/upload-spot"
   ],
   "window": {
     "backgroundTextStyle": "light",

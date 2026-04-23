@@ -174,6 +174,17 @@ Page({
     }
   },
 
+  // 上传景点
+  onTapUploadSpot: function () {
+    if (!auth.checkNeedLogin()) {
+      wx.navigateTo({
+        url: '/pages/upload-spot/upload-spot'
+      });
+    } else {
+      nav.goToRegister('/pages/upload-spot/upload-spot');
+    }
+  },
+
   // 我的收藏
   onTapCollections: function () {
     if (!auth.checkNeedLogin()) {
