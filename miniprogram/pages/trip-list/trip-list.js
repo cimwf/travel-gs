@@ -66,23 +66,30 @@ Page({
     }
 
     try {
-      const db = wx.cloud.database();
       const { page, pageSize } = this.data;
 
-      // 查询列表
-      const tripRes = await db.collection('trips')
-        .where({
-          status: db.command.neq('cancelled')
-        })
-        .orderBy('createdAt', 'desc')
-        .skip(page * pageSize)
-        .limit(pageSize)
-        .get();
+      // 从云函数获取行程列表
+      const res = await wx.cloud.callFunction({
+        name: 'api',
+        data: {
+          action: 'trip/list',
+          data: {
+            page: page + 1, // 云函数使用1-based分页
+            pageSize,
+            excludeStatus: 'cancelled'
+          }
+        }
+      });
 
-      if (tripRes.data && tripRes.data.length > 0) {
+      const tripRes = res.result;
+      if (!tripRes || !tripRes.success) {
+        throw new Error('获取行程列表失败');
+      }
+
+      if (tripRes.trips && tripRes.trips.length > 0) {
         // 收集需要处理的云存储头像
         const avatarFileIDs = [];
-        tripRes.data.forEach(trip => {
+        tripRes.trips.forEach(trip => {
           if (trip.participants) {
             trip.participants.forEach(p => {
               if (p.avatar && p.avatar.startsWith('cloud://')) {
@@ -110,7 +117,7 @@ Page({
         }
 
         const trips = [];
-        for (const trip of tripRes.data) {
+        for (const trip of tripRes.trips) {
           // 格式化日期
           let dateText = trip.date || '';
           if (trip.date) {
@@ -224,7 +231,7 @@ Page({
           trips: this.filterTrips(allTrips),
           destinationOptions: destinations,
           departureOptions: departures,
-          hasMore: tripRes.data.length >= pageSize,
+          hasMore: tripRes.trips.length >= pageSize,
           loading: false,
           page: page + 1
         });

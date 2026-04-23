@@ -645,24 +645,25 @@ async function tripCreate(openid, data) {
 }
 
 async function tripList(data) {
-  const { placeId, status, date, page = 1, pageSize = 20 } = data;
+  const { placeId, status, date, excludeStatus, page = 1, pageSize = 20 } = data;
   let query = db.collection('trips');
-  
+
   const conditions = {};
   if (placeId) conditions.placeId = placeId;
   if (status) conditions.status = status;
   if (date) conditions.date = date;
-  
+  if (excludeStatus) conditions.status = _.neq(excludeStatus);
+
   if (Object.keys(conditions).length > 0) {
     query = query.where(conditions);
   }
-  
+
   const res = await query
     .orderBy('createdAt', 'desc')
     .skip((page - 1) * pageSize)
     .limit(pageSize)
     .get();
-  
+
   return { success: true, trips: res.data };
 }
 
