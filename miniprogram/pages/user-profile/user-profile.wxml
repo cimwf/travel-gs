@@ -8,15 +8,21 @@
 
   <block wx:else>
     <!-- 用户信息卡片 -->
-    <view class="user-card">
-      <view class="user-avatar-wrap">
-        <image class="user-avatar" src="{{userInfo.avatar}}" wx:if="{{userInfo.avatar}}" mode="aspectFill"></image>
-        <view class="user-avatar-text" wx:else>
-          <text>👤</text>
+    <view class="user-card" style="{{userInfo.background ? 'background-image: url(' + userInfo.background + '); background-size: cover; background-position: center;' : ''}}">
+      <view class="user-card-overlay {{userInfo.background ? 'overlay-dark' : ''}}">
+        <view class="user-avatar-wrap">
+          <image class="user-avatar" src="{{userInfo.avatar}}" wx:if="{{userInfo.avatar}}" mode="aspectFill"></image>
+          <view class="user-avatar-text" wx:else>
+            <text>👤</text>
+          </view>
+        </view>
+        <view class="user-name">{{userInfo.nickname || '旅行者'}}</view>
+        <view class="user-id-row">
+          <text class="user-id">ID: {{userInfo.userId || '未设置'}}</text>
+          <text class="user-gender" wx:if="{{userInfo.gender === 1}}">♂ 男</text>
+          <text class="user-gender" wx:if="{{userInfo.gender === 2}}">♀ 女</text>
         </view>
       </view>
-      <view class="user-name">{{userInfo.nickname || '旅行者'}}</view>
-      <view class="user-id">ID: {{userInfo.userCode || 'BJ20260418'}}</view>
     </view>
 
     <!-- 内容区域 -->

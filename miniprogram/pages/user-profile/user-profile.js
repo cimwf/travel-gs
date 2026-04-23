@@ -9,8 +9,10 @@ Page({
     userInfo: {
       nickname: '',
       avatar: '',
+      background: '',
       bio: '',
-      userCode: ''
+      userId: '',
+      gender: 0
     },
     stats: {
       trips: 0,
@@ -105,16 +107,27 @@ Page({
           }
         }
 
-        // 生成用户编码
-        const userOpenid = userData.openid || userId;
-        const userCode = `BJ${userOpenid.slice(-8).toUpperCase()}`;
+        // 处理背景图URL
+        let background = userData.background || '';
+        if (background && background.startsWith('cloud://') && wx.cloud) {
+          try {
+            const urlRes = await wx.cloud.getTempFileURL({ fileList: [background] });
+            if (urlRes.fileList && urlRes.fileList[0] && urlRes.fileList[0].tempFileURL) {
+              background = urlRes.fileList[0].tempFileURL;
+            }
+          } catch (err) {
+            console.warn('获取背景图链接失败', err);
+          }
+        }
 
         this.setData({
           userInfo: {
             nickname: userData.nickname || '旅行者',
             avatar: avatar,
+            background: background,
             bio: userData.bio || '',
-            userCode: userCode
+            userId: userData.userId || '',
+            gender: userData.gender || 0
           },
           stats: {
             trips: userData.trips || 0,
@@ -124,7 +137,7 @@ Page({
         });
 
         // 加载行程
-        await this.loadUserTrips(userOpenid);
+        await this.loadUserTrips(userData.openid || userId);
 
         // 加载照片
         await this.loadUserPhotos(userData);
