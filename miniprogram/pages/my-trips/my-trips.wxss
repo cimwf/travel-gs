@@ -431,3 +431,112 @@ page {
 .share-btn-icon {
   font-size: 36rpx;
 }
+
+/* ========== 管理弹窗 ========== */
+.manage-modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.manage-modal {
+  width: 600rpx;
+  background: white;
+  border-radius: 32rpx;
+  overflow: hidden;
+}
+
+.manage-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32rpx;
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.manage-modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.manage-modal-close {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-icon {
+  font-size: 40rpx;
+  color: var(--text-hint);
+}
+
+.manage-modal-content {
+  padding: 32rpx;
+}
+
+.manage-trip-info {
+  text-align: center;
+  margin-bottom: 32rpx;
+  padding-bottom: 24rpx;
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.manage-trip-name {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12rpx;
+}
+
+.manage-trip-date {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+}
+
+.manage-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.manage-action {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 28rpx 32rpx;
+  background: var(--bg-color);
+  border-radius: 24rpx;
+}
+
+.manage-action:active {
+  opacity: 0.8;
+}
+
+.manage-action.danger {
+  background: #FFF1F0;
+}
+
+.manage-action.danger .manage-action-text {
+  color: var(--danger-color);
+}
+
+.manage-action-icon {
+  font-size: 36rpx;
+}
+
+.manage-action-text {
+  font-size: 30rpx;
+  color: var(--text-primary);
+  font-weight: 500;
+}

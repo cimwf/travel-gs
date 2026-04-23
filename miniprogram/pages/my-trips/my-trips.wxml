@@ -76,6 +76,50 @@
   <text class="fab-icon">+</text>
 </view>
 
+<!-- 管理弹窗 -->
+<view class="manage-modal-mask" wx:if="{{showManageModal}}" bindtap="onCloseManageModal">
+  <view class="manage-modal" catchtap="">
+    <view class="manage-modal-header">
+      <text class="manage-modal-title">管理行程</text>
+      <view class="manage-modal-close" bindtap="onCloseManageModal">
+        <text class="close-icon">×</text>
+      </view>
+    </view>
+    <view class="manage-modal-content">
+      <view class="manage-trip-info" wx:if="{{manageTrip}}">
+        <text class="manage-trip-name">{{manageTrip.placeName}}</text>
+        <text class="manage-trip-date">📅 {{manageTrip.dateText}}</text>
+      </view>
+      <view class="manage-actions">
+        <view class="manage-action" bindtap="onEditTrip">
+          <text class="manage-action-icon">✏️</text>
+          <text class="manage-action-text">编辑行程</text>
+        </view>
+        <view class="manage-action" bindtap="onStopRecruit" wx:if="{{manageTrip && manageTrip.rawStatus !== 'stopped'}}">
+          <text class="manage-action-icon">⏸️</text>
+          <text class="manage-action-text">停止招募</text>
+        </view>
+        <view class="manage-action" bindtap="onStartRecruit" wx:if="{{manageTrip && manageTrip.rawStatus === 'stopped'}}">
+          <text class="manage-action-icon">▶️</text>
+          <text class="manage-action-text">开始招募</text>
+        </view>
+        <view class="manage-action" bindtap="onShareTrip">
+          <text class="manage-action-icon">📤</text>
+          <text class="manage-action-text">分享行程</text>
+        </view>
+        <view class="manage-action" bindtap="onCancelTrip" wx:if="{{manageTrip && manageTrip.rawStatus !== 'cancelled'}}">
+          <text class="manage-action-icon">❌</text>
+          <text class="manage-action-text">取消行程</text>
+        </view>
+        <view class="manage-action danger" bindtap="onDeleteTrip">
+          <text class="manage-action-icon">🗑️</text>
+          <text class="manage-action-text">删除行程</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
+
 <!-- 分享弹窗 -->
 <view class="share-modal-mask" wx:if="{{showShareModal}}" bindtap="onCloseShareModal">
   <view class="share-modal" catchtap="">

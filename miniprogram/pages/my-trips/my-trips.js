@@ -12,6 +12,10 @@ Page({
     emptyTitle: '还没有行程',
     emptyDesc: '快去发现有趣的地方吧！',
 
+    // 管理弹窗
+    showManageModal: false,
+    manageTrip: null,
+
     // 分享弹窗
     showShareModal: false,
     shareTrip: null
@@ -329,50 +333,207 @@ Page({
     this.setData({ trips: filteredTrips });
   },
 
+  // 检查行程状态并跳转
+  checkAndNavigateToDetail: async function (tripId) {
+    wx.showLoading({ title: '加载中...' });
+
+    if (wx.cloud) {
+      try {
+        const db = wx.cloud.database();
+        const res = await db.collection('trips').doc(tripId).get();
+
+        wx.hideLoading();
+
+        if (!res.data) {
+          // 行程已被删除
+          wx.showModal({
+            title: '行程不存在',
+            content: '该行程已被删除',
+            showCancel: false,
+            success: () => {
+              this.loadTrips();
+            }
+          });
+          return;
+        }
+
+        const trip = res.data;
+        if (trip.status === 'cancelled') {
+          wx.showModal({
+            title: '行程已取消',
+            content: '该行程已被发起人取消',
+            showCancel: false,
+            success: () => {
+              this.loadTrips();
+            }
+          });
+          return;
+        }
+
+        if (trip.status === 'stopped') {
+          wx.showModal({
+            title: '已停止招募',
+            content: '该行程已停止招募新成员',
+            showCancel: false,
+            success: () => {
+              this.loadTrips();
+            }
+          });
+          return;
+        }
+
+        // 状态正常，跳转到详情页
+        wx.navigateTo({
+          url: `/pages/trip-detail/trip-detail?id=${tripId}`
+        });
+      } catch (err) {
+        wx.hideLoading();
+        console.error('查询行程失败', err);
+
+        // 如果是文档不存在的错误
+        if (err.errMsg && err.errMsg.includes('document not found')) {
+          wx.showModal({
+            title: '行程不存在',
+            content: '该行程已被删除',
+            showCancel: false,
+            success: () => {
+              this.loadTrips();
+            }
+          });
+        } else {
+          wx.showToast({ title: '加载失败', icon: 'none' });
+        }
+      }
+    }
+  },
+
   // 点击行程卡片
   onTripTap: function (e) {
     const tripId = e.currentTarget.dataset.id;
-    wx.navigateTo({
-      url: `/pages/trip-detail/trip-detail?id=${tripId}`
-    });
+    this.checkAndNavigateToDetail(tripId);
   },
 
   // 查看详情
   onDetailTap: function (e) {
     const tripId = e.currentTarget.dataset.id;
-    wx.navigateTo({
-      url: `/pages/trip-detail/trip-detail?id=${tripId}`
-    });
+    this.checkAndNavigateToDetail(tripId);
   },
 
   // 管理行程
   onManageTap: async function (e) {
     const tripId = e.currentTarget.dataset.id;
-    // 获取行程信息用于分享
     const trip = this.data.trips.find(t => t._id === tripId);
+    this.setData({
+      showManageModal: true,
+      manageTrip: trip
+    });
+  },
 
-    wx.showActionSheet({
-      itemList: ['编辑行程', '停止招募', '取消行程', '分享行程'],
-      success: (res) => {
-        switch (res.tapIndex) {
-          case 0:
-            wx.navigateTo({
-              url: `/pages/trip-publish/trip-publish?id=${tripId}`
-            });
-            break;
-          case 1:
-            this.stopRecruit(tripId);
-            break;
-          case 2:
-            this.cancelTrip(tripId);
-            break;
-          case 3:
-            // 显示分享弹窗
-            this.setData({
-              showShareModal: true,
-              shareTrip: trip
-            });
-            break;
+  // 关闭管理弹窗
+  onCloseManageModal: function () {
+    this.setData({
+      showManageModal: false,
+      manageTrip: null
+    });
+  },
+
+  // 编辑行程
+  onEditTrip: function () {
+    const trip = this.data.manageTrip;
+    this.onCloseManageModal();
+    wx.navigateTo({
+      url: `/pages/trip-publish/trip-publish?id=${trip._id}`
+    });
+  },
+
+  // 停止招募
+  onStopRecruit: function () {
+    const trip = this.data.manageTrip;
+    this.onCloseManageModal();
+    this.stopRecruit(trip._id);
+  },
+
+  // 开始招募
+  onStartRecruit: async function () {
+    const trip = this.data.manageTrip;
+    this.onCloseManageModal();
+
+    wx.showModal({
+      title: '确认开始招募',
+      content: '开始招募后其他用户将可以加入，确定要开始吗？',
+      success: async (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '处理中...' });
+
+          if (wx.cloud) {
+            try {
+              const db = wx.cloud.database();
+              await db.collection('trips').doc(trip._id).update({
+                data: {
+                  status: 'open',
+                  updatedAt: Date.now()
+                }
+              });
+
+              wx.hideLoading();
+              wx.showToast({ title: '已开始招募', icon: 'success' });
+              this.loadTrips();
+            } catch (err) {
+              wx.hideLoading();
+              console.error('开始招募失败', err);
+              wx.showToast({ title: '操作失败', icon: 'none' });
+            }
+          }
+        }
+      }
+    });
+  },
+
+  // 分享行程
+  onShareTrip: function () {
+    const trip = this.data.manageTrip;
+    this.onCloseManageModal();
+    this.setData({
+      showShareModal: true,
+      shareTrip: trip
+    });
+  },
+
+  // 取消行程
+  onCancelTrip: function () {
+    const trip = this.data.manageTrip;
+    this.onCloseManageModal();
+    this.cancelTrip(trip._id);
+  },
+
+  // 删除行程
+  onDeleteTrip: function () {
+    const trip = this.data.manageTrip;
+    this.onCloseManageModal();
+
+    wx.showModal({
+      title: '确认删除',
+      content: '删除后无法恢复，确定要删除此行程吗？',
+      confirmText: '删除',
+      confirmColor: '#FF4D4F',
+      success: async (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '删除中...' });
+
+          if (wx.cloud) {
+            try {
+              const db = wx.cloud.database();
+              await db.collection('trips').doc(trip._id).remove();
+
+              wx.hideLoading();
+              wx.showToast({ title: '已删除', icon: 'success' });
+              this.loadTrips();
+            } catch (err) {
+              wx.hideLoading();
+              console.error('删除行程失败', err);
+              wx.showToast({ title: '删除失败', icon: 'none' });
+            }
+          }
         }
       }
     });
