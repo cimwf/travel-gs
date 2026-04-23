@@ -40,7 +40,7 @@
     <!-- 查看行程详情按钮 -->
     <view class="btn-primary" bindtap="onViewTrip">查看行程详情</view>
 
-    <!-- 返回地点详情 -->
-    <view class="btn-secondary" bindtap="onBackToPlace">返回地点详情</view>
+    <!-- 返回行程页 -->
+    <view class="btn-secondary" bindtap="onBackToPlace">返回行程页</view>
   </view>
 </view>

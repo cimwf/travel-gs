@@ -37,10 +37,17 @@ Page({
     this.loadTrips();
   },
 
+  onShow: function () {
+    // 静默刷新（不显示 loading）
+    this.loadTrips(true, true);
+  },
+
   // 加载行程列表
-  loadTrips: async function (reset = true) {
-    if (reset) {
+  loadTrips: async function (reset = true, silent = false) {
+    if (reset && !silent) {
       this.setData({ loading: true, page: 0 });
+    } else if (reset) {
+      this.setData({ page: 0 });
     }
 
     try {
