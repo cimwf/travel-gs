@@ -231,8 +231,17 @@ async function userRegister(openid, data) {
   // 哈希密码
   const hashedPassword = await crypto.hashPassword(plainPassword);
 
+  // 生成用户ID：前缀 + 时间戳后6位 + 4位随机数
+  const now = new Date();
+  const timePart = now.getHours().toString().padStart(2, '0') +
+                   now.getMinutes().toString().padStart(2, '0') +
+                   now.getSeconds().toString().padStart(2, '0');
+  const randomPart = Math.random().toString(36).slice(2, 6).toUpperCase();
+  const userId = 'BJ' + timePart + randomPart;
+
   // 创建新用户
   const newUser = {
+    userId,
     openid,
     phone,
     phoneMask: crypto.maskPhone(phone), // 脱敏手机号

@@ -23,13 +23,14 @@
 // 1. users - 用户表
 const userSchema = {
   _id: "user_xxx",
+  userId: "BJ143052A7F3",           // 用户唯一标识：前缀 + 时间戳后6位 + 4位随机数
   openid: "xxx",                    // 微信openid
   nickname: "旅行达人",              // 昵称
   avatar: "https://...",            // 头像
   gender: 1,                        // 性别 0未知 1男 2女
   bio: "热爱户外",                   // 简介
   phone: "138****8888",             // 手机号（脱敏）
-  
+
   // 统计
   following: 128,                   // 关注数
   followers: 256,                   // 粉丝数
@@ -206,6 +207,7 @@ const notificationSchema = {
 ==========================================
 
 users:
+  - userId (唯一)
   - openid (唯一)
   - createdAt
 
