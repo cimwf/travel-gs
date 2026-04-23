@@ -2,6 +2,7 @@
 const app = getApp();
 const auth = require('../../utils/auth.js');
 const api = require('../../utils/api.js');
+const nav = require('../../utils/nav.js');
 
 Page({
   data: {
@@ -15,10 +16,15 @@ Page({
     canRegister: false,
     strengthLevel: 0,
     strengthText: '未设置',
-    strengthColors: ['weak', 'medium', 'strong']
+    strengthColors: ['weak', 'medium', 'strong'],
+    statusBarHeight: 0
   },
 
   onLoad() {
+    // 获取状态栏高度
+    const windowInfo = wx.getWindowInfo();
+    this.setData({ statusBarHeight: windowInfo.statusBarHeight });
+
     // 记录访问注册页
     this.trackPageVisit();
   },
@@ -171,7 +177,12 @@ Page({
 
   // 去登录
   onGoLogin() {
-    wx.navigateBack();
+    wx.navigateTo({ url: '/pages/auth/auth' });
+  },
+
+  // 返回
+  onBack() {
+    nav.goBack();
   },
 
   // 打开协议

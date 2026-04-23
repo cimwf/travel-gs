@@ -14,6 +14,27 @@ page {
   width: 100%;
   overflow-x: hidden;
   box-sizing: border-box;
+  position: relative;
+}
+
+/* 返回按钮 */
+.back-btn {
+  position: absolute;
+  left: 40rpx;
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  z-index: 100;
+}
+
+.back-icon {
+  font-size: 48rpx;
+  color: white;
+  font-weight: 300;
 }
 
 /* 内容区域 */

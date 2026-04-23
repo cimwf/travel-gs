@@ -2,6 +2,7 @@
 const app = getApp();
 const api = require('../../utils/api.js');
 const auth = require('../../utils/auth.js');
+const nav = require('../../utils/nav.js');
 
 Page({
   data: {
@@ -135,9 +136,9 @@ Page({
     }
   },
 
-  // 点击登录
+  // 点击登录（默认跳转到注册页）
   onLogin: function () {
-    auth.goToLogin('/pages/profile/profile');
+    nav.goToRegister();
   },
 
   // 编辑资料
@@ -147,7 +148,7 @@ Page({
         url: '/pages/edit-profile/edit-profile'
       });
     } else {
-      auth.goToLogin('/pages/profile/profile');
+      nav.goToRegister('/pages/profile/profile');
     }
   },
 
@@ -158,7 +159,7 @@ Page({
         url: '/pages/my-trips/my-trips'
       });
     } else {
-      auth.goToLogin('/pages/profile/profile');
+      nav.goToRegister('/pages/profile/profile');
     }
   },
 
@@ -169,7 +170,7 @@ Page({
         url: '/pages/trip-notifications/trip-notifications'
       });
     } else {
-      auth.goToLogin('/pages/trip-notifications/trip-notifications');
+      nav.goToRegister('/pages/trip-notifications/trip-notifications');
     }
   },
 
@@ -178,7 +179,7 @@ Page({
     if (!auth.checkNeedLogin()) {
       wx.showToast({ title: '功能开发中', icon: 'none' });
     } else {
-      auth.goToLogin('/pages/profile/profile');
+      nav.goToRegister('/pages/profile/profile');
     }
   },
 
@@ -189,7 +190,7 @@ Page({
         url: '/pages/comments/comments'
       });
     } else {
-      auth.goToLogin('/pages/profile/profile');
+      nav.goToRegister('/pages/profile/profile');
     }
   },
 
@@ -200,21 +201,29 @@ Page({
         url: '/pages/followers/followers'
       });
     } else {
-      auth.goToLogin('/pages/profile/profile');
+      nav.goToRegister('/pages/profile/profile');
     }
   },
 
   // 提交建议
   onTapFeedback: function () {
-    wx.navigateTo({
-      url: '/pages/feedback/feedback'
-    });
+    if (!auth.checkNeedLogin()) {
+      wx.navigateTo({
+        url: '/pages/feedback/feedback'
+      });
+    } else {
+      nav.goToRegister('/pages/feedback/feedback');
+    }
   },
 
   // 关于我们
   onTapAbout: function () {
-    wx.navigateTo({
-      url: '/pages/about/about'
-    });
+    if (!auth.checkNeedLogin()) {
+      wx.navigateTo({
+        url: '/pages/about/about'
+      });
+    } else {
+      nav.goToRegister('/pages/about/about');
+    }
   }
 });
