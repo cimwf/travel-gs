@@ -1,4 +1,5 @@
 // pages/place-list/place-list.js
+const app = getApp();
 
 Page({
   data: {
@@ -17,16 +18,27 @@ Page({
     this.setData({ loading: true });
 
     try {
-      const db = wx.cloud.database();
-      const res = await db.collection('quick_attractions')
-        .orderBy('wantCount', 'desc')
-        .limit(50)
-        .get();
-
-      this.setData({
-        places: res.data || [],
-        loading: false
+      // 调云函数接口获取景点数据
+      const res = await wx.cloud.callFunction({
+        name: 'api',
+        data: { action: 'attractions/list', data: {} }
       });
+
+      if (res.result && res.result.success) {
+        const attractions = res.result.attractions || [];
+        this.setData({
+          places: attractions,
+          loading: false
+        });
+
+        // 同步更新全局缓存
+        if (attractions.length > 0) {
+          app.globalData.attractions = attractions;
+          app.globalData.attractionsLoaded = true;
+        }
+      } else {
+        this.setData({ loading: false });
+      }
     } catch (err) {
       console.error('加载地点失败', err);
       this.setData({ loading: false });

@@ -92,6 +92,10 @@ exports.main = async (event, context) => {
       case 'banner/list':
         return await bannerList();
 
+      // ========== 景点相关 ==========
+      case 'attractions/list':
+        return await attractionsList();
+
       default:
         return { success: false, error: '未知操作' };
     }
@@ -962,4 +966,20 @@ async function bannerList() {
     .get();
 
   return { success: true, banners: res.data };
+}
+
+// ========== 景点相关 ==========
+
+async function attractionsList() {
+  try {
+    const res = await db.collection('quick_attractions')
+      .limit(200)
+      .get();
+
+    const attractions = res.data || [];
+    return { success: true, attractions };
+  } catch (err) {
+    console.error('获取景点列表失败:', err);
+    return { success: false, error: err.message };
+  }
 }

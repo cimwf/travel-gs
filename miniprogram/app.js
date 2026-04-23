@@ -6,7 +6,30 @@ App({
     userInfo: null,
     openid: null,
     isLoggedIn: false,
-    cloudEnv: 'cloud1-1gxcobd051830cce'
+    cloudEnv: 'cloud1-1gxcobd051830cce',
+    attractions: [],
+    attractionsLoaded: false
+  },
+
+  // 获取景点列表（缓存到全局）
+  getAttractions: async function (forceRefresh = false) {
+    if (!forceRefresh && this.globalData.attractionsLoaded && this.globalData.attractions.length > 0) {
+      return this.globalData.attractions;
+    }
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'api',
+        data: { action: 'attractions/list', data: {} }
+      });
+      if (res.result.success) {
+        this.globalData.attractions = res.result.attractions || [];
+        this.globalData.attractionsLoaded = true;
+        return this.globalData.attractions;
+      }
+    } catch (err) {
+      console.warn('获取景点列表失败', err);
+    }
+    return [];
   },
 
   onLaunch: function () {

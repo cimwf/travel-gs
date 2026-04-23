@@ -28,11 +28,17 @@ Page({
 
     // 加载行程数据
     this.loadTrips();
+    this.loadAttractions();
   },
 
   onShow: function () {
     // 每次显示页面时刷新数据
     this.loadTrips();
+  },
+
+  // 加载景点数据到全局缓存
+  loadAttractions: async function () {
+    await app.getAttractions();
   },
 
   // 加载行程数据
@@ -141,16 +147,13 @@ Page({
           const imgBg = this.getImgBg(item.placeName);
           const emoji = this.getEmoji(item.category);
 
-          // 获取地点封面图
+          // 从全局缓存获取景点封面图
           let placeCoverImage = '';
           if (item.placeId) {
-            try {
-              const placeRes = await db.collection('places').doc(item.placeId).get();
-              if (placeRes.data && placeRes.data.coverImage) {
-                placeCoverImage = placeRes.data.coverImage;
-              }
-            } catch (err) {
-              console.warn('获取地点封面图失败', err);
+            const attractions = app.globalData.attractions || [];
+            const attraction = attractions.find(a => a._id === item.placeId || a.id === item.placeId);
+            if (attraction && attraction.coverImage) {
+              placeCoverImage = attraction.coverImage;
             }
           }
 

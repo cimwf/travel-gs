@@ -33,13 +33,28 @@ Page({
     customEndDate: ''
   },
 
-  onLoad: function () {
+  onLoad: async function () {
+    // 先加载景点数据到全局缓存，再加载行程列表
+    await this.loadAttractions();
     this.loadTrips();
   },
 
-  onShow: function () {
+  onShow: async function () {
     // 静默刷新（不显示 loading）
+    await this.loadAttractions();
     this.loadTrips(true, true);
+  },
+
+  // 加载景点数据到全局缓存
+  loadAttractions: async function () {
+    await app.getAttractions();
+  },
+
+  // 根据 placeId 从全局缓存获取景点封面图
+  getPlaceCover: function (placeId) {
+    const attractions = app.globalData.attractions || [];
+    const attraction = attractions.find(a => a._id === placeId);
+    return attraction ? (attraction.coverImage || '') : '';
   },
 
   // 加载行程列表
@@ -121,18 +136,8 @@ Page({
             }
           }
 
-          // 获取地点封面图
-          let placeCoverImage = '';
-          if (trip.placeId) {
-            try {
-              const placeRes = await db.collection('places').doc(trip.placeId).get();
-              if (placeRes.data && placeRes.data.coverImage) {
-                placeCoverImage = placeRes.data.coverImage;
-              }
-            } catch (err) {
-              console.warn('获取地点封面图失败', err);
-            }
-          }
+          // 从全局缓存获取景点封面图
+          let placeCoverImage = trip.placeId ? this.getPlaceCover(trip.placeId) : '';
 
           // 处理参与者头像
           const participants = (trip.participants || []).map(p => {
