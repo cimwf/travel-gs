@@ -237,3 +237,36 @@ page {
   color: var(--primary-color);
   font-weight: 500;
 }
+
+/* ========== 上传景点 ========== */
+.upload-spot-wrapper {
+  width: 100%;
+  background: white;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.upload-spot-bar {
+  display: flex;
+  align-items: center;
+  padding: 32rpx;
+}
+
+.upload-spot-bar:active {
+  background: #FAFAFC;
+}
+
+.upload-spot-icon {
+  font-size: 36rpx;
+  margin-right: 16rpx;
+}
+
+.upload-spot-text {
+  flex: 1;
+  font-size: 28rpx;
+  color: var(--primary-color);
+}
+
+.upload-spot-arrow {
+  font-size: 32rpx;
+  color: var(--text-hint);
+}

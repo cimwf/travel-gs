@@ -72,6 +72,13 @@ Page({
     this.setData({ customPlaceName: e.detail.value });
   },
 
+  // 上传景点
+  onUploadSpot: function () {
+    wx.navigateTo({
+      url: '/pages/upload-spot/upload-spot'
+    });
+  },
+
   // 确认自定义景点
   onConfirmCustom: function () {
     const name = this.data.customPlaceName.trim();
