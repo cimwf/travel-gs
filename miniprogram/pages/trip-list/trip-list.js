@@ -1,6 +1,7 @@
 // pages/trip-list/trip-list.js
 const app = getApp();
 const auth = require('../../utils/auth.js');
+const nav = require('../../utils/nav.js');
 
 Page({
   data: {
@@ -529,8 +530,8 @@ Page({
 
   // 发布行程
   onPublishTrip: function () {
-    if (!app.globalData.isLoggedIn) {
-      wx.showToast({ title: '请先登录', icon: 'none' });
+    if (auth.checkNeedLogin()) {
+      nav.goToRegister('/pages/trip-publish/trip-publish');
       return;
     }
     wx.navigateTo({
