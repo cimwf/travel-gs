@@ -2,6 +2,7 @@
 const app = getApp();
 const auth = require('../../utils/auth.js');
 const api = require('../../utils/api.js');
+const nav = require('../../utils/nav.js');
 
 Page({
   data: {
@@ -9,10 +10,15 @@ Page({
     password: '',
     showPassword: false,
     loading: false,
-    canLogin: false
+    canLogin: false,
+    statusBarHeight: 0
   },
 
   onLoad() {
+    // 获取状态栏高度
+    const windowInfo = wx.getWindowInfo();
+    this.setData({ statusBarHeight: windowInfo.statusBarHeight });
+
     // 记录访问登录页
     this.trackPageVisit();
     // 检查是否已登录（且在15天内）
@@ -32,7 +38,7 @@ Page({
         wx.removeStorageSync('pendingRedirect');
         wx.redirectTo({ url: pendingRedirect });
       } else {
-        wx.switchTab({ url: '/pages/index/index' });
+        nav.goHome();
       }
     }
   },
@@ -139,7 +145,7 @@ Page({
         wx.removeStorageSync('pendingRedirect');
         wx.redirectTo({ url: pendingRedirect });
       } else {
-        wx.switchTab({ url: '/pages/index/index' });
+        nav.goHome();
       }
     }, 1000);
   },
@@ -162,8 +168,8 @@ Page({
     });
   },
 
-  // 暂不登录
-  onSkip() {
-    wx.switchTab({ url: '/pages/index/index' });
+  // 返回
+  onBack() {
+    nav.goBack();
   }
 });

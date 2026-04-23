@@ -1,5 +1,10 @@
 <!--pages/auth/auth.wxml-->
 <view class="auth-page">
+  <!-- 返回按钮 -->
+  <view class="back-btn" style="top: {{statusBarHeight + 20}}px;" bindtap="onBack">
+    <text class="back-icon">‹</text>
+  </view>
+
   <view class="auth-content">
     <!-- Logo -->
     <view class="auth-logo">🏔️</view>
@@ -64,11 +69,6 @@
     <view class="register-guide">
       <text class="guide-text">还没有账号？</text>
       <text class="guide-link" bindtap="onGoRegister">立即注册</text>
-    </view>
-
-    <!-- 暂不登录 -->
-    <view class="skip-btn" bindtap="onSkip">
-      暂不登录
     </view>
 
     <!-- 协议 -->

@@ -5,6 +5,14 @@
 // 登录有效期：15天（毫秒）
 const LOGIN_EXPIRY = 15 * 24 * 60 * 60 * 1000;
 
+let nav = null;
+function getNav() {
+  if (!nav) {
+    nav = require('./nav.js');
+  }
+  return nav;
+}
+
 /**
  * 获取 app 实例
  */
@@ -68,7 +76,7 @@ function handleLoginSuccess(userInfo) {
     wx.redirectTo({
       url: pendingRedirect,
       fail: () => {
-        wx.switchTab({ url: '/pages/index/index' });
+        getNav().goHome();
       }
     });
   }

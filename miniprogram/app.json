@@ -1,5 +1,6 @@
 {
   "pages": [
+    "pages/trip-list/trip-list",
     "pages/index/index",
     "pages/auth/auth",
     "pages/register/register",
@@ -21,8 +22,7 @@
     "pages/about/about",
     "pages/search/search",
     "pages/agreement/agreement",
-    "pages/user-profile/user-profile",
-    "pages/trip-list/trip-list"
+    "pages/user-profile/user-profile"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -36,12 +36,6 @@
     "backgroundColor": "#ffffff",
     "borderStyle": "black",
     "list": [
-      {
-        "pagePath": "pages/index/index",
-        "text": "首页",
-        "iconPath": "images/tab-home.png",
-        "selectedIconPath": "images/tab-home-active.png"
-      },
       {
         "pagePath": "pages/trip-list/trip-list",
         "text": "行程",

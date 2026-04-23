@@ -2,6 +2,7 @@
 const app = getApp();
 const api = require('../../utils/api.js');
 const auth = require('../../utils/auth.js');
+const nav = require('../../utils/nav.js');
 
 Page({
   data: {
@@ -319,16 +320,7 @@ Page({
 
   // 返回
   onBackTap: function () {
-    const pages = getCurrentPages();
-    if (pages.length > 1) {
-      // 有上一页，正常返回
-      wx.navigateBack();
-    } else {
-      // 没有上一页（从分享链接进入），跳转到首页
-      wx.switchTab({
-        url: '/pages/index/index'
-      });
-    }
+    nav.goBack();
   },
 
   // 更多操作
