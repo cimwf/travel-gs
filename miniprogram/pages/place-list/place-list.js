@@ -18,7 +18,7 @@ Page({
 
     try {
       const db = wx.cloud.database();
-      const res = await db.collection('places')
+      const res = await db.collection('quick_attractions')
         .orderBy('wantCount', 'desc')
         .limit(50)
         .get();
