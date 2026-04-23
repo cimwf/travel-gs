@@ -56,7 +56,7 @@
     </view>
 
     <view class="info-bar" bindtap="onTapUploadSpot">
-      <view class="info-icon" style="background: linear-gradient(135deg, #52C41A, #73D13D);">📸</view>
+      <view class="info-icon" style="background: linear-gradient(135deg, var(--primary-bg), #E8D4C8);">📸</view>
       <view class="info-content">
         <view class="info-title">上传景点</view>
       </view>
