@@ -103,7 +103,8 @@ Page({
   // 异步同步到数据库
   saveToDatabase: function () {
     const { userInfo, scenicTypes } = this.data;
-    const userId = wx.getStorageSync('userId') || app.globalData.userId;
+    const dbUserInfo = app.globalData.userInfo || {};
+    const userId = dbUserInfo._id || wx.getStorageSync('userId');
     if (!userId) return;
 
     const selectedScenicTypes = scenicTypes.filter(item => item.selected).map(item => item.id);

@@ -468,8 +468,10 @@ async function userUpdate(openid, data) {
     // 通过 _id 查找（推荐，唯一标识）
     const res = await db.collection('users').doc(data._id).get();
     user = res.data;
-  } else if (openid) {
-    // 通过 openid 查找
+  }
+
+  // _id 未提供或未找到时，通过 openid 查找
+  if (!user && openid) {
     const userRes = await db.collection('users').where({ openid }).get();
     if (userRes.data.length > 0) {
       user = userRes.data[0];
