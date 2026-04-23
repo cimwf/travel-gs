@@ -333,20 +333,90 @@ Page({
     this.setData({ trips: filteredTrips });
   },
 
+  // 检查行程状态并跳转
+  checkAndNavigateToDetail: async function (tripId) {
+    wx.showLoading({ title: '加载中...' });
+
+    if (wx.cloud) {
+      try {
+        const db = wx.cloud.database();
+        const res = await db.collection('trips').doc(tripId).get();
+
+        wx.hideLoading();
+
+        if (!res.data) {
+          // 行程已被删除
+          wx.showModal({
+            title: '行程不存在',
+            content: '该行程已被删除',
+            showCancel: false,
+            success: () => {
+              this.loadTrips();
+            }
+          });
+          return;
+        }
+
+        const trip = res.data;
+        if (trip.status === 'cancelled') {
+          wx.showModal({
+            title: '行程已取消',
+            content: '该行程已被发起人取消',
+            showCancel: false,
+            success: () => {
+              this.loadTrips();
+            }
+          });
+          return;
+        }
+
+        if (trip.status === 'stopped') {
+          wx.showModal({
+            title: '已停止招募',
+            content: '该行程已停止招募新成员',
+            showCancel: false,
+            success: () => {
+              this.loadTrips();
+            }
+          });
+          return;
+        }
+
+        // 状态正常，跳转到详情页
+        wx.navigateTo({
+          url: `/pages/trip-detail/trip-detail?id=${tripId}`
+        });
+      } catch (err) {
+        wx.hideLoading();
+        console.error('查询行程失败', err);
+
+        // 如果是文档不存在的错误
+        if (err.errMsg && err.errMsg.includes('document not found')) {
+          wx.showModal({
+            title: '行程不存在',
+            content: '该行程已被删除',
+            showCancel: false,
+            success: () => {
+              this.loadTrips();
+            }
+          });
+        } else {
+          wx.showToast({ title: '加载失败', icon: 'none' });
+        }
+      }
+    }
+  },
+
   // 点击行程卡片
   onTripTap: function (e) {
     const tripId = e.currentTarget.dataset.id;
-    wx.navigateTo({
-      url: `/pages/trip-detail/trip-detail?id=${tripId}`
-    });
+    this.checkAndNavigateToDetail(tripId);
   },
 
   // 查看详情
   onDetailTap: function (e) {
     const tripId = e.currentTarget.dataset.id;
-    wx.navigateTo({
-      url: `/pages/trip-detail/trip-detail?id=${tripId}`
-    });
+    this.checkAndNavigateToDetail(tripId);
   },
 
   // 管理行程
