@@ -1011,11 +1011,12 @@ async function tripJoin(openid, data) {
   
   const updateData = {
     participants: _.push(newParticipant),
-    currentCount: _.inc(1)
+    currentCount: _.inc(1),
+    needCount: _.inc(-1)
   };
-  
-  // 检查是否满员
-  if (trip.currentCount + 1 >= trip.currentCount + trip.needCount) {
+
+  // 检查是否满员（needCount <= 1 时，再加入1人就满员）
+  if ((trip.needCount || 0) <= 1) {
     updateData.status = 'full';
   }
   
