@@ -167,6 +167,27 @@ function applyHandle(applyId, accept) {
   return callApi('apply/handle', { applyId, accept });
 }
 
+/**
+ * 获取行程通知列表
+ */
+function applyNotifications() {
+  return callApi('apply/notifications', {});
+}
+
+/**
+ * 删除申请通知
+ */
+function applyDelete(applyId) {
+  return callApi('apply/delete', { applyId });
+}
+
+/**
+ * 取消申请
+ */
+function applyCancel(applyId) {
+  return callApi('apply/cancel', { applyId });
+}
+
 // ========== 想去相关 ==========
 
 /**
@@ -257,6 +278,9 @@ module.exports = {
   applyCreate,
   applyList,
   applyHandle,
+  applyNotifications,
+  applyDelete,
+  applyCancel,
 
   // 想去
   wantToggle,

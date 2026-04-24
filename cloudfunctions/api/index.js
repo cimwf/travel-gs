@@ -67,6 +67,12 @@ exports.main = async (event, context) => {
         return await applyList(openid, data);
       case 'apply/handle':
         return await applyHandle(openid, data);
+      case 'apply/notifications':
+        return await applyNotifications(openid);
+      case 'apply/delete':
+        return await applyDelete(openid, data);
+      case 'apply/cancel':
+        return await applyCancel(openid, data);
 
       // ========== 想去相关 ==========
       case 'want/toggle':
@@ -798,27 +804,286 @@ async function applyList(openid, data) {
 
 async function applyHandle(openid, data) {
   const { applyId, accept } = data;
-  
+
   // 获取申请
   const applyRes = await db.collection('applies').doc(applyId).get();
   const apply = applyRes.data;
-  
+
   // 验证权限
   if (apply.creatorId !== openid) {
     return { success: false, error: '无权处理该申请' };
   }
-  
+
   // 更新申请状态
   await db.collection('applies').doc(applyId).update({
     data: { status: accept ? 'accepted' : 'rejected' }
   });
-  
+
   // 如果接受，加入行程
   if (accept) {
     await tripJoin(apply.userId, { tripId: apply.tripId });
   }
-  
+
   return { success: true };
+}
+
+// 获取行程通知列表（包括收到和发出的申请）
+async function applyNotifications(openid) {
+  const receivedList = [];
+  const sentList = [];
+
+  // 并行查询
+  const [receivedRes, sentRes] = await Promise.all([
+    // 我收到的申请（别人申请加入我的行程）
+    db.collection('applies')
+      .where({
+        toUserId: openid,
+        type: _.in(['apply'])
+      })
+      .orderBy('createdAt', 'desc')
+      .limit(30)
+      .get(),
+    // 我发出的申请（我申请加入别人的行程）
+    db.collection('applies')
+      .where({
+        fromUserId: openid
+      })
+      .orderBy('createdAt', 'desc')
+      .limit(30)
+      .get()
+  ]);
+
+  // 收集云存储头像文件ID
+  const fileIDs = [];
+  (receivedRes.data || []).forEach(item => {
+    if (item.fromUserAvatar && item.fromUserAvatar.startsWith('cloud://')) {
+      fileIDs.push(item.fromUserAvatar);
+    }
+  });
+
+  // 获取临时链接
+  let avatarMap = {};
+  if (fileIDs.length > 0) {
+    try {
+      const urlRes = await cloud.getTempFileURL({ fileList: fileIDs });
+      if (urlRes.fileList) {
+        urlRes.fileList.forEach(item => {
+          if (item.tempFileURL) {
+            avatarMap[item.fileID] = item.tempFileURL;
+          }
+        });
+      }
+    } catch (err) {
+      console.warn('获取头像临时链接失败', err);
+    }
+  }
+
+  // 处理收到的申请
+  for (const item of receivedRes.data || []) {
+    let avatar = item.fromUserAvatar || '';
+    if (avatar && avatar.startsWith('cloud://') && avatarMap[avatar]) {
+      avatar = avatarMap[avatar];
+    }
+    if (avatar && !avatar.startsWith('http')) {
+      avatar = '';
+    }
+
+    // 获取行程详情
+    let tripData = null;
+    let placeCoverImage = '';
+    if (item.tripId) {
+      try {
+        const tripRes = await db.collection('trips').doc(item.tripId).get();
+        if (tripRes.data) {
+          tripData = tripRes.data;
+          if (tripData.placeId) {
+            const placeRes = await db.collection('places').doc(tripData.placeId).get();
+            if (placeRes.data && placeRes.data.coverImage) {
+              placeCoverImage = placeRes.data.coverImage;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('获取行程详情失败', err);
+      }
+    }
+
+    receivedList.push({
+      _id: item._id,
+      type: 'received',
+      userName: item.fromUserName || '旅行者',
+      fromUserAvatar: avatar,
+      headerTitle: (item.fromUserName || '旅行者') + ' 申请加入您的行程',
+      headerMeta: item.placeName || '行程',
+      timeAgo: formatTimeAgo(item.createdAt),
+      contactType: item.contactType || 'phone',
+      contactValue: item.contactValue || '',
+      introduction: item.message || '',
+      isHandled: item.status !== 'pending',
+      status: item.status === 'accepted' ? 'agreed' : item.status,
+      statusText: item.status === 'accepted' ? '已同意' : (item.status === 'rejected' ? '已拒绝' : ''),
+      tripId: item.tripId,
+      placeName: item.placeName || tripData?.placeName || '未知地点',
+      placeCoverImage: placeCoverImage,
+      tripDate: tripData?.date ? formatDate(tripData.date) : '待定',
+      createdAt: item.createdAt
+    });
+  }
+
+  // 处理发出的申请
+  for (const item of sentRes.data || []) {
+    let tripData = null;
+    let creatorPhone = '';
+    let creatorWechat = '';
+    let placeCoverImage = '';
+
+    if (item.tripId) {
+      try {
+        const tripRes = await db.collection('trips').doc(item.tripId).get();
+        if (tripRes.data) {
+          tripData = tripRes.data;
+          if (tripData.placeId) {
+            const placeRes = await db.collection('places').doc(tripData.placeId).get();
+            if (placeRes.data && placeRes.data.coverImage) {
+              placeCoverImage = placeRes.data.coverImage;
+            }
+          }
+          if (item.status === 'accepted' && tripData.creatorId) {
+            const userRes = await db.collection('users').where({
+              openid: tripData.creatorId
+            }).get();
+            if (userRes.data && userRes.data[0]) {
+              creatorPhone = userRes.data[0].phone || '';
+              creatorWechat = userRes.data[0].wechat || creatorPhone;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('获取行程详情失败', err);
+      }
+    }
+
+    const status = item.status || 'pending';
+    const statusText = status === 'pending' ? '申请中' :
+                      (status === 'accepted' ? '已同意' : '已拒绝');
+
+    sentList.push({
+      _id: item._id,
+      type: 'sent',
+      tripId: item.tripId,
+      placeName: item.placeName || tripData?.placeName || '未知地点',
+      placeCoverImage: placeCoverImage,
+      creatorName: item.toUserName || tripData?.creatorName || '旅行者',
+      tripDate: tripData?.date ? formatDate(tripData.date) : '待定',
+      status: status,
+      statusText: statusText,
+      message: item.message || '',
+      applyTime: formatApplyTime(item.createdAt),
+      creatorPhone: creatorPhone,
+      creatorWechat: creatorWechat,
+      createdAt: item.createdAt
+    });
+  }
+
+  // 合并并按时间排序
+  const notifications = [...receivedList, ...sentList].sort((a, b) => {
+    return (b.createdAt || 0) - (a.createdAt || 0);
+  });
+
+  return { success: true, notifications };
+}
+
+// 删除申请通知
+async function applyDelete(openid, data) {
+  const { applyId } = data;
+
+  if (!applyId) {
+    return { success: false, error: '申请ID不能为空' };
+  }
+
+  // 获取申请记录
+  const applyRes = await db.collection('applies').doc(applyId).get();
+  const apply = applyRes.data;
+
+  if (!apply) {
+    return { success: false, error: '申请记录不存在' };
+  }
+
+  // 验证权限：只有发起人或接收人可以删除
+  if (apply.fromUserId !== openid && apply.toUserId !== openid) {
+    return { success: false, error: '无权删除此通知' };
+  }
+
+  // 删除记录
+  await db.collection('applies').doc(applyId).remove();
+
+  return { success: true };
+}
+
+// 取消申请
+async function applyCancel(openid, data) {
+  const { applyId } = data;
+
+  if (!applyId) {
+    return { success: false, error: '申请ID不能为空' };
+  }
+
+  // 获取申请记录
+  const applyRes = await db.collection('applies').doc(applyId).get();
+  const apply = applyRes.data;
+
+  if (!apply) {
+    return { success: false, error: '申请记录不存在' };
+  }
+
+  // 验证权限：只有申请人可以取消
+  if (apply.fromUserId !== openid) {
+    return { success: false, error: '无权取消此申请' };
+  }
+
+  // 更新状态为已取消
+  await db.collection('applies').doc(applyId).update({
+    data: { status: 'cancelled' }
+  });
+
+  return { success: true };
+}
+
+// 格式化日期
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  return `${month}月${day}日`;
+}
+
+// 格式化申请时间
+function formatApplyTime(timestamp) {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
+// 格式化时间为"xx前"
+function formatTimeAgo(timestamp) {
+  if (!timestamp) return '';
+  const now = Date.now();
+  const diff = now - timestamp;
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+
+  if (minutes < 1) return '刚刚';
+  if (minutes < 60) return `${minutes}分钟前`;
+  if (hours < 24) return `${hours}小时前`;
+  if (days < 7) return `${days}天前`;
+  return new Date(timestamp).toLocaleDateString();
 }
 
 // ========== 想去相关 ==========

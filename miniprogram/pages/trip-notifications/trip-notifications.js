@@ -1,6 +1,7 @@
 // pages/trip-notifications/trip-notifications.js
 const app = getApp();
 const auth = require('../../utils/auth.js');
+const api = require('../../utils/api.js');
 
 Page({
   data: {
@@ -41,202 +42,28 @@ Page({
   loadNotifications: async function () {
     this.setData({ loading: true });
 
-    const openid = app.globalData.openid;
-    if (!openid) {
-      this.setData({ loading: false, notifications: [] });
-      return;
+    try {
+      const res = await api.applyNotifications();
+
+      // 添加辅助字段
+      const notifications = (res.notifications || []).map(item => ({
+        ...item,
+        avatarBg: this.getAvatarBg(item.userName),
+        placeBg: this.getPlaceBg(item.placeName),
+        placeEmoji: this.getPlaceEmoji(item.placeName)
+      }));
+
+      this.setData({
+        loading: false,
+        notifications
+      });
+    } catch (err) {
+      console.warn('加载通知失败', err);
+      this.setData({
+        loading: false,
+        notifications: []
+      });
     }
-
-    if (wx.cloud) {
-      try {
-        const db = wx.cloud.database();
-
-        // 并行加载两种数据
-        const [receivedRes, sentRes] = await Promise.all([
-          // 我收到的申请（别人申请加入我的行程）
-          db.collection('applies')
-            .where({
-              toUserId: openid,
-              type: db.command.in(['apply'])
-            })
-            .orderBy('createdAt', 'desc')
-            .limit(30)
-            .get(),
-          // 我发出的申请（我申请加入别人的行程）
-          db.collection('applies')
-            .where({
-              fromUserId: openid
-            })
-            .orderBy('createdAt', 'desc')
-            .limit(30)
-            .get()
-        ]);
-
-        // 收集云存储头像
-        const fileIDs = [];
-        (receivedRes.data || []).forEach(item => {
-          if (item.fromUserAvatar && item.fromUserAvatar.startsWith('cloud://')) {
-            fileIDs.push(item.fromUserAvatar);
-          }
-        });
-
-        let avatarMap = {};
-        if (fileIDs.length > 0) {
-          try {
-            const urlRes = await wx.cloud.getTempFileURL({ fileList: fileIDs });
-            if (urlRes.fileList) {
-              urlRes.fileList.forEach(item => {
-                if (item.tempFileURL) {
-                  avatarMap[item.fileID] = item.tempFileURL;
-                }
-              });
-            }
-          } catch (err) {
-            console.warn('获取头像临时链接失败', err);
-          }
-        }
-
-        // 处理我收到的申请（需要获取行程详情）
-        const receivedList = [];
-        for (const item of receivedRes.data || []) {
-          let avatar = item.fromUserAvatar || '';
-          if (avatar && avatar.startsWith('cloud://') && avatarMap[avatar]) {
-            avatar = avatarMap[avatar];
-          }
-          if (avatar && !avatar.startsWith('http')) {
-            avatar = '';
-          }
-
-          // 获取行程详情
-          let tripData = null;
-          let placeCoverImage = '';
-          if (item.tripId) {
-            try {
-              const tripRes = await db.collection('trips').doc(item.tripId).get();
-              if (tripRes.data) {
-                tripData = tripRes.data;
-
-                // 获取地点封面图
-                if (tripData.placeId) {
-                  const placeRes = await db.collection('places').doc(tripData.placeId).get();
-                  if (placeRes.data && placeRes.data.coverImage) {
-                    placeCoverImage = placeRes.data.coverImage;
-                  }
-                }
-              }
-            } catch (err) {
-              console.warn('获取行程详情失败', err);
-            }
-          }
-
-          receivedList.push({
-            _id: item._id,
-            type: 'received',
-            userName: item.fromUserName || '旅行者',
-            fromUserAvatar: avatar,
-            avatarBg: this.getAvatarBg(item.fromUserName),
-            headerTitle: (item.fromUserName || '旅行者') + ' 申请加入您的行程',
-            headerMeta: item.placeName || '行程',
-            timeAgo: this.formatTimeAgo(item.createdAt),
-            contactType: item.contactType || 'phone',
-            contactValue: item.contactValue || '',
-            introduction: item.message || '',
-            isHandled: item.status !== 'pending',
-            status: item.status === 'accepted' ? 'agreed' : item.status,
-            statusText: item.status === 'accepted' ? '已同意' : (item.status === 'rejected' ? '已拒绝' : ''),
-            tripId: item.tripId,
-            placeName: item.placeName || tripData?.placeName || '未知地点',
-            placeBg: this.getPlaceBg(item.placeName),
-            placeEmoji: this.getPlaceEmoji(item.placeName),
-            placeCoverImage: placeCoverImage,
-            tripDate: tripData?.date ? this.formatDate(tripData.date) : '待定',
-            createdAt: item.createdAt
-          });
-        }
-
-        // 处理我发出的申请（需要获取行程详情）
-        const sentList = [];
-        for (const item of sentRes.data || []) {
-          let tripData = null;
-          let creatorPhone = '';
-          let creatorWechat = '';
-          let placeCoverImage = '';
-
-          if (item.tripId) {
-            try {
-              const tripRes = await db.collection('trips').doc(item.tripId).get();
-              if (tripRes.data) {
-                tripData = tripRes.data;
-
-                // 获取地点封面图
-                if (tripData.placeId) {
-                  const placeRes = await db.collection('places').doc(tripData.placeId).get();
-                  if (placeRes.data && placeRes.data.coverImage) {
-                    placeCoverImage = placeRes.data.coverImage;
-                  }
-                }
-
-                // 如果已同意，获取发起人联系方式
-                if (item.status === 'accepted' && tripData.creatorId) {
-                  const userRes = await db.collection('users').where({
-                    openid: tripData.creatorId
-                  }).get();
-
-                  if (userRes.data && userRes.data[0]) {
-                    creatorPhone = userRes.data[0].phone || '';
-                    // 手机号同时也是微信号
-                    creatorWechat = userRes.data[0].wechat || creatorPhone;
-                  }
-                }
-              }
-            } catch (err) {
-              console.warn('获取行程详情失败', err);
-            }
-          }
-
-          const status = item.status || 'pending';
-          const statusText = status === 'pending' ? '申请中' :
-                            (status === 'accepted' ? '已同意' : '已拒绝');
-
-          sentList.push({
-            _id: item._id,
-            type: 'sent',
-            tripId: item.tripId,
-            placeName: item.placeName || tripData?.placeName || '未知地点',
-            placeBg: this.getPlaceBg(item.placeName),
-            placeEmoji: this.getPlaceEmoji(item.placeName),
-            placeCoverImage: placeCoverImage,
-            creatorName: item.toUserName || tripData?.creatorName || '旅行者',
-            tripDate: tripData?.date ? this.formatDate(tripData.date) : '待定',
-            status: status,
-            statusText: statusText,
-            message: item.message || '',
-            applyTime: this.formatApplyTime(item.createdAt),
-            creatorPhone: creatorPhone,
-            creatorWechat: creatorWechat,
-            createdAt: item.createdAt
-          });
-        }
-
-        // 合并列表，按时间排序
-        const notifications = [...receivedList, ...sentList].sort((a, b) => {
-          return (b.createdAt || 0) - (a.createdAt || 0);
-        });
-
-        this.setData({
-          loading: false,
-          notifications
-        });
-        return;
-      } catch (err) {
-        console.warn('加载通知失败', err);
-      }
-    }
-
-    this.setData({
-      loading: false,
-      notifications: []
-    });
   },
 
   // 格式化日期
@@ -345,55 +172,28 @@ Page({
 
   // 更新申请状态
   updateApplyStatus: async function (applyId, status, statusText) {
-    if (wx.cloud) {
-      try {
-        const db = wx.cloud.database();
-        await db.collection('applies').doc(applyId).update({
-          data: { status }
-        });
+    try {
+      const accept = status === 'accepted';
+      await api.applyHandle(applyId, accept);
 
-        // 如果同意，将申请人加入行程
-        if (status === 'accepted') {
-          const notification = this.data.notifications.find(n => n._id === applyId);
-          if (notification && notification.tripId) {
-            const applyRes = await db.collection('applies').doc(applyId).get();
-            if (applyRes.data) {
-              const apply = applyRes.data;
-              await db.collection('trips').doc(apply.tripId).update({
-                data: {
-                  participants: db.command.push({
-                    userId: apply.fromUserId,
-                    nickname: apply.fromUserName,
-                    avatar: apply.fromUserAvatar || ''
-                  }),
-                  currentCount: db.command.inc(1),
-                  needCount: db.command.inc(-1)
-                }
-              });
-            }
-          }
+      // 更新本地状态
+      const notifications = this.data.notifications.map(item => {
+        if (item._id === applyId) {
+          return {
+            ...item,
+            isHandled: true,
+            status: status === 'accepted' ? 'agreed' : status,
+            statusText: statusText
+          };
         }
-      } catch (err) {
-        console.error('更新申请状态失败', err);
-        wx.showToast({ title: '操作失败，请重试', icon: 'none' });
-        return;
-      }
+        return item;
+      });
+      this.setData({ notifications });
+      wx.showToast({ title: '操作成功', icon: 'success' });
+    } catch (err) {
+      console.error('更新申请状态失败', err);
+      wx.showToast({ title: '操作失败，请重试', icon: 'none' });
     }
-
-    // 更新本地状态
-    const notifications = this.data.notifications.map(item => {
-      if (item._id === applyId) {
-        return {
-          ...item,
-          isHandled: true,
-          status: status === 'accepted' ? 'agreed' : status,
-          statusText: statusText
-        };
-      }
-      return item;
-    });
-    this.setData({ notifications });
-    wx.showToast({ title: '操作成功', icon: 'success' });
   },
 
   // 查看行程
@@ -428,30 +228,25 @@ Page({
   onConfirmCancel: async function () {
     const applyId = this.data.cancelApplyId;
 
-    if (wx.cloud) {
-      try {
-        wx.showLoading({ title: '取消中...' });
+    try {
+      wx.showLoading({ title: '取消中...' });
 
-        const db = wx.cloud.database();
-        await db.collection('applies').doc(applyId).update({
-          data: { status: 'cancelled' }
-        });
+      await api.applyCancel(applyId);
 
-        wx.hideLoading();
-        wx.showToast({ title: '已取消申请', icon: 'success' });
+      wx.hideLoading();
+      wx.showToast({ title: '已取消申请', icon: 'success' });
 
-        this.setData({
-          showCancelModal: false,
-          cancelApplyId: ''
-        });
+      this.setData({
+        showCancelModal: false,
+        cancelApplyId: ''
+      });
 
-        // 重新加载列表
-        this.loadNotifications();
-      } catch (err) {
-        wx.hideLoading();
-        console.error('取消申请失败', err);
-        wx.showToast({ title: '操作失败', icon: 'none' });
-      }
+      // 重新加载列表
+      this.loadNotifications();
+    } catch (err) {
+      wx.hideLoading();
+      console.error('取消申请失败', err);
+      wx.showToast({ title: '操作失败', icon: 'none' });
     }
   },
 
@@ -521,29 +316,26 @@ Page({
       content: '确定要删除此通知吗？',
       success: async (res) => {
         if (res.confirm) {
-          if (wx.cloud) {
-            try {
-              wx.showLoading({ title: '删除中...' });
+          try {
+            wx.showLoading({ title: '删除中...' });
 
-              const db = wx.cloud.database();
-              await db.collection('applies').doc(applyId).remove();
+            await api.applyDelete(applyId);
 
-              wx.hideLoading();
-              wx.showToast({ title: '已删除', icon: 'success' });
+            wx.hideLoading();
+            wx.showToast({ title: '已删除', icon: 'success' });
 
-              this.setData({
-                showManageModal: false,
-                manageApplyId: '',
-                manageTripId: ''
-              });
+            this.setData({
+              showManageModal: false,
+              manageApplyId: '',
+              manageTripId: ''
+            });
 
-              // 重新加载列表
-              this.loadNotifications();
-            } catch (err) {
-              wx.hideLoading();
-              console.error('删除通知失败', err);
-              wx.showToast({ title: '删除失败', icon: 'none' });
-            }
+            // 重新加载列表
+            this.loadNotifications();
+          } catch (err) {
+            wx.hideLoading();
+            console.error('删除通知失败', err);
+            wx.showToast({ title: '删除失败', icon: 'none' });
           }
         }
       }
