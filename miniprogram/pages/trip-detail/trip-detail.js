@@ -25,7 +25,7 @@ Page({
     showRemoveConfirm: false
   },
 
-  onLoad: function (options) {
+  onLoad: async function (options) {
     // 检查登录状态
     if (auth.checkNeedLogin()) {
       // 未登录，记录当前页面并跳转到登录页
@@ -45,6 +45,9 @@ Page({
       userInfo: app.globalData.userInfo
     });
 
+    // 加载景点数据到全局缓存
+    await this.loadAttractions();
+
     const tripId = options.id || '';
     this.setData({ tripId });
 
@@ -52,6 +55,18 @@ Page({
       this.loadTripDetail(tripId);
       this.recordView(tripId);
     }
+  },
+
+  // 加载景点数据到全局缓存
+  loadAttractions: async function () {
+    await app.getAttractions();
+  },
+
+  // 根据 placeId 从全局缓存获取景点封面图
+  getPlaceCover: function (placeId) {
+    const attractions = app.globalData.attractions || [];
+    const attraction = attractions.find(a => a._id === placeId);
+    return attraction ? (attraction.coverImage || '') : '';
   },
 
   onShow: function () {
@@ -140,18 +155,8 @@ Page({
       dateText = `${trip.date} 周${weekDays[date.getDay()]}`;
     }
 
-    // 获取地点图片（从 places 数据库获取）
-    let placeImage = '';
-    if (trip.placeId) {
-      try {
-        const placeRes = await db.collection('places').doc(trip.placeId).get();
-        if (placeRes.data && placeRes.data.images && placeRes.data.images.length > 0) {
-          placeImage = placeRes.data.images[0];
-        }
-      } catch (err) {
-        console.warn('获取地点图片失败', err);
-      }
-    }
+    // 从全局缓存获取景点封面图
+    let placeCoverImage = trip.placeId ? this.getPlaceCover(trip.placeId) : '';
 
     // 处理发起人头像（云存储链接）
     let creatorAvatar = trip.creatorAvatar || '';
@@ -207,7 +212,7 @@ Page({
       dateText,
       totalCount,
       status: remainCount <= 0 ? 'full' : trip.status,
-      placeImage: placeImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
+      placeCoverImage: placeCoverImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
       placeHighlight: this.getPlaceHighlight(trip.placeName)
     };
 
@@ -265,7 +270,7 @@ Page({
       tripTitle: '周六灵山徒步',
       placeName: '东灵山',
       placeHighlight: '北京最高峰',
-      placeImage: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
+      placeCoverImage: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
       date: '2026-04-12',
       dateText: '2026-04-12 周六',
       departure: '海淀区',

@@ -3,7 +3,7 @@
   <block wx:if="{{trip}}">
     <!-- 顶部图片区域 -->
     <view class="header">
-      <image class="header-image" src="{{trip.placeImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop'}}" mode="aspectFill"></image>
+      <image class="header-image" src="{{trip.placeCoverImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop'}}" mode="aspectFill"></image>
       <view class="header-overlay"></view>
 
       <!-- 导航按钮 -->
