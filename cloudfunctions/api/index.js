@@ -653,7 +653,7 @@ async function tripCreate(openid, data) {
 }
 
 async function tripList(data) {
-  const { placeId, status, date, excludeStatus, page = 1, pageSize = 20 } = data;
+  const { placeId, status, date, excludeStatus, page = 1, pageSize = 8 } = data;
   let query = db.collection('trips');
 
   const conditions = {};
@@ -672,7 +672,93 @@ async function tripList(data) {
     .limit(pageSize)
     .get();
 
-  return { success: true, trips: res.data };
+  const trips = res.data || [];
+
+  // 收集所有参与者 userId
+  const userIds = new Set();
+  trips.forEach(trip => {
+    if (trip.participants) {
+      trip.participants.forEach(p => {
+        if (p.userId) userIds.add(p.userId);
+      });
+    }
+  });
+
+  // 查询用户信息
+  let userMap = {};
+  if (userIds.size > 0) {
+    try {
+      const userRes = await db.collection('users')
+        .where({
+          openid: _.in(Array.from(userIds))
+        })
+        .field({
+          openid: true,
+          avatar: true,
+          nickname: true
+        })
+        .get();
+
+      if (userRes.data) {
+        userRes.data.forEach(user => {
+          userMap[user.openid] = {
+            avatar: user.avatar || '',
+            nickname: user.nickname || '旅行者'
+          };
+        });
+      }
+    } catch (err) {
+      console.warn('查询用户信息失败', err);
+    }
+  }
+
+  // 收集云存储头像文件ID
+  const avatarFileIDs = [];
+  trips.forEach(trip => {
+    if (trip.participants) {
+      trip.participants.forEach(p => {
+        // 先用数据库查询的用户信息
+        if (userMap[p.userId]) {
+          p.avatar = userMap[p.userId].avatar;
+          p.nickname = userMap[p.userId].nickname;
+        }
+        // 收集云存储链接
+        if (p.avatar && p.avatar.startsWith('cloud://')) {
+          avatarFileIDs.push(p.avatar);
+        }
+      });
+    }
+  });
+
+  // 获取云存储临时链接
+  let avatarUrlMap = {};
+  if (avatarFileIDs.length > 0) {
+    try {
+      const urlRes = await cloud.getTempFileURL({ fileList: avatarFileIDs });
+      if (urlRes.fileList) {
+        urlRes.fileList.forEach(item => {
+          if (item.tempFileURL) {
+            avatarUrlMap[item.fileID] = item.tempFileURL;
+          }
+        });
+      }
+    } catch (err) {
+      console.warn('获取头像临时链接失败', err);
+    }
+  }
+
+  // 替换云存储链接为临时链接
+  trips.forEach(trip => {
+    if (trip.participants) {
+      trip.participants.forEach(p => {
+        if (p.avatar && p.avatar.startsWith('cloud://') && avatarUrlMap[p.avatar]) {
+          p.avatar = avatarUrlMap[p.avatar];
+        }
+      });
+    }
+  });
+
+  return { success: true, trips };
 }
 
 async function tripGet(tripId) {

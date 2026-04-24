@@ -11,7 +11,7 @@ Page({
     refreshing: false,
     hasMore: true,
     page: 0,
-    pageSize: 20,
+    pageSize: 8,
 
     // 筛选相关
     activeFilter: '',
@@ -87,36 +87,8 @@ Page({
       }
 
       if (tripRes.trips && tripRes.trips.length > 0) {
-        // 收集需要处理的云存储头像
-        const avatarFileIDs = [];
-        tripRes.trips.forEach(trip => {
-          if (trip.participants) {
-            trip.participants.forEach(p => {
-              if (p.avatar && p.avatar.startsWith('cloud://')) {
-                avatarFileIDs.push(p.avatar);
-              }
-            });
-          }
-        });
-
-        // 批量获取临时链接
-        let avatarMap = {};
-        if (avatarFileIDs.length > 0) {
-          try {
-            const urlRes = await wx.cloud.getTempFileURL({ fileList: avatarFileIDs });
-            if (urlRes.fileList) {
-              urlRes.fileList.forEach(item => {
-                if (item.tempFileURL) {
-                  avatarMap[item.fileID] = item.tempFileURL;
-                }
-              });
-            }
-          } catch (err) {
-            console.warn('获取头像临时链接失败', err);
-          }
-        }
-
         const trips = [];
+        console.log(tripRes)
         for (const trip of tripRes.trips) {
           // 格式化日期
           let dateText = trip.date || '';
@@ -146,14 +118,8 @@ Page({
           // 从全局缓存获取景点封面图
           let placeCoverImage = trip.placeId ? this.getPlaceCover(trip.placeId) : '';
 
-          // 处理参与者头像
-          const participants = (trip.participants || []).map(p => {
-            let avatar = p.avatar || '';
-            if (avatar && avatar.startsWith('cloud://') && avatarMap[avatar]) {
-              avatar = avatarMap[avatar];
-            }
-            return { ...p, avatar };
-          });
+          // 参与者信息已由云函数处理
+          const participants = trip.participants || [];
 
           // 获取图片背景和emoji
           const imgBg = this.getImgBg(trip.placeName);
@@ -563,6 +529,12 @@ Page({
     this.setData({ refreshing: true });
     await this.loadTrips(true);
     this.setData({ refreshing: false });
+  },
+
+  // 触底加载更多
+  onLoadMore: async function () {
+    if (this.data.loading || !this.data.hasMore) return;
+    await this.loadTrips(false);
   },
 
   // 分享

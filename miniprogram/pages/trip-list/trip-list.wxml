@@ -17,7 +17,7 @@
   </view>
 
   <!-- 列表区域 -->
-  <scroll-view class="list-container" scroll-y enhanced show-scrollbar="{{false}}" refresher-enabled="{{true}}" refresher-triggered="{{refreshing}}" bindrefresherrefresh="onRefresh">
+  <scroll-view class="list-container" scroll-y enhanced show-scrollbar="{{false}}" refresher-enabled="{{true}}" refresher-triggered="{{refreshing}}" bindrefresherrefresh="onRefresh" bindscrolltolower="onLoadMore">
     <view class="list-content">
       <!-- 行程列表 -->
       <view class="trip-list" wx:if="{{trips.length > 0}}">
