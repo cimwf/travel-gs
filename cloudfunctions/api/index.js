@@ -697,11 +697,13 @@ async function tripList(data) {
   if (userIds.size > 0) {
     try {
       const userRes = await db.collection('users')
-        .where({
-          openid: _.in(Array.from(userIds))
-        })
+        .where(_.or(
+          { openid: _.in(Array.from(userIds)) },
+          { userId: _.in(Array.from(userIds)) }
+        ))
         .field({
           openid: true,
+          userId: true,
           avatar: true,
           nickname: true
         })
@@ -709,10 +711,19 @@ async function tripList(data) {
 
       if (userRes.data) {
         userRes.data.forEach(user => {
-          userMap[user.openid] = {
-            avatar: user.avatar || '',
-            nickname: user.nickname || '旅行者'
-          };
+          // 同时用 openid 和 userId 作为 key，方便查找
+          if (user.openid) {
+            userMap[user.openid] = {
+              avatar: user.avatar || '',
+              nickname: user.nickname || '旅行者'
+            };
+          }
+          if (user.userId) {
+            userMap[user.userId] = {
+              avatar: user.avatar || '',
+              nickname: user.nickname || '旅行者'
+            };
+          }
         });
       }
     } catch (err) {
@@ -726,7 +737,7 @@ async function tripList(data) {
     if (trip.participants) {
       trip.participants.forEach(p => {
         // 先用数据库查询的用户信息
-        if (userMap[p.userId]) {
+        if (p.userId && userMap[p.userId]) {
           p.avatar = userMap[p.userId].avatar;
           p.nickname = userMap[p.userId].nickname;
         }
@@ -792,16 +803,18 @@ async function tripGet(tripId) {
   // 添加发起人
   if (trip.creatorId) userIds.add(trip.creatorId);
 
-  // 查询用户信息
+  // 查询用户信息（同时匹配 openid 和 userId 字段）
   let userMap = {};
   if (userIds.size > 0) {
     try {
       const userRes = await db.collection('users')
-        .where({
-          openid: _.in(Array.from(userIds))
-        })
+        .where(_.or(
+          { openid: _.in(Array.from(userIds)) },
+          { userId: _.in(Array.from(userIds)) }
+        ))
         .field({
           openid: true,
+          userId: true,
           avatar: true,
           nickname: true
         })
@@ -809,10 +822,19 @@ async function tripGet(tripId) {
 
       if (userRes.data) {
         userRes.data.forEach(user => {
-          userMap[user.openid] = {
-            avatar: user.avatar || '',
-            nickname: user.nickname || '旅行者'
-          };
+          // 同时用 openid 和 userId 作为 key，方便查找
+          if (user.openid) {
+            userMap[user.openid] = {
+              avatar: user.avatar || '',
+              nickname: user.nickname || '旅行者'
+            };
+          }
+          if (user.userId) {
+            userMap[user.userId] = {
+              avatar: user.avatar || '',
+              nickname: user.nickname || '旅行者'
+            };
+          }
         });
       }
     } catch (err) {
@@ -1093,7 +1115,7 @@ async function tripMy(openid) {
 
   const trips = res.data || [];
 
-  // 收集所有参与者 userId
+  // 收集所有参与者 userId（可能是 openid 或自定义 userId）
   const userIds = new Set();
   trips.forEach(trip => {
     if (trip.participants) {
@@ -1103,16 +1125,18 @@ async function tripMy(openid) {
     }
   });
 
-  // 查询用户信息
+  // 查询用户信息（同时匹配 openid 和 userId 字段）
   let userMap = {};
   if (userIds.size > 0) {
     try {
       const userRes = await db.collection('users')
-        .where({
-          openid: _.in(Array.from(userIds))
-        })
+        .where(_.or(
+          { openid: _.in(Array.from(userIds)) },
+          { userId: _.in(Array.from(userIds)) }
+        ))
         .field({
           openid: true,
+          userId: true,
           avatar: true,
           nickname: true
         })
@@ -1120,10 +1144,19 @@ async function tripMy(openid) {
 
       if (userRes.data) {
         userRes.data.forEach(user => {
-          userMap[user.openid] = {
-            avatar: user.avatar || '',
-            nickname: user.nickname || '旅行者'
-          };
+          // 同时用 openid 和 userId 作为 key，方便查找
+          if (user.openid) {
+            userMap[user.openid] = {
+              avatar: user.avatar || '',
+              nickname: user.nickname || '旅行者'
+            };
+          }
+          if (user.userId) {
+            userMap[user.userId] = {
+              avatar: user.avatar || '',
+              nickname: user.nickname || '旅行者'
+            };
+          }
         });
       }
     } catch (err) {
