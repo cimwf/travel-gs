@@ -138,6 +138,20 @@ function tripJoin(tripId) {
 }
 
 /**
+ * 退出行程
+ */
+function tripQuit(tripId) {
+  return callApi('trip/quit', { tripId });
+}
+
+/**
+ * 移除成员
+ */
+function tripRemoveMember(tripId, memberId) {
+  return callApi('trip/removeMember', { tripId, memberId });
+}
+
+/**
  * 获取我的行程
  */
 function tripMy() {
@@ -272,6 +286,8 @@ module.exports = {
   tripGet,
   tripView,
   tripJoin,
+  tripQuit,
+  tripRemoveMember,
   tripMy,
 
   // 申请

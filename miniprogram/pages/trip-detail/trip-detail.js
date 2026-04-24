@@ -92,20 +92,15 @@ Page({
   loadTripDetail: async function (tripId) {
     wx.showLoading({ title: '加载中...', mask: true });
 
-    // 尝试从数据库加载
-    if (wx.cloud) {
-      try {
-        const db = wx.cloud.database();
-        const res = await db.collection('trips').doc(tripId).get();
+    try {
+      const res = await api.tripGet(tripId);
 
-        if (res.data) {
-          const trip = res.data;
-          await this.processTripData(trip);
-          return;
-        }
-      } catch (err) {
-        console.warn('加载行程详情失败', err);
+      if (res.success && res.trip) {
+        await this.processTripData(res.trip);
+        return;
       }
+    } catch (err) {
+      console.warn('加载行程详情失败', err);
     }
 
     // 使用mock数据
@@ -114,8 +109,6 @@ Page({
 
   // 处理行程数据
   processTripData: async function (trip) {
-    const db = wx.cloud ? wx.cloud.database() : null;
-
     // 计算剩余名额
     const remainCount = trip.needCount || 0;
     const totalCount = (trip.currentCount || 0) + (trip.needCount || 0);
@@ -158,53 +151,9 @@ Page({
     // 从全局缓存获取景点封面图
     let placeCoverImage = trip.placeId ? this.getPlaceCover(trip.placeId) : '';
 
-    // 处理发起人头像（云存储链接）
-    let creatorAvatar = trip.creatorAvatar || '';
-    if (creatorAvatar && creatorAvatar.startsWith('cloud://') && wx.cloud) {
-      try {
-        const urlRes = await wx.cloud.getTempFileURL({
-          fileList: [creatorAvatar]
-        });
-        if (urlRes.fileList && urlRes.fileList[0] && urlRes.fileList[0].tempFileURL) {
-          creatorAvatar = urlRes.fileList[0].tempFileURL;
-        }
-      } catch (err) {
-        console.warn('获取发起人头像链接失败', err);
-      }
-    }
-
-    // 处理参与者头像（云存储链接）
-    const participants = (trip.participants || []).map(p => ({
-      ...p,
-      avatar: p.avatar || ''
-    }));
-
-    const fileIDs = participants
-      .filter(p => p.avatar && p.avatar.startsWith('cloud://'))
-      .map(p => p.avatar);
-
-    if (fileIDs.length > 0 && wx.cloud) {
-      try {
-        const urlRes = await wx.cloud.getTempFileURL({
-          fileList: fileIDs
-        });
-        if (urlRes.fileList) {
-          const avatarMap = {};
-          urlRes.fileList.forEach(item => {
-            if (item.tempFileURL) {
-              avatarMap[item.fileID] = item.tempFileURL;
-            }
-          });
-          participants.forEach(p => {
-            if (p.avatar && avatarMap[p.avatar]) {
-              p.avatar = avatarMap[p.avatar];
-            }
-          });
-        }
-      } catch (err) {
-        console.warn('获取参与者头像链接失败', err);
-      }
-    }
+    // 发起人和参与者头像已由云函数处理
+    const creatorAvatar = trip.creatorAvatar || '';
+    const participants = trip.participants || [];
 
     const processedTrip = {
       ...trip,
@@ -393,21 +342,8 @@ Page({
         if (res.confirm) {
           wx.showLoading({ title: '处理中...' });
 
-          const openid = app.globalData.openid;
-
           try {
-            const db = wx.cloud.database();
-
-            // 从参与者列表中移除当前用户
-            const newParticipants = trip.participants.filter(p => p.userId !== openid);
-
-            await db.collection('trips').doc(trip._id).update({
-              data: {
-                participants: newParticipants,
-                currentCount: db.command.inc(-1),
-                needCount: db.command.inc(1)
-              }
-            });
+            await api.tripQuit(trip._id);
 
             wx.hideLoading();
             wx.showToast({ title: '已退出行程', icon: 'success' });
@@ -419,7 +355,7 @@ Page({
           } catch (err) {
             wx.hideLoading();
             console.error('退出行程失败', err);
-            wx.showToast({ title: '退出失败，请重试', icon: 'none' });
+            wx.showToast({ title: err.message || '退出失败，请重试', icon: 'none' });
           }
         }
       }
@@ -548,18 +484,7 @@ Page({
     wx.showLoading({ title: '处理中...' });
 
     try {
-      const db = wx.cloud.database();
-
-      // 从参与者列表中移除该成员
-      const newParticipants = trip.participants.filter(p => p.userId !== member.userId);
-
-      await db.collection('trips').doc(trip._id).update({
-        data: {
-          participants: newParticipants,
-          currentCount: db.command.inc(-1),
-          needCount: db.command.inc(1)
-        }
-      });
+      await api.tripRemoveMember(trip._id, member.userId);
 
       wx.hideLoading();
       wx.showToast({ title: '已移除成员', icon: 'success' });
@@ -577,7 +502,7 @@ Page({
     } catch (err) {
       wx.hideLoading();
       console.error('移除成员失败', err);
-      wx.showToast({ title: '移除失败，请重试', icon: 'none' });
+      wx.showToast({ title: err.message || '移除失败，请重试', icon: 'none' });
     }
   },
 

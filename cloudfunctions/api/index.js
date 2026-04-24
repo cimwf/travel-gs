@@ -57,6 +57,10 @@ exports.main = async (event, context) => {
         return await tripView(data.tripId);
       case 'trip/join':
         return await tripJoin(openid, data);
+      case 'trip/quit':
+        return await tripQuit(openid, data);
+      case 'trip/removeMember':
+        return await tripRemoveMember(openid, data);
       case 'trip/my':
         return await tripMy(openid);
 
@@ -761,9 +765,112 @@ async function tripList(data) {
   return { success: true, trips };
 }
 
+// 获取行程详情
 async function tripGet(tripId) {
+  if (!tripId) {
+    return { success: false, error: '行程ID不能为空' };
+  }
+
   const res = await db.collection('trips').doc(tripId).get();
-  return { success: true, trip: res.data };
+  const trip = res.data;
+
+  if (!trip) {
+    return { success: false, error: '行程不存在' };
+  }
+
+  // 收集所有参与者 userId
+  const userIds = new Set();
+  if (trip.participants) {
+    trip.participants.forEach(p => {
+      if (p.userId) userIds.add(p.userId);
+    });
+  }
+  // 添加发起人
+  if (trip.creatorId) userIds.add(trip.creatorId);
+
+  // 查询用户信息
+  let userMap = {};
+  if (userIds.size > 0) {
+    try {
+      const userRes = await db.collection('users')
+        .where({
+          openid: _.in(Array.from(userIds))
+        })
+        .field({
+          openid: true,
+          avatar: true,
+          nickname: true
+        })
+        .get();
+
+      if (userRes.data) {
+        userRes.data.forEach(user => {
+          userMap[user.openid] = {
+            avatar: user.avatar || '',
+            nickname: user.nickname || '旅行者'
+          };
+        });
+      }
+    } catch (err) {
+      console.warn('查询用户信息失败', err);
+    }
+  }
+
+  // 收集云存储头像文件ID
+  const avatarFileIDs = [];
+
+  // 处理发起人信息
+  if (trip.creatorId && userMap[trip.creatorId]) {
+    trip.creatorName = userMap[trip.creatorId].nickname;
+    trip.creatorAvatar = userMap[trip.creatorId].avatar;
+  }
+  if (trip.creatorAvatar && trip.creatorAvatar.startsWith('cloud://')) {
+    avatarFileIDs.push(trip.creatorAvatar);
+  }
+
+  // 处理参与者信息
+  if (trip.participants) {
+    trip.participants.forEach(p => {
+      if (p.userId && userMap[p.userId]) {
+        p.avatar = userMap[p.userId].avatar;
+        p.nickname = userMap[p.userId].nickname;
+      }
+      if (p.avatar && p.avatar.startsWith('cloud://')) {
+        avatarFileIDs.push(p.avatar);
+      }
+    });
+  }
+
+  // 获取云存储临时链接
+  let avatarUrlMap = {};
+  if (avatarFileIDs.length > 0) {
+    try {
+      const urlRes = await cloud.getTempFileURL({ fileList: avatarFileIDs });
+      if (urlRes.fileList) {
+        urlRes.fileList.forEach(item => {
+          if (item.tempFileURL) {
+            avatarUrlMap[item.fileID] = item.tempFileURL;
+          }
+        });
+      }
+    } catch (err) {
+      console.warn('获取头像临时链接失败', err);
+    }
+  }
+
+  // 替换云存储链接为临时链接
+  if (trip.creatorAvatar && trip.creatorAvatar.startsWith('cloud://') && avatarUrlMap[trip.creatorAvatar]) {
+    trip.creatorAvatar = avatarUrlMap[trip.creatorAvatar];
+  }
+  if (trip.participants) {
+    trip.participants.forEach(p => {
+      if (p.avatar && p.avatar.startsWith('cloud://') && avatarUrlMap[p.avatar]) {
+        p.avatar = avatarUrlMap[p.avatar];
+      }
+    });
+  }
+
+  return { success: true, trip };
 }
 
 // 记录行程浏览量
@@ -821,7 +928,94 @@ async function tripJoin(openid, data) {
   }
   
   await db.collection('trips').doc(tripId).update({ data: updateData });
-  
+
+  return { success: true };
+}
+
+// 退出行程
+async function tripQuit(openid, data) {
+  const { tripId } = data;
+
+  if (!tripId) {
+    return { success: false, error: '行程ID不能为空' };
+  }
+
+  // 获取行程
+  const tripRes = await db.collection('trips').doc(tripId).get();
+  const trip = tripRes.data;
+
+  if (!trip) {
+    return { success: false, error: '行程不存在' };
+  }
+
+  // 检查是否为发起人（发起人不能退出）
+  if (trip.creatorId === openid) {
+    return { success: false, error: '发起人不能退出行程' };
+  }
+
+  // 检查是否已参与
+  const participantIndex = trip.participants.findIndex(p => p.userId === openid);
+  if (participantIndex === -1) {
+    return { success: false, error: '您未参与该行程' };
+  }
+
+  // 从参与者列表中移除当前用户
+  const newParticipants = trip.participants.filter(p => p.userId !== openid);
+
+  await db.collection('trips').doc(tripId).update({
+    data: {
+      participants: newParticipants,
+      currentCount: _.inc(-1),
+      needCount: _.inc(1),
+      status: 'open' // 重新开放招募
+    }
+  });
+
+  return { success: true };
+}
+
+// 移除成员
+async function tripRemoveMember(openid, data) {
+  const { tripId, memberId } = data;
+
+  if (!tripId || !memberId) {
+    return { success: false, error: '参数不完整' };
+  }
+
+  // 获取行程
+  const tripRes = await db.collection('trips').doc(tripId).get();
+  const trip = tripRes.data;
+
+  if (!trip) {
+    return { success: false, error: '行程不存在' };
+  }
+
+  // 验证权限：只有发起人可以移除成员
+  if (trip.creatorId !== openid) {
+    return { success: false, error: '无权移除成员' };
+  }
+
+  // 不能移除发起人自己
+  if (memberId === trip.creatorId) {
+    return { success: false, error: '不能移除发起人' };
+  }
+
+  // 从参与者列表中移除该成员
+  const newParticipants = trip.participants.filter(p => p.userId !== memberId);
+
+  if (newParticipants.length === trip.participants.length) {
+    return { success: false, error: '成员不存在' };
+  }
+
+  await db.collection('trips').doc(tripId).update({
+    data: {
+      participants: newParticipants,
+      currentCount: _.inc(-1),
+      needCount: _.inc(1),
+      status: 'open' // 重新开放招募
+    }
+  });
+
   return { success: true };
 }
 
