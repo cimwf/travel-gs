@@ -144,7 +144,7 @@
   <!-- 发起人视角：编辑行程 + 分享招募 -->
   <block wx:if="{{isCreator}}">
     <view class="footer-btn-secondary" bindtap="onEditTrip">编辑行程</view>
-    <view class="footer-btn-primary" bindtap="onShareRecruit">分享招募</view>
+    <button class="footer-btn-primary" open-type="share">分享招募</button>
   </block>
 
   <!-- 已加入成员视角：退出行程 + 分享给朋友 -->
