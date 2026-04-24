@@ -19,8 +19,8 @@
         <view class="user-name">{{userInfo.nickname || '旅行者'}}</view>
         <view class="user-id-row">
           <text class="user-id">ID: {{userInfo.userId || '未设置'}}</text>
-          <text class="user-gender" wx:if="{{userInfo.gender === 1}}">♂ 男</text>
-          <text class="user-gender" wx:if="{{userInfo.gender === 2}}">♀ 女</text>
+          <image class="user-gender" src="/images/male.svg" wx:if="{{userInfo.gender === 'male'}}" />
+          <image class="user-gender" src="/images/female.svg" wx:if="{{userInfo.gender === 'female'}}" />
         </view>
       </view>
     </view>
