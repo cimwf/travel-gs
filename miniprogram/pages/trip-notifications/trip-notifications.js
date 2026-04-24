@@ -11,7 +11,12 @@ Page({
 
     // 取消弹窗
     showCancelModal: false,
-    cancelApplyId: ''
+    cancelApplyId: '',
+
+    // 管理弹窗
+    showManageModal: false,
+    manageApplyId: '',
+    manageTripId: ''
   },
 
   onLoad: function () {
@@ -482,6 +487,66 @@ Page({
   onExploreTap: function () {
     wx.switchTab({
       url: '/pages/index/index'
+    });
+  },
+
+  // 打开管理弹窗
+  onManageApply: function (e) {
+    const id = e.currentTarget.dataset.id;
+    const tripId = e.currentTarget.dataset.tripid;
+    this.setData({
+      showManageModal: true,
+      manageApplyId: id,
+      manageTripId: tripId
+    });
+  },
+
+  // 关闭管理弹窗
+  onCloseManageModal: function () {
+    this.setData({
+      showManageModal: false,
+      manageApplyId: '',
+      manageTripId: ''
+    });
+  },
+
+  // 删除通知记录
+  onDeleteApply: async function () {
+    const applyId = this.data.manageApplyId;
+
+    if (!applyId) return;
+
+    wx.showModal({
+      title: '确认删除',
+      content: '确定要删除此通知吗？',
+      success: async (res) => {
+        if (res.confirm) {
+          if (wx.cloud) {
+            try {
+              wx.showLoading({ title: '删除中...' });
+
+              const db = wx.cloud.database();
+              await db.collection('applies').doc(applyId).remove();
+
+              wx.hideLoading();
+              wx.showToast({ title: '已删除', icon: 'success' });
+
+              this.setData({
+                showManageModal: false,
+                manageApplyId: '',
+                manageTripId: ''
+              });
+
+              // 重新加载列表
+              this.loadNotifications();
+            } catch (err) {
+              wx.hideLoading();
+              console.error('删除通知失败', err);
+              wx.showToast({ title: '删除失败', icon: 'none' });
+            }
+          }
+        }
+      }
     });
   }
 });

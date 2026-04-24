@@ -95,7 +95,8 @@
                   </view>
                 </view>
                 <view class="sent-actions">
-                  <view class="action-btn primary full" catchtap="onViewTrip" data-tripid="{{item.tripId}}">查看行程</view>
+                  <view class="action-btn secondary" catchtap="onManageApply" data-id="{{item._id}}" data-tripid="{{item.tripId}}">管理</view>
+                  <view class="action-btn primary" catchtap="onViewTrip" data-tripid="{{item.tripId}}">查看行程</view>
                 </view>
               </block>
 
@@ -116,6 +117,10 @@
 
                 <view class="rejected-card">
                   <view class="rejected-tip">😔 您已拒绝对方的申请</view>
+                </view>
+                <view class="sent-actions">
+                  <view class="action-btn secondary" catchtap="onManageApply" data-id="{{item._id}}" data-tripid="{{item.tripId}}">管理</view>
+                  <view class="action-btn primary" catchtap="onViewTrip" data-tripid="{{item.tripId}}">查看行程</view>
                 </view>
               </block>
 
@@ -187,7 +192,8 @@
                   </view>
                 </view>
                 <view class="sent-actions">
-                  <view class="action-btn primary full" catchtap="onViewTrip" data-tripid="{{item.tripId}}">查看行程</view>
+                  <view class="action-btn secondary" catchtap="onManageApply" data-id="{{item._id}}" data-tripid="{{item.tripId}}">管理</view>
+                  <view class="action-btn primary" catchtap="onViewTrip" data-tripid="{{item.tripId}}">查看行程</view>
                 </view>
               </block>
 
@@ -197,7 +203,8 @@
                   <view class="rejected-tip">😔 对方拒绝了您的申请</view>
                 </view>
                 <view class="sent-actions">
-                  <view class="action-btn cancel" catchtap="onReapply" data-tripid="{{item.tripId}}">重新申请</view>
+                  <view class="action-btn secondary" catchtap="onManageApply" data-id="{{item._id}}" data-tripid="{{item.tripId}}">管理</view>
+                  <view class="action-btn primary" catchtap="onReapply" data-tripid="{{item.tripId}}">重新申请</view>
                   <view class="action-btn primary" catchtap="onViewTrip" data-tripid="{{item.tripId}}">查看行程</view>
                 </view>
               </block>
@@ -241,6 +248,18 @@
     <view class="modal-actions">
       <view class="modal-btn cancel" catchtap="onCloseCancelModal">暂不取消</view>
       <view class="modal-btn confirm" catchtap="onConfirmCancel">确认取消</view>
+    </view>
+  </view>
+</view>
+
+<!-- 管理弹窗 -->
+<view class="modal-mask" wx:if="{{showManageModal}}" bindtap="onCloseManageModal">
+  <view class="modal-content" catchtap="preventBubble">
+    <view class="modal-icon">📋</view>
+    <view class="modal-title">管理通知</view>
+    <view class="modal-actions manage-actions">
+      <view class="modal-btn danger" catchtap="onDeleteApply">删除通知</view>
+      <view class="modal-btn cancel" catchtap="onCloseManageModal">取消</view>
     </view>
   </view>
 </view>

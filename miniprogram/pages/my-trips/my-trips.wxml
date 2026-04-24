@@ -72,9 +72,9 @@
 </view>
 
 <!-- 悬浮发布按钮 -->
-<view class="fab" bindtap="onPublishTap">
+<!-- <view class="fab" bindtap="onPublishTap">
   <text class="fab-icon">+</text>
-</view>
+</view> -->
 
 <!-- 管理弹窗 -->
 <view class="manage-modal-mask" wx:if="{{showManageModal}}" bindtap="onCloseManageModal">
