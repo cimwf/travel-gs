@@ -1,6 +1,7 @@
 // pages/my-trips/my-trips.js
 const app = getApp();
 const api = require('../../utils/api.js');
+const auth = require('../../utils/auth.js');
 
 Page({
   data: {
@@ -321,12 +322,20 @@ Page({
 
   // 点击行程卡片
   onTripTap: function (e) {
+    if (auth.checkNeedLogin()) {
+      auth.goToLogin('/pages/my-trips/my-trips');
+      return;
+    }
     const tripId = e.currentTarget.dataset.id;
     this.checkAndNavigateToDetail(tripId);
   },
 
   // 查看详情
   onDetailTap: function (e) {
+    if (auth.checkNeedLogin()) {
+      auth.goToLogin('/pages/my-trips/my-trips');
+      return;
+    }
     const tripId = e.currentTarget.dataset.id;
     this.checkAndNavigateToDetail(tripId);
   },
