@@ -1,5 +1,6 @@
 // pages/my-trips/my-trips.js
 const app = getApp();
+const api = require('../../utils/api.js');
 
 Page({
   data: {
@@ -45,74 +46,19 @@ Page({
   loadTrips: async function () {
     this.setData({ loading: true });
 
-    // 确保获取到 openid
-    let openid = app.globalData.openid;
-    if (!openid) {
-      try {
-        openid = await app.getOpenid();
-      } catch (err) {
-        console.error('获取openid失败', err);
-        this.setData({ loading: false, trips: [], allTrips: [] });
-        this.updateEmptyState();
-        return;
-      }
-    }
-
+    const openid = app.globalData.openid;
     if (!openid) {
       this.setData({ loading: false, trips: [], allTrips: [] });
       this.updateEmptyState();
       return;
     }
 
-    // 从数据库加载真实数据
-    if (wx.cloud) {
-      try {
-        const db = wx.cloud.database();
+    try {
+      const res = await api.tripMy();
 
-        // 查询我参与的所有行程
-        const res = await db.collection('trips')
-          .where({
-            'participants.userId': openid
-          })
-          .orderBy('createdAt', 'desc')
-          .limit(50)
-          .get();
-
-
-        // 获取云存储头像的临时链接
-        const fileIDs = [];
-        res.data.forEach(item => {
-          if (item.participants) {
-            item.participants.forEach(p => {
-              if (p.avatar && p.avatar.startsWith('cloud://')) {
-                fileIDs.push(p.avatar);
-              }
-            });
-          }
-        });
-
-        // 批量获取临时链接
-        let avatarMap = {};
-        if (fileIDs.length > 0 && wx.cloud) {
-          try {
-            const urlRes = await wx.cloud.getTempFileURL({
-              fileList: fileIDs
-            });
-            if (urlRes.fileList) {
-              urlRes.fileList.forEach(item => {
-                if (item.tempFileURL) {
-                  avatarMap[item.fileID] = item.tempFileURL;
-                }
-              });
-            }
-          } catch (err) {
-            console.warn('获取头像链接失败', err);
-          }
-        }
-
-        // 处理行程数据
+      if (res.success && res.trips) {
         const trips = [];
-        for (const item of res.data || []) {
+        for (const item of res.trips) {
           const isCreator = item.creatorId === openid;
           const now = Date.now();
           const tripDate = new Date(item.date).getTime();
@@ -157,22 +103,8 @@ Page({
             }
           }
 
-          // 处理参与者头像
-          const participants = (item.participants || []).map(p => {
-            let avatar = p.avatar || '';
-            // 如果是云存储链接，转换为临时链接
-            if (avatar && avatar.startsWith('cloud://') && avatarMap[avatar]) {
-              avatar = avatarMap[avatar];
-            }
-            // 如果头像为空或无效，设为空字符串，让 wxml 显示默认头像
-            if (!avatar || avatar.startsWith('cloud://')) {
-              avatar = '';
-            }
-            return {
-              ...p,
-              avatar
-            };
-          });
+          // 参与者信息已由云函数处理
+          const participants = item.participants || [];
 
           trips.push({
             _id: item._id,
@@ -204,21 +136,16 @@ Page({
         });
         this.filterTrips();
         this.updateEmptyState();
-        return;
-      } catch (err) {
-        console.warn('加载行程失败', err);
       }
+    } catch (err) {
+      console.warn('加载行程失败', err);
+      this.setData({
+        trips: [],
+        allTrips: [],
+        loading: false
+      });
+      this.updateEmptyState();
     }
-
-    // 模拟数据（备用）
-    // const mockTrips = this.getMockTrips();
-
-    this.setData({
-      trips: [],
-      allTrips: [],
-      loading: false
-    });
-    this.updateEmptyState();
   },
 
   // 获取行程图片背景
@@ -340,73 +267,55 @@ Page({
   checkAndNavigateToDetail: async function (tripId) {
     wx.showLoading({ title: '加载中...' });
 
-    if (wx.cloud) {
-      try {
-        const db = wx.cloud.database();
-        const res = await db.collection('trips').doc(tripId).get();
+    try {
+      const res = await api.tripGet(tripId);
+      wx.hideLoading();
 
-        wx.hideLoading();
-
-        if (!res.data) {
-          // 行程已被删除
-          wx.showModal({
-            title: '行程不存在',
-            content: '该行程已被删除',
-            showCancel: false,
-            success: () => {
-              this.loadTrips();
-            }
-          });
-          return;
-        }
-
-        const trip = res.data;
-        if (trip.status === 'cancelled') {
-          wx.showModal({
-            title: '行程已取消',
-            content: '该行程已被发起人取消',
-            showCancel: false,
-            success: () => {
-              this.loadTrips();
-            }
-          });
-          return;
-        }
-
-        if (trip.status === 'stopped') {
-          wx.showModal({
-            title: '已停止招募',
-            content: '该行程已停止招募新成员',
-            showCancel: false,
-            success: () => {
-              this.loadTrips();
-            }
-          });
-          return;
-        }
-
-        // 状态正常，跳转到详情页
-        wx.navigateTo({
-          url: `/pages/trip-detail/trip-detail?id=${tripId}`
+      if (!res.success || !res.trip) {
+        wx.showModal({
+          title: '行程不存在',
+          content: '该行程已被删除',
+          showCancel: false,
+          success: () => {
+            this.loadTrips();
+          }
         });
-      } catch (err) {
-        wx.hideLoading();
-        console.error('查询行程失败', err);
-
-        // 如果是文档不存在的错误
-        if (err.errMsg && err.errMsg.includes('document not found')) {
-          wx.showModal({
-            title: '行程不存在',
-            content: '该行程已被删除',
-            showCancel: false,
-            success: () => {
-              this.loadTrips();
-            }
-          });
-        } else {
-          wx.showToast({ title: '加载失败', icon: 'none' });
-        }
+        return;
       }
+
+      const trip = res.trip;
+      if (trip.status === 'cancelled') {
+        wx.showModal({
+          title: '行程已取消',
+          content: '该行程已被发起人取消',
+          showCancel: false,
+          success: () => {
+            this.loadTrips();
+          }
+        });
+        return;
+      }
+
+      if (trip.status === 'stopped') {
+        wx.showModal({
+          title: '已停止招募',
+          content: '该行程已停止招募新成员',
+          showCancel: false,
+          success: () => {
+            this.loadTrips();
+          }
+        });
+        return;
+      }
+
+      // 状态正常，跳转到详情页
+      wx.navigateTo({
+        url: `/pages/trip-detail/trip-detail?id=${tripId}`
+      });
+    } catch (err) {
+      wx.hideLoading();
+      console.error('查询行程失败', err);
+      wx.showToast({ title: '加载失败', icon: 'none' });
     }
   },
 
@@ -468,24 +377,16 @@ Page({
         if (res.confirm) {
           wx.showLoading({ title: '处理中...' });
 
-          if (wx.cloud) {
-            try {
-              const db = wx.cloud.database();
-              await db.collection('trips').doc(trip._id).update({
-                data: {
-                  status: 'open',
-                  updatedAt: Date.now()
-                }
-              });
+          try {
+            await api.tripUpdateStatus(trip._id, 'open');
 
-              wx.hideLoading();
-              wx.showToast({ title: '已开始招募', icon: 'success' });
-              this.loadTrips();
-            } catch (err) {
-              wx.hideLoading();
-              console.error('开始招募失败', err);
-              wx.showToast({ title: '操作失败', icon: 'none' });
-            }
+            wx.hideLoading();
+            wx.showToast({ title: '已开始招募', icon: 'success' });
+            this.loadTrips();
+          } catch (err) {
+            wx.hideLoading();
+            console.error('开始招募失败', err);
+            wx.showToast({ title: '操作失败', icon: 'none' });
           }
         }
       }
@@ -523,19 +424,16 @@ Page({
         if (res.confirm) {
           wx.showLoading({ title: '删除中...' });
 
-          if (wx.cloud) {
-            try {
-              const db = wx.cloud.database();
-              await db.collection('trips').doc(trip._id).remove();
+          try {
+            await api.tripDelete(trip._id);
 
-              wx.hideLoading();
-              wx.showToast({ title: '已删除', icon: 'success' });
-              this.loadTrips();
-            } catch (err) {
-              wx.hideLoading();
-              console.error('删除行程失败', err);
-              wx.showToast({ title: '删除失败', icon: 'none' });
-            }
+            wx.hideLoading();
+            wx.showToast({ title: '已删除', icon: 'success' });
+            this.loadTrips();
+          } catch (err) {
+            wx.hideLoading();
+            console.error('删除行程失败', err);
+            wx.showToast({ title: '删除失败', icon: 'none' });
           }
         }
       }
@@ -559,26 +457,18 @@ Page({
         if (res.confirm) {
           wx.showLoading({ title: '处理中...' });
 
-          if (wx.cloud) {
-            try {
-              const db = wx.cloud.database();
-              await db.collection('trips').doc(tripId).update({
-                data: {
-                  status: 'stopped',
-                  updatedAt: Date.now()
-                }
-              });
+          try {
+            await api.tripUpdateStatus(tripId, 'stopped');
 
-              wx.hideLoading();
-              wx.showToast({ title: '已停止招募', icon: 'success' });
+            wx.hideLoading();
+            wx.showToast({ title: '已停止招募', icon: 'success' });
 
-              // 刷新列表
-              this.loadTrips();
-            } catch (err) {
-              wx.hideLoading();
-              console.error('停止招募失败', err);
-              wx.showToast({ title: '操作失败', icon: 'none' });
-            }
+            // 刷新列表
+            this.loadTrips();
+          } catch (err) {
+            wx.hideLoading();
+            console.error('停止招募失败', err);
+            wx.showToast({ title: '操作失败', icon: 'none' });
           }
         }
       }
@@ -594,23 +484,17 @@ Page({
         if (res.confirm) {
           wx.showLoading({ title: '取消中...' });
 
-          if (wx.cloud) {
-            try {
-              const db = wx.cloud.database();
-              await db.collection('trips').doc(tripId).update({
-                data: { status: 'cancelled' }
-              });
-              wx.hideLoading();
-              wx.showToast({ title: '已取消', icon: 'success' });
-              this.loadTrips();
-              return;
-            } catch (err) {
-              console.warn('取消行程失败', err);
-            }
-          }
+          try {
+            await api.tripUpdateStatus(tripId, 'cancelled');
 
-          wx.hideLoading();
-          wx.showToast({ title: '取消失败', icon: 'none' });
+            wx.hideLoading();
+            wx.showToast({ title: '已取消', icon: 'success' });
+            this.loadTrips();
+          } catch (err) {
+            wx.hideLoading();
+            console.warn('取消行程失败', err);
+            wx.showToast({ title: '取消失败', icon: 'none' });
+          }
         }
       }
     });
@@ -626,37 +510,17 @@ Page({
         if (res.confirm) {
           wx.showLoading({ title: '退出中...' });
 
-          if (wx.cloud) {
-            try {
-              const db = wx.cloud.database();
-              const openid = app.globalData.openid;
+          try {
+            await api.tripQuit(tripId);
 
-              // 获取行程信息
-              const tripRes = await db.collection('trips').doc(tripId).get();
-              const trip = tripRes.data;
-
-              // 从参与者列表中移除自己
-              const newParticipants = trip.participants.filter(p => p.userId !== openid);
-
-              await db.collection('trips').doc(tripId).update({
-                data: {
-                  participants: newParticipants,
-                  currentCount: db.command.inc(-1),
-                  needCount: db.command.inc(1)
-                }
-              });
-
-              wx.hideLoading();
-              wx.showToast({ title: '已退出', icon: 'success' });
-              this.loadTrips();
-              return;
-            } catch (err) {
-              console.warn('退出行程失败', err);
-            }
+            wx.hideLoading();
+            wx.showToast({ title: '已退出', icon: 'success' });
+            this.loadTrips();
+          } catch (err) {
+            wx.hideLoading();
+            console.warn('退出行程失败', err);
+            wx.showToast({ title: '退出失败', icon: 'none' });
           }
-
-          wx.hideLoading();
-          wx.showToast({ title: '退出失败', icon: 'none' });
         }
       }
     });

@@ -61,6 +61,10 @@ exports.main = async (event, context) => {
         return await tripQuit(openid, data);
       case 'trip/removeMember':
         return await tripRemoveMember(openid, data);
+      case 'trip/updateStatus':
+        return await tripUpdateStatus(openid, data);
+      case 'trip/delete':
+        return await tripDelete(openid, data);
       case 'trip/my':
         return await tripMy(openid);
 
@@ -1019,15 +1023,159 @@ async function tripRemoveMember(openid, data) {
   return { success: true };
 }
 
+// 更新行程状态
+async function tripUpdateStatus(openid, data) {
+  const { tripId, status } = data;
+
+  if (!tripId || !status) {
+    return { success: false, error: '参数不完整' };
+  }
+
+  // 获取行程
+  const tripRes = await db.collection('trips').doc(tripId).get();
+  const trip = tripRes.data;
+
+  if (!trip) {
+    return { success: false, error: '行程不存在' };
+  }
+
+  // 验证权限：只有发起人可以更新状态
+  if (trip.creatorId !== openid) {
+    return { success: false, error: '无权操作' };
+  }
+
+  await db.collection('trips').doc(tripId).update({
+    data: {
+      status,
+      updatedAt: Date.now()
+    }
+  });
+
+  return { success: true };
+}
+
+// 删除行程
+async function tripDelete(openid, data) {
+  const { tripId } = data;
+
+  if (!tripId) {
+    return { success: false, error: '行程ID不能为空' };
+  }
+
+  // 获取行程
+  const tripRes = await db.collection('trips').doc(tripId).get();
+  const trip = tripRes.data;
+
+  if (!trip) {
+    return { success: false, error: '行程不存在' };
+  }
+
+  // 验证权限：只有发起人可以删除
+  if (trip.creatorId !== openid) {
+    return { success: false, error: '无权删除' };
+  }
+
+  await db.collection('trips').doc(tripId).remove();
+
+  return { success: true };
+}
+
+// 获取我的行程
 async function tripMy(openid) {
+  // 查询我参与的所有行程
   const res = await db.collection('trips')
     .where({
       'participants.userId': openid
     })
     .orderBy('createdAt', 'desc')
+    .limit(50)
     .get();
-  
-  return { success: true, trips: res.data };
+
+  const trips = res.data || [];
+
+  // 收集所有参与者 userId
+  const userIds = new Set();
+  trips.forEach(trip => {
+    if (trip.participants) {
+      trip.participants.forEach(p => {
+        if (p.userId) userIds.add(p.userId);
+      });
+    }
+  });
+
+  // 查询用户信息
+  let userMap = {};
+  if (userIds.size > 0) {
+    try {
+      const userRes = await db.collection('users')
+        .where({
+          openid: _.in(Array.from(userIds))
+        })
+        .field({
+          openid: true,
+          avatar: true,
+          nickname: true
+        })
+        .get();
+
+      if (userRes.data) {
+        userRes.data.forEach(user => {
+          userMap[user.openid] = {
+            avatar: user.avatar || '',
+            nickname: user.nickname || '旅行者'
+          };
+        });
+      }
+    } catch (err) {
+      console.warn('查询用户信息失败', err);
+    }
+  }
+
+  // 收集云存储头像文件ID
+  const avatarFileIDs = [];
+  trips.forEach(trip => {
+    if (trip.participants) {
+      trip.participants.forEach(p => {
+        if (p.userId && userMap[p.userId]) {
+          p.avatar = userMap[p.userId].avatar;
+          p.nickname = userMap[p.userId].nickname;
+        }
+        if (p.avatar && p.avatar.startsWith('cloud://')) {
+          avatarFileIDs.push(p.avatar);
+        }
+      });
+    }
+  });
+
+  // 获取云存储临时链接
+  let avatarUrlMap = {};
+  if (avatarFileIDs.length > 0) {
+    try {
+      const urlRes = await cloud.getTempFileURL({ fileList: avatarFileIDs });
+      if (urlRes.fileList) {
+        urlRes.fileList.forEach(item => {
+          if (item.tempFileURL) {
+            avatarUrlMap[item.fileID] = item.tempFileURL;
+          }
+        });
+      }
+    } catch (err) {
+      console.warn('获取头像临时链接失败', err);
+    }
+  }
+
+  // 替换云存储链接为临时链接
+  trips.forEach(trip => {
+    if (trip.participants) {
+      trip.participants.forEach(p => {
+        if (p.avatar && p.avatar.startsWith('cloud://') && avatarUrlMap[p.avatar]) {
+          p.avatar = avatarUrlMap[p.avatar];
+        }
+      });
+    }
+  });
+
+  return { success: true, trips };
 }
 
 // ========== 申请相关 ==========

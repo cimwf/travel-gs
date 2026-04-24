@@ -152,6 +152,20 @@ function tripRemoveMember(tripId, memberId) {
 }
 
 /**
+ * 更新行程状态
+ */
+function tripUpdateStatus(tripId, status) {
+  return callApi('trip/updateStatus', { tripId, status });
+}
+
+/**
+ * 删除行程
+ */
+function tripDelete(tripId) {
+  return callApi('trip/delete', { tripId });
+}
+
+/**
  * 获取我的行程
  */
 function tripMy() {
@@ -288,6 +302,8 @@ module.exports = {
   tripJoin,
   tripQuit,
   tripRemoveMember,
+  tripUpdateStatus,
+  tripDelete,
   tripMy,
 
   // 申请
