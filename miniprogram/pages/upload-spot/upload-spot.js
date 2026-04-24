@@ -1,5 +1,5 @@
 // pages/upload-spot/upload-spot.js
-const app = getApp();
+const api = require('../../utils/api.js');
 
 Page({
   data: {
@@ -66,26 +66,24 @@ Page({
         coverFileId = uploadRes.fileID;
       }
 
-      // 保存到数据库
-      const db = wx.cloud.database();
-      await db.collection('user_spots').add({
-        data: {
-          placeName: placeName.trim(),
-          location: location.trim(),
-          coverImage: coverFileId,
-          creatorId: app.globalData.openid || '',
-          status: 'pending',
-          createdAt: Date.now()
-        }
+      // 调用云函数保存到数据库
+      const res = await api.userSpotsCreate({
+        placeName: placeName,
+        location: location,
+        coverImage: coverFileId
       });
 
       wx.hideLoading();
-      wx.showToast({ title: '上传成功', icon: 'success' });
 
-      // 返回上一页
-      setTimeout(() => {
-        wx.navigateBack();
-      }, 1500);
+      if (res.success) {
+        wx.showToast({ title: '上传成功', icon: 'success' });
+
+        setTimeout(() => {
+          wx.navigateBack();
+        }, 1500);
+      } else {
+        wx.showToast({ title: res.error || '上传失败', icon: 'none' });
+      }
     } catch (err) {
       wx.hideLoading();
       console.error('上传景点失败', err);

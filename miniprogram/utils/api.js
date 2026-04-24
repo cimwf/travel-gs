@@ -70,6 +70,13 @@ function userGet(userId) {
   return callApi('user/get', { userId });
 }
 
+/**
+ * 获取用户行程列表
+ */
+function tripListByUser(userId, page = 1, pageSize = 10) {
+  return callApi('trip/listByUser', { userId, page, pageSize });
+}
+
 // ========== 地点相关 ==========
 
 /**
@@ -166,6 +173,13 @@ function tripDelete(tripId) {
 }
 
 /**
+ * 更新行程
+ */
+function tripUpdate(data) {
+  return callApi('trip/update', data);
+}
+
+/**
  * 获取我的行程
  */
 function tripMy() {
@@ -214,6 +228,13 @@ function applyDelete(applyId) {
  */
 function applyCancel(applyId) {
   return callApi('apply/cancel', { applyId });
+}
+
+/**
+ * 获取未读消息数量
+ */
+function applyUnreadCount() {
+  return callApi('apply/unreadCount', {});
 }
 
 // ========== 想去相关 ==========
@@ -280,6 +301,38 @@ function bannerList() {
   return callApi('banner/list', {});
 }
 
+// ========== 景点相关 ==========
+
+/**
+ * 获取景点列表
+ */
+function attractionsList() {
+  return callApi('attractions/list', {});
+}
+
+/**
+ * 获取景点详情
+ */
+function attractionsGet(placeId) {
+  return callApi('attractions/get', { placeId });
+}
+
+/**
+ * 上传景点
+ */
+function userSpotsCreate(data) {
+  return callApi('userSpots/create', data);
+}
+
+// ========== 反馈相关 ==========
+
+/**
+ * 提交反馈
+ */
+function feedbackCreate(data) {
+  return callApi('feedback/create', data);
+}
+
 // ========== 导出 ==========
 
 module.exports = {
@@ -304,7 +357,9 @@ module.exports = {
   tripRemoveMember,
   tripUpdateStatus,
   tripDelete,
+  tripUpdate,
   tripMy,
+  tripListByUser,
 
   // 申请
   applyCreate,
@@ -313,6 +368,7 @@ module.exports = {
   applyNotifications,
   applyDelete,
   applyCancel,
+  applyUnreadCount,
 
   // 想去
   wantToggle,
@@ -329,6 +385,14 @@ module.exports = {
 
   // Banner
   bannerList,
+
+  // 景点
+  attractionsList,
+  attractionsGet,
+  userSpotsCreate,
+
+  // 反馈
+  feedbackCreate,
 
   // 统计
   trackEvent

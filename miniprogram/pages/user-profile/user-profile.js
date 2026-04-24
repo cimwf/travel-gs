@@ -1,5 +1,6 @@
 // pages/user-profile/user-profile.js
 const app = getApp();
+const api = require('../../utils/api.js');
 
 Page({
   data: {
@@ -57,7 +58,7 @@ Page({
 
       this.setData({ userId: openid });
 
-      // 从数据库获取最新用户数据
+      // 从云函数获取最新用户数据
       await this.loadUserProfile(openid);
 
     } catch (err) {
@@ -71,29 +72,11 @@ Page({
     this.setData({ loading: true });
 
     try {
-      const db = wx.cloud.database();
-      let userData = null;
+      const res = await api.userGet(userId);
 
-      // 方式1：通过 openid 查询
-      let userRes = await db.collection('users').where({
-        openid: userId
-      }).get();
+      if (res.success && res.user) {
+        const userData = res.user;
 
-      if (userRes.data && userRes.data.length > 0) {
-        userData = userRes.data[0];
-      } else {
-        // 方式2：通过 _id 查询
-        try {
-          const resById = await db.collection('users').doc(userId).get();
-          if (resById.data) {
-            userData = resById.data;
-          }
-        } catch (e) {
-          console.log('通过_id查询失败', e);
-        }
-      }
-
-      if (userData) {
         // 处理头像URL
         let avatar = userData.avatar || '';
         if (avatar && avatar.startsWith('cloud://') && wx.cloud) {
@@ -184,68 +167,16 @@ Page({
   // 加载用户发布的行程
   loadUserTrips: async function (userId) {
     try {
-      const db = wx.cloud.database();
+      const res = await api.tripListByUser(userId);
 
-      const tripRes = await db.collection('trips')
-        .where({
-          creatorId: userId
-        })
-        .orderBy('createdAt', 'desc')
-        .limit(10)
-        .get();
-
-      if (tripRes.data && tripRes.data.length > 0) {
-        const trips = [];
-        for (const trip of tripRes.data) {
-          // 获取地点图片和标签
-          let placeImage = trip.placeImage || '';
-          let placeTags = [];
-          if (trip.placeId) {
-            try {
-              const placeRes = await db.collection('places').doc(trip.placeId).get();
-              if (placeRes.data) {
-                if (placeRes.data.images && placeRes.data.images.length > 0) {
-                  placeImage = placeRes.data.images[0];
-                }
-                if (placeRes.data.tags && placeRes.data.tags.length > 0) {
-                  placeTags = placeRes.data.tags;
-                }
-              }
-            } catch (e) {}
-          }
-          if (!placeImage) {
-            placeImage = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop';
-          }
-
-          // 格式化日期
-          let dateText = trip.date || '';
-          if (trip.date) {
-            const date = new Date(trip.date);
-            const month = date.getMonth() + 1;
-            const day = date.getDate();
-            dateText = `${month}月${day}日`;
-          }
-
-          trips.push({
-            _id: trip._id,
-            title: trip.title || trip.placeName,
-            placeName: trip.placeName,
-            placeImage: placeImage,
-            date: dateText,
-            duration: trip.duration || '1天',
-            viewCount: trip.viewCount || 0,
-            likeCount: trip.likeCount || 0,
-            commentCount: trip.commentCount || 0,
-            tags: placeTags
-          });
-        }
-
-        this.setData({ trips });
+      if (res.success && res.trips && res.trips.length > 0) {
+        this.setData({ trips: res.trips });
       } else {
         this.setData({ trips: [] });
       }
     } catch (err) {
       console.error('加载行程失败', err);
+      this.setData({ trips: [] });
     }
   },
 

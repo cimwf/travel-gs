@@ -1,4 +1,6 @@
 // pages/trip-publish-success/trip-publish-success.js
+const api = require('../../utils/api.js');
+
 Page({
   data: {
     tripId: '',
@@ -29,7 +31,7 @@ Page({
     });
 
     // 从 quick_attractions 获取景点信息
-    if (placeId && wx.cloud) {
+    if (placeId) {
       this.loadPlaceInfo(placeId);
     } else {
       // 没有 placeId 时用 URL 参数兜底
@@ -43,10 +45,9 @@ Page({
   // 从 quick_attractions 加载景点信息
   loadPlaceInfo: async function (placeId) {
     try {
-      const db = wx.cloud.database();
-      const res = await db.collection('quick_attractions').doc(placeId).get();
-      if (res.data) {
-        const place = res.data;
+      const res = await api.attractionsGet(placeId);
+      if (res.success && res.place) {
+        const place = res.place;
         let tripImage = place.coverImage || '';
         if (tripImage && tripImage.startsWith('cloud://')) {
           try {

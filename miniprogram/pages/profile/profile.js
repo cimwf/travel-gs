@@ -113,24 +113,16 @@ Page({
   // 加载未读消息数量
   loadUnreadCount: async function () {
     const openid = app.globalData.openid;
-    if (!openid || !wx.cloud) return;
+    if (!openid) return;
 
     try {
-      const db = wx.cloud.database();
-      const _ = db.command;
+      const res = await api.applyUnreadCount();
 
-      // 查询未处理的申请数量
-      const res = await db.collection('applies')
-        .where({
-          toUserId: openid,
-          type: _.in(['apply']),
-          status: 'pending'
-        })
-        .count();
-
-      this.setData({
-        unreadCount: res.total || 0
-      });
+      if (res.success) {
+        this.setData({
+          unreadCount: res.count || 0
+        });
+      }
     } catch (err) {
       console.warn('加载未读消息数量失败', err);
     }

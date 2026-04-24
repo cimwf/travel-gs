@@ -1,6 +1,7 @@
 // pages/trip-publish/trip-publish.js
 const app = getApp();
 const auth = require('../../utils/auth.js');
+const api = require('../../utils/api.js');
 
 Page({
   data: {
@@ -91,11 +92,10 @@ Page({
     wx.showLoading({ title: '加载中...' });
 
     try {
-      const db = wx.cloud.database();
-      const res = await db.collection('trips').doc(tripId).get();
+      const res = await api.tripGet(tripId);
 
-      if (res.data) {
-        const trip = res.data;
+      if (res.success && res.trip) {
+        const trip = res.trip;
         this.setData({
           tripTitle: trip.tripTitle || '',
           placeId: trip.placeId || '',
@@ -288,22 +288,6 @@ Page({
     // 发布模式
     wx.showLoading({ title: '发布中...' });
 
-    // 确保获取到 openid
-    let openid = app.globalData.openid;
-    if (!openid) {
-      try {
-        openid = await app.getOpenid();
-      } catch (err) {
-        console.error('获取openid失败', err);
-        wx.hideLoading();
-        wx.showToast({ title: '请先登录', icon: 'none' });
-        return;
-      }
-    }
-
-    // 获取最新的用户信息
-    const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
-
     // 构造行程数据
     const currentCount = 1;
     const needCount = this.data.recruitCount;
@@ -328,58 +312,37 @@ Page({
       travelDesc: this.data.hasCar ? '' : this.data.travelDesc,
       price: this.data.price,
       remark: this.data.remark,
-      status: 'open',
-      // 发起人信息
-      creatorId: openid,
-      creatorName: userInfo.nickname || '旅行者',
-      creatorAvatar: userInfo.avatar || '',
-      // 参与者列表（发起人默认参与）
-      participants: [{
-        userId: openid,
-        nickname: userInfo.nickname || '旅行者',
-        avatar: userInfo.avatar || ''
-      }],
-      createdAt: Date.now()
+      status: 'open'
     };
 
     try {
-      const db = wx.cloud.database();
-      const res = await db.collection('trips').add({ data: tripData });
-
-      // 获取景点图片
-      let tripImage = '';
-      if (this.data.placeId) {
-        try {
-          const placeRes = await db.collection('places').doc(this.data.placeId).get();
-          if (placeRes.data && placeRes.data.coverImage) {
-            tripImage = placeRes.data.coverImage;
-          }
-        } catch (err) {
-          console.warn('获取景点图片失败', err);
-        }
-      }
+      const res = await api.tripCreate(tripData);
 
       wx.hideLoading();
 
-      // 格式化日期显示
-      const dateObj = new Date(this.data.date);
-      const dateText = dateObj.getFullYear() + '年' + (dateObj.getMonth() + 1) + '月' + dateObj.getDate() + '日';
+      if (res.success) {
+        // 格式化日期显示
+        const dateObj = new Date(this.data.date);
+        const dateText = dateObj.getFullYear() + '年' + (dateObj.getMonth() + 1) + '月' + dateObj.getDate() + '日';
 
-      // 跳转到发布成功页
-      const params = [
-        'tripId=' + res._id,
-        'placeId=' + this.data.placeId,
-        'placeName=' + encodeURIComponent(this.data.placeName),
-        'placeAddress=' + encodeURIComponent('北京市'),
-        'tripImage=' + encodeURIComponent(tripImage),
-        'dateText=' + encodeURIComponent(dateText),
-        'currentCount=' + currentCount,
-        'needCount=' + needCount
-      ].join('&');
+        // 跳转到发布成功页
+        const params = [
+          'tripId=' + res.trip._id,
+          'placeId=' + this.data.placeId,
+          'placeName=' + encodeURIComponent(this.data.placeName),
+          'placeAddress=' + encodeURIComponent('北京市'),
+          'tripImage=' + encodeURIComponent(res.tripImage || ''),
+          'dateText=' + encodeURIComponent(dateText),
+          'currentCount=' + currentCount,
+          'needCount=' + needCount
+        ].join('&');
 
-      wx.redirectTo({
-        url: '/pages/trip-publish-success/trip-publish-success?' + params
-      });
+        wx.redirectTo({
+          url: '/pages/trip-publish-success/trip-publish-success?' + params
+        });
+      } else {
+        wx.showToast({ title: res.error || '发布失败', icon: 'none' });
+      }
     } catch (err) {
       wx.hideLoading();
       console.error('发布失败', err);
@@ -394,6 +357,7 @@ Page({
     const needCount = this.data.recruitCount;
 
     const updateData = {
+      tripId: this.data.tripId,
       tripTitle: this.data.tripTitle,
       placeId: this.data.placeId,
       placeName: this.data.placeName,
@@ -401,7 +365,6 @@ Page({
       date: this.data.date,
       hasCar: this.data.hasCar,
       needCount: needCount,
-      totalParticipants: this.data.currentCount + needCount,
       contactPhone: this.data.contactPhone,
       // 可选信息
       meetingPlace: this.data.meetingPlace,
@@ -410,22 +373,23 @@ Page({
       carModel: this.data.hasCar ? this.data.carModel : '',
       travelDesc: this.data.hasCar ? '' : this.data.travelDesc,
       price: this.data.price,
-      remark: this.data.remark,
-      updatedAt: Date.now()
+      remark: this.data.remark
     };
 
     try {
-      const db = wx.cloud.database();
-      await db.collection('trips').doc(this.data.tripId).update({
-        data: updateData
-      });
+      const res = await api.tripUpdate(updateData);
 
       wx.hideLoading();
-      wx.showToast({ title: '保存成功', icon: 'success' });
 
-      setTimeout(() => {
-        wx.navigateBack();
-      }, 1500);
+      if (res.success) {
+        wx.showToast({ title: '保存成功', icon: 'success' });
+
+        setTimeout(() => {
+          wx.navigateBack();
+        }, 1500);
+      } else {
+        wx.showToast({ title: res.error || '保存失败', icon: 'none' });
+      }
     } catch (err) {
       wx.hideLoading();
       console.error('更新失败', err);

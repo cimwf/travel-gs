@@ -65,8 +65,12 @@ exports.main = async (event, context) => {
         return await tripUpdateStatus(openid, data);
       case 'trip/delete':
         return await tripDelete(openid, data);
+      case 'trip/update':
+        return await tripUpdate(openid, data);
       case 'trip/my':
         return await tripMy(openid);
+      case 'trip/listByUser':
+        return await tripListByUser(data);
 
       // ========== 申请相关 ==========
       case 'apply/create':
@@ -81,6 +85,8 @@ exports.main = async (event, context) => {
         return await applyDelete(openid, data);
       case 'apply/cancel':
         return await applyCancel(openid, data);
+      case 'apply/unreadCount':
+        return await applyUnreadCount(openid);
 
       // ========== 想去相关 ==========
       case 'want/toggle':
@@ -106,9 +112,19 @@ exports.main = async (event, context) => {
       case 'banner/list':
         return await bannerList();
 
+      // ========== 反馈相关 ==========
+      case 'feedback/create':
+        return await feedbackCreate(openid, data);
+
       // ========== 景点相关 ==========
       case 'attractions/list':
         return await attractionsList();
+      case 'attractions/get':
+        return await attractionsGet(data.placeId);
+
+      // ========== 用户上传景点相关 ==========
+      case 'userSpots/create':
+        return await userSpotsCreate(openid, data);
 
       default:
         return { success: false, error: '未知操作' };
@@ -523,8 +539,39 @@ async function userUpdate(openid, data) {
 }
 
 async function userGet(userId) {
-  const res = await db.collection('users').doc(userId).get();
-  return { success: true, user: res.data };
+  if (!userId) {
+    return { success: false, error: '用户ID不能为空' };
+  }
+
+  // 先尝试通过 _id 查询
+  try {
+    const resById = await db.collection('users').doc(userId).get();
+    return { success: true, user: resById.data };
+  } catch (e) {
+    // _id 查询失败，尝试通过 openid 查询
+  }
+
+  // 通过 openid 查询
+  try {
+    const resByOpenid = await db.collection('users').where({ openid: userId }).get();
+    if (resByOpenid.data && resByOpenid.data.length > 0) {
+      return { success: true, user: resByOpenid.data[0] };
+    }
+  } catch (e) {
+    // openid 查询失败
+  }
+
+  // 通过 userId (自定义ID) 查询
+  try {
+    const resByUserId = await db.collection('users').where({ userId: userId }).get();
+    if (resByUserId.data && resByUserId.data.length > 0) {
+      return { success: true, user: resByUserId.data[0] };
+    }
+  } catch (e) {
+    // userId 查询失败
+  }
+
+  return { success: false, error: '用户不存在' };
 }
 
 // ========== 地点相关 ==========
@@ -624,40 +671,59 @@ async function tripCreate(openid, data) {
   // 获取用户信息
   const userRes = await db.collection('users').where({ openid }).get();
   const user = userRes.data[0];
-  
+
   // 获取地点信息
   const placeRes = await db.collection('places').doc(data.placeId).get();
   const place = placeRes.data;
-  
+
+  const currentCount = data.currentCount || 1;
+  const needCount = data.needCount || 3;
+
   const newTrip = {
+    tripTitle: data.tripTitle || '',
     placeId: data.placeId,
     placeName: place.name,
+    departure: data.departure || '',
+    date: data.date,
+    hasCar: data.hasCar !== false,
+    currentCount: currentCount,
+    needCount: needCount,
+    totalParticipants: data.totalParticipants || (currentCount + needCount),
+    contactPhone: data.contactPhone || '',
+    meetingPlace: data.meetingPlace || '',
+    meetingTime: data.meetingTime || '',
+    carSeats: data.carSeats || '',
+    carModel: data.carModel || '',
+    travelDesc: data.travelDesc || '',
+    price: data.price || '',
+    remark: data.remark || '',
     creatorId: openid,
     creatorName: user.nickname,
     creatorAvatar: user.avatar,
-    date: data.date,
-    hasCar: data.hasCar,
-    currentCount: data.currentCount || 1,
-    needCount: data.needCount,
-    participants: [{
+    participants: data.participants || [{
       userId: openid,
       nickname: user.nickname,
       avatar: user.avatar
     }],
-    remark: data.remark || '',
-    status: 'open',
+    status: data.status || 'open',
     createdAt: Date.now()
   };
-  
+
   const res = await db.collection('trips').add({ data: newTrip });
   newTrip._id = res._id;
-  
+
   // 更新用户行程数
   await db.collection('users').doc(user._id).update({
     data: { trips: _.inc(1) }
   });
-  
-  return { success: true, trip: newTrip };
+
+  // 获取景点图片
+  let tripImage = '';
+  if (place.coverImage) {
+    tripImage = place.coverImage;
+  }
+
+  return { success: true, trip: newTrip, tripImage };
 }
 
 async function tripList(data) {
@@ -1102,6 +1168,50 @@ async function tripDelete(openid, data) {
   return { success: true };
 }
 
+// 更新行程（编辑模式）
+async function tripUpdate(openid, data) {
+  const { tripId, ...updateFields } = data;
+
+  if (!tripId) {
+    return { success: false, error: '行程ID不能为空' };
+  }
+
+  // 获取行程
+  const tripRes = await db.collection('trips').doc(tripId).get();
+  const trip = tripRes.data;
+
+  if (!trip) {
+    return { success: false, error: '行程不存在' };
+  }
+
+  // 验证权限：只有发起人可以更新
+  if (trip.creatorId !== openid) {
+    return { success: false, error: '无权更新' };
+  }
+
+  // 过滤掉 undefined 的字段
+  const updateData = {};
+  Object.keys(updateFields).forEach(key => {
+    if (updateFields[key] !== undefined) {
+      updateData[key] = updateFields[key];
+    }
+  });
+
+  // 添加更新时间
+  updateData.updatedAt = Date.now();
+
+  // 如果更新了 needCount，同时更新 totalParticipants
+  if (updateData.needCount !== undefined) {
+    updateData.totalParticipants = (trip.currentCount || 1) + updateData.needCount;
+  }
+
+  await db.collection('trips').doc(tripId).update({
+    data: updateData
+  });
+
+  return { success: true };
+}
+
 // 获取我的行程
 async function tripMy(openid) {
   // 查询我参与的所有行程
@@ -1209,6 +1319,87 @@ async function tripMy(openid) {
   });
 
   return { success: true, trips };
+}
+
+// 获取用户发布的行程
+async function tripListByUser(data) {
+  const { userId, page = 1, pageSize = 10 } = data;
+
+  if (!userId) {
+    return { success: false, error: '用户ID不能为空' };
+  }
+
+  // 查询该用户创建的行程
+  const tripRes = await db.collection('trips')
+    .where({
+      creatorId: userId
+    })
+    .orderBy('createdAt', 'desc')
+    .skip((page - 1) * pageSize)
+    .limit(pageSize)
+    .get();
+
+  const trips = tripRes.data || [];
+
+  // 获取地点信息
+  const placeIds = [...new Set(trips.map(t => t.placeId).filter(Boolean))];
+  let placeMap = {};
+
+  if (placeIds.length > 0) {
+    try {
+      const placeRes = await db.collection('places')
+        .where(_.or(placeIds.map(id => ({ _id: id }))))
+        .field({ _id: true, images: true, tags: true })
+        .get();
+
+      if (placeRes.data) {
+        placeRes.data.forEach(place => {
+          placeMap[place._id] = {
+            images: place.images || [],
+            tags: place.tags || []
+          };
+        });
+      }
+    } catch (err) {
+      console.warn('查询地点信息失败', err);
+    }
+  }
+
+  // 处理行程数据
+  const formattedTrips = trips.map(trip => {
+    const placeInfo = placeMap[trip.placeId] || {};
+    let placeImage = placeInfo.images?.[0] || '';
+
+    if (!placeImage) {
+      placeImage = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop';
+    }
+
+    // 格式化日期
+    let dateText = trip.date || '';
+    if (trip.date) {
+      try {
+        const date = new Date(trip.date);
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        dateText = `${month}月${day}日`;
+      } catch (e) {}
+    }
+
+    return {
+      _id: trip._id,
+      title: trip.tripTitle || trip.placeName,
+      placeName: trip.placeName,
+      placeImage: placeImage,
+      date: dateText,
+      duration: trip.duration || '1天',
+      viewCount: trip.viewCount || 0,
+      likeCount: trip.likeCount || 0,
+      commentCount: trip.commentCount || 0,
+      tags: placeInfo.tags || []
+    };
+  });
+
+  return { success: true, trips: formattedTrips };
 }
 
 // ========== 申请相关 ==========
@@ -1547,6 +1738,29 @@ function formatTimeAgo(timestamp) {
   return new Date(timestamp).toLocaleDateString();
 }
 
+// 获取未读消息数量
+async function applyUnreadCount(openid) {
+  if (!openid) {
+    return { success: false, error: '用户未登录' };
+  }
+
+  try {
+    // 查询未处理的申请数量
+    const res = await db.collection('applies')
+      .where({
+        toUserId: openid,
+        type: _.in(['apply']),
+        status: 'pending'
+      })
+      .count();
+
+    return { success: true, count: res.total || 0 };
+  } catch (err) {
+    console.error('获取未读消息数量失败', err);
+    return { success: false, error: err.message };
+  }
+}
+
 // ========== 想去相关 ==========
 
 async function wantToggle(openid, data) {
@@ -1711,4 +1925,87 @@ async function attractionsList() {
     console.error('获取景点列表失败:', err);
     return { success: false, error: err.message };
   }
+}
+
+async function attractionsGet(placeId) {
+  if (!placeId) {
+    return { success: false, error: '景点ID不能为空' };
+  }
+
+  try {
+    const res = await db.collection('quick_attractions').doc(placeId).get();
+    return { success: true, place: res.data };
+  } catch (err) {
+    console.error('获取景点详情失败:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+// ========== 用户上传景点相关 ==========
+
+async function userSpotsCreate(openid, data) {
+  const { placeName, location, coverImage } = data;
+
+  if (!placeName || !placeName.trim()) {
+    return { success: false, error: '地点名称不能为空' };
+  }
+
+  if (!location || !location.trim()) {
+    return { success: false, error: '所在地方不能为空' };
+  }
+
+  const newSpot = {
+    placeName: placeName.trim(),
+    location: location.trim(),
+    coverImage: coverImage || '',
+    creatorId: openid || '',
+    status: 'pending',
+    createdAt: Date.now()
+  };
+
+  const res = await db.collection('user_spots').add({ data: newSpot });
+  newSpot._id = res._id;
+
+  return { success: true, spot: newSpot };
+}
+
+// ========== 反馈相关 ==========
+
+async function feedbackCreate(openid, data) {
+  const { title, content, contact } = data;
+
+  if (!content || !content.trim()) {
+    return { success: false, error: '详细描述不能为空' };
+  }
+
+  // 获取用户信息
+  let userInfo = null;
+  if (openid) {
+    try {
+      const userRes = await db.collection('users').where({ openid }).get();
+      if (userRes.data.length > 0) {
+        userInfo = {
+          nickname: userRes.data[0].nickname,
+          avatar: userRes.data[0].avatar
+        };
+      }
+    } catch (err) {
+      console.warn('获取用户信息失败', err);
+    }
+  }
+
+  const newFeedback = {
+    title: title ? title.trim() : '',
+    content: content.trim(),
+    contact: contact ? contact.trim() : '',
+    userId: openid || '',
+    userInfo: userInfo,
+    status: 'pending',
+    createdAt: Date.now()
+  };
+
+  const res = await db.collection('feedbacks').add({ data: newFeedback });
+  newFeedback._id = res._id;
+
+  return { success: true, feedback: newFeedback };
 }
