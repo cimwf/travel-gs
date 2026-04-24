@@ -1461,8 +1461,10 @@ async function applyHandle(openid, data) {
   const applyRes = await db.collection('applies').doc(applyId).get();
   const apply = applyRes.data;
 
+  // 兼容两种字段格式：creatorId 或 toUserId
+  const creatorId = apply.creatorId || apply.toUserId;
   // 验证权限
-  if (apply.creatorId !== openid) {
+  if (creatorId !== openid) {
     return { success: false, error: '无权处理该申请' };
   }
 
@@ -1473,7 +1475,11 @@ async function applyHandle(openid, data) {
 
   // 如果接受，加入行程
   if (accept) {
-    await tripJoin(apply.userId, { tripId: apply.tripId });
+    // 兼容两种字段格式：userId 或 fromUserId
+    const applicantId = apply.userId || apply.fromUserId;
+    if (applicantId && apply.tripId) {
+      await tripJoin(applicantId, { tripId: apply.tripId });
+    }
   }
 
   return { success: true };

@@ -145,7 +145,7 @@ Page({
         wx.removeStorageSync('pendingRedirect');
         wx.redirectTo({ url: pendingRedirect });
       } else {
-        nav.goHome();
+        wx.switchTab({ url: '/pages/trip-list/trip-list' });
       }
     }, 1000);
   },
