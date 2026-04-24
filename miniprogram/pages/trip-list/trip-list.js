@@ -508,6 +508,11 @@ Page({
   // 点击行程卡片
   onTripTap: function (e) {
     const tripId = e.currentTarget.dataset.id;
+    
+    if (auth.checkNeedLogin()) {
+      nav.goToRegister(`/pages/trip-detail/trip-detail?id=${tripId}`);
+      return;
+    }
     wx.navigateTo({
       url: `/pages/trip-detail/trip-detail?id=${tripId}`
     });
