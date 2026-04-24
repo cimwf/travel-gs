@@ -1667,8 +1667,12 @@ async function applyDelete(openid, data) {
     return { success: false, error: '申请记录不存在' };
   }
 
+  // 兼容两种字段格式
+  const fromUserId = apply.fromUserId || apply.userId;
+  const toUserId = apply.toUserId || apply.creatorId;
+
   // 验证权限：只有发起人或接收人可以删除
-  if (apply.fromUserId !== openid && apply.toUserId !== openid) {
+  if (fromUserId !== openid && toUserId !== openid) {
     return { success: false, error: '无权删除此通知' };
   }
 
@@ -1694,8 +1698,11 @@ async function applyCancel(openid, data) {
     return { success: false, error: '申请记录不存在' };
   }
 
+  // 兼容两种字段格式
+  const fromUserId = apply.fromUserId || apply.userId;
+
   // 验证权限：只有申请人可以取消
-  if (apply.fromUserId !== openid) {
+  if (fromUserId !== openid) {
     return { success: false, error: '无权取消此申请' };
   }
 
