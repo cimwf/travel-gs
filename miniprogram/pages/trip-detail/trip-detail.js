@@ -28,13 +28,10 @@ Page({
   onLoad: async function (options) {
     // 检查登录状态
     if (auth.checkNeedLogin()) {
-      // 未登录，记录当前页面并跳转到登录页
+      // 未登录，跳转到注册页
       const tripId = options.id || '';
       const currentUrl = `/pages/trip-detail/trip-detail?id=${tripId}`;
-      wx.setStorageSync('pendingRedirect', currentUrl);
-      wx.redirectTo({
-        url: '/pages/auth/auth'
-      });
+      nav.goToRegister(currentUrl);
       return;
     }
 
