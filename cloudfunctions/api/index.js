@@ -672,9 +672,20 @@ async function tripCreate(openid, data) {
   const userRes = await db.collection('users').where({ openid }).get();
   const user = userRes.data[0];
 
-  // 获取地点信息
-  const placeRes = await db.collection('places').doc(data.placeId).get();
-  const place = placeRes.data;
+  // 从 quick_attractions 获取景点信息
+  let placeName = data.placeName || '';
+  let tripImage = '';
+  if (data.placeId) {
+    try {
+      const placeRes = await db.collection('quick_attractions').doc(data.placeId).get();
+      if (placeRes.data) {
+        placeName = placeRes.data.name || placeName;
+        tripImage = placeRes.data.coverImage || placeRes.data.image || '';
+      }
+    } catch (err) {
+      console.warn('从 quick_attractions 获取景点信息失败', err);
+    }
+  }
 
   const currentCount = data.currentCount || 1;
   const needCount = data.needCount || 3;
@@ -682,7 +693,7 @@ async function tripCreate(openid, data) {
   const newTrip = {
     tripTitle: data.tripTitle || '',
     placeId: data.placeId,
-    placeName: place.name,
+    placeName: placeName,
     departure: data.departure || '',
     date: data.date,
     hasCar: data.hasCar !== false,
@@ -716,12 +727,6 @@ async function tripCreate(openid, data) {
   await db.collection('users').doc(user._id).update({
     data: { trips: _.inc(1) }
   });
-
-  // 获取景点图片
-  let tripImage = '';
-  if (place.coverImage) {
-    tripImage = place.coverImage;
-  }
 
   return { success: true, trip: newTrip, tripImage };
 }
