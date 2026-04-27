@@ -126,48 +126,48 @@ Page({
 
   // 编辑资料
   onEditProfile: function () {
-    auth.navigateIfLoggedIn('/pages/edit-profile/edit-profile', '/pages/profile/profile');
+    auth.navigateIfLoggedIn('/pages/edit-profile/edit-profile');
   },
 
   // 我的行程
   onTapMyTrips: function () {
-    auth.navigateIfLoggedIn('/pages/my-trips/my-trips', '/pages/profile/profile');
+    auth.navigateIfLoggedIn('/pages/my-trips/my-trips');
   },
 
   // 行程通知
   onTapTripNotifications: function () {
-    auth.navigateIfLoggedIn('/pages/trip-notifications/trip-notifications', '/pages/trip-notifications/trip-notifications');
+    auth.navigateIfLoggedIn('/pages/trip-notifications/trip-notifications');
   },
 
   // 上传景点
   onTapUploadSpot: function () {
-    auth.navigateIfLoggedIn('/pages/upload-spot/upload-spot', '/pages/upload-spot/upload-spot');
+    auth.navigateIfLoggedIn('/pages/upload-spot/upload-spot');
   },
 
   // 我的收藏
   onTapCollections: function () {
-    if (auth.ensureLogin('/pages/profile/profile')) {
+    if (auth.ensureLogin()) {
       wx.showToast({ title: '功能开发中', icon: 'none' });
     }
   },
 
   // 我的评论
   onTapComments: function () {
-    auth.navigateIfLoggedIn('/pages/comments/comments', '/pages/profile/profile');
+    auth.navigateIfLoggedIn('/pages/comments/comments');
   },
 
   // 关注/粉丝
   onTapFollow: function () {
-    auth.navigateIfLoggedIn('/pages/followers/followers', '/pages/profile/profile');
+    auth.navigateIfLoggedIn('/pages/followers/followers');
   },
 
   // 提交建议
   onTapFeedback: function () {
-    auth.navigateIfLoggedIn('/pages/feedback/feedback', '/pages/feedback/feedback');
+    auth.navigateIfLoggedIn('/pages/feedback/feedback');
   },
 
   // 关于我们
   onTapAbout: function () {
-    auth.navigateIfLoggedIn('/pages/about/about', '/pages/about/about');
+    auth.navigateIfLoggedIn('/pages/about/about');
   }
 });

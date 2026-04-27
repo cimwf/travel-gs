@@ -510,7 +510,7 @@ Page({
   // 点击行程卡片
   onTripTap: function (e) {
     const tripId = e.currentTarget.dataset.id;
-    if (!auth.ensureLogin(`/pages/trip-detail/trip-detail?id=${tripId}`)) {
+    if (!auth.ensureLogin()) {
       return;
     }
     wx.navigateTo({
@@ -520,7 +520,7 @@ Page({
 
   // 发布行程
   onPublishTrip: function () {
-    if (!auth.ensureLogin('/pages/trip-publish/trip-publish')) {
+    if (!auth.ensureLogin()) {
       return;
     }
     wx.navigateTo({

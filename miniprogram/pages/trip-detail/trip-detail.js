@@ -26,9 +26,9 @@ Page({
   },
 
   onLoad: async function (options) {
-    // 检查登录状态
-    const currentUrl = `/pages/trip-detail/trip-detail?id=${options.id || ''}`;
-    if (!auth.ensureLogin(currentUrl)) {
+    // 检查登录状态（保存 deepLink，登录后回跳到此页）
+    auth.saveDeepLink(`/pages/trip-detail/trip-detail?id=${options.id || ''}`);
+    if (!auth.ensureLogin()) {
       return;
     }
 
@@ -340,7 +340,8 @@ Page({
 
   // 申请加入
   onJoinTap: function () {
-    if (!auth.ensureLogin(`/pages/trip-detail/trip-detail?id=${this.data.tripId}`)) {
+    auth.saveDeepLink(`/pages/trip-detail/trip-detail?id=${this.data.tripId}`);
+    if (!auth.ensureLogin()) {
       return;
     }
 

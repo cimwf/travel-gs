@@ -175,7 +175,7 @@ Page({
 
   // 点击登录
   onTapLogin: function () {
-    auth.goToLogin('/pages/trip-notifications/trip-notifications');
+    auth.ensureLogin();
   },
 
   // 拒绝申请

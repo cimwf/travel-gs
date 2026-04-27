@@ -5,14 +5,6 @@
 // 登录有效期：15天（毫秒）
 const LOGIN_EXPIRY = 15 * 24 * 60 * 60 * 1000;
 
-let nav = null;
-function getNav() {
-  if (!nav) {
-    nav = require('./nav.js');
-  }
-  return nav;
-}
-
 /**
  * 获取 app 实例
  */
@@ -70,29 +62,52 @@ function syncToApp(app) {
 
 /**
  * 确保用户已登录，未登录则跳转登录页
- * @param {string} redirectUrl - 登录成功后的回跳地址
  * @returns {boolean} 是否已登录
  */
-function ensureLogin(redirectUrl = '') {
+function ensureLogin() {
   if (isLoggedIn()) {
     return true;
   }
-  goToLogin(redirectUrl);
+  goToLogin();
   return false;
 }
 
 /**
  * 已登录则跳转页面，未登录则跳转登录页
  * @param {string} pageUrl - 目标页面路径
- * @param {string} redirectUrl - 登录成功后的回跳地址
  * @returns {boolean} 是否已登录
  */
-function navigateIfLoggedIn(pageUrl, redirectUrl = '') {
-  if (!ensureLogin(redirectUrl)) {
+function navigateIfLoggedIn(pageUrl) {
+  if (!ensureLogin()) {
     return false;
   }
   wx.navigateTo({ url: pageUrl });
   return true;
+}
+
+// deepLink 存储键（用于分享等需要登录后回跳的场景）
+const DEEP_LINK_KEY = 'deepLinkUrl';
+
+/**
+ * 保存 deepLink，登录成功后跳转到该页面
+ * @param {string} url - 页面路径
+ */
+function saveDeepLink(url) {
+  if (url) {
+    wx.setStorageSync(DEEP_LINK_KEY, url);
+  }
+}
+
+/**
+ * 获取并清除 deepLink
+ * @returns {string} deepLink URL
+ */
+function getDeepLink() {
+  const url = wx.getStorageSync(DEEP_LINK_KEY) || '';
+  if (url) {
+    wx.removeStorageSync(DEEP_LINK_KEY);
+  }
+  return url;
 }
 
 /**
@@ -101,60 +116,25 @@ function navigateIfLoggedIn(pageUrl, redirectUrl = '') {
  */
 function handleLoginSuccess(userInfo) {
   const app = getAppInstance();
-  
+
   // 保存到全局
   if (app && app.globalData) {
     app.globalData.userInfo = userInfo;
     app.globalData.isLoggedIn = true;
   }
-  
+
   // 保存到本地
   wx.setStorageSync('userInfo', userInfo);
   wx.setStorageSync('lastLoginTime', Date.now());
-  
-  // 检查是否有待跳转的页面
-  const pendingRedirect = wx.getStorageSync('pendingRedirect');
-  if (pendingRedirect) {
-    wx.removeStorageSync('pendingRedirect');
-    // 跳转回之前要去的页面
-    wx.redirectTo({
-      url: pendingRedirect,
-      fail: () => {
-        getNav().goHome();
-      }
-    });
-  }
 }
 
 /**
  * 跳转到登录页面
- * @param {string} redirectUrl - 登录成功后的回跳地址
  */
-function goToLogin(redirectUrl = '') {
-  // 记录要跳转的页面
-  if (redirectUrl) {
-    wx.setStorageSync('pendingRedirect', redirectUrl);
-  }
-  wx.navigateTo({
+function goToLogin() {
+  wx.redirectTo({
     url: '/pages/auth/auth'
   });
-}
-
-/**
- * 页面需要登录的检查
- * 在需要登录的页面的 onShow 或点击事件中调用
- * @param {Object} pageInstance - page 实例
- * @param {string} redirectUrl - 可选，指定回跳地址
- */
-function requireLogin(pageInstance, redirectUrl) {
-  if (checkNeedLogin()) {
-    // 记录要跳转的页面，登录成功后再跳转
-    const targetUrl = redirectUrl || pageInstance.route;
-    wx.setStorageSync('pendingRedirect', targetUrl);
-    goToLogin();
-    return false;
-  }
-  return true;
 }
 
 /**
@@ -181,7 +161,8 @@ module.exports = {
   syncToApp,
   handleLoginSuccess,
   goToLogin,
-  requireLogin,
   clearLoginStatus,
+  saveDeepLink,
+  getDeepLink,
   LOGIN_EXPIRY
 };

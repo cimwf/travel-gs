@@ -42,11 +42,10 @@ Page({
   },
 
   onLoad: function (options) {
-    if (!auth.checkNeedLogin()) {
-      this.initPage(options);
-    } else {
-      auth.goToLogin('/pages/trip-publish/trip-publish');
+    if (!auth.ensureLogin()) {
+      return;
     }
+    this.initPage(options);
   },
 
   // 初始化页面

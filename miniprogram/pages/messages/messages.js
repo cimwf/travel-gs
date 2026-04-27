@@ -113,7 +113,7 @@ Page({
 
   // 点击登录
   onTapLogin: function () {
-    auth.goToLogin('/pages/messages/messages');
+    auth.ensureLogin();
   },
 
   // 拒绝申请

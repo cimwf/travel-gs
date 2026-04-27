@@ -165,7 +165,7 @@ Page({
 
   // 点击搜索框
   onSearchTap: function () {
-    if (!auth.ensureLogin('/pages/search/search')) {
+    if (!auth.ensureLogin()) {
       return;
     }
     wx.navigateTo({
@@ -176,7 +176,7 @@ Page({
   // 点击地点卡片
   onPlaceTap: function (e) {
     const placeId = e.currentTarget.dataset.id;
-    if (!auth.ensureLogin(`/pages/place-detail/place-detail?id=${placeId}`)) {
+    if (!auth.ensureLogin()) {
       return;
     }
     wx.navigateTo({

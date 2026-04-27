@@ -171,12 +171,11 @@ Page({
     wx.showToast({ title: '注册成功', icon: 'success' });
 
     setTimeout(() => {
-      const pendingRedirect = wx.getStorageSync('pendingRedirect');
-      if (pendingRedirect) {
-        wx.removeStorageSync('pendingRedirect');
-        wx.redirectTo({ url: pendingRedirect });
+      const deepLink = auth.getDeepLink();
+      if (deepLink) {
+        wx.redirectTo({ url: deepLink });
       } else {
-        wx.switchTab({ url: '/pages/trip-list/trip-list' });
+        nav.goHome();
       }
     }, 1000);
   },
