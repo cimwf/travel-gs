@@ -86,10 +86,13 @@ Page({
         throw new Error('获取行程列表失败');
       }
 
-      if (tripRes.trips && tripRes.trips.length > 0) {
+      // 防止 trips 为 null 导致遍历报错
+      const tripsData = tripRes.trips || [];
+
+      if (tripsData.length > 0) {
         const trips = [];
         console.log(tripRes)
-        for (const trip of tripRes.trips) {
+        for (const trip of tripsData) {
           // 格式化日期
           let dateText = trip.date || '';
           if (trip.date) {
@@ -197,7 +200,7 @@ Page({
           trips: this.filterTrips(allTrips),
           destinationOptions: destinations,
           departureOptions: departures,
-          hasMore: tripRes.trips.length >= pageSize,
+          hasMore: tripsData.length >= pageSize,
           loading: false,
           page: page + 1
         });
