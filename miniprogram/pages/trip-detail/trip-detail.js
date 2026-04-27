@@ -274,32 +274,6 @@ Page({
     nav.goBack();
   },
 
-  // 更多操作
-  onMoreTap: function () {
-    wx.showActionSheet({
-      itemList: ['分享行程', '举报行程'],
-      success: (res) => {
-        if (res.tapIndex === 0) {
-          wx.showShareMenu({
-            withShareTicket: true,
-            menus: ['shareAppMessage']
-          });
-        } else if (res.tapIndex === 1) {
-          wx.showToast({ title: '举报成功', icon: 'success' });
-        }
-      }
-    });
-  },
-
-  // 关注发起人
-  onFollowTap: function () {
-    if (!app.globalData.isLoggedIn) {
-      wx.showToast({ title: '请先登录', icon: 'none' });
-      return;
-    }
-    wx.showToast({ title: '关注成功', icon: 'success' });
-  },
-
   // 复制手机号
   onCopyPhone: function () {
     const phone = this.data.trip.contactPhone;
