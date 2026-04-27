@@ -147,10 +147,10 @@
     <button class="footer-btn-primary" open-type="share">分享招募</button>
   </block>
 
-  <!-- 已加入成员视角：退出行程 + 分享给朋友 -->
+    <!-- 已加入成员视角：退出行程 + 分享给朋友 -->
   <block wx:elif="{{hasJoined}}">
     <view class="footer-btn-danger" bindtap="onQuitTrip">退出行程</view>
-    <view class="footer-btn-primary" bindtap="onShareFriends">分享给朋友</view>
+    <button class="footer-btn-primary" open-type="share">分享给朋友</button>
   </block>
 
   <!-- 未加入视角：申请加入 -->
