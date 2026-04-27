@@ -370,7 +370,9 @@ Page({
   // 申请加入
   onJoinTap: function () {
     if (!app.globalData.isLoggedIn) {
-      wx.showToast({ title: '请先登录', icon: 'none' });
+      // 未登录，跳转到注册页
+      const currentUrl = `/pages/trip-detail/trip-detail?id=${this.data.tripId}`;
+      nav.goToRegister(currentUrl);
       return;
     }
 

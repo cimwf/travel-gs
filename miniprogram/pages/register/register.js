@@ -171,7 +171,13 @@ Page({
     wx.showToast({ title: '注册成功', icon: 'success' });
 
     setTimeout(() => {
-      wx.switchTab({ url: '/pages/index/index' });
+      const pendingRedirect = wx.getStorageSync('pendingRedirect');
+      if (pendingRedirect) {
+        wx.removeStorageSync('pendingRedirect');
+        wx.redirectTo({ url: pendingRedirect });
+      } else {
+        wx.switchTab({ url: '/pages/trip-list/trip-list' });
+      }
     }, 1000);
   },
 
