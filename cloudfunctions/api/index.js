@@ -1057,6 +1057,11 @@ async function tripQuit(openid, data) {
     return { success: false, error: '您未参与该行程' };
   }
 
+  // 获取退出者信息（从参与者列表中）
+  const quitter = trip.participants.find(p => p.userId === openid);
+  const quitterName = quitter ? quitter.nickname : '旅行者';
+  const quitterAvatar = quitter ? quitter.avatar : '';
+
   // 从参与者列表中移除当前用户
   const newParticipants = trip.participants.filter(p => p.userId !== openid);
 
@@ -1066,6 +1071,21 @@ async function tripQuit(openid, data) {
       currentCount: _.inc(-1),
       needCount: _.inc(1),
       status: 'open' // 重新开放招募
+    }
+  });
+
+  // 创建退出通知记录（通知行程发起人）
+  await db.collection('applies').add({
+    data: {
+      tripId,
+      placeName: trip.placeName,
+      fromUserId: openid,
+      fromUserName: quitterName,
+      fromUserAvatar: quitterAvatar,
+      toUserId: trip.creatorId,
+      type: 'quit',
+      status: 'quit',
+      createdAt: Date.now()
     }
   });
 
@@ -1498,11 +1518,11 @@ async function applyNotifications(openid) {
 
   // 并行查询
   const [receivedRes, sentRes] = await Promise.all([
-    // 我收到的申请（别人申请加入我的行程）
+    // 我收到的通知（别人申请加入/退出我的行程）
     db.collection('applies')
       .where({
         toUserId: openid,
-        type: _.in(['apply'])
+        type: _.in(['apply', 'quit'])
       })
       .orderBy('createdAt', 'desc')
       .limit(30)
@@ -1510,7 +1530,8 @@ async function applyNotifications(openid) {
     // 我发出的申请（我申请加入别人的行程）
     db.collection('applies')
       .where({
-        fromUserId: openid
+        fromUserId: openid,
+        type: _.in(['apply'])
       })
       .orderBy('createdAt', 'desc')
       .limit(30)
@@ -1560,10 +1581,15 @@ async function applyNotifications(openid) {
         const tripRes = await db.collection('trips').doc(item.tripId).get();
         if (tripRes.data) {
           tripData = tripRes.data;
+          // 从 quick_attractions 获取景点封面（与 getAttractions 同源）
           if (tripData.placeId) {
-            const placeRes = await db.collection('places').doc(tripData.placeId).get();
-            if (placeRes.data && placeRes.data.coverImage) {
-              placeCoverImage = placeRes.data.coverImage;
+            try {
+              const attrRes = await db.collection('quick_attractions').doc(tripData.placeId).get();
+              if (attrRes.data) {
+                placeCoverImage = attrRes.data.coverImage || attrRes.data.image || '';
+              }
+            } catch (err) {
+              console.warn('获取景点封面失败', err);
             }
           }
         }
@@ -1572,26 +1598,53 @@ async function applyNotifications(openid) {
       }
     }
 
-    receivedList.push({
-      _id: item._id,
-      type: 'received',
-      userName: item.fromUserName || '旅行者',
-      fromUserAvatar: avatar,
-      headerTitle: (item.fromUserName || '旅行者') + ' 申请加入您的行程',
-      headerMeta: item.placeName || '行程',
-      timeAgo: formatTimeAgo(item.createdAt),
-      contactType: item.contactType || 'phone',
-      contactValue: item.contactValue || '',
-      introduction: item.message || '',
-      isHandled: item.status !== 'pending',
-      status: item.status === 'accepted' ? 'agreed' : item.status,
-      statusText: item.status === 'accepted' ? '已同意' : (item.status === 'rejected' ? '已拒绝' : ''),
-      tripId: item.tripId,
-      placeName: item.placeName || tripData?.placeName || '未知地点',
-      placeCoverImage: placeCoverImage,
-      tripDate: tripData?.date ? formatDate(tripData.date) : '待定',
-      createdAt: item.createdAt
-    });
+    if (item.type === 'quit') {
+      receivedList.push({
+        _id: item._id,
+        type: 'received',
+        userName: item.fromUserName || '旅行者',
+        fromUserAvatar: avatar,
+        headerTitle: (item.fromUserName || '旅行者') + ' 退出了您的行程',
+        headerMeta: item.placeName || '行程',
+        timeAgo: formatTimeAgo(item.createdAt),
+        contactType: 'phone',
+        contactValue: '',
+        introduction: '',
+        isHandled: true,
+        status: 'quit',
+        statusText: '已退出',
+        tripId: item.tripId,
+        placeName: item.placeName || tripData?.placeName || '未知地点',
+        placeId: tripData?.placeId || '',
+        tripTitle: tripData?.tripTitle || '',
+        placeCoverImage: placeCoverImage,
+        tripDate: tripData?.date ? formatDate(tripData.date) : '待定',
+        createdAt: item.createdAt
+      });
+    } else {
+      receivedList.push({
+        _id: item._id,
+        type: 'received',
+        userName: item.fromUserName || '旅行者',
+        fromUserAvatar: avatar,
+        headerTitle: (item.fromUserName || '旅行者') + ' 申请加入您的行程',
+        headerMeta: item.placeName || '行程',
+        timeAgo: formatTimeAgo(item.createdAt),
+        contactType: item.contactType || 'phone',
+        contactValue: item.contactValue || '',
+        introduction: item.message || '',
+        isHandled: item.status !== 'pending',
+        status: item.status === 'accepted' ? 'agreed' : item.status,
+        statusText: item.status === 'accepted' ? '已同意' : (item.status === 'rejected' ? '已拒绝' : ''),
+        tripId: item.tripId,
+        placeName: item.placeName || tripData?.placeName || '未知地点',
+        placeId: tripData?.placeId || '',
+        tripTitle: tripData?.tripTitle || '',
+        placeCoverImage: placeCoverImage,
+        tripDate: tripData?.date ? formatDate(tripData.date) : '待定',
+        createdAt: item.createdAt
+      });
+    }
   }
 
   // 处理发出的申请
@@ -1606,10 +1659,15 @@ async function applyNotifications(openid) {
         const tripRes = await db.collection('trips').doc(item.tripId).get();
         if (tripRes.data) {
           tripData = tripRes.data;
+          // 从 quick_attractions 获取景点封面（与 getAttractions 同源）
           if (tripData.placeId) {
-            const placeRes = await db.collection('places').doc(tripData.placeId).get();
-            if (placeRes.data && placeRes.data.coverImage) {
-              placeCoverImage = placeRes.data.coverImage;
+            try {
+              const attrRes = await db.collection('quick_attractions').doc(tripData.placeId).get();
+              if (attrRes.data) {
+                placeCoverImage = attrRes.data.coverImage || attrRes.data.image || '';
+              }
+            } catch (err) {
+              console.warn('获取景点封面失败', err);
             }
           }
           if (item.status === 'accepted' && tripData.creatorId) {
@@ -1636,6 +1694,8 @@ async function applyNotifications(openid) {
       type: 'sent',
       tripId: item.tripId,
       placeName: item.placeName || tripData?.placeName || '未知地点',
+      placeId: tripData?.placeId || '',
+      tripTitle: tripData?.tripTitle || '',
       placeCoverImage: placeCoverImage,
       creatorName: item.toUserName || tripData?.creatorName || '旅行者',
       tripDate: tripData?.date ? formatDate(tripData.date) : '待定',

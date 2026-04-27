@@ -43,15 +43,30 @@ Page({
     this.setData({ loading: true });
 
     try {
-      const res = await api.applyNotifications();
+      // 并行请求通知和景点数据
+      const [res, attractions] = await Promise.all([
+        api.applyNotifications(),
+        app.getAttractions()
+      ]);
 
-      // 添加辅助字段
-      const notifications = (res.notifications || []).map(item => ({
-        ...item,
-        avatarBg: this.getAvatarBg(item.userName),
-        placeBg: this.getPlaceBg(item.placeName),
-        placeEmoji: this.getPlaceEmoji(item.placeName)
-      }));
+      // 添加辅助字段，并从全局景点数据获取正确封面图
+      const notifications = (res.notifications || []).map(item => {
+        // 从全局景点数据获取正确封面图
+        let coverImage = item.placeCoverImage || '';
+        if (item.placeId) {
+          const attraction = attractions.find(a => a._id === item.placeId);
+          if (attraction) {
+            coverImage = attraction.coverImage || attraction.image || coverImage;
+          }
+        }
+        return {
+          ...item,
+          placeCoverImage: coverImage,
+          avatarBg: this.getAvatarBg(item.userName),
+          placeBg: this.getPlaceBg(item.placeName),
+          placeEmoji: this.getPlaceEmoji(item.placeName)
+        };
+      });
 
       this.setData({
         loading: false,
