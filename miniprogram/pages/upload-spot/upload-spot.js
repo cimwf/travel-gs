@@ -76,11 +76,15 @@ Page({
       wx.hideLoading();
 
       if (res.success) {
-        wx.showToast({ title: '上传成功', icon: 'success' });
-
-        setTimeout(() => {
-          wx.navigateBack();
-        }, 1500);
+        wx.showModal({
+          title: '提交成功',
+          content: '您的景点已提交审核，审核通过后将出现在景点列表中',
+          showCancel: false,
+          confirmText: '知道了',
+          success: () => {
+            wx.navigateBack();
+          }
+        });
       } else {
         wx.showToast({ title: res.error || '上传失败', icon: 'none' });
       }
