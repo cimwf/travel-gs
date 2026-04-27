@@ -512,10 +512,6 @@ Page({
   onTripTap: function (e) {
     const tripId = e.currentTarget.dataset.id;
     
-    if (auth.checkNeedLogin()) {
-      nav.goToRegister(`/pages/trip-detail/trip-detail?id=${tripId}`);
-      return;
-    }
     wx.navigateTo({
       url: `/pages/trip-detail/trip-detail?id=${tripId}`
     });
