@@ -237,6 +237,13 @@ function applyUnreadCount() {
   return callApi('apply/unreadCount', {});
 }
 
+/**
+ * 标记所有通知为已读
+ */
+function applyMarkRead() {
+  return callApi('apply/markRead', {});
+}
+
 // ========== 想去相关 ==========
 
 /**
@@ -369,6 +376,7 @@ module.exports = {
   applyDelete,
   applyCancel,
   applyUnreadCount,
+  applyMarkRead,
 
   // 想去
   wantToggle,

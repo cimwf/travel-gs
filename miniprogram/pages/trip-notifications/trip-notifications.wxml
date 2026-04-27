@@ -132,7 +132,7 @@
                     <text wx:else class="trip-emoji">{{item.placeEmoji}}</text>
                   </view>
                   <view class="sent-info">
-                    <view class="sent-title">{{item.placeName}}</view>
+                    <view class="sent-title">{{item.tripTitle || item.placeName}}</view>
                     <view class="sent-meta">已退出：{{item.userName}}</view>
                     <view class="sent-date">📅 {{item.tripDate}}</view>
                   </view>
@@ -156,15 +156,59 @@
                     <text wx:else class="trip-emoji">{{item.placeEmoji}}</text>
                   </view>
                   <view class="sent-info">
-                    <view class="sent-title">{{item.placeName}}</view>
-                    <view class="sent-meta">申请人：{{item.userName}}</view>
+                    <view class="sent-title">{{item.tripTitle || item.placeName}}</view>
+                    <view class="sent-meta">移除人：{{item.userName}}</view>
                     <view class="sent-date">📅 {{item.tripDate}}</view>
                   </view>
                   <view class="sent-status rejected">✕ 已移除</view>
                 </view>
 
                 <view class="rejected-card">
-                  <view class="rejected-tip">😔 该申请已被移除</view>
+                  <view class="rejected-tip">😔 您已被移出行程</view>
+                </view>
+              </block>
+
+              <!-- 行程已取消 -->
+              <block wx:if="{{item.isHandled && item.status === 'cancelled'}}">
+                <view class="sent-header">
+                  <view class="trip-icon" style="background: {{item.placeBg}}">
+                    <image wx:if="{{item.placeCoverImage}}" class="trip-cover" src="{{item.placeCoverImage}}" mode="aspectFill"></image>
+                    <text wx:else class="trip-emoji">{{item.placeEmoji}}</text>
+                  </view>
+                  <view class="sent-info">
+                    <view class="sent-title">{{item.tripTitle || item.placeName}}</view>
+                    <view class="sent-meta">发起人：{{item.userName}}</view>
+                    <view class="sent-date">📅 {{item.tripDate}}</view>
+                  </view>
+                  <view class="sent-status rejected">✕ 已取消</view>
+                </view>
+
+                <view class="rejected-card">
+                  <view class="rejected-tip">😔 行程已被发起人取消</view>
+                </view>
+                <view class="sent-actions">
+                  <view class="action-btn secondary" catchtap="onManageApply" data-id="{{item._id}}" data-tripid="{{item.tripId}}">管理</view>
+                  <view class="action-btn primary" catchtap="onViewTrip" data-tripid="{{item.tripId}}">查看行程</view>
+                </view>
+              </block>
+
+              <!-- 行程已删除 -->
+              <block wx:if="{{item.isHandled && item.status === 'deleted'}}">
+                <view class="sent-header">
+                  <view class="trip-icon" style="background: {{item.placeBg}}">
+                    <image wx:if="{{item.placeCoverImage}}" class="trip-cover" src="{{item.placeCoverImage}}" mode="aspectFill"></image>
+                    <text wx:else class="trip-emoji">{{item.placeEmoji}}</text>
+                  </view>
+                  <view class="sent-info">
+                    <view class="sent-title">{{item.tripTitle || item.placeName}}</view>
+                    <view class="sent-meta">发起人：{{item.userName}}</view>
+                    <view class="sent-date">📅 {{item.tripDate}}</view>
+                  </view>
+                  <view class="sent-status rejected">✕ 已删除</view>
+                </view>
+
+                <view class="rejected-card">
+                  <view class="rejected-tip">😔 行程已被发起人删除</view>
                 </view>
               </block>
             </block>

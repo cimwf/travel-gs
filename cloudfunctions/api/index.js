@@ -87,6 +87,8 @@ exports.main = async (event, context) => {
         return await applyCancel(openid, data);
       case 'apply/unreadCount':
         return await applyUnreadCount(openid);
+      case 'apply/markRead':
+        return await applyMarkRead(openid);
 
       // ========== 想去相关 ==========
       case 'want/toggle':
@@ -1083,8 +1085,9 @@ async function tripQuit(openid, data) {
       fromUserName: quitterName,
       fromUserAvatar: quitterAvatar,
       toUserId: trip.creatorId,
-      type: 'quit',
+      ownerId: trip.creatorId,
       status: 'quit',
+      unread: true,
       createdAt: Date.now()
     }
   });
@@ -1134,6 +1137,26 @@ async function tripRemoveMember(openid, data) {
     }
   });
 
+  // 获取被移除成员信息
+  const removedMember = trip.participants.find(p => p.userId === memberId);
+  const removedName = removedMember ? removedMember.nickname : '旅行者';
+
+  // 创建移除通知记录（通知被移除的成员）
+  await db.collection('applies').add({
+    data: {
+      tripId,
+      placeName: trip.placeName,
+      fromUserId: openid,
+      fromUserName: trip.creatorName || '发起人',
+      toUserId: memberId,
+      toUserName: removedName,
+      ownerId: memberId,
+      status: 'removed',
+      unread: true,
+      createdAt: Date.now()
+    }
+  });
+
   return { success: true };
 }
 
@@ -1165,6 +1188,28 @@ async function tripUpdateStatus(openid, data) {
     }
   });
 
+  // 取消行程时通知所有参与者（除发起人）
+  if (status === 'cancelled' && trip.participants) {
+    const now = Date.now();
+    for (const p of trip.participants) {
+      if (p.userId === openid) continue;
+      await db.collection('applies').add({
+        data: {
+          tripId,
+          placeName: trip.placeName || '',
+          fromUserId: openid,
+          fromUserName: trip.creatorName || '发起人',
+          toUserId: p.userId,
+          toUserName: p.nickname || '旅行者',
+          ownerId: p.userId,
+          status: 'cancelled',
+          unread: true,
+          createdAt: now
+        }
+      });
+    }
+  }
+
   return { success: true };
 }
 
@@ -1187,6 +1232,28 @@ async function tripDelete(openid, data) {
   // 验证权限：只有发起人可以删除
   if (trip.creatorId !== openid) {
     return { success: false, error: '无权删除' };
+  }
+
+  // 删除前通知所有参与者（除发起人）
+  if (trip.participants) {
+    const now = Date.now();
+    for (const p of trip.participants) {
+      if (p.userId === openid) continue;
+      await db.collection('applies').add({
+        data: {
+          tripId,
+          placeName: trip.placeName || '',
+          fromUserId: openid,
+          fromUserName: trip.creatorName || '发起人',
+          toUserId: p.userId,
+          toUserName: p.nickname || '旅行者',
+          ownerId: p.userId,
+          status: 'deleted',
+          unread: true,
+          createdAt: now
+        }
+      });
+    }
   }
 
   await db.collection('trips').doc(tripId).remove();
@@ -1431,53 +1498,67 @@ async function tripListByUser(data) {
 // ========== 申请相关 ==========
 
 async function applyCreate(openid, data) {
-  const { tripId, message } = data;
-  
-  // 获取行程
-  const tripRes = await db.collection('trips').doc(tripId).get();
-  const trip = tripRes.data;
-  
+  const { tripId, placeName, toUserId, toUserName, contactValue, message } = data;
+
+  if (!tripId || !toUserId) {
+    return { success: false, error: '参数不完整' };
+  }
+
   // 获取用户信息
   const userRes = await db.collection('users').where({ openid }).get();
   const user = userRes.data[0];
-  
-  // 检查是否已申请
-  const existApply = await db.collection('applies')
-    .where({ tripId, userId: openid })
-    .get();
-  
-  if (existApply.data.length > 0) {
-    return { success: false, error: '您已申请过该行程' };
+  if (!user) {
+    return { success: false, error: '用户不存在' };
   }
-  
-  const newApply = {
+
+  const now = Date.now();
+  const groupId = 'group_' + now + '_' + Math.random().toString(36).slice(2, 8);
+
+  // 公共数据（两条记录共享）
+  const commonData = {
     tripId,
-    placeName: trip.placeName,
-    userId: openid,
-    userName: user.nickname,
-    userAvatar: user.avatar,
-    creatorId: trip.creatorId,
+    placeName: placeName || '',
+    fromUserId: openid,
+    fromUserName: user.nickname || '旅行者',
+    fromUserAvatar: user.avatar || '',
+    toUserId,
+    toUserName: toUserName || '',
+    contactType: 'phone',
+    contactValue: contactValue || '',
     message: message || '',
     status: 'pending',
-    createdAt: Date.now()
+    groupId,
+    createdAt: now
   };
-  
-  const res = await db.collection('applies').add({ data: newApply });
-  newApply._id = res._id;
-  
-  return { success: true, apply: newApply };
+
+  // 申请人的记录（展示在"我发出的"）
+  await db.collection('applies').add({
+    data: { ...commonData, ownerId: openid, unread: false }
+  });
+
+  // 发起人的记录（展示在"我收到的"）
+  await db.collection('applies').add({
+    data: { ...commonData, ownerId: toUserId, unread: true }
+  });
+
+  return { success: true };
 }
 
 async function applyList(openid, data) {
-  const { type = 'received' } = data; // received / sent
-  
-  const field = type === 'received' ? 'creatorId' : 'userId';
+  const { type = 'received' } = data;
+
   const res = await db.collection('applies')
-    .where({ [field]: openid })
+    .where({ ownerId: openid })
     .orderBy('createdAt', 'desc')
     .get();
-  
-  return { success: true, applies: res.data };
+
+  // 按类型过滤
+  const applies = (res.data || []).filter(item => {
+    if (type === 'received') return item.ownerId === item.toUserId;
+    return item.ownerId === item.fromUserId;
+  });
+
+  return { success: true, applies };
 }
 
 async function applyHandle(openid, data) {
@@ -1487,25 +1568,38 @@ async function applyHandle(openid, data) {
   const applyRes = await db.collection('applies').doc(applyId).get();
   const apply = applyRes.data;
 
-  // 兼容两种字段格式：creatorId 或 toUserId
-  const creatorId = apply.creatorId || apply.toUserId;
   // 验证权限
-  if (creatorId !== openid) {
+  if (apply.ownerId !== openid) {
     return { success: false, error: '无权处理该申请' };
   }
 
-  // 更新申请状态
+  // 更新申请状态（操作方已读）
   await db.collection('applies').doc(applyId).update({
-    data: { status: accept ? 'accepted' : 'rejected' }
+    data: { status: accept ? 'accepted' : 'rejected', unread: false }
   });
 
-  // 如果接受，加入行程
-  if (accept) {
-    // 兼容两种字段格式：userId 或 fromUserId
-    const applicantId = apply.userId || apply.fromUserId;
-    if (applicantId && apply.tripId) {
-      await tripJoin(applicantId, { tripId: apply.tripId });
+  // 如果有 groupId，同步更新对方记录的状态和未读
+  if (apply.groupId) {
+    try {
+      const peerRes = await db.collection('applies')
+        .where({
+          groupId: apply.groupId,
+          _id: _.neq(applyId)
+        })
+        .get();
+      for (const peer of peerRes.data || []) {
+        await db.collection('applies').doc(peer._id).update({
+          data: { status: accept ? 'accepted' : 'rejected', unread: true }
+        });
+      }
+    } catch (err) {
+      console.warn('同步更新对方记录状态失败', err);
     }
+  }
+
+  // 如果接受，加入行程
+  if (accept && apply.fromUserId && apply.tripId) {
+    await tripJoin(apply.fromUserId, { tripId: apply.tripId });
   }
 
   return { success: true };
@@ -1516,31 +1610,27 @@ async function applyNotifications(openid) {
   const receivedList = [];
   const sentList = [];
 
-  // 并行查询
-  const [receivedRes, sentRes] = await Promise.all([
-    // 我收到的通知（别人申请加入/退出我的行程）
-    db.collection('applies')
-      .where({
-        toUserId: openid,
-        type: _.in(['apply', 'quit'])
-      })
-      .orderBy('createdAt', 'desc')
-      .limit(30)
-      .get(),
-    // 我发出的申请（我申请加入别人的行程）
-    db.collection('applies')
-      .where({
-        fromUserId: openid,
-        type: _.in(['apply'])
-      })
-      .orderBy('createdAt', 'desc')
-      .limit(30)
-      .get()
-  ]);
+  // 根据 ownerId 查询（每人各拥有一条数据）
+  const allRes = await db.collection('applies')
+    .where({ ownerId: openid })
+    .orderBy('createdAt', 'desc')
+    .limit(50)
+    .get();
+
+  // 按类型拆分：ownerId === toUserId 为我收到的，否则为我发出的
+  const receivedItems = [];
+  const sentItems = [];
+  for (const item of allRes.data || []) {
+    if (item.ownerId === item.toUserId) {
+      receivedItems.push(item);
+    } else {
+      sentItems.push(item);
+    }
+  }
 
   // 收集云存储头像文件ID
   const fileIDs = [];
-  (receivedRes.data || []).forEach(item => {
+  [...receivedItems, ...sentItems].forEach(item => {
     if (item.fromUserAvatar && item.fromUserAvatar.startsWith('cloud://')) {
       fileIDs.push(item.fromUserAvatar);
     }
@@ -1563,8 +1653,8 @@ async function applyNotifications(openid) {
     }
   }
 
-  // 处理收到的申请
-  for (const item of receivedRes.data || []) {
+  // 处理收到的通知
+  for (const item of receivedItems) {
     let avatar = item.fromUserAvatar || '';
     if (avatar && avatar.startsWith('cloud://') && avatarMap[avatar]) {
       avatar = avatarMap[avatar];
@@ -1581,7 +1671,6 @@ async function applyNotifications(openid) {
         const tripRes = await db.collection('trips').doc(item.tripId).get();
         if (tripRes.data) {
           tripData = tripRes.data;
-          // 从 quick_attractions 获取景点封面（与 getAttractions 同源）
           if (tripData.placeId) {
             try {
               const attrRes = await db.collection('quick_attractions').doc(tripData.placeId).get();
@@ -1598,7 +1687,7 @@ async function applyNotifications(openid) {
       }
     }
 
-    if (item.type === 'quit') {
+    if (item.status === 'quit') {
       receivedList.push({
         _id: item._id,
         type: 'received',
@@ -1613,6 +1702,75 @@ async function applyNotifications(openid) {
         isHandled: true,
         status: 'quit',
         statusText: '已退出',
+        tripId: item.tripId,
+        placeName: item.placeName || tripData?.placeName || '未知地点',
+        placeId: tripData?.placeId || '',
+        tripTitle: tripData?.tripTitle || '',
+        placeCoverImage: placeCoverImage,
+        tripDate: tripData?.date ? formatDate(tripData.date) : '待定',
+        createdAt: item.createdAt
+      });
+    } else if (item.status === 'removed') {
+      receivedList.push({
+        _id: item._id,
+        type: 'received',
+        userName: item.fromUserName || '发起人',
+        fromUserAvatar: avatar,
+        headerTitle: '您已被移出行程',
+        headerMeta: item.placeName || '行程',
+        timeAgo: formatTimeAgo(item.createdAt),
+        contactType: 'phone',
+        contactValue: '',
+        introduction: '',
+        isHandled: true,
+        status: 'removed',
+        statusText: '已移除',
+        tripId: item.tripId,
+        placeName: item.placeName || tripData?.placeName || '未知地点',
+        placeId: tripData?.placeId || '',
+        tripTitle: tripData?.tripTitle || '',
+        placeCoverImage: placeCoverImage,
+        tripDate: tripData?.date ? formatDate(tripData.date) : '待定',
+        createdAt: item.createdAt
+      });
+    } else if (item.status === 'cancelled') {
+      receivedList.push({
+        _id: item._id,
+        type: 'received',
+        userName: item.fromUserName || '发起人',
+        fromUserAvatar: avatar,
+        headerTitle: '行程已取消',
+        headerMeta: item.placeName || '行程',
+        timeAgo: formatTimeAgo(item.createdAt),
+        contactType: 'phone',
+        contactValue: '',
+        introduction: '',
+        isHandled: true,
+        status: 'cancelled',
+        statusText: '已取消',
+        tripId: item.tripId,
+        placeName: item.placeName || tripData?.placeName || '未知地点',
+        placeId: tripData?.placeId || '',
+        tripTitle: tripData?.tripTitle || '',
+        placeCoverImage: placeCoverImage,
+        tripDate: tripData?.date ? formatDate(tripData.date) : '待定',
+        createdAt: item.createdAt
+      });
+    } else if (item.status === 'deleted') {
+      receivedList.push({
+        _id: item._id,
+        type: 'received',
+        userName: item.fromUserName || '发起人',
+        fromUserAvatar: avatar,
+        headerTitle: '行程已删除',
+        headerMeta: item.placeName || '行程',
+        timeAgo: formatTimeAgo(item.createdAt),
+        contactType: 'phone',
+        contactValue: '',
+        introduction: '',
+        isHandled: true,
+        status: 'deleted',
+        statusText: '已删除',
         tripId: item.tripId,
         placeName: item.placeName || tripData?.placeName || '未知地点',
         placeId: tripData?.placeId || '',
@@ -1648,7 +1806,7 @@ async function applyNotifications(openid) {
   }
 
   // 处理发出的申请
-  for (const item of sentRes.data || []) {
+  for (const item of sentItems) {
     let tripData = null;
     let creatorPhone = '';
     let creatorWechat = '';
@@ -1659,7 +1817,6 @@ async function applyNotifications(openid) {
         const tripRes = await db.collection('trips').doc(item.tripId).get();
         if (tripRes.data) {
           tripData = tripRes.data;
-          // 从 quick_attractions 获取景点封面（与 getAttractions 同源）
           if (tripData.placeId) {
             try {
               const attrRes = await db.collection('quick_attractions').doc(tripData.placeId).get();
@@ -1733,12 +1890,8 @@ async function applyDelete(openid, data) {
     return { success: false, error: '申请记录不存在' };
   }
 
-  // 兼容两种字段格式
-  const fromUserId = apply.fromUserId || apply.userId;
-  const toUserId = apply.toUserId || apply.creatorId;
-
-  // 验证权限：只有发起人或接收人可以删除
-  if (fromUserId !== openid && toUserId !== openid) {
+  // 验证权限
+  if (apply.ownerId !== openid) {
     return { success: false, error: '无权删除此通知' };
   }
 
@@ -1764,18 +1917,34 @@ async function applyCancel(openid, data) {
     return { success: false, error: '申请记录不存在' };
   }
 
-  // 兼容两种字段格式
-  const fromUserId = apply.fromUserId || apply.userId;
-
-  // 验证权限：只有申请人可以取消
-  if (fromUserId !== openid) {
+  // 验证权限
+  if (apply.ownerId !== openid) {
     return { success: false, error: '无权取消此申请' };
   }
 
-  // 更新状态为已取消
+  // 更新状态为已取消（操作方已读）
   await db.collection('applies').doc(applyId).update({
-    data: { status: 'cancelled' }
+    data: { status: 'cancelled', unread: false }
   });
+
+  // 如果有 groupId，同步更新对方记录的状态和未读
+  if (apply.groupId) {
+    try {
+      const peerRes = await db.collection('applies')
+        .where({
+          groupId: apply.groupId,
+          _id: _.neq(applyId)
+        })
+        .get();
+      for (const peer of peerRes.data || []) {
+        await db.collection('applies').doc(peer._id).update({
+          data: { status: 'cancelled', unread: true }
+        });
+      }
+    } catch (err) {
+      console.warn('同步更新对方记录状态失败', err);
+    }
+  }
 
   return { success: true };
 }
@@ -1824,18 +1993,34 @@ async function applyUnreadCount(openid) {
   }
 
   try {
-    // 查询未处理的申请数量
     const res = await db.collection('applies')
       .where({
-        toUserId: openid,
-        type: _.in(['apply']),
-        status: 'pending'
+        ownerId: openid,
+        unread: true
       })
       .count();
 
     return { success: true, count: res.total || 0 };
   } catch (err) {
     console.error('获取未读消息数量失败', err);
+    return { success: false, error: err.message };
+  }
+}
+
+// 标记所有通知为已读
+async function applyMarkRead(openid) {
+  if (!openid) {
+    return { success: false, error: '用户未登录' };
+  }
+
+  try {
+    await db.collection('applies')
+      .where({ ownerId: openid, unread: true })
+      .update({ data: { unread: false } });
+
+    return { success: true };
+  } catch (err) {
+    console.error('标记已读失败', err);
     return { success: false, error: err.message };
   }
 }

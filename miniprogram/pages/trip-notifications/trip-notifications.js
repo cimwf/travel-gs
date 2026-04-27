@@ -72,12 +72,24 @@ Page({
         loading: false,
         notifications
       });
+
+      // 标记为已读
+      this.markAsRead();
     } catch (err) {
       console.warn('加载通知失败', err);
       this.setData({
         loading: false,
         notifications: []
       });
+    }
+  },
+
+  // 标记所有通知为已读
+  markAsRead: async function () {
+    try {
+      await api.applyMarkRead();
+    } catch (err) {
+      console.warn('标记已读失败', err);
     }
   },
 

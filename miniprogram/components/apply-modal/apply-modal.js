@@ -1,5 +1,5 @@
 // components/apply-modal/apply-modal.js
-const app = getApp();
+const api = require('../../utils/api.js');
 
 Component({
   properties: {
@@ -88,32 +88,18 @@ Component({
         return;
       }
 
-      const openid = app.globalData.openid;
-      const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo || {};
-
       wx.showLoading({ title: '发送中...' });
 
-      // 存储申请记录到数据库
+      // 调用云函数创建申请记录
       if (wx.cloud) {
         try {
-          const db = wx.cloud.database();
-
-          await db.collection('applies').add({
-            data: {
-              tripId: this.data.tripId,
-              placeName: this.data.placeName,
-              toUserId: this.data.toUserId,
-              toUserName: this.data.toUserName,
-              fromUserId: openid,
-              fromUserName: userInfo.nickname || '旅行者',
-              fromUserAvatar: userInfo.avatar || '',
-              contactType: 'phone',
-              contactValue: contactValue,
-              message: introduction || '',
-              status: 'pending',
-              type: 'apply',
-              createdAt: Date.now()
-            }
+          await api.applyCreate({
+            tripId: this.data.tripId,
+            placeName: this.data.placeName,
+            toUserId: this.data.toUserId,
+            toUserName: this.data.toUserName,
+            contactValue: contactValue,
+            message: introduction || ''
           });
 
           wx.hideLoading();
