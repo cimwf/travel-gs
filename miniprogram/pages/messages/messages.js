@@ -19,6 +19,7 @@ Page({
 
   // 检查登录状态
   checkLogin: function () {
+    auth.syncToApp(app);
     const isLoggedIn = app.globalData.isLoggedIn;
     this.setData({ isLoggedIn });
 

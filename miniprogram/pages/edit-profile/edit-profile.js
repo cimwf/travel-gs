@@ -97,7 +97,6 @@ Page({
 
     // 更新全局数据
     app.globalData.userInfo = userData;
-    app.globalData.isLoggedIn = true;
   },
 
   // 异步同步到数据库

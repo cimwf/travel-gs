@@ -1,5 +1,6 @@
 // pages/settings/settings.js
 const app = getApp();
+const auth = require('../../utils/auth.js');
 
 Page({
   data: {
@@ -95,14 +96,16 @@ Page({
           // 保留用户设置和登录信息
           const settings = wx.getStorageSync('userSettings');
           const userInfo = wx.getStorageSync('userInfo');
-          const isLoggedIn = wx.getStorageSync('isLoggedIn');
+          const lastLoginTime = wx.getStorageSync('lastLoginTime');
 
           wx.clearStorageSync();
 
           // 恢复保留的数据
           if (settings) wx.setStorageSync('userSettings', settings);
-          if (userInfo) wx.setStorageSync('userInfo', userInfo);
-          if (isLoggedIn) wx.setStorageSync('isLoggedIn', isLoggedIn);
+          if (userInfo) {
+            wx.setStorageSync('userInfo', userInfo);
+            wx.setStorageSync('lastLoginTime', lastLoginTime || Date.now());
+          }
 
           this.setData({ cacheSize: '0 MB' });
           wx.showToast({
@@ -147,13 +150,8 @@ Page({
       success: (res) => {
         if (res.confirm) {
           // 清除登录状态
-          wx.removeStorageSync('isLoggedIn');
-          wx.removeStorageSync('userInfo');
+          auth.clearLoginStatus();
           wx.removeStorageSync('collections');
-
-          // 更新全局状态
-          app.globalData.isLoggedIn = false;
-          app.globalData.userInfo = null;
 
           wx.showToast({
             title: '已退出登录',

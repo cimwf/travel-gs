@@ -247,7 +247,7 @@ Page({
 
   // 提交发布
   onSubmit: async function () {
-    if (!app.globalData.isLoggedIn) {
+    if (!auth.isLoggedIn()) {
       wx.showToast({ title: '请先登录', icon: 'none' });
       return;
     }

@@ -1,5 +1,6 @@
 // components/login-modal/login-modal.js
 const app = getApp();
+const auth = require('../../utils/auth.js');
 
 Component({
   properties: {
@@ -128,15 +129,10 @@ Component({
 
         if (apiRes.result.success) {
           const user = apiRes.result.user;
-          
-          // 保存到全局
-          app.globalData.userInfo = user;
-          app.globalData.openid = openid;
-          app.globalData.isLoggedIn = true;
 
-          // 保存到本地
-          wx.setStorageSync('userInfo', user);
-          wx.setStorageSync('openid', openid);
+          // 保存登录状态（写入 localStorage 和 globalData）
+          auth.handleLoginSuccess(user);
+          app.globalData.openid = openid;
 
           // 触发登录成功事件
           this.triggerEvent('success', { user });

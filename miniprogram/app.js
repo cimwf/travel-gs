@@ -48,7 +48,8 @@ App({
 
     // 检查并恢复登录状态
     this.checkLoginStatus();
-    
+    auth.syncToApp(this);
+
     // 获取openid
     this.getOpenid();
   },
@@ -57,15 +58,11 @@ App({
   checkLoginStatus: function () {
     const userInfo = wx.getStorageSync('userInfo');
     const openid = wx.getStorageSync('openid');
-    const lastLoginTime = wx.getStorageSync('lastLoginTime') || 0;
-    const now = Date.now();
-    
-    // 检查是否需要登录（15天机制）
-    if (userInfo && openid && (now - lastLoginTime <= auth.LOGIN_EXPIRY)) {
+
+    if (auth.isLoggedIn() && userInfo && openid) {
       // 已登录且在有效期内，恢复用户信息
       this.globalData.userInfo = userInfo;
       this.globalData.openid = openid;
-      this.globalData.isLoggedIn = true;
       console.log('登录状态已恢复');
     } else {
       // 登录已过期或未登录，清除缓存

@@ -322,8 +322,7 @@ Page({
 
   // 点击行程卡片
   onTripTap: function (e) {
-    if (auth.checkNeedLogin()) {
-      auth.goToLogin('/pages/my-trips/my-trips');
+    if (!auth.ensureLogin('/pages/my-trips/my-trips')) {
       return;
     }
     const tripId = e.currentTarget.dataset.id;
@@ -332,8 +331,7 @@ Page({
 
   // 查看详情
   onDetailTap: function (e) {
-    if (auth.checkNeedLogin()) {
-      auth.goToLogin('/pages/my-trips/my-trips');
+    if (!auth.ensureLogin('/pages/my-trips/my-trips')) {
       return;
     }
     const tripId = e.currentTarget.dataset.id;

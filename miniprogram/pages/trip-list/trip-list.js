@@ -1,7 +1,6 @@
 // pages/trip-list/trip-list.js
 const app = getApp();
 const auth = require('../../utils/auth.js');
-const nav = require('../../utils/nav.js');
 
 Page({
   data: {
@@ -511,8 +510,7 @@ Page({
   // 点击行程卡片
   onTripTap: function (e) {
     const tripId = e.currentTarget.dataset.id;
-    if (auth.checkNeedLogin()) {
-      nav.goToRegister(`/pages/trip-detail/trip-detail?id=${tripId}`);
+    if (!auth.ensureLogin(`/pages/trip-detail/trip-detail?id=${tripId}`)) {
       return;
     }
     wx.navigateTo({
@@ -522,8 +520,7 @@ Page({
 
   // 发布行程
   onPublishTrip: function () {
-    if (auth.checkNeedLogin()) {
-      nav.goToRegister('/pages/trip-publish/trip-publish');
+    if (!auth.ensureLogin('/pages/trip-publish/trip-publish')) {
       return;
     }
     wx.navigateTo({

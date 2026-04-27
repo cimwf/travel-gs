@@ -31,9 +31,11 @@ Page({
 
   // 检查登录状态（首页不需要强制登录）
   checkLogin: function () {
-    const isLoggedIn = app.globalData.isLoggedIn;
-    const userInfo = app.globalData.userInfo;
-    this.setData({ isLoggedIn, userInfo });
+    auth.syncToApp(app);
+    this.setData({
+      isLoggedIn: app.globalData.isLoggedIn,
+      userInfo: app.globalData.userInfo
+    });
   },
 
   // 加载Banner数据
@@ -163,9 +165,7 @@ Page({
 
   // 点击搜索框
   onSearchTap: function () {
-    // 检查是否需要登录
-    if (auth.checkNeedLogin()) {
-      auth.goToLogin('/pages/search/search');
+    if (!auth.ensureLogin('/pages/search/search')) {
       return;
     }
     wx.navigateTo({
@@ -176,13 +176,9 @@ Page({
   // 点击地点卡片
   onPlaceTap: function (e) {
     const placeId = e.currentTarget.dataset.id;
-
-    // 检查是否需要登录
-    if (auth.checkNeedLogin()) {
-      auth.goToLogin('/pages/place-detail/place-detail?id=' + placeId);
+    if (!auth.ensureLogin(`/pages/place-detail/place-detail?id=${placeId}`)) {
       return;
     }
-
     wx.navigateTo({
       url: `/pages/place-detail/place-detail?id=${placeId}`
     });

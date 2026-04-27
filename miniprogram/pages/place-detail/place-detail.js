@@ -1,6 +1,7 @@
 // pages/place-detail/place-detail.js
 const app = getApp();
 const api = require('../../utils/api.js');
+const auth = require('../../utils/auth.js');
 
 Page({
   data: {
@@ -249,7 +250,7 @@ Page({
 
   // 收藏
   onCollectTap: async function () {
-    if (!app.globalData.isLoggedIn) {
+    if (!auth.isLoggedIn()) {
       wx.showToast({ title: '请先登录', icon: 'none' });
       return;
     }
@@ -288,7 +289,7 @@ Page({
 
   // 发布行程
   onPublishTrip: function () {
-    if (!app.globalData.isLoggedIn) {
+    if (!auth.isLoggedIn()) {
       wx.showToast({ title: '请先登录', icon: 'none' });
       return;
     }
@@ -306,7 +307,7 @@ Page({
 
   // 点击申请加入
   onApplyTap: function (e) {
-    if (!app.globalData.isLoggedIn) {
+    if (!auth.isLoggedIn()) {
       wx.showToast({ title: '请先登录', icon: 'none' });
       return;
     }

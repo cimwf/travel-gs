@@ -27,11 +27,8 @@ Page({
 
   onLoad: async function (options) {
     // 检查登录状态
-    if (auth.checkNeedLogin()) {
-      // 未登录，跳转到注册页
-      const tripId = options.id || '';
-      const currentUrl = `/pages/trip-detail/trip-detail?id=${tripId}`;
-      nav.goToRegister(currentUrl);
+    const currentUrl = `/pages/trip-detail/trip-detail?id=${options.id || ''}`;
+    if (!auth.ensureLogin(currentUrl)) {
       return;
     }
 
@@ -343,10 +340,7 @@ Page({
 
   // 申请加入
   onJoinTap: function () {
-    if (!app.globalData.isLoggedIn) {
-      // 未登录，跳转到注册页
-      const currentUrl = `/pages/trip-detail/trip-detail?id=${this.data.tripId}`;
-      nav.goToRegister(currentUrl);
+    if (!auth.ensureLogin(`/pages/trip-detail/trip-detail?id=${this.data.tripId}`)) {
       return;
     }
 

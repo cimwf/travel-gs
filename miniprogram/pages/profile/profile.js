@@ -2,7 +2,6 @@
 const app = getApp();
 const api = require('../../utils/api.js');
 const auth = require('../../utils/auth.js');
-const nav = require('../../utils/nav.js');
 
 Page({
   data: {
@@ -35,21 +34,13 @@ Page({
 
   // 检查登录状态
   checkLogin: async function () {
-    // 优先从storage读取最新数据
+    auth.syncToApp(app);
+
     const storedUserInfo = wx.getStorageSync('userInfo');
-    const storedLoginTime = wx.getStorageSync('lastLoginTime');
-
-    // 判断是否已登录：有用户信息且有登录时间
-    const isLoggedIn = !!(storedUserInfo && storedUserInfo.nickname) && !!storedLoginTime;
-
-    // 更新全局数据
-    if (storedUserInfo && storedUserInfo.nickname) {
-      app.globalData.userInfo = storedUserInfo;
-      app.globalData.isLoggedIn = true;
-    }
+    const loggedIn = auth.isLoggedIn();
 
     this.setData({
-      isLoggedIn,
+      isLoggedIn: loggedIn,
       userInfo: storedUserInfo || null
     });
 
@@ -128,105 +119,55 @@ Page({
     }
   },
 
-  // 点击登录（默认跳转到注册页）
+  // 点击登录
   onLogin: function () {
-    nav.goToRegister();
+    auth.ensureLogin();
   },
 
   // 编辑资料
   onEditProfile: function () {
-    if (!auth.checkNeedLogin()) {
-      wx.navigateTo({
-        url: '/pages/edit-profile/edit-profile'
-      });
-    } else {
-      nav.goToRegister('/pages/profile/profile');
-    }
+    auth.navigateIfLoggedIn('/pages/edit-profile/edit-profile', '/pages/profile/profile');
   },
 
   // 我的行程
   onTapMyTrips: function () {
-    if (!auth.checkNeedLogin()) {
-      wx.navigateTo({
-        url: '/pages/my-trips/my-trips'
-      });
-    } else {
-      nav.goToRegister('/pages/profile/profile');
-    }
+    auth.navigateIfLoggedIn('/pages/my-trips/my-trips', '/pages/profile/profile');
   },
 
   // 行程通知
   onTapTripNotifications: function () {
-    if (!auth.checkNeedLogin()) {
-      wx.navigateTo({
-        url: '/pages/trip-notifications/trip-notifications'
-      });
-    } else {
-      nav.goToRegister('/pages/trip-notifications/trip-notifications');
-    }
+    auth.navigateIfLoggedIn('/pages/trip-notifications/trip-notifications', '/pages/trip-notifications/trip-notifications');
   },
 
   // 上传景点
   onTapUploadSpot: function () {
-    if (!auth.checkNeedLogin()) {
-      wx.navigateTo({
-        url: '/pages/upload-spot/upload-spot'
-      });
-    } else {
-      nav.goToRegister('/pages/upload-spot/upload-spot');
-    }
+    auth.navigateIfLoggedIn('/pages/upload-spot/upload-spot', '/pages/upload-spot/upload-spot');
   },
 
   // 我的收藏
   onTapCollections: function () {
-    if (!auth.checkNeedLogin()) {
+    if (auth.ensureLogin('/pages/profile/profile')) {
       wx.showToast({ title: '功能开发中', icon: 'none' });
-    } else {
-      nav.goToRegister('/pages/profile/profile');
     }
   },
 
   // 我的评论
   onTapComments: function () {
-    if (!auth.checkNeedLogin()) {
-      wx.navigateTo({
-        url: '/pages/comments/comments'
-      });
-    } else {
-      nav.goToRegister('/pages/profile/profile');
-    }
+    auth.navigateIfLoggedIn('/pages/comments/comments', '/pages/profile/profile');
   },
 
   // 关注/粉丝
   onTapFollow: function () {
-    if (!auth.checkNeedLogin()) {
-      wx.navigateTo({
-        url: '/pages/followers/followers'
-      });
-    } else {
-      nav.goToRegister('/pages/profile/profile');
-    }
+    auth.navigateIfLoggedIn('/pages/followers/followers', '/pages/profile/profile');
   },
 
   // 提交建议
   onTapFeedback: function () {
-    if (!auth.checkNeedLogin()) {
-      wx.navigateTo({
-        url: '/pages/feedback/feedback'
-      });
-    } else {
-      nav.goToRegister('/pages/feedback/feedback');
-    }
+    auth.navigateIfLoggedIn('/pages/feedback/feedback', '/pages/feedback/feedback');
   },
 
   // 关于我们
   onTapAbout: function () {
-    if (!auth.checkNeedLogin()) {
-      wx.navigateTo({
-        url: '/pages/about/about'
-      });
-    } else {
-      nav.goToRegister('/pages/about/about');
-    }
+    auth.navigateIfLoggedIn('/pages/about/about', '/pages/about/about');
   }
 });
