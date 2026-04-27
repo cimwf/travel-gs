@@ -145,7 +145,6 @@ function clearLoginStatus() {
   
   wx.removeStorageSync('userInfo');
   wx.removeStorageSync('lastLoginTime');
-  wx.removeStorageSync('pendingRedirect');
   
   if (app && app.globalData) {
     app.globalData.userInfo = null;
