@@ -289,14 +289,6 @@ Page({
     });
   },
 
-  // 重新申请
-  onReapply: function (e) {
-    const tripId = e.currentTarget.dataset.tripid;
-    wx.navigateTo({
-      url: `/pages/trip-detail/trip-detail?id=${tripId}`
-    });
-  },
-
   // 下拉刷新
   onRefresh: async function () {
     this.setData({ isRefreshing: true });

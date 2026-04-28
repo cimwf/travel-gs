@@ -166,6 +166,10 @@
                 <view class="rejected-card">
                   <view class="rejected-tip">😔 您已被移出行程</view>
                 </view>
+                <view class="sent-actions">
+                  <view class="action-btn secondary" catchtap="onManageApply" data-id="{{item._id}}" data-tripid="{{item.tripId}}">管理</view>
+                  <view class="action-btn primary" catchtap="onViewTrip" data-tripid="{{item.tripId}}">查看行程</view>
+                </view>
               </block>
 
               <!-- 行程已取消 -->
@@ -209,6 +213,9 @@
 
                 <view class="rejected-card">
                   <view class="rejected-tip">😔 行程已被发起人删除</view>
+                </view>
+                <view class="sent-actions">
+                  <view class="action-btn secondary full" catchtap="onManageApply" data-id="{{item._id}}" data-tripid="{{item.tripId}}">管理</view>
                 </view>
               </block>
             </block>
@@ -272,7 +279,6 @@
                 </view>
                 <view class="sent-actions">
                   <view class="action-btn secondary" catchtap="onManageApply" data-id="{{item._id}}" data-tripid="{{item.tripId}}">管理</view>
-                  <view class="action-btn primary" catchtap="onReapply" data-tripid="{{item.tripId}}">重新申请</view>
                   <view class="action-btn primary" catchtap="onViewTrip" data-tripid="{{item.tripId}}">查看行程</view>
                 </view>
               </block>
@@ -283,7 +289,8 @@
                   <view class="rejected-tip">😔 该行程已被取消或删除</view>
                 </view>
                 <view class="sent-actions">
-                  <view class="action-btn primary full" catchtap="onViewTrip" data-tripid="{{item.tripId}}">查看行程</view>
+                  <view class="action-btn secondary" catchtap="onManageApply" data-id="{{item._id}}" data-tripid="{{item.tripId}}">管理</view>
+                  <view class="action-btn primary" catchtap="onViewTrip" data-tripid="{{item.tripId}}">查看详情</view>
                 </view>
               </block>
             </block>
