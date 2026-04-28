@@ -40,13 +40,9 @@
         </view>
 
         <!-- 操作按钮 -->
-        <view class="trip-actions" wx:if="{{activeTab !== 'ended'}}">
+        <view class="trip-actions">
           <view class="action-btn secondary" wx:if="{{item.isCreator}}" catchtap="onManageTap" data-id="{{item._id}}">管理</view>
           <view class="action-btn secondary" wx:if="{{!item.isCreator && activeTab === 'joined'}}" catchtap="onQuitTap" data-id="{{item._id}}">退出</view>
-          <view class="action-btn primary" catchtap="onDetailTap" data-id="{{item._id}}">查看详情</view>
-        </view>
-        <view class="trip-actions" wx:else>
-          <view class="action-btn secondary" wx:if="{{item.isCreator}}" catchtap="onManageTap" data-id="{{item._id}}">管理</view>
           <view class="action-btn primary" catchtap="onDetailTap" data-id="{{item._id}}">查看详情</view>
         </view>
       </view>
