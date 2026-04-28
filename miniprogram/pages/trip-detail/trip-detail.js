@@ -27,7 +27,11 @@ Page({
 
   onLoad: async function (options) {
     const tripId = options.id || '';
-    this.setData({ tripId });
+    const windowInfo = wx.getWindowInfo();
+    this.setData({
+      tripId,
+      statusBarHeight: windowInfo.statusBarHeight
+    });
 
     // 检查登录状态（保存 deepLink，登录后回跳到此页）
     auth.saveDeepLink(`/pages/trip-detail/trip-detail?id=${tripId}`);
@@ -35,12 +39,7 @@ Page({
       return;
     }
 
-    // 获取状态栏高度
-    const windowInfo = wx.getWindowInfo();
-    this.setData({
-      statusBarHeight: windowInfo.statusBarHeight,
-      userInfo: app.globalData.userInfo
-    });
+    this.setData({ userInfo: app.globalData.userInfo });
 
     // 加载景点数据到全局缓存
     await this.loadAttractions();
