@@ -23,7 +23,7 @@ Page({
       // 没有临时数据，需要先获取手机号
       wx.showToast({ title: '请先完成手机号授权', icon: 'none' });
       setTimeout(() => {
-        wx.redirectTo({ url: '/pages/auth/auth' });
+        wx.navigateTo({ url: '/pages/auth/auth' });
       }, 1500);
     }
   },
@@ -99,7 +99,7 @@ Page({
           // 清除临时数据
           wx.removeStorageSync('tempPhone');
           wx.removeStorageSync('tempOpenid');
-          wx.redirectTo({ url: '/pages/auth/auth' });
+          wx.navigateTo({ url: '/pages/auth/auth' });
         }
       }
     });

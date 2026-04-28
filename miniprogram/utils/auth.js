@@ -132,7 +132,7 @@ function handleLoginSuccess(userInfo) {
  * 跳转到登录页面
  */
 function goToLogin() {
-  wx.redirectTo({
+  wx.navigateTo({
     url: '/pages/auth/auth'
   });
 }
