@@ -283,32 +283,6 @@ Page({
         });
         return;
       }
-
-      const trip = res.trip;
-      if (trip.status === 'cancelled') {
-        wx.showModal({
-          title: '行程已取消',
-          content: '该行程已被发起人取消',
-          showCancel: false,
-          success: () => {
-            this.loadTrips();
-          }
-        });
-        return;
-      }
-
-      if (trip.status === 'stopped') {
-        wx.showModal({
-          title: '已停止招募',
-          content: '该行程已停止招募新成员',
-          showCancel: false,
-          success: () => {
-            this.loadTrips();
-          }
-        });
-        return;
-      }
-
       // 状态正常，跳转到详情页
       wx.navigateTo({
         url: `/pages/trip-detail/trip-detail?id=${tripId}`
