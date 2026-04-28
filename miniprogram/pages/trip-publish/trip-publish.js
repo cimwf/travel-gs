@@ -185,8 +185,8 @@ Page({
   onCountChange: function (e) {
     const type = e.currentTarget.dataset.type;
     let value = this.data.recruitCount;
-    const min = 1;
-    const max = 10;
+    const min = 0;
+    const max = 50;
 
     if (type === 'minus' && value > min) {
       value--;
