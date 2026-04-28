@@ -6,7 +6,8 @@
 
 <view class="container">
   <!-- 头像卡片 -->
-  <view class="profile-header-card" style="{{userInfo.background ? 'background-image: url(' + userInfo.background + '); background-size: cover; background-position: center;' : ''}}" bindtap="onChooseBackground">
+  <view class="profile-header-card" bindtap="onChooseBackground">
+    <image class="profile-bg-image" src="{{userInfo.background}}" mode="aspectFill" wx:if="{{userInfo.background}}"></image>
     <view class="avatar-container" catchtap="onChooseAvatar">
       <image class="avatar-large" src="{{userInfo.avatar || defaultAvatar}}" mode="aspectFill" wx:if="{{userInfo.avatar}}"></image>
       <view class="avatar-large-placeholder" wx:else>
