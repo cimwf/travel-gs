@@ -26,8 +26,11 @@ Page({
   },
 
   onLoad: async function (options) {
+    const tripId = options.id || '';
+    this.setData({ tripId });
+
     // 检查登录状态（保存 deepLink，登录后回跳到此页）
-    auth.saveDeepLink(`/pages/trip-detail/trip-detail?id=${options.id || ''}`);
+    auth.saveDeepLink(`/pages/trip-detail/trip-detail?id=${tripId}`);
     if (!auth.ensureLogin()) {
       return;
     }
@@ -41,9 +44,6 @@ Page({
 
     // 加载景点数据到全局缓存
     await this.loadAttractions();
-
-    const tripId = options.id || '';
-    this.setData({ tripId });
 
     if (tripId) {
       this.loadTripDetail(tripId);
@@ -65,9 +65,14 @@ Page({
 
   onShow: function () {
     this.setData({ userInfo: app.globalData.userInfo });
-    // 如果已加载过数据，刷新一下
-    if (this.data.tripId && this.data.trip) {
-      this.loadTripDetail(this.data.tripId);
+    if (this.data.tripId) {
+      if (this.data.trip) {
+        // 已加载过数据，刷新
+        this.loadTripDetail(this.data.tripId);
+      } else if (app.globalData.userInfo) {
+        // 从登录页返回，首次加载数据
+        this.loadTripDetail(this.data.tripId);
+      }
     }
   },
 

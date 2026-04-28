@@ -141,7 +141,8 @@ Page({
     setTimeout(() => {
       const deepLink = auth.getDeepLink();
       if (deepLink) {
-        wx.redirectTo({ url: deepLink });
+        // 回到原始页面，避免页面栈中出现两个相同页面导致返回白屏
+        wx.navigateBack();
       } else {
         nav.goHome();
       }
