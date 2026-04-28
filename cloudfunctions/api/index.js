@@ -1080,6 +1080,7 @@ async function tripQuit(openid, data) {
   await db.collection('applies').add({
     data: {
       tripId,
+      placeId: trip.placeId || '',
       placeName: trip.placeName,
       fromUserId: openid,
       fromUserName: quitterName,
@@ -1145,6 +1146,7 @@ async function tripRemoveMember(openid, data) {
   await db.collection('applies').add({
     data: {
       tripId,
+      placeId: trip.placeId || '',
       placeName: trip.placeName,
       fromUserId: openid,
       fromUserName: trip.creatorName || '发起人',
@@ -1196,6 +1198,7 @@ async function tripUpdateStatus(openid, data) {
       await db.collection('applies').add({
         data: {
           tripId,
+          placeId: trip.placeId || '',
           placeName: trip.placeName || '',
           fromUserId: openid,
           fromUserName: trip.creatorName || '发起人',
@@ -1242,6 +1245,7 @@ async function tripDelete(openid, data) {
       await db.collection('applies').add({
         data: {
           tripId,
+          placeId: trip.placeId || '',
           placeName: trip.placeName || '',
           fromUserId: openid,
           fromUserName: trip.creatorName || '发起人',
@@ -1511,12 +1515,24 @@ async function applyCreate(openid, data) {
     return { success: false, error: '用户不存在' };
   }
 
+  // 获取行程 placeId
+  let placeId = '';
+  try {
+    const tripRes = await db.collection('trips').doc(tripId).get();
+    if (tripRes.data) {
+      placeId = tripRes.data.placeId || '';
+    }
+  } catch (err) {
+    console.warn('获取行程placeId失败', err);
+  }
+
   const now = Date.now();
   const groupId = 'group_' + now + '_' + Math.random().toString(36).slice(2, 8);
 
   // 公共数据（两条记录共享）
   const commonData = {
     tripId,
+    placeId,
     placeName: placeName || '',
     fromUserId: openid,
     fromUserName: user.nickname || '旅行者',
@@ -1671,19 +1687,21 @@ async function applyNotifications(openid) {
         const tripRes = await db.collection('trips').doc(item.tripId).get();
         if (tripRes.data) {
           tripData = tripRes.data;
-          if (tripData.placeId) {
-            try {
-              const attrRes = await db.collection('quick_attractions').doc(tripData.placeId).get();
-              if (attrRes.data) {
-                placeCoverImage = attrRes.data.coverImage || attrRes.data.image || '';
-              }
-            } catch (err) {
-              console.warn('获取景点封面失败', err);
-            }
-          }
         }
       } catch (err) {
         console.warn('获取行程详情失败', err);
+      }
+    }
+    // 用 trip 的 placeId 或 apply 记录中存储的 placeId 查封面图
+    const effectivePlaceId = tripData?.placeId || item.placeId || '';
+    if (effectivePlaceId) {
+      try {
+        const attrRes = await db.collection('quick_attractions').doc(effectivePlaceId).get();
+        if (attrRes.data) {
+          placeCoverImage = attrRes.data.coverImage || attrRes.data.image || '';
+        }
+      } catch (err) {
+        console.warn('获取景点封面失败', err);
       }
     }
 
@@ -1704,7 +1722,7 @@ async function applyNotifications(openid) {
         statusText: '已退出',
         tripId: item.tripId,
         placeName: item.placeName || tripData?.placeName || '未知地点',
-        placeId: tripData?.placeId || '',
+        placeId: tripData?.placeId || item.placeId || '',
         tripTitle: tripData?.tripTitle || '',
         placeCoverImage: placeCoverImage,
         tripDate: tripData?.date ? formatDate(tripData.date) : '待定',
@@ -1727,7 +1745,7 @@ async function applyNotifications(openid) {
         statusText: '已移除',
         tripId: item.tripId,
         placeName: item.placeName || tripData?.placeName || '未知地点',
-        placeId: tripData?.placeId || '',
+        placeId: tripData?.placeId || item.placeId || '',
         tripTitle: tripData?.tripTitle || '',
         placeCoverImage: placeCoverImage,
         tripDate: tripData?.date ? formatDate(tripData.date) : '待定',
@@ -1750,7 +1768,7 @@ async function applyNotifications(openid) {
         statusText: '已取消',
         tripId: item.tripId,
         placeName: item.placeName || tripData?.placeName || '未知地点',
-        placeId: tripData?.placeId || '',
+        placeId: tripData?.placeId || item.placeId || '',
         tripTitle: tripData?.tripTitle || '',
         placeCoverImage: placeCoverImage,
         tripDate: tripData?.date ? formatDate(tripData.date) : '待定',
@@ -1773,7 +1791,7 @@ async function applyNotifications(openid) {
         statusText: '已删除',
         tripId: item.tripId,
         placeName: item.placeName || tripData?.placeName || '未知地点',
-        placeId: tripData?.placeId || '',
+        placeId: tripData?.placeId || item.placeId || '',
         tripTitle: tripData?.tripTitle || '',
         placeCoverImage: placeCoverImage,
         tripDate: tripData?.date ? formatDate(tripData.date) : '待定',
@@ -1817,16 +1835,6 @@ async function applyNotifications(openid) {
         const tripRes = await db.collection('trips').doc(item.tripId).get();
         if (tripRes.data) {
           tripData = tripRes.data;
-          if (tripData.placeId) {
-            try {
-              const attrRes = await db.collection('quick_attractions').doc(tripData.placeId).get();
-              if (attrRes.data) {
-                placeCoverImage = attrRes.data.coverImage || attrRes.data.image || '';
-              }
-            } catch (err) {
-              console.warn('获取景点封面失败', err);
-            }
-          }
           if (item.status === 'accepted' && tripData.creatorId) {
             const userRes = await db.collection('users').where({
               openid: tripData.creatorId
@@ -1841,6 +1849,17 @@ async function applyNotifications(openid) {
         console.warn('获取行程详情失败', err);
       }
     }
+    const effectivePlaceId = tripData?.placeId || item.placeId || '';
+    if (effectivePlaceId) {
+      try {
+        const attrRes = await db.collection('quick_attractions').doc(effectivePlaceId).get();
+        if (attrRes.data) {
+          placeCoverImage = attrRes.data.coverImage || attrRes.data.image || '';
+        }
+      } catch (err) {
+        console.warn('获取景点封面失败', err);
+      }
+    }
 
     const status = item.status || 'pending';
     const statusText = status === 'pending' ? '申请中' :
@@ -1851,7 +1870,7 @@ async function applyNotifications(openid) {
       type: 'sent',
       tripId: item.tripId,
       placeName: item.placeName || tripData?.placeName || '未知地点',
-      placeId: tripData?.placeId || '',
+      placeId: tripData?.placeId || item.placeId || '',
       tripTitle: tripData?.tripTitle || '',
       placeCoverImage: placeCoverImage,
       creatorName: item.toUserName || tripData?.creatorName || '旅行者',
