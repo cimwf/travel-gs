@@ -168,6 +168,13 @@ Page({
 
   // 返回
   onBack() {
+    // 如果存在 deepLink，说明是从分享卡片等场景跳转过来的，
+    // 上一个页面还未加载数据，返回会导致白屏，直接回首页
+    const deepLink = wx.getStorageSync('deepLinkUrl');
+    if (deepLink) {
+      nav.goHome();
+      return;
+    }
     nav.goBack();
   }
 });
