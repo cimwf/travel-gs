@@ -40,8 +40,8 @@
       {
         "pagePath": "pages/trip-list/trip-list",
         "text": "行程",
-        "iconPath": "images/tab-message.png",
-        "selectedIconPath": "images/tab-message-active.png"
+        "iconPath": "images/tab-trip.png",
+        "selectedIconPath": "images/tab-trip-active.png"
       },
       {
         "pagePath": "pages/profile/profile",
