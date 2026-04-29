@@ -38,6 +38,7 @@
 
   <!-- 信息列表 -->
   <view class="info-list">
+
     <view class="info-bar" bindtap="onTapMyTrips">
       <view class="info-icon" style="background: linear-gradient(135deg, var(--primary-bg), var(--secondary-light));">📅</view>
       <view class="info-content">

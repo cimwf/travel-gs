@@ -50,10 +50,17 @@ async function trackEvent(eventType) {
 // ========== 用户相关 ==========
 
 /**
- * 用户登录
+ * 用户登录（通过 openid）
  */
 function userLogin(data) {
   return callApi('user/login', data);
+}
+
+/**
+ * 手机号一键登录
+ */
+function userLoginByPhone(data) {
+  return callApi('user/loginByPhone', data);
 }
 
 /**
@@ -345,6 +352,7 @@ function feedbackCreate(data) {
 module.exports = {
   // 用户
   userLogin,
+  userLoginByPhone,
   userUpdate,
   userGet,
 

@@ -169,5 +169,6 @@ Page({
   // 关于我们
   onTapAbout: function () {
     auth.navigateIfLoggedIn('/pages/about/about');
-  }
+  },
+
 });

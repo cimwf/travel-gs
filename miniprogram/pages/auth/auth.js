@@ -6,31 +6,40 @@ const nav = require('../../utils/nav.js');
 
 Page({
   data: {
-    username: '',
-    password: '',
-    showPassword: false,
     loading: false,
-    canLogin: false,
-    statusBarHeight: 0
+    agreed: false,
+    statusBarHeight: 0,
+    step: 'phone',
+    phone: '',
+    nickName: '',
+    avatarUrl: ''
   },
 
   onLoad() {
-    // 获取状态栏高度
     const windowInfo = wx.getWindowInfo();
     this.setData({ statusBarHeight: windowInfo.statusBarHeight });
 
-    // 记录访问登录页
     this.trackPageVisit();
-    // 检查是否已登录（且在15天内）
     this.checkLoginStatus();
   },
 
-  // 记录访问登录页
+  onBack() {
+    if (this.data.step === 'profile') {
+      this.setData({ step: 'phone' });
+      return;
+    }
+    const deepLink = wx.getStorageSync('deepLinkUrl');
+    if (deepLink) {
+      nav.goHome();
+      return;
+    }
+    nav.goBack();
+  },
+
   async trackPageVisit() {
     await api.trackEvent('loginPageVisit');
   },
 
-  // 检查登录状态
   checkLoginStatus() {
     if (!auth.checkNeedLogin()) {
       wx.removeStorageSync('deepLinkUrl');
@@ -38,119 +47,10 @@ Page({
     }
   },
 
-  // 账号输入
-  onUsernameInput(e) {
-    const username = e.detail.value;
-    this.setData({ username });
-    this.checkCanLogin();
+  onAgreeChange() {
+    this.setData({ agreed: !this.data.agreed });
   },
 
-  // 密码输入
-  onPasswordInput(e) {
-    const password = e.detail.value;
-    this.setData({ password });
-    this.checkCanLogin();
-  },
-
-  // 切换密码显示
-  onTogglePassword() {
-    this.setData({ showPassword: !this.data.showPassword });
-  },
-
-  // 检查是否可以登录
-  checkCanLogin() {
-    const { username, password } = this.data;
-    const canLogin = username.trim().length >= 11 && password.length >= 8;
-    this.setData({ canLogin });
-  },
-
-  // 登录
-  async onLogin() {
-    const { username, password, canLogin, loading } = this.data;
-
-    if (!canLogin || loading) return;
-
-    if (username.trim().length < 11) {
-      wx.showToast({ title: '请输入正确的手机号', icon: 'none' });
-      return;
-    }
-
-    if (password.length < 8) {
-      wx.showToast({ title: '密码至少8位', icon: 'none' });
-      return;
-    }
-
-    this.setData({ loading: true });
-
-    try {
-      // 调用云函数验证登录
-      const res = await wx.cloud.callFunction({
-        name: 'api',
-        data: {
-          action: 'user/loginPassword',
-          data: {
-            username: username.trim(),
-            password
-          }
-        }
-      });
-
-      if (res.result && res.result.success) {
-        const { user } = res.result;
-        await this.handleLoginSuccess(user);
-      } else {
-        const errorMsg = res.result?.error || '账号或密码错误';
-        const remainAttempts = res.result?.data?.remainAttempts;
-
-        if (remainAttempts !== undefined) {
-          wx.showToast({ title: `${errorMsg}，剩余${remainAttempts}次机会`, icon: 'none', duration: 2000 });
-        } else {
-          wx.showToast({ title: errorMsg, icon: 'none' });
-        }
-      }
-    } catch (err) {
-      console.error('登录失败:', err);
-      wx.showToast({ title: '登录失败，请重试', icon: 'none' });
-    } finally {
-      this.setData({ loading: false });
-    }
-  },
-
-  // 处理登录成功
-  async handleLoginSuccess(user) {
-    // 记录登录成功
-    await api.trackEvent('loginSuccess');
-
-    // 直接使用云函数返回的用户数据（包含最新的 nickname, avatar, gender, bio 等）
-    const userInfo = user;
-
-    // 保存完整的用户信息（包含 _id 作为唯一标识）
-    auth.handleLoginSuccess(userInfo);
-    app.globalData.openid = userInfo.openid;
-    app.globalData.userInfo = userInfo;
-    app.globalData.userId = userInfo._id;  // 保存唯一标识
-    wx.setStorageSync('openid', userInfo.openid);
-    wx.setStorageSync('userId', userInfo._id);  // 保存到本地
-
-    wx.showToast({ title: '登录成功', icon: 'success' });
-
-    setTimeout(() => {
-      wx.removeStorageSync('deepLinkUrl');
-      nav.goHome();
-    }, 1000);
-  },
-
-  // 忘记密码
-  onForgetPassword() {
-    wx.showToast({ title: '请联系管理员重置密码', icon: 'none' });
-  },
-
-  // 去注册
-  onGoRegister() {
-    wx.navigateTo({ url: '/pages/register/register' });
-  },
-
-  // 打开协议
   onOpenAgreement(e) {
     const type = e.currentTarget.dataset.type;
     wx.navigateTo({
@@ -158,15 +58,103 @@ Page({
     });
   },
 
-  // 返回
-  onBack() {
-    // 如果存在 deepLink，说明是从分享卡片等场景跳转过来的，
-    // 上一个页面还未加载数据，返回会导致白屏，直接回首页
-    const deepLink = wx.getStorageSync('deepLinkUrl');
-    if (deepLink) {
-      nav.goHome();
+  // 第一步：获取手机号
+  async onGetPhoneNumber(e) {
+    const { code } = e.detail;
+
+    if (!code) {
+      wx.showToast({ title: '未获取到授权码', icon: 'none' });
       return;
     }
-    nav.goBack();
+
+    if (!this.data.agreed) {
+      wx.showToast({ title: '请先同意用户协议', icon: 'none' });
+      return;
+    }
+
+    this.setData({ loading: true });
+
+    try {
+      const loginRes = await wx.cloud.callFunction({
+        name: 'login',
+        data: { action: 'getPhoneNumber', code }
+      });
+
+      if (!loginRes.result.success) {
+        throw new Error(loginRes.result.error || '获取手机号失败');
+      }
+
+      this.setData({
+        phone: loginRes.result.phoneNumber,
+        step: 'profile',
+        loading: false
+      });
+    } catch (err) {
+      console.error('获取手机号失败:', err);
+      wx.showToast({ title: err.message || '获取手机号失败，请重试', icon: 'none' });
+      this.setData({ loading: false });
+    }
+  },
+
+  // 第二步：选择头像
+  onChooseAvatar(e) {
+    const avatarUrl = e.detail.avatarUrl;
+    this.setData({ avatarUrl });
+  },
+
+  // 第二步：输入昵称
+  onNicknameInput(e) {
+    this.setData({ nickName: e.detail.value });
+  },
+
+  onNicknameBlur(e) {
+    this.setData({ nickName: e.detail.value });
+  },
+
+  // 第二步：完成登录
+  async onCompleteLogin() {
+    const { phone, nickName, avatarUrl } = this.data;
+
+    this.setData({ loading: true });
+
+    try {
+      const apiRes = await wx.cloud.callFunction({
+        name: 'api',
+        data: {
+          action: 'user/loginByPhone',
+          data: { phone, nickname: nickName, avatar: avatarUrl }
+        }
+      });
+
+      if (apiRes.result.success) {
+        await this.handleLoginSuccess(apiRes.result.user);
+      } else {
+        throw new Error(apiRes.result.error || '登录失败');
+      }
+    } catch (err) {
+      console.error('手机号登录失败:', err);
+      wx.showToast({ title: err.message || '登录失败，请重试', icon: 'none' });
+    } finally {
+      this.setData({ loading: false });
+    }
+  },
+
+  async handleLoginSuccess(user) {
+    await api.trackEvent('loginSuccess');
+
+    const userInfo = user;
+    auth.handleLoginSuccess(userInfo);
+    app.globalData.openid = userInfo.openid;
+    app.globalData.userInfo = userInfo;
+    app.globalData.userId = userInfo._id;
+    wx.setStorageSync('openid', userInfo.openid);
+    wx.setStorageSync('userId', userInfo._id);
+
+    wx.showToast({ title: '登录成功', icon: 'success' });
+
+    setTimeout(() => {
+      wx.removeStorageSync('deepLinkUrl');
+      nav.goHome();
+    }, 1000);
   }
 });

@@ -2,211 +2,289 @@
 page {
   height: 100%;
   width: 100%;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .auth-page {
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  background: linear-gradient(180deg, #4A90E2 0%, #667eea 50%, #764ba2 100%);
-  padding: 0 40rpx;
-  box-sizing: border-box;
   width: 100%;
-  overflow-x: hidden;
   position: relative;
+  background: linear-gradient(180deg, #eef6ff 0%, #ffffff 100%);
+}
+
+/* 背景光斑 */
+.bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.35;
+}
+
+.c1 {
+  width: 300px;
+  height: 300px;
+  background: #4990e2;
+  top: -80px;
+  left: -100px;
+}
+
+.c2 {
+  width: 250px;
+  height: 250px;
+  background: #7bb8ff;
+  bottom: -100px;
+  right: -80px;
 }
 
 /* 返回按钮 */
 .back-btn {
   position: absolute;
-  left: 40rpx;
-  width: 80rpx;
-  height: 80rpx;
+  left: 16px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.05);
   border-radius: 50%;
   z-index: 100;
 }
 
 .back-icon {
-  font-size: 48rpx;
-  color: white;
+  font-size: 24px;
+  color: #666;
   font-weight: 300;
 }
 
 /* 内容区域 */
 .auth-content {
-  flex: 1;
+  position: relative;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  padding: 40px 0;
-  color: white;
+  align-items: center;
+  padding: 0 32px;
   text-align: center;
+  box-sizing: border-box;
 }
 
 /* Logo */
 .auth-logo {
-  width: 80px;
-  height: 80px;
-  background: white;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 24px;
   border-radius: 20px;
+  background: linear-gradient(135deg, #4990e2, #7bb8ff);
+  color: #fff;
+  font-size: 28px;
+  font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40px;
-  margin-bottom: 20px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  box-shadow: 0 12px 30px rgba(73, 144, 226, 0.25);
 }
 
 /* 标题 */
 .auth-title {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 8px;
+  font-size: 22px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 10px;
 }
 
-.auth-subtitle {
+/* 描述 */
+.auth-desc {
   font-size: 14px;
-  opacity: 0.9;
-  margin-bottom: 30px;
-}
-
-/* 登录表单卡片 */
-.auth-form-card {
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 16px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-}
-
-/* 表单项 */
-.form-item {
-  margin-bottom: 16px;
-}
-
-.form-label {
-  font-size: 13px;
-  color: #4A4A68;
-  margin-bottom: 8px;
-  font-weight: 500;
-  text-align: left;
-}
-
-/* 输入框容器 */
-.input-wrap {
-  display: flex;
-  align-items: center;
-  background: #F5F7FA;
-  border-radius: 12px;
-  padding: 0 16px;
-}
-
-.input-icon {
-  font-size: 18px;
-  margin-right: 10px;
-}
-
-.form-input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  font-size: 16px;
-  color: #1A1A2E;
-  padding: 14px 0;
-  text-align: left;
-}
-
-.input-eye {
-  font-size: 14px;
-  color: #8E8EA0;
-  padding: 10px;
-}
-
-/* 眼睛图标 */
-.eye-icon {
-  padding: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-}
-
-/* 忘记密码 */
-.forget-password {
-  text-align: right;
-  margin-bottom: 20px;
-}
-
-.forget-password text {
-  font-size: 13px;
-  color: #4A90E2;
+  color: #8a8a8a;
+  margin-bottom: 40px;
+  line-height: 1.6;
+  white-space: pre-line;
 }
 
 /* 登录按钮 */
-.login-btn {
-  padding: 6px;
-  background: #4A90E2;
+.phone-login-btn {
+  width: 100%;
+  height: 52px;
   border: none;
-  border-radius: 50px;
-  font-size: 17px;
-  font-weight: 600;
-}
-
-.login-btn button {
-  background: #4A90E2;
-  color: white;
-}
-
-.login-btn.disabled {
-  opacity: 0.5;
-}
-
-/* 注册引导 */
-.register-guide {
+  border-radius: 14px;
+  background: linear-gradient(135deg, #4990e2, #6fb1fc);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 500;
+  box-shadow: 0 10px 25px rgba(73, 144, 226, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 18px;
+}
+
+.phone-login-btn::after {
+  border: none;
+}
+
+.phone-login-btn:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+/* 协议勾选 */
+.agreement-row {
+  display: flex;
+  align-items: flex-start;
   gap: 8px;
-  margin-bottom: 16px;
 }
 
-.guide-text {
-  font-size: 14px;
-  opacity: 0.8;
-}
-
-.guide-link {
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: underline;
-}
-
-/* 暂不登录按钮 */
-.skip-btn {
-  width: 82%;
-  padding: 14px;
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.3);
-  border-radius: 50px;
-  font-size: 15px;
+.checkbox-custom {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
   color: white;
-  margin-bottom: 12px;
-  text-align: center;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
-/* 协议 */
-.auth-agreement {
-  font-size: 11px;
-  opacity: 0.7;
+.checkbox-custom.checked {
+  background: #4990e2;
+  border-color: #4990e2;
+}
+
+.agreement-text {
+  font-size: 12px;
+  color: #aaa;
   line-height: 1.6;
+  text-align: left;
 }
 
-.auth-agreement .link {
-  text-decoration: underline;
+.agreement-text .link {
+  color: #4990e2;
+}
+
+/* ===== 第二步：完善资料 ===== */
+
+.profile-card {
+  width: 100%;
+  background: white;
+  border-radius: 20px;
+  padding: 40px 28px 32px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+.profile-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 28px;
+}
+
+/* 头像选择器 */
+.avatar-picker {
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 24px;
+  padding: 0;
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1;
+}
+
+.avatar-picker::after {
+  border: none;
+}
+
+.avatar-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px solid #e8e8e8;
+}
+
+.avatar-preview.has-avatar {
+  border-color: #4990e2;
+}
+
+.avatar-placeholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #f0f4ff;
+  border: 2px dashed #c0d0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder-icon {
+  font-size: 28px;
+}
+
+.avatar-tip {
+  font-size: 12px;
+  color: #999;
+}
+
+/* 昵称输入 */
+.nickname-wrap {
+  margin-bottom: 24px;
+}
+
+.nickname-input {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  background: #f5f7fa;
+  text-align: center;
+  font-size: 16px;
+  color: #1d1d1f;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+/* 完成按钮 */
+.complete-btn {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #4990e2, #6fb1fc);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.complete-btn::after {
+  border: none;
+}
+
+.complete-btn:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+/* 跳过链接 */
+.skip-link {
+  margin-top: 16px;
+  font-size: 13px;
+  color: #aaa;
+  padding: 8px;
 }

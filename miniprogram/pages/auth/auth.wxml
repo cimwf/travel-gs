@@ -1,82 +1,84 @@
 <!--pages/auth/auth.wxml-->
 <view class="auth-page">
+  <!-- 背景光斑 -->
+  <view class="bg">
+    <view class="circle c1"></view>
+    <view class="circle c2"></view>
+  </view>
+
   <!-- 返回按钮 -->
-  <view class="back-btn" style="top: {{statusBarHeight + 20}}px;" bindtap="onBack">
+  <view class="back-btn" style="top: {{statusBarHeight + 12}}px;" bindtap="onBack">
     <text class="back-icon">‹</text>
   </view>
 
-  <view class="auth-content">
-    <!-- Logo -->
-    <view class="auth-logo">🏔️</view>
-
-    <!-- 品牌标题 -->
-    <view class="auth-title">北上周边行</view>
-    <view class="auth-subtitle">发现北京周边好去处</view>
-
-    <!-- 登录表单卡片 -->
-    <view class="auth-form-card">
-      <!-- 账号输入 -->
-      <view class="form-item">
-        <view class="form-label">账号</view>
-        <view class="input-wrap">
-          <text class="input-icon">👤</text>
-          <input
-            class="form-input"
-            type="text"
-            placeholder="请输入手机号"
-            value="{{username}}"
-            bindinput="onUsernameInput"
-          />
-        </view>
-      </view>
-
-      <!-- 密码输入 -->
-      <view class="form-item">
-        <view class="form-label">密码</view>
-        <view class="input-wrap">
-          <text class="input-icon">🔒</text>
-          <input
-            class="form-input"
-            password="{{!showPassword}}"
-            placeholder="请输入密码"
-            value="{{password}}"
-            bindinput="onPasswordInput"
-          />
-          <view class="eye-icon" bindtap="onTogglePassword">
-            <text>{{showPassword ? '🙈' : '👁️'}}</text>
-          </view>
-        </view>
-      </view>
-
-      <!-- 忘记密码 -->
-      <view class="forget-password" bindtap="onForgetPassword">
-        <text>忘记密码？</text>
-      </view>
-
-      <!-- 登录按钮 -->
-      <view class="login-btn">
-        <button
-          class="{{canLogin ? '' : 'disabled'}}"
-          bindtap="onLogin"
-          loading="{{loading}}"
-        >
-          登录
-        </button>
-      </view>
+  <!-- 第一步：手机号登录 -->
+  <view class="auth-content" wx:if="{{step === 'phone'}}">
+    <view class="auth-logo">行</view>
+    <view class="auth-title">欢迎使用</view>
+    <view class="auth-desc">
+      一键登录后即可查看完整内容
+      开启你的专属行程体验
     </view>
 
-    <!-- 注册引导 -->
-    <view class="register-guide">
-      <text class="guide-text">还没有账号？</text>
-      <text class="guide-link" bindtap="onGoRegister">立即注册</text>
-    </view>
+    <button
+      class="phone-login-btn"
+      open-type="getPhoneNumber"
+      bindgetphonenumber="onGetPhoneNumber"
+      loading="{{loading}}"
+    >
+      微信一键登录
+    </button>
 
-    <!-- 协议 -->
-    <view class="auth-agreement">
-      登录即表示同意
-      <text class="link" bindtap="onOpenAgreement" data-type="user">《用户协议》</text>
-      和
-      <text class="link" bindtap="onOpenAgreement" data-type="privacy">《隐私政策》</text>
+    <view class="agreement-row" bindtap="onAgreeChange">
+      <view class="checkbox-custom {{agreed ? 'checked' : ''}}">
+        <text wx:if="{{agreed}}">✓</text>
+      </view>
+      <view class="agreement-text">
+        登录即表示同意
+        <text class="link" catchtap="onOpenAgreement" data-type="user">用户协议</text>
+        与
+        <text class="link" catchtap="onOpenAgreement" data-type="privacy">隐私政策</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 第二步：完善资料 -->
+  <view class="auth-content" wx:else>
+    <view class="profile-card">
+      <view class="profile-title">完善资料</view>
+
+      <!-- 头像选择 -->
+      <button class="avatar-picker" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <image
+          class="avatar-preview {{avatarUrl ? 'has-avatar' : ''}}"
+          src="{{avatarUrl}}"
+          mode="aspectFill"
+          wx:if="{{avatarUrl}}"
+        ></image>
+        <view class="avatar-placeholder" wx:else>
+          <text class="placeholder-icon">📷</text>
+        </view>
+        <text class="avatar-tip">点击设置头像</text>
+      </button>
+
+      <!-- 昵称输入 -->
+      <view class="nickname-wrap">
+        <input
+          class="nickname-input"
+          type="nickname"
+          placeholder="请输入昵称"
+          value="{{nickName}}"
+          bindinput="onNicknameInput"
+          bindblur="onNicknameBlur"
+        />
+      </view>
+
+      <!-- 完成登录 -->
+      <button class="complete-btn" bindtap="onCompleteLogin" loading="{{loading}}">
+        完成登录
+      </button>
+
+      <view class="skip-link" bindtap="onCompleteLogin">跳过，直接登录</view>
     </view>
   </view>
 </view>

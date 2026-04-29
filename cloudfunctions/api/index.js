@@ -31,6 +31,8 @@ exports.main = async (event, context) => {
         return await userLogin(openid, data);
       case 'user/loginPassword':
         return await userLoginPassword(data);
+      case 'user/loginByPhone':
+        return await userLoginByPhone(openid, data);
       case 'user/update':
         return await userUpdate(openid, data);
       case 'user/get':
@@ -235,24 +237,28 @@ async function userRegister(openid, data) {
     return { success: false, error: '手机号不能为空' };
   }
 
-  // 解密密码
+  // 解密密码（手机号一键登录注册时无密码，此为可选）
+  const isPhoneAuth = !password && !encryptedPassword;
   let plainPassword = password;
-  if (encryptedPassword && key && iv) {
-    try {
-      plainPassword = crypto.simpleDecrypt(encryptedPassword, key, iv);
-    } catch (err) {
-      console.error('密码解密失败:', err);
-      return { success: false, error: '密码解密失败' };
+
+  if (!isPhoneAuth) {
+    if (encryptedPassword && key && iv) {
+      try {
+        plainPassword = crypto.simpleDecrypt(encryptedPassword, key, iv);
+      } catch (err) {
+        console.error('密码解密失败:', err);
+        return { success: false, error: '密码解密失败' };
+      }
     }
-  }
 
-  if (!plainPassword) {
-    return { success: false, error: '密码不能为空' };
-  }
+    if (!plainPassword) {
+      return { success: false, error: '密码不能为空' };
+    }
 
-  // 验证密码格式（8-20位，包含字母和数字）
-  if (!/^(?=.*[a-zA-Z])(?=.*\d).{8,20}$/.test(plainPassword)) {
-    return { success: false, error: '密码格式不正确，需8-20位且包含字母和数字' };
+    // 验证密码格式（8-20位，包含字母和数字）
+    if (!/^(?=.*[a-zA-Z])(?=.*\d).{8,20}$/.test(plainPassword)) {
+      return { success: false, error: '密码格式不正确，需8-20位且包含字母和数字' };
+    }
   }
 
   // 检查手机号是否已注册
@@ -264,8 +270,11 @@ async function userRegister(openid, data) {
   // 生成默认昵称
   const defaultNickname = nickname || '用户' + phone.slice(-4);
 
-  // 哈希密码
-  const hashedPassword = await crypto.hashPassword(plainPassword);
+  // 哈希密码（手机号一键登录注册时跳过）
+  let hashedPassword = '';
+  if (!isPhoneAuth) {
+    hashedPassword = await crypto.hashPassword(plainPassword);
+  }
 
   // 生成用户ID：前缀 + 时间戳后6位 + 4位随机数
   const now = new Date();
@@ -490,6 +499,78 @@ async function userLoginPassword(data) {
   const safeUser = { ...user, openid: user.openid || currentOpenid };
   delete safeUser.password;
   return { success: true, user: safeUser };
+}
+
+// 手机号一键登录（无需密码，自动注册）
+async function userLoginByPhone(openid, data) {
+  const { phone, nickname, avatar } = data;
+
+  if (!phone) {
+    return { success: false, error: '手机号不能为空' };
+  }
+
+  const userRes = await db.collection('users').where({ phone }).get();
+
+  if (userRes.data.length > 0) {
+    const user = userRes.data[0];
+
+    // 更新 openid、微信资料和活跃时间
+    const updateData = { lastActiveAt: Date.now() };
+    if (!user.openid || user.openid !== openid) {
+      updateData.openid = openid;
+    }
+    if (nickname && (!user.nickname || user.nickname.startsWith('用户'))) {
+      updateData.nickname = nickname;
+    }
+    if (avatar && !user.avatar) {
+      updateData.avatar = avatar;
+    }
+    await db.collection('users').doc(user._id).update({ data: updateData });
+
+    const safeUser = { ...user, openid: openid, ...updateData };
+    delete safeUser.password;
+    return { success: true, user: safeUser };
+  }
+
+  // 新用户自动注册
+  const now = new Date();
+  const timePart = now.getHours().toString().padStart(2, '0') +
+                   now.getMinutes().toString().padStart(2, '0') +
+                   now.getSeconds().toString().padStart(2, '0');
+  const randomPart = Math.random().toString(36).slice(2, 6).toUpperCase();
+  const userId = 'BJ' + timePart + randomPart;
+
+  const newUser = {
+    userId,
+    openid,
+    phone,
+    phoneMask: crypto.maskPhone(phone),
+    contactPhone: phone,
+    password: '',
+    nickname: (nickname || '用户' + phone.slice(-4)).trim(),
+    avatar: avatar || '',
+    gender: 0,
+    bio: '',
+    following: 0,
+    followers: 0,
+    trips: 0,
+    places: 0,
+    tags: [],
+    carOwner: false,
+    loginAttempts: 0,
+    lockedUntil: 0,
+    createdAt: Date.now(),
+    lastActiveAt: Date.now()
+  };
+
+  const res = await db.collection('users').add({ data: newUser });
+  newUser._id = res._id;
+
+  await recordNewUser();
+
+  const safeUser = { ...newUser };
+  delete safeUser.password;
+  return { success: true, user: safeUser, isNew: true };
 }
 
 async function userUpdate(openid, data) {
