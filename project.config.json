@@ -1,7 +1,7 @@
 {
   "miniprogramRoot": "miniprogram/",
   "cloudfunctionRoot": "cloudfunctions/",
-  "cloudbaseRoot": "cloudbaserc.json",
+  "cloudbaseRoot": "cloudbaserc.json/",
   "setting": {
     "urlCheck": false,
     "es6": true,
@@ -46,7 +46,7 @@
     "swc": false,
     "disableSWC": true
   },
-  "appid": "wx6cdeac08abe9747b",
+  "appid": "wxb7833a9478e4f094",
   "projectname": "beijing-travel",
   "description": "北上周边行 - 旅游社交小程序",
   "cloudfunctionTemplateRoot": "",
@@ -61,5 +61,5 @@
     "ignore": [],
     "include": []
   },
-  "libVersion": "3.15.0"
+  "libVersion": "3.14.2"
 }

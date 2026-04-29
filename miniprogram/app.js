@@ -6,7 +6,7 @@ App({
     userInfo: null,
     openid: null,
     isLoggedIn: false,
-    cloudEnv: 'cloud1-1gxcobd051830cce',
+    cloudEnv: 'prod-d2gkmbquec074b1df',
     attractions: [],
     attractionsLoaded: false
   },
