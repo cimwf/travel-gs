@@ -171,12 +171,8 @@ Page({
     wx.showToast({ title: '注册成功', icon: 'success' });
 
     setTimeout(() => {
-      const deepLink = auth.getDeepLink();
-      if (deepLink) {
-        wx.redirectTo({ url: deepLink });
-      } else {
-        nav.goHome();
-      }
+      wx.removeStorageSync('deepLinkUrl');
+      nav.goHome();
     }, 1000);
   },
 

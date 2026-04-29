@@ -177,12 +177,8 @@ Page({
         wx.showToast({ title: '注册成功', icon: 'success' });
 
         setTimeout(() => {
-          const deepLink = auth.getDeepLink();
-          if (deepLink) {
-            wx.redirectTo({ url: deepLink });
-          } else {
-            wx.switchTab({ url: '/pages/index/index' });
-          }
+          wx.removeStorageSync('deepLinkUrl');
+          wx.switchTab({ url: '/pages/index/index' });
         }, 1000);
       } else {
         throw new Error(apiRes.result.error || '注册失败');

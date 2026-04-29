@@ -33,12 +33,8 @@ Page({
   // 检查登录状态
   checkLoginStatus() {
     if (!auth.checkNeedLogin()) {
-      const deepLink = auth.getDeepLink();
-      if (deepLink) {
-        wx.redirectTo({ url: deepLink });
-      } else {
-        nav.goHome();
-      }
+      wx.removeStorageSync('deepLinkUrl');
+      nav.goHome();
     }
   },
 
@@ -139,13 +135,8 @@ Page({
     wx.showToast({ title: '登录成功', icon: 'success' });
 
     setTimeout(() => {
-      const deepLink = auth.getDeepLink();
-      if (deepLink) {
-        // 回到原始页面，避免页面栈中出现两个相同页面导致返回白屏
-        wx.navigateBack();
-      } else {
-        nav.goHome();
-      }
+      wx.removeStorageSync('deepLinkUrl');
+      nav.goHome();
     }, 1000);
   },
 
