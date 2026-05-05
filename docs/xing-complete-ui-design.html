@@ -1,0 +1,2077 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>行 - 完整产品 UI 设计稿</title>
+  <style>
+    :root {
+      --blue: #2f92f4;
+      --blue-2: #6fc1ff;
+      --blue-3: #eaf6ff;
+      --ink: #1c2430;
+      --muted: #697586;
+      --faint: #9ba6b5;
+      --line: #e6edf5;
+      --bg: #f5f9fe;
+      --paper: #ffffff;
+      --green: #28b66f;
+      --orange: #ff9f2e;
+      --red: #f45b69;
+      --shadow: 0 18px 46px rgba(31, 87, 142, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 7% 3%, rgba(47, 146, 244, 0.18), transparent 24%),
+        radial-gradient(circle at 92% 7%, rgba(111, 193, 255, 0.16), transparent 25%),
+        linear-gradient(180deg, #fbfdff 0%, #eef6ff 100%);
+      letter-spacing: 0;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+    }
+
+    .page {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 36px 24px 72px;
+    }
+
+    .cover {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 34px;
+      align-items: center;
+      margin-bottom: 34px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .brand img {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      box-shadow: 0 12px 28px rgba(47, 146, 244, 0.24);
+    }
+
+    .brand strong {
+      display: block;
+      font-size: 30px;
+      line-height: 1;
+    }
+
+    .brand span {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-size: 42px;
+      line-height: 1.12;
+      font-weight: 780;
+    }
+
+    .lead {
+      margin: 0;
+      max-width: 650px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.85;
+    }
+
+    .decision-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .decision {
+      padding: 16px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 10px 30px rgba(31, 87, 142, 0.07);
+    }
+
+    .decision b {
+      display: block;
+      color: var(--blue);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .decision span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .flow-card {
+      padding: 24px;
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.92);
+      box-shadow: var(--shadow);
+    }
+
+    .flow-title {
+      margin: 0 0 18px;
+      font-size: 19px;
+      font-weight: 720;
+    }
+
+    .flow {
+      display: grid;
+      gap: 12px;
+    }
+
+    .flow-row {
+      display: grid;
+      grid-template-columns: 84px 1fr;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .flow-row b {
+      color: var(--blue);
+      font-size: 13px;
+    }
+
+    .flow-row span {
+      display: block;
+      padding: 13px 15px;
+      border-radius: 16px;
+      background: #f5faff;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+      border: 1px solid #e7f1fb;
+    }
+
+    .section {
+      margin-top: 42px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.25;
+    }
+
+    .section-head p {
+      margin: 0;
+      max-width: 680px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .screens {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(420px, 1fr));
+      gap: 34px;
+      align-items: start;
+    }
+
+    .screen-wrap h3 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      font-weight: 720;
+    }
+
+    .phone {
+      width: 100%;
+      max-width: 430px;
+      min-height: 900px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+      border-radius: 34px;
+      background: var(--bg);
+      border: 1px solid rgba(255, 255, 255, 0.92);
+      box-shadow: var(--shadow);
+    }
+
+    .status {
+      height: 42px;
+      padding: 13px 22px 0;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      position: relative;
+      z-index: 3;
+    }
+
+    .signals {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .sig-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .battery {
+      width: 17px;
+      height: 8px;
+      border-radius: 3px;
+      border: 1.5px solid currentColor;
+    }
+
+    .nav {
+      position: relative;
+      z-index: 3;
+      height: 48px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav h4 {
+      margin: 0;
+      font-size: 23px;
+      font-weight: 760;
+    }
+
+    .round {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--blue);
+      border: 1px solid rgba(47, 146, 244, 0.14);
+      box-shadow: 0 8px 20px rgba(31, 87, 142, 0.08);
+      font-size: 16px;
+    }
+
+    .hero-img {
+      margin: 0 18px 14px;
+      min-height: 154px;
+      padding: 18px;
+      border-radius: 26px;
+      color: white;
+      background:
+        linear-gradient(135deg, rgba(21, 54, 89, 0.58), rgba(47, 146, 244, 0.12)),
+        url("https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=900&q=80") center/cover;
+      box-shadow: 0 18px 34px rgba(35, 98, 158, 0.22);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .month-hero {
+      margin: 6px 18px 16px;
+      min-height: 190px;
+      padding: 20px;
+      border-radius: 28px;
+      color: white;
+      background:
+        linear-gradient(135deg, rgba(14, 42, 72, 0.68), rgba(47, 146, 244, 0.18)),
+        url("https://images.unsplash.com/photo-1473773508845-188df298d2d1?auto=format&fit=crop&w=900&q=80") center/cover;
+      box-shadow: 0 18px 34px rgba(35, 98, 158, 0.22);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .month-hero small {
+      display: block;
+      font-size: 12px;
+      opacity: 0.88;
+      margin-bottom: 8px;
+    }
+
+    .month-hero strong {
+      display: block;
+      max-width: 280px;
+      font-size: 27px;
+      line-height: 1.2;
+    }
+
+    .month-hero p {
+      margin: 10px 0 0;
+      max-width: 300px;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .hero-action-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hero-action-row span {
+      color: rgba(255, 255, 255, 0.84);
+      font-size: 12px;
+    }
+
+    .hero-action-row b {
+      height: 36px;
+      padding: 0 14px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--blue);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .home-safe-top {
+      height: 10px;
+    }
+
+    .hero-img small,
+    .hero-panel small {
+      display: block;
+      font-size: 12px;
+      opacity: 0.86;
+    }
+
+    .hero-img strong {
+      display: block;
+      margin-top: 7px;
+      font-size: 25px;
+      line-height: 1.18;
+      max-width: 250px;
+    }
+
+    .hero-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .hero-tags span {
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(10px);
+      font-size: 12px;
+    }
+
+    .month-strip {
+      display: flex;
+      gap: 8px;
+      padding: 0 18px 14px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .month-strip::-webkit-scrollbar {
+      display: none;
+    }
+
+    .month {
+      min-width: 56px;
+      height: 62px;
+      border-radius: 18px;
+      background: white;
+      border: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 2px;
+      color: var(--muted);
+      box-shadow: 0 8px 22px rgba(31, 87, 142, 0.05);
+      flex: 0 0 auto;
+    }
+
+    .month b {
+      font-size: 16px;
+      color: var(--ink);
+    }
+
+    .month span {
+      font-size: 11px;
+    }
+
+    .month.active {
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 12px 24px rgba(47, 146, 244, 0.24);
+    }
+
+    .month.active b {
+      color: white;
+    }
+
+    .content {
+      padding: 0 18px 104px;
+    }
+
+    .title-row {
+      margin: 4px 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .title-row b {
+      font-size: 16px;
+    }
+
+    .title-row span {
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .spot-card {
+      background: white;
+      border-radius: 22px;
+      overflow: hidden;
+      margin-bottom: 13px;
+      border: 1px solid rgba(230, 237, 245, 0.9);
+      box-shadow: 0 10px 24px rgba(31, 87, 142, 0.07);
+    }
+
+    .compact-list {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .compact-spot,
+    .compact-activity {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 12px;
+      padding: 10px;
+      border-radius: 20px;
+      background: white;
+      border: 1px solid rgba(230, 237, 245, 0.9);
+      box-shadow: 0 8px 20px rgba(31, 87, 142, 0.06);
+    }
+
+    .compact-spot img,
+    .compact-activity img {
+      width: 72px;
+      height: 72px;
+      object-fit: cover;
+      border-radius: 16px;
+    }
+
+    .compact-main {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 2px 0;
+    }
+
+    .compact-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .compact-title {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.35;
+      font-weight: 760;
+    }
+
+    .compact-desc {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .compact-rank {
+      flex: 0 0 auto;
+      height: 23px;
+      padding: 0 8px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: #fff4db;
+      color: #b36b00;
+      font-size: 11px;
+      font-weight: 760;
+    }
+
+    .compact-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      color: var(--faint);
+      font-size: 12px;
+    }
+
+    .compact-meta b {
+      color: var(--blue);
+      font-size: 12px;
+    }
+
+    .spot-img {
+      height: 136px;
+      object-fit: cover;
+      width: 100%;
+    }
+
+    .spot-body {
+      padding: 13px;
+    }
+
+    .rank {
+      display: inline-flex;
+      height: 24px;
+      align-items: center;
+      padding: 0 9px;
+      border-radius: 999px;
+      background: #fff4db;
+      color: #b36b00;
+      font-size: 12px;
+      font-weight: 760;
+      margin-bottom: 8px;
+    }
+
+    .spot-name {
+      margin: 0 0 7px;
+      font-size: 17px;
+      font-weight: 760;
+    }
+
+    .spot-desc {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+      margin-bottom: 11px;
+    }
+
+    .spot-actions,
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .spot-rank-card {
+      display: grid;
+      grid-template-columns: 112px 1fr;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 22px;
+      background: white;
+      border: 1px solid rgba(230, 237, 245, 0.9);
+      box-shadow: 0 10px 24px rgba(31, 87, 142, 0.07);
+      margin-bottom: 12px;
+    }
+
+    .spot-rank-card img {
+      width: 112px;
+      height: 132px;
+      object-fit: cover;
+      border-radius: 18px;
+    }
+
+    .spot-rank-main {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 2px 0;
+    }
+
+    .spot-title-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .spot-title-line h5 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.35;
+      font-weight: 780;
+    }
+
+    .season-tag {
+      height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: #eef7ff;
+      color: var(--blue);
+      font-size: 11px;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .spot-reason {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .spot-metrics {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      color: var(--faint);
+      font-size: 12px;
+    }
+
+    .spot-metrics b {
+      color: var(--blue);
+      font-weight: 760;
+    }
+
+    .spot-action-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .spot-lite-actions {
+      display: flex;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .ghost-btn,
+    .solid-btn {
+      height: 34px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      font-weight: 760;
+    }
+
+    .ghost-btn {
+      background: #f3f8ff;
+      color: var(--blue);
+      border: 1px solid #dcecff;
+      padding: 0 10px;
+    }
+
+    .solid-btn {
+      color: white;
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      box-shadow: 0 10px 20px rgba(47, 146, 244, 0.18);
+      padding: 0 13px;
+    }
+
+    .hint-panel {
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: #f1f8ff;
+      color: #55708e;
+      font-size: 12px;
+      line-height: 1.65;
+      margin-bottom: 12px;
+      border: 1px solid #dcecff;
+    }
+
+    .like {
+      height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: #f1f8ff;
+      color: var(--blue);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 13px;
+      font-weight: 720;
+    }
+
+    .small-btn {
+      height: 34px;
+      padding: 0 13px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      color: white;
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      font-size: 13px;
+      font-weight: 720;
+      box-shadow: 0 10px 20px rgba(47, 146, 244, 0.2);
+    }
+
+    .chips {
+      display: flex;
+      gap: 8px;
+      padding: 0 18px 14px;
+      overflow: hidden;
+    }
+
+    .chip {
+      height: 36px;
+      padding: 0 13px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: white;
+      color: #536173;
+      border: 1px solid var(--line);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .chip.active {
+      color: white;
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      border-color: transparent;
+      box-shadow: 0 10px 20px rgba(47, 146, 244, 0.22);
+    }
+
+    .activity-card {
+      background: white;
+      border-radius: 22px;
+      padding: 12px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(230, 237, 245, 0.9);
+      box-shadow: 0 10px 24px rgba(31, 87, 142, 0.07);
+    }
+
+    .activity-list-card {
+      background: white;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid rgba(230, 237, 245, 0.9);
+      box-shadow: 0 10px 24px rgba(31, 87, 142, 0.07);
+      margin-bottom: 14px;
+    }
+
+    .activity-cover {
+      height: 132px;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      color: white;
+      padding: 12px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .activity-cover::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(12, 35, 60, 0.16), rgba(12, 35, 60, 0.48));
+    }
+
+    .activity-cover > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .cover-pill {
+      height: 26px;
+      padding: 0 9px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      backdrop-filter: blur(12px);
+      font-size: 12px;
+      font-weight: 760;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+    }
+
+    .type-pill {
+      background: rgba(238, 247, 255, 0.94);
+      color: var(--blue);
+    }
+
+    .status-pill {
+      background: rgba(223, 250, 234, 0.94);
+      color: #17894f;
+    }
+
+    .status-pill.hot {
+      background: rgba(255, 242, 219, 0.94);
+      color: #b86a00;
+    }
+
+    .activity-list-body {
+      padding: 13px;
+    }
+
+    .activity-list-title {
+      margin: 0 0 10px;
+      font-size: 17px;
+      line-height: 1.35;
+      font-weight: 780;
+    }
+
+    .activity-facts {
+      display: grid;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      margin-bottom: 12px;
+    }
+
+    .activity-facts span {
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .activity-list-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding-top: 11px;
+      border-top: 1px solid #f0f4f8;
+    }
+
+    .activity-main {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      gap: 12px;
+    }
+
+    .activity-main img {
+      width: 92px;
+      height: 112px;
+      object-fit: cover;
+      border-radius: 17px;
+    }
+
+    .activity-title {
+      margin: 0 0 7px;
+      font-size: 16px;
+      line-height: 1.35;
+      font-weight: 760;
+    }
+
+    .meta {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .label {
+      display: inline-flex;
+      width: fit-content;
+      height: 24px;
+      align-items: center;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: #edf7ff;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 720;
+      margin-bottom: 7px;
+    }
+
+    .status-label {
+      color: var(--green);
+      background: rgba(40, 182, 111, 0.12);
+    }
+
+    .avatars {
+      display: flex;
+      align-items: center;
+    }
+
+    .avatars img,
+    .avatar-letter {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid white;
+      margin-left: -8px;
+      object-fit: cover;
+      background: linear-gradient(135deg, #def0ff, #bce0ff);
+      color: var(--blue);
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 760;
+    }
+
+    .avatars img:first-child,
+    .avatar-letter:first-child {
+      margin-left: 0;
+    }
+
+    .need {
+      margin-left: 8px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 720;
+    }
+
+    .publish-head {
+      margin: 0 18px 16px;
+      padding: 18px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      color: white;
+      box-shadow: 0 16px 32px rgba(47, 146, 244, 0.24);
+    }
+
+    .publish-head strong {
+      display: block;
+      font-size: 22px;
+      margin-bottom: 7px;
+    }
+
+    .publish-head span {
+      display: block;
+      opacity: 0.88;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .floating-publish {
+      position: absolute;
+      right: 22px;
+      bottom: 94px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      color: white;
+      font-size: 28px;
+      box-shadow: 0 16px 28px rgba(47, 146, 244, 0.28);
+      z-index: 10;
+    }
+
+    .detail-status-line {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 9px;
+    }
+
+    .detail-status-line span {
+      height: 26px;
+      padding: 0 10px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 12px;
+      backdrop-filter: blur(10px);
+    }
+
+    .type-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .type {
+      height: 68px;
+      border-radius: 18px;
+      background: white;
+      border: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      box-shadow: 0 8px 20px rgba(31, 87, 142, 0.05);
+    }
+
+    .type b {
+      font-size: 20px;
+    }
+
+    .type.active {
+      border-color: rgba(47, 146, 244, 0.46);
+      background: #f1f8ff;
+      color: var(--blue);
+      box-shadow: 0 10px 24px rgba(47, 146, 244, 0.12);
+    }
+
+    .form {
+      display: grid;
+      gap: 10px;
+    }
+
+    .field {
+      min-height: 54px;
+      padding: 12px 14px;
+      border-radius: 17px;
+      background: white;
+      border: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .field span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .field b {
+      font-size: 14px;
+      font-weight: 720;
+    }
+
+    .primary {
+      height: 50px;
+      margin-top: 6px;
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      color: white;
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      box-shadow: 0 14px 28px rgba(47, 146, 244, 0.24);
+      font-weight: 760;
+    }
+
+    .detail-photo {
+      height: 252px;
+      background:
+        linear-gradient(180deg, rgba(10, 32, 55, 0.08), rgba(10, 32, 55, 0.58)),
+        url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80") center/cover;
+      color: white;
+      position: relative;
+    }
+
+    .detail-photo .status,
+    .detail-photo .nav {
+      color: white;
+    }
+
+    .detail-title {
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      bottom: 22px;
+    }
+
+    .detail-title h4 {
+      margin: 8px 0 7px;
+      font-size: 25px;
+      line-height: 1.2;
+    }
+
+    .detail-title span {
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 13px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: -20px 18px 14px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .info-tile {
+      padding: 14px;
+      border-radius: 18px;
+      background: white;
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 24px rgba(31, 87, 142, 0.08);
+    }
+
+    .info-tile span {
+      display: block;
+      color: var(--faint);
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    .info-tile b {
+      display: block;
+      font-size: 14px;
+    }
+
+    .detail-panel {
+      margin: -22px 18px 14px;
+      position: relative;
+      z-index: 2;
+      padding: 16px;
+      border-radius: 22px;
+      background: white;
+      border: 1px solid rgba(230, 237, 245, 0.95);
+      box-shadow: 0 14px 30px rgba(31, 87, 142, 0.11);
+    }
+
+    .detail-row {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 12px;
+      padding: 11px 0;
+      border-bottom: 1px solid #f0f4f8;
+      align-items: start;
+    }
+
+    .detail-row:first-child {
+      padding-top: 0;
+    }
+
+    .detail-row:last-child {
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+
+    .detail-row span {
+      color: var(--faint);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .detail-row b {
+      color: var(--ink);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .member-card {
+      padding: 14px;
+      border-radius: 20px;
+      background: white;
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 24px rgba(31, 87, 142, 0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .member-note {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .paragraph {
+      padding: 16px;
+      border-radius: 20px;
+      background: white;
+      color: var(--muted);
+      line-height: 1.75;
+      font-size: 13px;
+      border: 1px solid var(--line);
+    }
+
+    .profile-top {
+      height: 212px;
+      color: white;
+      background:
+        linear-gradient(180deg, rgba(16, 46, 78, 0.08), rgba(16, 46, 78, 0.52)),
+        url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80") center/cover;
+      position: relative;
+    }
+
+    .profile-top .status,
+    .profile-top .nav {
+      color: white;
+    }
+
+    .profile-card {
+      margin: -48px 18px 16px;
+      position: relative;
+      z-index: 3;
+      padding: 16px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 14px 30px rgba(31, 87, 142, 0.12);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .profile-card img {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid white;
+      box-shadow: 0 10px 22px rgba(31, 87, 142, 0.14);
+      flex: 0 0 auto;
+    }
+
+    .profile-card b {
+      display: block;
+      color: var(--ink);
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+
+    .profile-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .profile-chip-row {
+      display: flex;
+      gap: 7px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .profile-chip-row i {
+      height: 24px;
+      padding: 0 9px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: #eef7ff;
+      color: var(--blue);
+      font-style: normal;
+      font-size: 11px;
+      font-weight: 720;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 9px;
+      margin: 0 18px 16px;
+      position: relative;
+      z-index: 3;
+    }
+
+    .quick {
+      height: 80px;
+      border-radius: 19px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 12px 26px rgba(31, 87, 142, 0.11);
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 4px;
+    }
+
+    .quick b {
+      font-size: 20px;
+    }
+
+    .quick span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .profile-actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .profile-action {
+      min-height: 88px;
+      padding: 14px;
+      border-radius: 22px;
+      background: white;
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 24px rgba(31, 87, 142, 0.06);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .profile-action i {
+      width: 34px;
+      height: 34px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      background: #eef7ff;
+      color: var(--blue);
+      font-style: normal;
+      font-size: 17px;
+      margin-bottom: 10px;
+    }
+
+    .profile-action b {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 3px;
+    }
+
+    .profile-action span {
+      color: var(--faint);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .menu {
+      background: white;
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 24px rgba(31, 87, 142, 0.06);
+    }
+
+    .menu-row {
+      min-height: 68px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border-bottom: 1px solid #f0f4f8;
+    }
+
+    .menu-row:last-child {
+      border-bottom: 0;
+    }
+
+    .menu-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      color: var(--blue);
+      background: #eef7ff;
+      font-size: 17px;
+      flex: 0 0 auto;
+    }
+
+    .menu-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .menu-text b {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .menu-text span {
+      display: block;
+      color: var(--faint);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .arrow {
+      color: #b6c0cc;
+      font-size: 22px;
+    }
+
+    .tabbar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 78px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding-top: 9px;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(18px);
+      border-top: 1px solid rgba(230, 237, 245, 0.9);
+      z-index: 9;
+    }
+
+    .tabbar div {
+      text-align: center;
+      color: #9aa5b2;
+      font-size: 11px;
+    }
+
+    .tabbar b {
+      display: block;
+      font-size: 19px;
+      margin-bottom: 3px;
+      font-weight: 520;
+    }
+
+    .tabbar .on {
+      color: var(--blue);
+      font-weight: 720;
+    }
+
+    .admin {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: 720px;
+      overflow: hidden;
+      border-radius: 28px;
+      background: white;
+      border: 1px solid rgba(255, 255, 255, 0.92);
+      box-shadow: var(--shadow);
+    }
+
+    .side {
+      padding: 24px;
+      background: #f3f8ff;
+      border-right: 1px solid var(--line);
+    }
+
+    .side-brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      margin-bottom: 28px;
+    }
+
+    .side-brand img {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+    }
+
+    .side-brand b {
+      font-size: 19px;
+    }
+
+    .side-menu {
+      display: grid;
+      gap: 8px;
+    }
+
+    .side-menu span {
+      padding: 12px 14px;
+      border-radius: 14px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .side-menu .active {
+      color: var(--blue);
+      background: white;
+      box-shadow: 0 8px 22px rgba(31, 87, 142, 0.06);
+      font-weight: 720;
+    }
+
+    .admin-main {
+      padding: 26px;
+    }
+
+    .admin-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      gap: 20px;
+    }
+
+    .admin-top h3 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .admin-top p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .admin-btn {
+      height: 40px;
+      padding: 0 15px;
+      display: grid;
+      place-items: center;
+      border-radius: 13px;
+      color: white;
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      font-size: 14px;
+      font-weight: 720;
+      white-space: nowrap;
+    }
+
+    .table {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .tr {
+      display: grid;
+      grid-template-columns: 1fr 110px 110px 110px 100px;
+      align-items: center;
+      min-height: 58px;
+      padding: 0 18px;
+      border-bottom: 1px solid #f0f4f8;
+      font-size: 14px;
+    }
+
+    .tr:last-child {
+      border-bottom: 0;
+    }
+
+    .th {
+      min-height: 46px;
+      background: #f8fbff;
+      color: var(--faint);
+      font-size: 12px;
+      font-weight: 720;
+    }
+
+    .cat {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 720;
+    }
+
+    .cat i {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: #eef7ff;
+      font-style: normal;
+    }
+
+    .switch {
+      width: 42px;
+      height: 24px;
+      padding: 3px;
+      border-radius: 999px;
+      background: rgba(40, 182, 111, 0.18);
+    }
+
+    .switch::after {
+      content: "";
+      display: block;
+      margin-left: auto;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .switch.off {
+      background: #e8edf3;
+    }
+
+    .switch.off::after {
+      margin-left: 0;
+      background: #a8b2bf;
+    }
+
+    .note-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .note {
+      padding: 18px;
+      border-radius: 20px;
+      background: white;
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 24px rgba(31, 87, 142, 0.06);
+    }
+
+    .note b {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .note span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 1180px) {
+      .screens {
+        grid-template-columns: repeat(2, minmax(280px, 1fr));
+      }
+
+      .cover,
+      .note-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        padding: 24px 14px 48px;
+      }
+
+      h1 {
+        font-size: 32px;
+      }
+
+      .decision-grid,
+      .screens,
+      .admin {
+        grid-template-columns: 1fr;
+      }
+
+      .side {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .tr {
+        grid-template-columns: 1fr;
+        gap: 7px;
+        padding: 14px 16px;
+      }
+
+      .th {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="cover">
+      <div>
+        <div class="brand">
+          <img src="assets/xing-logo.png" alt="行 logo">
+          <div>
+            <strong>行</strong>
+            <span>附近有人，一起出发</span>
+          </div>
+        </div>
+        <h1>一套围绕“月份景点”和“可配置活动”的完整 UI 方案</h1>
+        <p class="lead">这版把景点页从普通推荐改成按月份浏览：每个月的自然风景、花期、避暑、红叶、雪景都不同。活动发布也不再固定旅行、吃饭、露营、游戏四类，而是从后台配置活动类型，用户端自动展示。</p>
+        <div class="decision-grid">
+          <div class="decision">
+            <b>景点逻辑</b>
+            <span>月份是主筛选，点赞数决定当月排序，景点详情可直接发起“去这里”的活动。</span>
+          </div>
+          <div class="decision">
+            <b>活动逻辑</b>
+            <span>统一叫活动，旅行只是活动类型。字段由类型决定，后台可新增和启停。</span>
+          </div>
+          <div class="decision">
+            <b>MVP 顺序</b>
+            <span>先做活动闭环，再接景点月榜，最后做后台运营配置和活动质量治理。</span>
+          </div>
+        </div>
+      </div>
+      <div class="flow-card">
+        <h2 class="flow-title">推荐产品路径</h2>
+        <div class="flow">
+          <div class="flow-row"><b>01 首页</b><span>默认展示“本月值得去”和“本周可加入活动”，先给用户一个明确行动入口。</span></div>
+          <div class="flow-row"><b>02 景点</b><span>月份切换 + 当月榜单 + 点赞排序，解决“这个月份去哪儿玩”的问题。</span></div>
+          <div class="flow-row"><b>03 活动</b><span>按类型、时间、地点筛选，用户可以加入别人发的活动，也可以自己发布。</span></div>
+          <div class="flow-row"><b>04 发布</b><span>活动类型来自后台配置，新增类型后用户端无需重新设计入口。</span></div>
+          <div class="flow-row"><b>05 我的</b><span>我的发布、我的报名、通知、资料信任记录，保证线下同行更安心。</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>用户端主界面</h2>
+        <p>这组界面覆盖小程序第一版可上线的关键流程：按月份发现景点、浏览活动、动态类型发布、活动详情、我的页面。</p>
+      </div>
+      <div class="screens">
+        <div class="screen-wrap">
+          <h3>首页</h3>
+          <div class="phone">
+            <div class="status"><span>9:41</span><div class="signals"><i class="sig-dot"></i><i class="sig-dot"></i><i class="sig-dot"></i><i class="battery"></i></div></div>
+            <div class="home-safe-top"></div>
+            <div class="month-hero">
+              <div>
+                <small>今日推荐</small>
+                <strong>这个月，去哪里走走</strong>
+                <p>初夏山野、峡谷和海边都正合适，找个周末出发。</p>
+              </div>
+              <div class="hero-action-row">
+                <span>5月 · 北京周边</span>
+                <b>看看大家想去哪</b>
+              </div>
+            </div>
+            <div class="content">
+              <div class="title-row"><b>本月热门景点</b><span></span></div>
+              <div class="compact-list">
+                <div class="compact-spot">
+                  <img src="https://images.unsplash.com/photo-1473773508845-188df298d2d1?auto=format&fit=crop&w=240&q=80" alt="百花山">
+                  <div class="compact-main">
+                    <div>
+                      <div class="compact-top"><h5 class="compact-title">百花山</h5><span class="compact-rank">TOP 1</span></div>
+                      <div class="compact-desc">山花和草甸进入好看阶段，适合轻徒步。</div>
+                    </div>
+                    <div class="compact-meta"><span>5月推荐</span><b>♡ 412</b></div>
+                  </div>
+                </div>
+                <div class="compact-spot">
+                  <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=240&q=80" alt="白河峡谷">
+                  <div class="compact-main">
+                    <div>
+                      <div class="compact-top"><h5 class="compact-title">白河峡谷</h5><span class="compact-rank">TOP 2</span></div>
+                      <div class="compact-desc">亲水、露营、骑行，初夏热度很高。</div>
+                    </div>
+                    <div class="compact-meta"><span>适合露营</span><b>♡ 366</b></div>
+                  </div>
+                </div>
+                <div class="compact-spot">
+                  <img src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=240&q=80" alt="雾灵山">
+                  <div class="compact-main">
+                    <div>
+                      <div class="compact-top"><h5 class="compact-title">雾灵山</h5><span class="compact-rank">TOP 3</span></div>
+                      <div class="compact-desc">山风清爽，适合周末一日往返。</div>
+                    </div>
+                    <div class="compact-meta"><span>轻徒步</span><b>♡ 268</b></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="title-row"><b>本周可加入</b><span></span></div>
+              <div class="compact-list">
+                <div class="compact-activity">
+                  <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=240&q=80" alt="海边">
+                  <div class="compact-main">
+                    <div>
+                      <div class="compact-top"><h5 class="compact-title">阿那亚看海周末小队</h5><span class="label status-label">差1人</span></div>
+                      <div class="compact-desc">5月11日 08:30 · 国贸出发 · AA约¥260</div>
+                    </div>
+                    <div class="compact-meta"><span>旅行 · 周六</span><b>4/5人</b></div>
+                  </div>
+                </div>
+                <div class="compact-activity">
+                  <img src="https://images.unsplash.com/photo-1478144592103-25e218a04891?auto=format&fit=crop&w=240&q=80" alt="露营">
+                  <div class="compact-main">
+                    <div>
+                      <div class="compact-top"><h5 class="compact-title">白河峡谷初夏露营</h5><span class="label status-label">差2人</span></div>
+                      <div class="compact-desc">5月18日 10:00 · 朝阳集合 · 装备可拼</div>
+                    </div>
+                    <div class="compact-meta"><span>露营 · 周末</span><b>6/8人</b></div>
+                  </div>
+                </div>
+                <div class="compact-activity">
+                  <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=240&q=80" alt="饭局">
+                  <div class="compact-main">
+                    <div>
+                      <div class="compact-top"><h5 class="compact-title">三里屯新店探店局</h5><span class="label status-label">差1人</span></div>
+                      <div class="compact-desc">今晚 19:30 · 三里屯 · 人均约¥120</div>
+                    </div>
+                    <div class="compact-meta"><span>饭局 · 今晚</span><b>5/6人</b></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <nav class="tabbar"><div class="on"><b>⌂</b>首页</div><div><b>◎</b>景点</div><div><b>☷</b>活动</div><div><b>○</b>我的</div></nav>
+          </div>
+        </div>
+
+        <div class="screen-wrap">
+          <h3>景点月榜</h3>
+          <div class="phone">
+            <div class="status"><span>9:41</span><div class="signals"><i class="sig-dot"></i><i class="sig-dot"></i><i class="sig-dot"></i><i class="battery"></i></div></div>
+            <div class="nav"><h4>月度景点</h4><div class="round">↻</div></div>
+            <div class="month-strip">
+              <div class="month"><b>1</b><span>雪景</span></div>
+              <div class="month"><b>2</b><span>庙会</span></div>
+              <div class="month"><b>3</b><span>花期</span></div>
+              <div class="month"><b>4</b><span>踏青</span></div>
+              <div class="month active"><b>5</b><span>初夏</span></div>
+              <div class="month"><b>6</b><span>避暑</span></div>
+              <div class="month"><b>7</b><span>草原</span></div>
+              <div class="month"><b>8</b><span>海边</span></div>
+              <div class="month"><b>9</b><span>秋高</span></div>
+              <div class="month"><b>10</b><span>红叶</span></div>
+              <div class="month"><b>11</b><span>温泉</span></div>
+              <div class="month"><b>12</b><span>滑雪</span></div>
+            </div>
+            <div class="content">
+              <div class="title-row"><b>5月最受欢迎</b><span></span></div>
+              <div class="spot-rank-card">
+                <img src="https://images.unsplash.com/photo-1473773508845-188df298d2d1?auto=format&fit=crop&w=320&q=80" alt="百花山">
+                <div class="spot-rank-main">
+                  <div>
+                    <div class="rank">TOP 1</div>
+                    <div class="spot-title-line"><h5>百花山</h5><span class="season-tag">初夏徒步</span></div>
+                    <div class="spot-reason">山花和草甸开始进入好看阶段，适合轻徒步、摄影和露营。</div>
+                  </div>
+                  <div>
+                    <div class="spot-metrics"><span><b>412</b> 点赞</span><span><b>86</b> 人想去</span></div>
+                    <div class="spot-action-row"><div class="spot-lite-actions"><div class="ghost-btn">♡ 点赞</div><div class="ghost-btn">想去</div></div><div class="solid-btn">发起同行</div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="spot-rank-card">
+                <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=320&q=80" alt="白河峡谷">
+                <div class="spot-rank-main">
+                  <div>
+                    <div class="rank">TOP 2</div>
+                    <div class="spot-title-line"><h5>白河峡谷</h5><span class="season-tag">亲水露营</span></div>
+                    <div class="spot-reason">适合初夏玩水、露营、骑行，周末热度高。</div>
+                  </div>
+                  <div>
+                    <div class="spot-metrics"><span><b>366</b> 点赞</span><span><b>73</b> 人想去</span></div>
+                    <div class="spot-action-row"><div class="spot-lite-actions"><div class="ghost-btn">♡ 点赞</div><div class="ghost-btn">想去</div></div><div class="solid-btn">发起同行</div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="spot-rank-card">
+                <img src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=320&q=80" alt="雾灵山">
+                <div class="spot-rank-main">
+                  <div>
+                    <div class="rank">TOP 3</div>
+                    <div class="spot-title-line"><h5>雾灵山</h5><span class="season-tag">山风清爽</span></div>
+                    <div class="spot-reason">初夏温度舒服，适合周末一日往返。</div>
+                  </div>
+                  <div>
+                    <div class="spot-metrics"><span><b>268</b> 点赞</span><span><b>58</b> 人想去</span></div>
+                    <div class="spot-action-row"><div class="spot-lite-actions"><div class="ghost-btn">♡ 点赞</div><div class="ghost-btn">想去</div></div><div class="solid-btn">发起同行</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <nav class="tabbar"><div><b>⌂</b>首页</div><div class="on"><b>◎</b>景点</div><div><b>☷</b>活动</div><div><b>○</b>我的</div></nav>
+          </div>
+        </div>
+
+        <div class="screen-wrap">
+          <h3>活动列表</h3>
+          <div class="phone">
+            <div class="status"><span>9:41</span><div class="signals"><i class="sig-dot"></i><i class="sig-dot"></i><i class="sig-dot"></i><i class="battery"></i></div></div>
+            <div class="nav"><h4>活动</h4><div class="round">⌕</div></div>
+            <div class="chips">
+              <div class="chip active">全部类型 ▾</div>
+              <div class="chip">本周末 ▾</div>
+              <div class="chip">目的地 ▾</div>
+              <div class="chip">状态 ▾</div>
+            </div>
+            <div class="content">
+              <div class="activity-list-card">
+                <div class="activity-cover" style="background-image:url('https://images.unsplash.com/photo-1478144592103-25e218a04891?auto=format&fit=crop&w=720&q=80');">
+                  <span class="cover-pill type-pill">露营</span>
+                  <span class="cover-pill status-pill">招募中</span>
+                </div>
+                <div class="activity-list-body">
+                  <h5 class="activity-list-title">白河峡谷初夏露营</h5>
+                  <div class="activity-facts">
+                    <span>时间：5月18日 周六 10:00</span>
+                    <span>目的地：白河峡谷 · 集合：朝阳公园南门</span>
+                    <span>费用：AA 约 ¥220 · 装备可拼</span>
+                  </div>
+                  <div class="activity-list-footer">
+                    <div style="display:flex;align-items:center;"><div class="avatars"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80" alt=""><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&q=80" alt=""><span class="avatar-letter">行</span></div><span class="need">6/8人 · 还差2人</span></div>
+                    <span style="color:var(--faint);font-size:12px;">12分钟前</span>
+                  </div>
+                </div>
+              </div>
+              <div class="activity-list-card">
+                <div class="activity-cover" style="background-image:url('https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=720&q=80');">
+                  <span class="cover-pill type-pill">饭局</span>
+                  <span class="cover-pill status-pill hot">快满员</span>
+                </div>
+                <div class="activity-list-body">
+                  <h5 class="activity-list-title">三里屯新店探店局</h5>
+                  <div class="activity-facts">
+                    <span>时间：今晚 19:30</span>
+                    <span>目的地：三里屯 · 集合：太古里北区门口</span>
+                    <span>费用：人均约 ¥120 · 新店探店</span>
+                  </div>
+                  <div class="activity-list-footer">
+                    <div style="display:flex;align-items:center;"><div class="avatars"><span class="avatar-letter">林</span><span class="avatar-letter">周</span><span class="avatar-letter">行</span></div><span class="need">5/6人 · 还差1人</span></div>
+                    <span style="color:var(--faint);font-size:12px;">32分钟前</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="floating-publish">＋</div>
+            <nav class="tabbar"><div><b>⌂</b>首页</div><div><b>◎</b>景点</div><div class="on"><b>☷</b>活动</div><div><b>○</b>我的</div></nav>
+          </div>
+        </div>
+
+        <div class="screen-wrap">
+          <h3>发布活动</h3>
+          <div class="phone">
+            <div class="status"><span>9:41</span><div class="signals"><i class="sig-dot"></i><i class="sig-dot"></i><i class="sig-dot"></i><i class="battery"></i></div></div>
+            <div class="nav"><h4>发布</h4><div class="round">×</div></div>
+            <div class="publish-head"><strong>发起一个活动</strong><span>选好类型，填写时间地点和人数，就可以邀请附近的人一起加入。</span></div>
+            <div class="content">
+              <div class="title-row"><b>选择活动类型</b><span></span></div>
+              <div class="type-grid">
+                <div class="type active"><b>🏔</b><span>旅行</span></div>
+                <div class="type"><b>🍜</b><span>饭局</span></div>
+                <div class="type"><b>⛺</b><span>露营</span></div>
+                <div class="type"><b>🎲</b><span>桌游</span></div>
+                <div class="type"><b>📷</b><span>摄影</span></div>
+                <div class="type"><b>🚴</b><span>骑行</span></div>
+                <div class="type"><b>🎤</b><span>K歌</span></div>
+                <div class="type"><b>＋</b><span>更多</span></div>
+              </div>
+              <div class="form">
+                <div class="field"><span>活动标题</span><b>雾灵山轻徒步一日</b></div>
+                <div class="field"><span>活动地点</span><b>雾灵山</b></div>
+                <div class="field"><span>时间</span><b>5月12日 周日</b></div>
+                <div class="field"><span>集合地</span><b>国贸地铁站</b></div>
+                <div class="field"><span>人数</span><b>4-6人</b></div>
+                <div class="field"><span>费用方式</span><b>AA / 约 ¥180</b></div>
+                <div class="primary">发布活动</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen-wrap">
+          <h3>活动详情</h3>
+          <div class="phone">
+            <div class="detail-photo">
+              <div class="status"><span>9:41</span><div class="signals"><i class="sig-dot"></i><i class="sig-dot"></i><i class="sig-dot"></i><i class="battery"></i></div></div>
+              <div class="nav"><div class="round" style="color:white;background:rgba(255,255,255,.18);">‹</div><div class="round" style="color:white;background:rgba(255,255,255,.18);">↗</div></div>
+              <div class="detail-title"><span class="cover-pill type-pill">旅行</span><h4>阿那亚看海周末小队</h4><span>由 林小夏 发起</span><div class="detail-status-line"><span>招募中</span><span>3/5人 · 还差2人</span></div></div>
+            </div>
+            <div class="detail-panel">
+              <div class="detail-row"><span>时间</span><b>5月11日 周六 08:30 出发，5月12日 18:00 返回</b></div>
+              <div class="detail-row"><span>目的地</span><b>阿那亚海边 · 北戴河新区</b></div>
+              <div class="detail-row"><span>集合地</span><b>国贸地铁站 F 口集合，自驾 2 车同行</b></div>
+              <div class="detail-row"><span>人数</span><b>3/5 人 · 还差 2 人</b></div>
+              <div class="detail-row"><span>费用</span><b>AA 约 ¥260，包含油费、高速费、停车费</b></div>
+            </div>
+            <div class="content">
+              <div class="title-row"><b>活动说明</b><span></span></div>
+              <div class="paragraph">周六早上北京出发，下午到海边散步拍照，晚上看日落。适合轻松旅行，不赶景点。希望同行的人守时、好沟通。</div>
+              <div class="title-row"><b>同行成员</b><span>还差2人</span></div>
+              <div class="member-card"><div style="display:flex;align-items:center;"><div class="avatars"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80" alt=""><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&q=80" alt=""><span class="avatar-letter">行</span></div><span class="need">3人已加入</span></div><span class="member-note">发起人已认证</span></div>
+              <div class="primary">申请加入</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen-wrap">
+          <h3>我的</h3>
+          <div class="phone">
+            <div class="profile-top">
+              <div class="status"><span>9:41</span><div class="signals"><i class="sig-dot"></i><i class="sig-dot"></i><i class="sig-dot"></i><i class="battery"></i></div></div>
+              <div class="nav"><h4>我的</h4><div class="round" style="color:white;background:rgba(255,255,255,.18);">⚙</div></div>
+            </div>
+            <div class="profile-card"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" alt=""><div><b>旅行者</b><span>周末不宅，附近走走</span><div class="profile-chip-row"><i>已认证</i><i>北京</i></div></div></div>
+            <div class="quick-grid">
+              <div class="quick"><b>8</b><span>已参加</span></div>
+              <div class="quick"><b>3</b><span>发起</span></div>
+              <div class="quick"><b>26</b><span>想去</span></div>
+            </div>
+            <div class="content">
+              <div class="profile-actions">
+                <div class="profile-action"><i>☑</i><div><b>我的活动</b><span>报名和发起</span></div></div>
+                <div class="profile-action"><i>↗</i><div><b>待处理</b><span>2 条新通知</span></div></div>
+              </div>
+              <div class="menu">
+                <div class="menu-row"><div class="menu-icon">♡</div><div class="menu-text"><b>想去景点</b><span>收藏的月度目的地</span></div><span class="arrow">›</span></div>
+                <div class="menu-row"><div class="menu-icon">✓</div><div class="menu-text"><b>资料与认证</b><span>头像、昵称和信任资料</span></div><span class="arrow">›</span></div>
+                <div class="menu-row"><div class="menu-icon">?</div><div class="menu-text"><b>帮助与反馈</b><span>建议、问题和关于我们</span></div><span class="arrow">›</span></div>
+              </div>
+            </div>
+            <nav class="tabbar"><div><b>⌂</b>首页</div><div><b>◎</b>景点</div><div><b>☷</b>活动</div><div class="on"><b>○</b>我的</div></nav>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>后台配置界面</h2>
+        <p>活动类型不写死在前端。后台可以新增类型、设置图标、排序、是否展示、是否需要费用字段、是否需要集合地字段。用户端发布页读取配置后自动渲染。</p>
+      </div>
+      <div class="admin">
+        <aside class="side">
+          <div class="side-brand"><img src="assets/xing-logo.png" alt="行 logo"><b>行 Admin</b></div>
+          <div class="side-menu">
+            <span>数据概览</span>
+            <span>景点管理</span>
+            <span class="active">活动类型</span>
+            <span>活动审核</span>
+            <span>用户反馈</span>
+            <span>系统设置</span>
+          </div>
+        </aside>
+        <section class="admin-main">
+          <div class="admin-top">
+            <div>
+              <h3>活动类型配置</h3>
+              <p>这里新增的类型会出现在小程序发布页和活动筛选栏。排序越小越靠前，关闭后用户端隐藏但历史活动保留。</p>
+            </div>
+            <div class="admin-btn">新增类型</div>
+          </div>
+          <div class="table">
+            <div class="tr th"><span>类型</span><span>排序</span><span>发布字段</span><span>状态</span><span>操作</span></div>
+            <div class="tr"><div class="cat"><i>🏔</i>旅行</div><span>1</span><span>地点 / 集合地 / 费用</span><div class="switch"></div><span style="color:var(--blue);">编辑</span></div>
+            <div class="tr"><div class="cat"><i>🍜</i>饭局</div><span>2</span><span>地点 / 人均 / 时间</span><div class="switch"></div><span style="color:var(--blue);">编辑</span></div>
+            <div class="tr"><div class="cat"><i>⛺</i>露营</div><span>3</span><span>地点 / 装备 / 费用</span><div class="switch"></div><span style="color:var(--blue);">编辑</span></div>
+            <div class="tr"><div class="cat"><i>🎲</i>桌游</div><span>4</span><span>地点 / 门槛 / 人数</span><div class="switch"></div><span style="color:var(--blue);">编辑</span></div>
+            <div class="tr"><div class="cat"><i>🎤</i>K歌</div><span>8</span><span>地点 / 费用 / 时间</span><div class="switch off"></div><span style="color:var(--blue);">编辑</span></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>设计落地要点</h2>
+      </div>
+      <div class="note-grid">
+        <div class="note"><b>月份景点模型</b><span>景点不要只有全局热度，建议有 monthStats：month、likeCount、reasonTags、seasonText。用户切换月份时读取对应榜单。</span></div>
+        <div class="note"><b>活动类型模型</b><span>类型配置建议包含 name、icon、sort、enabled、coverPreset、requiredFields、optionalFields。发布页完全读取配置。</span></div>
+        <div class="note"><b>命名与视觉</b><span>小程序名用“行”，页面里用“同行”“想去”“发起活动”这些动作词，让一个字品牌更容易被理解。</span></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

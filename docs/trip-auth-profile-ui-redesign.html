@@ -1,0 +1,922 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>行程 / 登录 / 我的页面 UI 重设计稿</title>
+  <style>
+    :root {
+      --blue: #4990e2;
+      --blue-2: #6fb1fc;
+      --blue-soft: #eef6ff;
+      --ink: #1d1d1f;
+      --muted: #7d8794;
+      --faint: #a7b0bc;
+      --line: #e8edf5;
+      --paper: #ffffff;
+      --bg: #f5f8fc;
+      --green: #34c759;
+      --orange: #ff9f0a;
+      --red: #ff5b5f;
+      --shadow: 0 14px 34px rgba(36, 72, 112, 0.11);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 9% 5%, rgba(73, 144, 226, 0.18), transparent 24%),
+        radial-gradient(circle at 92% 16%, rgba(111, 177, 252, 0.16), transparent 24%),
+        linear-gradient(180deg, #f9fbff 0%, #eef4fb 100%);
+      min-height: 100vh;
+      letter-spacing: 0;
+    }
+
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 36px 24px 56px;
+    }
+
+    .brief {
+      display: flex;
+      justify-content: space-between;
+      gap: 28px;
+      align-items: flex-end;
+      margin-bottom: 30px;
+    }
+
+    .brief h1 {
+      margin: 0 0 10px;
+      font-size: 30px;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    .brief p {
+      margin: 0;
+      max-width: 710px;
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--muted);
+    }
+
+    .principles {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .principles span {
+      padding: 8px 12px;
+      border: 1px solid rgba(73, 144, 226, 0.14);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      color: #407ec8;
+      font-size: 12px;
+      box-shadow: 0 8px 24px rgba(36, 72, 112, 0.06);
+    }
+
+    .screens {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(300px, 1fr));
+      gap: 26px;
+      align-items: start;
+    }
+
+    .screen-wrap h2 {
+      margin: 0 0 14px;
+      font-size: 17px;
+      font-weight: 650;
+    }
+
+    .phone {
+      width: 100%;
+      max-width: 390px;
+      min-height: 812px;
+      margin: 0 auto;
+      border-radius: 34px;
+      background: var(--bg);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.86);
+      position: relative;
+    }
+
+    .statusbar {
+      height: 42px;
+      padding: 13px 22px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      font-size: 12px;
+      font-weight: 650;
+      color: rgba(29, 29, 31, 0.82);
+      position: relative;
+      z-index: 2;
+    }
+
+    .signals {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .bar {
+      width: 16px;
+      height: 8px;
+      border-radius: 3px;
+      border: 1.5px solid currentColor;
+    }
+
+    .dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .app-title {
+      padding: 4px 22px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 2;
+    }
+
+    .app-title h3 {
+      margin: 0;
+      font-size: 23px;
+      font-weight: 700;
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(73, 144, 226, 0.12);
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--blue);
+      font-size: 17px;
+      box-shadow: 0 8px 22px rgba(36, 72, 112, 0.08);
+    }
+
+    .trip-hero {
+      margin: 0 18px 14px;
+      padding: 18px;
+      min-height: 142px;
+      border-radius: 24px;
+      background:
+        linear-gradient(135deg, rgba(11, 35, 65, 0.55), rgba(42, 111, 178, 0.18)),
+        url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80") center/cover;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 16px 34px rgba(24, 74, 130, 0.22);
+    }
+
+    .kicker {
+      font-size: 12px;
+      opacity: 0.88;
+    }
+
+    .trip-hero strong {
+      display: block;
+      margin-top: 7px;
+      font-size: 25px;
+      line-height: 1.2;
+      max-width: 260px;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .hero-stats span {
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(10px);
+      font-size: 12px;
+    }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      padding: 0 18px 14px;
+      overflow: hidden;
+    }
+
+    .chip {
+      height: 36px;
+      padding: 0 13px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: 999px;
+      background: white;
+      color: #45546a;
+      border: 1px solid var(--line);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .chip.active {
+      color: white;
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      border-color: transparent;
+      box-shadow: 0 9px 18px rgba(73, 144, 226, 0.22);
+    }
+
+    .trip-feed {
+      padding: 0 18px 118px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .trip-card {
+      background: white;
+      border-radius: 22px;
+      padding: 12px;
+      box-shadow: 0 9px 22px rgba(36, 72, 112, 0.07);
+      border: 1px solid rgba(232, 237, 245, 0.9);
+    }
+
+    .trip-main {
+      display: grid;
+      grid-template-columns: 96px 1fr;
+      gap: 12px;
+    }
+
+    .trip-img {
+      width: 96px;
+      height: 112px;
+      border-radius: 17px;
+      object-fit: cover;
+    }
+
+    .trip-content {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 2px 0;
+    }
+
+    .trip-top {
+      display: flex;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .trip-name {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .status {
+      padding: 4px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .status.good {
+      color: #0b8e3b;
+      background: rgba(52, 199, 89, 0.12);
+    }
+
+    .status.hot {
+      color: #bd6d00;
+      background: rgba(255, 159, 10, 0.14);
+    }
+
+    .meta {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .trip-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 10px;
+      margin-top: 10px;
+      border-top: 1px solid #f0f3f8;
+    }
+
+    .avatars {
+      display: flex;
+      align-items: center;
+    }
+
+    .avatars img,
+    .avatar-letter {
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      border: 2px solid white;
+      margin-left: -8px;
+      object-fit: cover;
+      background: linear-gradient(135deg, #dfeeff, #b8d8ff);
+      color: #3477bf;
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .avatars img:first-child,
+    .avatar-letter:first-child {
+      margin-left: 0;
+    }
+
+    .need {
+      font-size: 12px;
+      color: var(--blue);
+      font-weight: 650;
+      margin-left: 8px;
+    }
+
+    .time {
+      font-size: 11px;
+      color: var(--faint);
+    }
+
+    .fab {
+      position: absolute;
+      right: 22px;
+      bottom: 30px;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      color: white;
+      display: grid;
+      place-items: center;
+      font-size: 32px;
+      box-shadow: 0 16px 30px rgba(73, 144, 226, 0.32);
+    }
+
+    .auth-screen {
+      background: linear-gradient(180deg, #eef6ff 0%, #ffffff 100%);
+    }
+
+    .auth-bg {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .glow {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(42px);
+      opacity: 0.34;
+    }
+
+    .glow.one {
+      width: 250px;
+      height: 250px;
+      left: -88px;
+      top: -62px;
+      background: var(--blue);
+    }
+
+    .glow.two {
+      width: 220px;
+      height: 220px;
+      right: -84px;
+      bottom: 12px;
+      background: #7bb8ff;
+    }
+
+    .back {
+      position: absolute;
+      top: 54px;
+      left: 18px;
+      z-index: 3;
+    }
+
+    .auth-content {
+      position: relative;
+      z-index: 2;
+      min-height: 760px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 32px;
+      text-align: center;
+    }
+
+    .logo {
+      width: 74px;
+      height: 74px;
+      border-radius: 22px;
+      display: grid;
+      place-items: center;
+      color: white;
+      font-size: 29px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      box-shadow: 0 14px 32px rgba(73, 144, 226, 0.28);
+      margin-bottom: 24px;
+    }
+
+    .auth-content h3 {
+      margin: 0 0 10px;
+      font-size: 23px;
+    }
+
+    .auth-content p {
+      margin: 0 0 38px;
+      color: #8a8f98;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .primary-btn {
+      width: 100%;
+      height: 52px;
+      border-radius: 15px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      color: white;
+      font-size: 16px;
+      font-weight: 650;
+      box-shadow: 0 12px 26px rgba(73, 144, 226, 0.24);
+    }
+
+    .agreement {
+      display: flex;
+      gap: 8px;
+      margin-top: 17px;
+      align-items: flex-start;
+      color: #9da4ad;
+      font-size: 12px;
+      line-height: 1.6;
+      text-align: left;
+    }
+
+    .check {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: white;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      flex: 0 0 auto;
+      margin-top: 1px;
+    }
+
+    .profile-top {
+      position: relative;
+      height: 276px;
+      color: white;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(14, 36, 62, 0.15), rgba(14, 36, 62, 0.7)),
+        url("https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=900&q=80") center/cover;
+    }
+
+    .profile-top .statusbar,
+    .profile-top .app-title {
+      color: white;
+    }
+
+    .profile-user {
+      position: absolute;
+      left: 22px;
+      right: 22px;
+      bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .profile-avatar {
+      width: 74px;
+      height: 74px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.92);
+      object-fit: cover;
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.22);
+    }
+
+    .profile-name {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .profile-name strong {
+      display: block;
+      font-size: 22px;
+      margin-bottom: 5px;
+    }
+
+    .profile-name span {
+      display: block;
+      color: rgba(255, 255, 255, 0.84);
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .profile-body {
+      padding: 16px 18px 110px;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: -42px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .quick {
+      height: 86px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      box-shadow: 0 12px 26px rgba(36, 72, 112, 0.12);
+      display: grid;
+      place-items: center;
+      gap: 4px;
+      align-content: center;
+    }
+
+    .quick b {
+      font-size: 20px;
+      color: var(--ink);
+    }
+
+    .quick span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .section-title {
+      margin: 24px 4px 10px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .menu {
+      background: white;
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid rgba(232, 237, 245, 0.9);
+      box-shadow: 0 9px 22px rgba(36, 72, 112, 0.06);
+    }
+
+    .menu-row {
+      min-height: 62px;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 0 16px;
+      border-bottom: 1px solid #f0f3f8;
+    }
+
+    .menu-row:last-child {
+      border-bottom: 0;
+    }
+
+    .menu-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      background: #eef6ff;
+      color: var(--blue);
+      font-size: 17px;
+      flex: 0 0 auto;
+    }
+
+    .menu-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .menu-text strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 2px;
+    }
+
+    .menu-text span {
+      display: block;
+      color: var(--faint);
+      font-size: 12px;
+    }
+
+    .badge {
+      min-width: 22px;
+      height: 22px;
+      padding: 0 7px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      color: white;
+      background: var(--red);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .arrow {
+      color: #b8c0cc;
+      font-size: 22px;
+    }
+
+    .tabbar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 78px;
+      background: rgba(255, 255, 255, 0.94);
+      border-top: 1px solid rgba(232, 237, 245, 0.9);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding-top: 9px;
+      backdrop-filter: blur(18px);
+    }
+
+    .tabbar div {
+      text-align: center;
+      color: #9aa3af;
+      font-size: 11px;
+    }
+
+    .tabbar b {
+      display: block;
+      font-size: 19px;
+      margin-bottom: 3px;
+      font-weight: 500;
+    }
+
+    .tabbar .on {
+      color: var(--blue);
+      font-weight: 650;
+    }
+
+    @media (max-width: 1060px) {
+      .screens {
+        grid-template-columns: 1fr;
+      }
+
+      .brief {
+        display: block;
+      }
+
+      .principles {
+        justify-content: flex-start;
+        margin-top: 18px;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .page {
+        padding: 22px 12px 36px;
+      }
+
+      .phone {
+        border-radius: 26px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="brief">
+      <div>
+        <h1>核心页面 UI 重设计稿</h1>
+        <p>基于当前 `pages/auth/auth` 的蓝白渐变、柔和光感和简洁按钮语言，统一重设计 `pages/trip-list/trip-list`、`pages/auth/auth`、`pages/profile/profile`。目标是让行程页更有旅行感和行动引导，我的页更像产品内的个人中心，同时保留登录页已经成立的轻盈气质。</p>
+      </div>
+      <div class="principles">
+        <span>蓝白主视觉</span>
+        <span>图片先行</span>
+        <span>信息密度提升</span>
+        <span>卡片更轻</span>
+      </div>
+    </section>
+
+    <section class="screens">
+      <div class="screen-wrap">
+        <h2>行程页 trip-list</h2>
+        <div class="phone">
+          <div class="statusbar">
+            <span>9:41</span>
+            <div class="signals"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="bar"></span></div>
+          </div>
+          <div class="app-title">
+            <h3>找同行</h3>
+            <div class="icon-btn">⌕</div>
+          </div>
+          <div class="trip-hero">
+            <div>
+              <span class="kicker">本周热门目的地</span>
+              <strong>去山里、海边，或城市边缘透口气</strong>
+            </div>
+            <div class="hero-stats">
+              <span>24 个招募中</span>
+              <span>最近 2 小时更新</span>
+            </div>
+          </div>
+          <div class="filters">
+            <div class="chip active">目的地 ▾</div>
+            <div class="chip">出发地 ▾</div>
+            <div class="chip">本周末 ▾</div>
+          </div>
+          <div class="trip-feed">
+            <article class="trip-card">
+              <div class="trip-main">
+                <img class="trip-img" alt="海边目的地" src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=360&q=80">
+                <div class="trip-content">
+                  <div>
+                    <div class="trip-top">
+                      <h4 class="trip-name">阿那亚看海周末小队</h4>
+                      <span class="status good">招募中</span>
+                    </div>
+                    <div class="meta">
+                      <span>5月11日 周六 · 北京出发</span>
+                      <span>自驾 2 车 · AA 约 ¥260</span>
+                    </div>
+                  </div>
+                  <div class="trip-bottom">
+                    <div style="display:flex;align-items:center;">
+                      <div class="avatars">
+                        <img alt="avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80">
+                        <img alt="avatar" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&q=80">
+                        <span class="avatar-letter">北</span>
+                      </div>
+                      <span class="need">还差2人</span>
+                    </div>
+                    <span class="time">18分钟前</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+            <article class="trip-card">
+              <div class="trip-main">
+                <img class="trip-img" alt="山野目的地" src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=360&q=80">
+                <div class="trip-content">
+                  <div>
+                    <div class="trip-top">
+                      <h4 class="trip-name">雾灵山轻徒步一日</h4>
+                      <span class="status hot">快满员</span>
+                    </div>
+                    <div class="meta">
+                      <span>5月12日 周日 · 国贸集合</span>
+                      <span>包车 · AA 约 ¥180</span>
+                    </div>
+                  </div>
+                  <div class="trip-bottom">
+                    <div style="display:flex;align-items:center;">
+                      <div class="avatars">
+                        <img alt="avatar" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=80&q=80">
+                        <img alt="avatar" src="https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=80&q=80">
+                        <img alt="avatar" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=80&q=80">
+                      </div>
+                      <span class="need">还差1人</span>
+                    </div>
+                    <span class="time">1小时前</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+          <div class="fab">+</div>
+          <nav class="tabbar">
+            <div class="on"><b>⌂</b>行程</div>
+            <div><b>◇</b>发现</div>
+            <div><b>☷</b>消息</div>
+            <div><b>○</b>我的</div>
+          </nav>
+        </div>
+      </div>
+
+      <div class="screen-wrap">
+        <h2>登录页 auth</h2>
+        <div class="phone auth-screen">
+          <div class="auth-bg">
+            <div class="glow one"></div>
+            <div class="glow two"></div>
+          </div>
+          <div class="statusbar">
+            <span>9:41</span>
+            <div class="signals"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="bar"></span></div>
+          </div>
+          <div class="icon-btn back">‹</div>
+          <div class="auth-content">
+            <div class="logo">行</div>
+            <h3>欢迎使用</h3>
+            <p>一键登录后即可查看完整内容<br>开启你的专属行程体验</p>
+            <div class="primary-btn">微信一键登录</div>
+            <div class="agreement">
+              <span class="check">✓</span>
+              <span>登录即表示同意 <span style="color:var(--blue);">用户协议</span> 与 <span style="color:var(--blue);">隐私政策</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-wrap">
+        <h2>我的页 profile</h2>
+        <div class="phone">
+          <section class="profile-top">
+            <div class="statusbar">
+              <span>9:41</span>
+              <div class="signals"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="bar"></span></div>
+            </div>
+            <div class="app-title">
+              <h3>我的</h3>
+              <div class="icon-btn" style="color:white;background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.22);">⚙</div>
+            </div>
+            <div class="profile-user">
+              <img class="profile-avatar" alt="用户头像" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=160&q=80">
+              <div class="profile-name">
+                <strong>旅行者</strong>
+                <span>喜欢户外运动，周末出游</span>
+              </div>
+            </div>
+          </section>
+          <section class="profile-body">
+            <div class="quick-grid">
+              <div class="quick"><b>8</b><span>已参加</span></div>
+              <div class="quick"><b>3</b><span>发起行程</span></div>
+              <div class="quick"><b>12</b><span>关注者</span></div>
+            </div>
+            <div class="section-title">常用功能</div>
+            <div class="menu">
+              <div class="menu-row">
+                <div class="menu-icon">☑</div>
+                <div class="menu-text"><strong>我的行程</strong><span>管理发起和参与的出行</span></div>
+                <span class="arrow">›</span>
+              </div>
+              <div class="menu-row">
+                <div class="menu-icon">↗</div>
+                <div class="menu-text"><strong>行程通知</strong><span>报名、审核与同行消息</span></div>
+                <span class="badge">2</span>
+                <span class="arrow">›</span>
+              </div>
+              <div class="menu-row">
+                <div class="menu-icon">＋</div>
+                <div class="menu-text"><strong>上传景点</strong><span>补充你发现的周边好去处</span></div>
+                <span class="arrow">›</span>
+              </div>
+            </div>
+            <div class="section-title">支持</div>
+            <div class="menu">
+              <div class="menu-row">
+                <div class="menu-icon">?</div>
+                <div class="menu-text"><strong>提交建议</strong><span>告诉我们哪里还可以更顺手</span></div>
+                <span class="arrow">›</span>
+              </div>
+              <div class="menu-row">
+                <div class="menu-icon">i</div>
+                <div class="menu-text"><strong>关于我们</strong><span>产品介绍、协议与版本信息</span></div>
+                <span class="arrow">›</span>
+              </div>
+            </div>
+          </section>
+          <nav class="tabbar">
+            <div><b>⌂</b>行程</div>
+            <div><b>◇</b>发现</div>
+            <div><b>☷</b>消息</div>
+            <div class="on"><b>○</b>我的</div>
+          </nav>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

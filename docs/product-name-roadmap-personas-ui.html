@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>小程序命名、规划与视觉方向</title>
+  <style>
+    :root {
+      --blue: #4990e2;
+      --blue-2: #6fb1fc;
+      --ink: #1d1d1f;
+      --muted: #6f7785;
+      --line: #e8eef7;
+      --bg: #f5f9ff;
+      --card: #ffffff;
+      --green: #34c759;
+      --orange: #ff9f0a;
+      --shadow: 0 18px 44px rgba(36, 72, 112, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 2%, rgba(73, 144, 226, 0.16), transparent 25%),
+        radial-gradient(circle at 92% 8%, rgba(111, 177, 252, 0.14), transparent 24%),
+        linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);
+      letter-spacing: 0;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 40px 24px 64px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 30px;
+      align-items: center;
+      margin-bottom: 34px;
+    }
+
+    h1 {
+      margin: 0 0 14px;
+      font-size: 38px;
+      line-height: 1.16;
+      font-weight: 750;
+    }
+
+    .lead {
+      margin: 0;
+      max-width: 650px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.85;
+    }
+
+    .name-card {
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: 28px;
+      padding: 26px;
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: 94px 1fr;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .app-icon {
+      width: 94px;
+      height: 94px;
+      border-radius: 24px;
+      object-fit: cover;
+      box-shadow: 0 16px 34px rgba(73, 144, 226, 0.24);
+    }
+
+    .name-card small {
+      display: block;
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .name-card strong {
+      display: block;
+      font-size: 31px;
+      margin-bottom: 8px;
+    }
+
+    .name-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin: 22px 0 34px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 10px 28px rgba(36, 72, 112, 0.06);
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .card p,
+    .card li {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .card p {
+      margin: 0;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 19px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: #edf6ff;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .section {
+      margin-top: 34px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 16px;
+    }
+
+    .section h2 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .section-head p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+      max-width: 620px;
+    }
+
+    .roadmap {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .step {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 18px;
+      min-height: 172px;
+    }
+
+    .step b {
+      display: block;
+      color: var(--blue);
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .step strong {
+      display: block;
+      font-size: 17px;
+      margin-bottom: 10px;
+    }
+
+    .step span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .visual {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .visual img {
+      width: 100%;
+      height: 100%;
+      min-height: 320px;
+      object-fit: cover;
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      background: white;
+    }
+
+    .names {
+      display: grid;
+      gap: 12px;
+    }
+
+    .name-option {
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: white;
+    }
+
+    .name-option strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 17px;
+    }
+
+    .name-option span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .recommended {
+      border-color: rgba(73, 144, 226, 0.38);
+      background: linear-gradient(180deg, #ffffff 0%, #f4f9ff 100%);
+      box-shadow: 0 12px 26px rgba(73, 144, 226, 0.1);
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .grid,
+      .roadmap,
+      .visual {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 520px) {
+      main {
+        padding: 26px 14px 44px;
+      }
+
+      h1 {
+        font-size: 30px;
+      }
+
+      .name-card {
+        grid-template-columns: 72px 1fr;
+        padding: 18px;
+      }
+
+      .app-icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 18px;
+      }
+
+      .name-card strong {
+        font-size: 25px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div>
+        <h1>先做“同城约伴”，再长成“周边活动社区”</h1>
+        <p class="lead">你的三个痛点不是三条完全分散的产品线。景点榜单解决“去哪儿”，行程和活动解决“和谁去、一起做什么”。当前最适合先把第二点做扎实，然后把第三点并入同一套发布系统：发布的不是单纯行程，而是“活动”。旅行、吃饭、露营、游戏都只是活动类型。</p>
+      </div>
+      <div class="name-card">
+        <img class="app-icon" src="assets/nearby-companion-app-icon.png" alt="近伴 app icon">
+        <div>
+          <small>推荐名称</small>
+          <strong>近伴</strong>
+          <p>“附近的人，一起出发”。名字短、好记，不把产品锁死在旅游里，后续扩展吃饭、露营、桌游、城市活动都自然。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <span class="tag">功能 1</span>
+        <h2>景点月榜</h2>
+        <p>用户选择月份，看到北京及周边当月热门景点。点赞越多排序越靠前。它更像内容入口和灵感入口，适合第二阶段做。</p>
+      </article>
+      <article class="card">
+        <span class="tag">功能 2</span>
+        <h2>同行招募</h2>
+        <p>这是当前 MVP 核心。用户发布行程，附近或同城用户报名/加入，形成真实线下出行关系。先把这条链路做顺。</p>
+      </article>
+      <article class="card">
+        <span class="tag">功能 3</span>
+        <h2>活动发布</h2>
+        <p>建议和行程页合并。把“行程”升级成“活动”，字段加活动类型即可：旅行、吃饭、露营、游戏、徒步、摄影。</p>
+      </article>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>命名备选</h2>
+        <p>优先选不太窄、容易口口相传、能覆盖旅行和本地活动的名字。</p>
+      </div>
+      <div class="names">
+        <div class="name-option recommended">
+          <strong>近伴</strong>
+          <span>推荐。强调附近、陪伴、一起出发，适合从旅行扩展到饭局、露营、游戏。</span>
+        </div>
+        <div class="name-option">
+          <strong>周末搭子</strong>
+          <span>更年轻、更社交，但稍微偏口语，适合轻松活动社区。</span>
+        </div>
+        <div class="name-option">
+          <strong>北边走走</strong>
+          <span>有北京周边气质，适合旅行感，但后续扩展到吃饭游戏会稍窄。</span>
+        </div>
+        <div class="name-option">
+          <strong>同去</strong>
+          <span>极简，表达明确，但需要更强视觉识别来撑起品牌记忆。</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>推荐规划</h2>
+        <p>不要一开始同时做太多入口。先验证“发布 - 报名 - 成行 - 评价/沉淀”的闭环。</p>
+      </div>
+      <div class="roadmap">
+        <div class="step">
+          <b>Phase 1</b>
+          <strong>活动招募 MVP</strong>
+          <span>保留当前行程页，但数据模型改成活动：类型、地点、时间、人数、费用、集合地、说明、报名状态。</span>
+        </div>
+        <div class="step">
+          <b>Phase 2</b>
+          <strong>活动类型扩展</strong>
+          <span>旅行之外增加吃饭、露营、游戏、徒步。列表筛选改成活动类型 + 时间 + 地点。</span>
+        </div>
+        <div class="step">
+          <b>Phase 3</b>
+          <strong>景点月榜</strong>
+          <span>上线月份榜单、点赞排序、景点详情。景点详情页里可以直接发起“去这里”的活动。</span>
+        </div>
+        <div class="step">
+          <b>Phase 4</b>
+          <strong>信任与留存</strong>
+          <span>加入报名审核、活动通知、用户主页、参加记录、活动评价，让陌生人线下同行更安心。</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>三个人物与 UI 方向</h2>
+        <p>三个人物分别代表户外旅行者、饭局/活动组织者、露营游戏参与者。UI 图里把景点月榜、同行招募、发布活动放在同一个产品体系里。</p>
+      </div>
+      <div class="visual">
+        <img src="assets/nearby-companion-personas-ui.png" alt="三个人物与 UI 概念图">
+        <div class="card">
+          <h2>页面结构建议</h2>
+          <ul>
+            <li>首页：活动列表，默认展示本周末/附近/热门。</li>
+            <li>发布：统一叫“发布活动”，活动类型包含旅行、吃饭、露营、游戏。</li>
+            <li>景点：第二阶段做“月度热门景点”，景点可点赞，也可一键发起活动。</li>
+            <li>我的：我的活动、报名通知、资料认证、历史参与。</li>
+            <li>登录：延续当前蓝白轻量风格，不需要大改。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
