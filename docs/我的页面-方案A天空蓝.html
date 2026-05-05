@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>我的页面 - 方案A: 天空蓝</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      background: #1a1a2e;
+      padding: 40px 20px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .phone-frame {
+      width: 375px;
+      height: 812px;
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      position: relative;
+    }
+
+    .scroll-container {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-bottom: 100px;
+      scroll-behavior: smooth;
+    }
+
+    .scroll-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    .status-bar {
+      height: 44px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      font-size: 14px;
+      color: white;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 天空蓝配色 */
+    .theme-sky {
+      --primary: #8FB8DE;
+      --primary-light: #B5D4E8;
+      --primary-bg: #F0F7FC;
+      --accent: #FFB6B9;
+      --accent-light: #FFDDE0;
+      --secondary: #A8E6CF;
+      --secondary-light: #D4F0E4;
+      --tertiary: #C5B4E3;
+      --tertiary-light: #E8E0F4;
+      --bg: #FAFCFD;
+      --text-primary: #3D4852;
+      --text-secondary: #6B7C8A;
+      --text-hint: #9EAAB5;
+      --border: #EDF2F5;
+    }
+
+    .theme-sky .phone-frame {
+      background: var(--bg);
+    }
+
+    /* 头部 - 带背景图 */
+    .profile-header {
+      padding: 60px 24px 40px;
+      position: relative;
+      overflow: hidden;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    /* 渐变遮罩层 */
+    .profile-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.3) 0%,
+        rgba(0, 0, 0, 0.4) 50%,
+        rgba(0, 0, 0, 0.5) 100%
+      );
+      z-index: 1;
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .avatar {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-light), var(--accent-light));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      border: 3px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      flex: 1;
+      text-align: left;
+    }
+
+    .user-name {
+      font-size: 22px;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 6px;
+      letter-spacing: 0.3px;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .user-id {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.85);
+      font-weight: 400;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 信息条 - 简洁版 */
+    .info-list {
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .info-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      background: white;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    }
+
+    .info-bar:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    .info-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--primary-bg), var(--secondary-light));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+
+    .info-content {
+      flex: 1;
+      text-align: left;
+    }
+
+    .info-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .info-arrow {
+      font-size: 20px;
+      color: var(--text-hint);
+    }
+
+    .info-badge {
+      background: var(--accent);
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+
+    .safe-bottom {
+      height: 40px;
+    }
+
+    /* 背景图 */
+    .bg-travel-1 {
+      background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80');
+    }
+  </style>
+</head>
+<body>
+  <div class="theme-sky">
+    <div class="phone-frame">
+      <div class="status-bar">
+        <span>21:41</span>
+        <span>📶 📡 🔋</span>
+      </div>
+
+      <div class="scroll-container">
+        <div class="profile-header bg-travel-1">
+          <div class="user-card">
+            <div class="avatar">👨‍💻</div>
+            <div class="user-info">
+              <div class="user-name">旅行达人小王</div>
+              <div class="user-id">ID: BJ2024001</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-list">
+          <div class="info-bar">
+            <div class="info-icon">📅</div>
+            <div class="info-content">
+              <div class="info-title">我的行程</div>
+            </div>
+            <span class="info-arrow">›</span>
+          </div>
+
+          <div class="info-bar">
+            <div class="info-icon">🔔</div>
+            <div class="info-content">
+              <div class="info-title">行程通知</div>
+            </div>
+            <span class="info-badge">3</span>
+            <span class="info-arrow">›</span>
+          </div>
+
+          <div class="info-bar">
+            <div class="info-icon">💡</div>
+            <div class="info-content">
+              <div class="info-title">提交建议</div>
+            </div>
+            <span class="info-arrow">›</span>
+          </div>
+
+          <div class="info-bar">
+            <div class="info-icon">ℹ️</div>
+            <div class="info-content">
+              <div class="info-title">关于我们</div>
+            </div>
+            <span class="info-arrow">›</span>
+          </div>
+        </div>
+
+        <div class="safe-bottom"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
