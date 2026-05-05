@@ -1,600 +1,284 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>发布行程页设计稿</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>行程列表</title>
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
-      background: #1a1a2e;
-      padding: 20px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 30px;
-      justify-content: center;
-    }
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+}
 
-    .design-wrapper {
-      text-align: center;
-    }
+body {
+  height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(180deg, #eef6ff 0%, #ffffff 100%);
+}
 
-    .design-label {
-      color: white;
-      font-size: 15px;
-      font-weight: 600;
-      margin-bottom: 12px;
-      padding: 8px 20px;
-      border-radius: 20px;
-      display: inline-block;
-      background: linear-gradient(135deg, #4A90E2, #6BA3E8);
-    }
+/* ===== 背景光斑（完全 Login） ===== */
+.bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
 
-    .phone-frame {
-      width: 375px;
-      height: 812px;
-      border-radius: 40px;
-      overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-      position: relative;
-      margin: 0 auto;
-      background: #FFFFFF;
-    }
+.circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.35;
+}
 
-    .scroll-container {
-      height: 100%;
-      overflow-y: auto;
-      padding-bottom: 100px;
-    }
+.c1 {
+  width: 320px;
+  height: 320px;
+  background: #4990e2;
+  top: -120px;
+  left: -120px;
+}
 
-    .scroll-container::-webkit-scrollbar {
-      display: none;
-    }
+.c2 {
+  width: 260px;
+  height: 260px;
+  background: #7bb8ff;
+  bottom: -120px;
+  right: -100px;
+}
 
-    .status-bar {
-      height: 44px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 24px;
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 100;
-      font-size: 14px;
-    }
+/* ===== 容器 ===== */
+.container {
+  position: relative;
+  height: 100vh;
+  padding: 16px 16px 100px;
+  overflow-y: auto;
+}
 
-    /* ========== 表格样式 ========== */
-    :root {
-      --bg: #FFFFFF;
-      --divider: #F0F0F5;
-      --text: #1A1A2E;
-      --text-sub: #6B6B80;
-      --text-hint: #A0A0B0;
-      --accent: #4A90E2;
-    }
+/* ===== 标题 ===== */
+.title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin: 18px 4px 6px;
+}
 
-    .nav-bar {
-      background: white;
-      padding: 12px 16px;
-      padding-top: 44px;
-      border-bottom: 1px solid var(--divider);
-      display: flex;
-      align-items: center;
-    }
+.sub {
+  font-size: 13px;
+  color: #8a8a8a;
+  margin: 0 4px 16px;
+}
 
-    .nav-title {
-      flex: 1;
-      text-align: center;
-      font-size: 17px;
-      font-weight: 600;
-      color: var(--text);
-    }
+/* ===== 筛选栏（基础） ===== */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 6px 2px 14px;
+}
 
-    .form-table {
-      width: 100%;
-    }
+.filter-chip {
+  white-space: nowrap;
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  color: #444;
+}
 
-    .table-row {
-      display: grid;
-      grid-template-columns: 100px 1fr;
-      border-bottom: 1px solid var(--divider);
-    }
+.filter-chip.active {
+  background: rgba(73,144,226,0.15);
+  color: #4990e2;
+}
 
-    .table-cell {
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-    }
+/* ===== 卡片 ===== */
+.card {
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(12px);
+  border-radius: 18px;
+  padding: 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+}
 
-    .cell-label {
-      background: #FAFAFC;
-      font-size: 14px;
-      color: var(--text-sub);
-      font-weight: 500;
-    }
+/* 顶部 */
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-    .cell-label .required {
-      color: #EF4444;
-      margin-left: 2px;
-    }
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg,#4A90E2,#7bb8ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 18px;
+}
 
-    .cell-value {
-      font-size: 15px;
-      color: var(--text);
-      justify-content: flex-end;
-    }
+.card-title {
+  flex: 1;
+}
 
-    .cell-value.hint {
-      color: var(--text-hint);
-    }
+.name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1d1d1f;
+}
 
-    .cell-value input {
-      text-align: right;
-    }
+.tag {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  display: inline-block;
+  margin-top: 4px;
+}
 
-    .input-field {
-      width: 100%;
-      padding: 0;
-      border: none;
-      font-size: 15px;
-      background: transparent;
-      color: var(--text);
-      outline: none;
-    }
+.green { background: rgba(82,196,26,0.12); color:#52c41a; }
+.orange { background: rgba(250,173,20,0.12); color:#faad14; }
+.gray { background: rgba(140,140,140,0.12); color:#8c8c8c; }
 
-    .input-field::placeholder {
-      color: var(--text-hint);
-    }
+/* 中间信息 */
+.meta {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #888;
+  display: flex;
+  gap: 10px;
+}
 
-    .tag-group {
-      display: flex;
-      gap: 8px;
-    }
+/* 底部 */
+.bottom {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-    .tag-btn {
-      padding: 6px 14px;
-      border-radius: 16px;
-      font-size: 13px;
-      background: rgba(74, 144, 226, 0.1);
-      color: var(--text-sub);
-      border: 1px solid rgba(74, 144, 226, 0.3);
-      cursor: pointer;
-    }
+/* 头像 stack */
+.avatars {
+  display: flex;
+}
 
-    .tag-btn.active {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
-    }
+.ava {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  margin-left: -6px;
+  border: 2px solid white;
+  background: linear-gradient(135deg,#ff9a9e,#fad0c4);
+}
 
-    .counter-wrap {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
+.ava:nth-child(2){ background:linear-gradient(135deg,#a18cd1,#fbc2eb); }
+.ava:nth-child(3){ background:linear-gradient(135deg,#43e97b,#38f9d7); }
 
-    .counter-btn {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: rgba(74, 144, 226, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      color: var(--accent);
-      border: none;
-      cursor: pointer;
-    }
+/* 进度 */
+.progress {
+  font-size: 12px;
+  color: #4990e2;
+  font-weight: 500;
+}
 
-    .counter-num {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text);
-      min-width: 32px;
-      text-align: center;
-    }
-
-    .section-divider {
-      height: 12px;
-      background: #FAFAFC;
-    }
-
-    .collapsible-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 16px;
-      background: white;
-      border-bottom: 1px solid var(--divider);
-      cursor: pointer;
-    }
-
-    .collapsible-header:active {
-      background: #F8F9FA;
-    }
-
-    .collapsible-title {
-      font-size: 14px;
-      color: var(--text-sub);
-      font-weight: 500;
-    }
-
-    .collapsible-arrow {
-      font-size: 14px;
-      color: var(--text-hint);
-      transition: transform 0.2s ease;
-    }
-
-    .collapsible-arrow.expanded {
-      transform: rotate(180deg);
-    }
-
-    .collapsible-content {
-      display: none;
-    }
-
-    .collapsible-content.expanded {
-      display: block;
-    }
-
-    .textarea-row {
-      display: block;
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--divider);
-      text-align: left;
-    }
-
-    .textarea-label {
-      font-size: 14px;
-      color: var(--text-sub);
-      margin-bottom: 10px;
-      display: block;
-      text-align: left;
-    }
-
-    .textarea-field {
-      width: 100%;
-      height: 80px;
-      border: none;
-      font-size: 15px;
-      background: transparent;
-      resize: none;
-      font-family: inherit;
-      line-height: 1.6;
-      color: var(--text);
-      outline: none;
-      text-align: left;
-    }
-
-    .char-count {
-      text-align: right;
-      font-size: 12px;
-      color: var(--text-hint);
-      margin-top: 6px;
-    }
-
-    .footer-bar {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 12px 16px 28px;
-      background: white;
-      border-top: 1px solid var(--divider);
-    }
-
-    .submit-btn {
-      width: 100%;
-      height: 50px;
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .desc-input {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--divider);
-      border-radius: 8px;
-      font-size: 14px;
-      background: #FAFAFC;
-      color: var(--text);
-      outline: none;
-    }
-
-    .desc-input::placeholder {
-      color: var(--text-hint);
-    }
-  </style>
+/* 发布按钮（Login一致） */
+.btn {
+  position: fixed;
+  bottom: 22px;
+  left: 16px;
+  right: 16px;
+  height: 52px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg,#4990e2,#6fb1fc);
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  box-shadow: 0 12px 30px rgba(73,144,226,0.25);
+}
+</style>
 </head>
+
 <body>
 
-  <!-- ========== 有车版本 ========== -->
-  <div class="design-wrapper">
-    <div class="design-label">有车版本 🚗</div>
-    <div class="phone-frame">
-      <div class="status-bar">
-        <span>21:18</span>
-        <div>📶 🔋</div>
+<div class="bg">
+  <div class="circle c1"></div>
+  <div class="circle c2"></div>
+</div>
+
+<div class="container">
+
+  <div class="title">行程列表</div>
+  <div class="sub">发现与你同行的人</div>
+
+  <!-- 筛选系统（升级版） -->
+  <div class="filter-bar">
+    <div class="filter-chip active">全部</div>
+    <div class="filter-chip">目的地 ▾</div>
+    <div class="filter-chip">出发地 ▾</div>
+    <div class="filter-chip">时间 ▾</div>
+    <div class="filter-chip">招募中</div>
+  </div>
+
+  <!-- 卡片 -->
+  <div class="card">
+    <div class="card-top">
+      <div class="avatar">🏔️</div>
+      <div class="card-title">
+        <div class="name">黄山两日游</div>
+        <div class="tag green">招募中</div>
       </div>
+    </div>
 
-      <div class="nav-bar">
-        <div style="width: 32px;"></div>
-        <span class="nav-title">发布行程</span>
-        <div style="width: 32px;"></div>
+    <div class="meta">
+      <span>📅 5/15</span>
+      <span>📍 杭州</span>
+    </div>
+
+    <div class="bottom">
+      <div class="avatars">
+        <div class="ava"></div>
+        <div class="ava"></div>
+        <div class="ava"></div>
       </div>
-
-      <div class="scroll-container">
-        <!-- 行程标题（可选） -->
-        <div class="form-table">
-          <div class="table-row">
-            <div class="table-cell cell-label">行程标题</div>
-            <div class="table-cell cell-value">
-              <input type="text" class="input-field" placeholder="给行程起个名字（选填）">
-            </div>
-          </div>
-        </div>
-
-        <div class="section-divider"></div>
-
-        <!-- 目的地 -->
-        <div class="form-table">
-          <div class="table-row">
-            <div class="table-cell cell-label">目的地<span class="required">*</span></div>
-            <div class="table-cell cell-value hint">请选择 ›</div>
-          </div>
-        </div>
-
-        <div class="section-divider"></div>
-
-        <!-- 行程信息 -->
-        <div class="form-table">
-          <div class="table-row">
-            <div class="table-cell cell-label">出发地<span class="required">*</span></div>
-            <div class="table-cell cell-value hint">请选择 ›</div>
-          </div>
-          <div class="table-row">
-            <div class="table-cell cell-label">出行日期<span class="required">*</span></div>
-            <div class="table-cell cell-value hint">请选择 ›</div>
-          </div>
-          <div class="table-row">
-            <div class="table-cell cell-label">出行方式<span class="required">*</span></div>
-            <div class="table-cell cell-value">
-              <div class="tag-group">
-                <button class="tag-btn active">有车</button>
-                <button class="tag-btn">无车</button>
-              </div>
-            </div>
-          </div>
-          <div class="table-row">
-            <div class="table-cell cell-label">招募人数<span class="required">*</span></div>
-            <div class="table-cell cell-value">
-              <div class="counter-wrap">
-                <button class="counter-btn">−</button>
-                <span class="counter-num">3</span>
-                <button class="counter-btn">+</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="section-divider"></div>
-
-        <!-- 联系方式 -->
-        <div class="form-table">
-          <div class="table-row">
-            <div class="table-cell cell-label">手机号<span class="required">*</span></div>
-            <div class="table-cell cell-value">
-              <input type="text" class="input-field" placeholder="同时也是微信号">
-            </div>
-          </div>
-        </div>
-
-        <div class="section-divider"></div>
-
-        <!-- 可选信息 -->
-        <div class="collapsible-header" onclick="toggleCollapsible(this)">
-          <span class="collapsible-title">可选信息</span>
-          <span class="collapsible-arrow">▾</span>
-        </div>
-        <div class="collapsible-content">
-          <div class="form-table">
-            <div class="table-row">
-              <div class="table-cell cell-label">集合地点</div>
-              <div class="table-cell cell-value">
-                <input type="text" class="input-field" placeholder="选填">
-              </div>
-            </div>
-            <div class="table-row">
-              <div class="table-cell cell-label">集合时间</div>
-              <div class="table-cell cell-value hint">请选择 ›</div>
-            </div>
-            <div class="table-row">
-              <div class="table-cell cell-label">车辆座位</div>
-              <div class="table-cell cell-value">
-                <input type="text" class="input-field" placeholder="如：5座（选填）">
-              </div>
-            </div>
-            <div class="table-row">
-              <div class="table-cell cell-label">车辆型号</div>
-              <div class="table-cell cell-value">
-                <input type="text" class="input-field" placeholder="如：大众途观（选填）">
-              </div>
-            </div>
-            <div class="table-row">
-              <div class="table-cell cell-label">人均价格</div>
-              <div class="table-cell cell-value">
-                <input type="text" class="input-field" placeholder="如：150元（选填）">
-              </div>
-            </div>
-          </div>
-          <!-- 行程说明 -->
-          <div class="textarea-row">
-            <label class="textarea-label">行程说明</label>
-            <textarea class="textarea-field" placeholder="描述行程安排、费用分摊方式、对同伴的要求等"></textarea>
-            <div class="char-count">0/200</div>
-          </div>
-        </div>
-
-        <div style="height: 100px;"></div>
-      </div>
-
-      <div class="footer-bar">
-        <button class="submit-btn">发布行程</button>
-      </div>
+      <div class="progress">还差2人</div>
     </div>
   </div>
 
-  <!-- ========== 无车版本 ========== -->
-  <div class="design-wrapper">
-    <div class="design-label">无车版本 🚶</div>
-    <div class="phone-frame">
-      <div class="status-bar">
-        <span>21:18</span>
-        <div>📶 🔋</div>
+  <div class="card">
+    <div class="card-top">
+      <div class="avatar">🏝️</div>
+      <div class="card-title">
+        <div class="name">海南环岛游</div>
+        <div class="tag gray">已满员</div>
       </div>
+    </div>
 
-      <div class="nav-bar">
-        <div style="width: 32px;"></div>
-        <span class="nav-title">发布行程</span>
-        <div style="width: 32px;"></div>
+    <div class="meta">
+      <span>📅 5/10</span>
+      <span>📍 海口</span>
+    </div>
+
+    <div class="bottom">
+      <div class="avatars">
+        <div class="ava"></div>
+        <div class="ava"></div>
+        <div class="ava"></div>
       </div>
-
-      <div class="scroll-container">
-        <!-- 行程标题（可选） -->
-        <div class="form-table">
-          <div class="table-row">
-            <div class="table-cell cell-label">行程标题</div>
-            <div class="table-cell cell-value">
-              <input type="text" class="input-field" placeholder="给行程起个名字（选填）">
-            </div>
-          </div>
-        </div>
-
-        <div class="section-divider"></div>
-
-        <!-- 目的地 -->
-        <div class="form-table">
-          <div class="table-row">
-            <div class="table-cell cell-label">目的地<span class="required">*</span></div>
-            <div class="table-cell cell-value hint">请选择 ›</div>
-          </div>
-        </div>
-
-        <div class="section-divider"></div>
-
-        <!-- 行程信息 -->
-        <div class="form-table">
-          <div class="table-row">
-            <div class="table-cell cell-label">出发地<span class="required">*</span></div>
-            <div class="table-cell cell-value hint">请选择 ›</div>
-          </div>
-          <div class="table-row">
-            <div class="table-cell cell-label">出行日期<span class="required">*</span></div>
-            <div class="table-cell cell-value hint">请选择 ›</div>
-          </div>
-          <div class="table-row">
-            <div class="table-cell cell-label">出行方式<span class="required">*</span></div>
-            <div class="table-cell cell-value">
-              <div class="tag-group">
-                <button class="tag-btn">有车</button>
-                <button class="tag-btn active">无车</button>
-              </div>
-            </div>
-          </div>
-          <div class="table-row">
-            <div class="table-cell cell-label">招募人数<span class="required">*</span></div>
-            <div class="table-cell cell-value">
-              <div class="counter-wrap">
-                <button class="counter-btn">−</button>
-                <span class="counter-num">3</span>
-                <button class="counter-btn">+</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="section-divider"></div>
-
-        <!-- 联系方式 -->
-        <div class="form-table">
-          <div class="table-row">
-            <div class="table-cell cell-label">手机号<span class="required">*</span></div>
-            <div class="table-cell cell-value">
-              <input type="text" class="input-field" placeholder="同时也是微信号">
-            </div>
-          </div>
-        </div>
-
-        <div class="section-divider"></div>
-
-        <!-- 可选信息 -->
-        <div class="collapsible-header" onclick="toggleCollapsible(this)">
-          <span class="collapsible-title">可选信息</span>
-          <span class="collapsible-arrow">▾</span>
-        </div>
-        <div class="collapsible-content">
-          <div class="form-table">
-            <div class="table-row">
-              <div class="table-cell cell-label">集合地点</div>
-              <div class="table-cell cell-value">
-                <input type="text" class="input-field" placeholder="选填">
-              </div>
-            </div>
-            <div class="table-row">
-              <div class="table-cell cell-label">集合时间</div>
-              <div class="table-cell cell-value hint">请选择 ›</div>
-            </div>
-            <div class="table-row">
-              <div class="table-cell cell-label">出行描述</div>
-              <div class="table-cell cell-value">
-                <input type="text" class="input-field" placeholder="如：地铁+公交（10字内）" maxlength="10">
-              </div>
-            </div>
-            <div class="table-row">
-              <div class="table-cell cell-label">人均价格</div>
-              <div class="table-cell cell-value">
-                <input type="text" class="input-field" placeholder="如：150元（选填）">
-              </div>
-            </div>
-          </div>
-          <!-- 行程说明 -->
-          <div class="textarea-row">
-            <label class="textarea-label">行程说明</label>
-            <textarea class="textarea-field" placeholder="描述行程安排、费用分摊方式、对同伴的要求等"></textarea>
-            <div class="char-count">0/200</div>
-          </div>
-        </div>
-
-        <div style="height: 100px;"></div>
-      </div>
-
-      <div class="footer-bar">
-        <button class="submit-btn">发布行程</button>
-      </div>
+      <div class="progress">6/6</div>
     </div>
   </div>
 
-  <script>
-    function toggleCollapsible(header) {
-      const arrow = header.querySelector('.collapsible-arrow');
-      const content = header.nextElementSibling;
-      arrow.classList.toggle('expanded');
-      content.classList.toggle('expanded');
-    }
-  </script>
+</div>
+
+<button class="btn">发布行程</button>
+
 </body>
 </html>
