@@ -12,9 +12,9 @@
       <image class="avatar-large" src="{{userInfo.avatar || defaultAvatar}}" mode="aspectFill" wx:if="{{userInfo.avatar}}"></image>
       <view class="avatar-large-placeholder" wx:else>
         <text>👤</text>
-      </view>
-      <view class="avatar-edit-badge">
-        <text>📷</text>
+        <view class="avatar-edit-badge">
+          <text>📷</text>
+        </view>
       </view>
     </button>
     <view class="profile-nickname">{{userInfo.nickname || '旅行达人'}}</view>

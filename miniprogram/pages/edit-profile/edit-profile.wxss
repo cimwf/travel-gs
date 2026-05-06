@@ -64,7 +64,9 @@ page {
 .avatar-container {
   position: relative;
   z-index: 1;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 192rpx;
   height: 192rpx;
   padding: 0;
@@ -81,8 +83,9 @@ page {
 }
 
 .avatar-large {
-  width: 176rpx;
-  height: 176rpx;
+  box-sizing: border-box;
+  width: 192rpx;
+  height: 192rpx;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.95);
   border: 8rpx solid rgba(255, 255, 255, 0.3);
@@ -90,8 +93,10 @@ page {
 }
 
 .avatar-large-placeholder {
-  width: 176rpx;
-  height: 176rpx;
+  position: relative;
+  box-sizing: border-box;
+  width: 192rpx;
+  height: 192rpx;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.95);
   display: flex;
@@ -103,8 +108,9 @@ page {
 
 .avatar-edit-badge {
   position: absolute;
-  bottom: 4rpx;
-  right: 4rpx;
+  z-index: 1;
+  bottom: 0;
+  right: 0;
   width: 56rpx;
   height: 56rpx;
   background: white;
