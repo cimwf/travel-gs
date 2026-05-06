@@ -167,6 +167,10 @@ async function authTrackEvent(data) {
     return { success: false, error: '参数不完整' };
   }
 
+  if (eventType !== 'loginSuccess') {
+    return { success: false, error: '不支持的统计事件' };
+  }
+
   try {
     return await recordUserStatEvent(eventType, openid, data.extra || {});
   } catch (err) {
@@ -319,48 +323,10 @@ async function userRegister(openid, data) {
   const res = await db.collection('users').add({ data: newUser });
   newUser._id = res._id;
 
-  // 记录每日新增用户统计
-  await recordNewUser();
-
   // 返回用户信息（不返回密码）
   const safeUser = { ...newUser };
   delete safeUser.password;
   return { success: true, user: safeUser };
-}
-
-// 记录每日新增用户统计
-async function recordNewUser() {
-  const today = new Date();
-  const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-
-  try {
-    const statsRes = await db.collection('user_stats')
-      .where({ date: dateStr, type: 'newUser' })
-      .get();
-
-    if (statsRes.data.length > 0) {
-      // 更新今日新增用户数
-      await db.collection('user_stats').doc(statsRes.data[0]._id).update({
-        data: {
-          count: _.inc(1),
-          updatedAt: Date.now()
-        }
-      });
-    } else {
-      // 创建今日统计记录
-      await db.collection('user_stats').add({
-        data: {
-          type: 'newUser',
-          date: dateStr,
-          count: 1,
-          createdAt: Date.now(),
-          updatedAt: Date.now()
-        }
-      });
-    }
-  } catch (err) {
-    console.error('记录新增用户统计失败:', err);
-  }
 }
 
 async function userLogin(openid, data) {
@@ -395,9 +361,6 @@ async function userLogin(openid, data) {
   
   const res = await db.collection('users').add({ data: newUser });
   newUser._id = res._id;
-
-  // 记录每日新增用户统计
-  await recordNewUser();
 
   return { success: true, user: newUser, isNew: true };
 }
@@ -573,8 +536,6 @@ async function userLoginByPhone(openid, data) {
 
   const res = await db.collection('users').add({ data: newUser });
   newUser._id = res._id;
-
-  await recordNewUser();
 
   const safeUser = { ...newUser };
   delete safeUser.password;

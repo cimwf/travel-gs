@@ -19,7 +19,6 @@ Page({
     const windowInfo = wx.getWindowInfo();
     this.setData({ statusBarHeight: windowInfo.statusBarHeight });
 
-    this.trackPageVisit();
     this.checkLoginStatus();
   },
 
@@ -34,10 +33,6 @@ Page({
       return;
     }
     nav.goBack();
-  },
-
-  async trackPageVisit() {
-    await api.trackEvent('loginPageVisit');
   },
 
   checkLoginStatus() {
