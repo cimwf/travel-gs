@@ -1,0 +1,29 @@
+{
+  "name": "travel-gs",
+  "version": "1.0.0",
+  "description": "## 项目概述",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "node tests/mvp-ui-flow.test.js",
+    "test:e2e": "node tests/e2e-click-flow.test.js",
+    "test:core": "node tests/e2e-core-flow.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cimwf/travel-gs.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cimwf/travel-gs/issues"
+  },
+  "homepage": "https://github.com/cimwf/travel-gs#readme",
+  "devDependencies": {
+    "miniprogram-automator": "^0.12.1"
+  }
+}
