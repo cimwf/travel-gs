@@ -8,8 +8,9 @@
 
   <block wx:else>
     <!-- 用户信息卡片 -->
-    <view class="user-card" style="{{userInfo.background ? 'background-image: url(' + userInfo.background + '); background-size: cover; background-position: center;' : ''}}">
-      <view class="user-card-overlay {{userInfo.background ? 'overlay-dark' : ''}}">
+    <view class="user-card">
+      <image class="user-bg-image" src="{{userInfo.background || defaultBackground}}" mode="aspectFill"></image>
+      <view class="user-card-overlay">
         <view class="user-avatar-wrap">
           <image class="user-avatar" src="{{userInfo.avatar}}" wx:if="{{userInfo.avatar}}" mode="aspectFill"></image>
           <view class="user-avatar-text" wx:else>

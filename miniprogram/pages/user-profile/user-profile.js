@@ -15,6 +15,7 @@ Page({
       userId: '',
       gender: 0
     },
+    defaultBackground: 'https://7072-prod-d2gkmbquec074b1df-1427058553.tcb.qcloud.la/attractions/1778050814136-42heznfom6q.JPG',
     stats: {
       trips: 0,
       following: 0,
