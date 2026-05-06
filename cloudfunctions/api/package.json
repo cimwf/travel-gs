@@ -9,7 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "form-data": "^4.0.0",
     "wx-server-sdk": "~2.6.3"
   }
 }

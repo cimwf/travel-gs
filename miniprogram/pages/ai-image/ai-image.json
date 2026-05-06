@@ -1,5 +1,7 @@
 {
   "navigationBarTitleText": "AI 生图",
-  "navigationBarBackgroundColor": "#111827",
-  "navigationBarTextStyle": "white"
+  "navigationBarBackgroundColor": "#ffffff",
+  "navigationBarTextStyle": "black",
+  "enablePullDownRefresh": true,
+  "usingComponents": {}
 }

@@ -1,7 +1,6 @@
 // 云函数：api - 统一数据接口
 const cloud = require('wx-server-sdk');
 const https = require('https');
-const FormData = require('form-data');
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV
@@ -135,6 +134,12 @@ exports.main = async (event, context) => {
       // ========== AI 生图相关 ==========
       case 'aiImage/generate':
         return await aiImageGenerate(openid, data);
+      case 'aiImage/status':
+        return await aiImageStatus(openid, data);
+      case 'aiImage/summary':
+        return await aiImageSummary(openid);
+      case 'aiImage/list':
+        return await aiImageList(openid);
 
       default:
         return { success: false, error: '未知操作' };
@@ -2352,7 +2357,10 @@ async function userSpotsCreate(openid, data) {
 function getOpenAIConfig() {
   return {
     apiKey: process.env.OPENAI_API_KEY,
-    model: process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2'
+    imageModel: process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2',
+    responsesModel: process.env.OPENAI_RESPONSES_MODEL || 'gpt-4.1-mini',
+    serviceUrl: process.env.AI_IMAGE_SERVICE_URL || '',
+    serviceSecret: process.env.AI_IMAGE_SERVICE_SECRET || ''
   };
 }
 
@@ -2366,14 +2374,14 @@ function mapImageSize(ratio) {
   return sizeMap[ratio] || '1024x1024';
 }
 
-function requestOpenAIJson(path, payload, apiKey) {
-  const body = JSON.stringify(payload);
+function requestOpenAI(method, path, payload, apiKey, timeoutMs = 25000) {
+  const body = payload ? JSON.stringify(payload) : '';
 
   return new Promise((resolve, reject) => {
     const req = https.request({
       hostname: 'api.openai.com',
       path,
-      method: 'POST',
+      method,
       headers: {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
@@ -2401,21 +2409,31 @@ function requestOpenAIJson(path, payload, apiKey) {
       });
     });
 
+    req.setTimeout(timeoutMs, () => {
+      req.destroy(new Error('OpenAI 请求超时，请稍后重试'));
+    });
     req.on('error', reject);
-    req.write(body);
+    if (body) {
+      req.write(body);
+    }
     req.end();
   });
 }
 
-function requestOpenAIMultipart(path, form, apiKey) {
+function requestJsonUrl(method, url, payload, headers = {}, timeoutMs = 25000) {
+  const body = payload ? JSON.stringify(payload) : '';
+  const parsedUrl = new URL(url);
+
   return new Promise((resolve, reject) => {
     const req = https.request({
-      hostname: 'api.openai.com',
-      path,
-      method: 'POST',
+      hostname: parsedUrl.hostname,
+      path: `${parsedUrl.pathname}${parsedUrl.search}`,
+      port: parsedUrl.port || 443,
+      method,
       headers: {
-        ...form.getHeaders(),
-        Authorization: `Bearer ${apiKey}`
+        ...headers,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body)
       }
     }, (res) => {
       const chunks = [];
@@ -2426,12 +2444,12 @@ function requestOpenAIMultipart(path, form, apiKey) {
         try {
           parsed = JSON.parse(text);
         } catch (err) {
-          reject(new Error(`OpenAI 返回异常：${text.slice(0, 200)}`));
+          reject(new Error(`AI 服务返回异常：${text.slice(0, 200)}`));
           return;
         }
 
         if (res.statusCode >= 400) {
-          reject(new Error(parsed.error && parsed.error.message ? parsed.error.message : 'OpenAI 请求失败'));
+          reject(new Error(`AI 服务请求失败(${res.statusCode}): ${parsed.error || parsed.message || text.slice(0, 120)}`));
           return;
         }
 
@@ -2439,8 +2457,14 @@ function requestOpenAIMultipart(path, form, apiKey) {
       });
     });
 
-    req.on('error', reject);
-    form.pipe(req);
+    req.setTimeout(timeoutMs, () => {
+      req.destroy(new Error('AI 服务请求超时'));
+    });
+    req.on('error', (err) => {
+      reject(new Error(`AI 服务连接失败: ${err.message}`));
+    });
+    if (body) req.write(body);
+    req.end();
   });
 }
 
@@ -2460,18 +2484,128 @@ function getMimeType(ext) {
   return map[ext] || 'image/jpeg';
 }
 
+function getImageMeta(buffer, contentType = '') {
+  const meta = {
+    width: 0,
+    height: 0,
+    format: contentType.includes('jpeg') || contentType.includes('jpg') ? 'jpg' : 'png',
+    bytes: buffer ? buffer.length : 0
+  };
+
+  if (!buffer || buffer.length < 24) {
+    return meta;
+  }
+
+  if (buffer[0] === 0x89 && buffer.toString('ascii', 1, 4) === 'PNG') {
+    meta.format = 'png';
+    meta.width = buffer.readUInt32BE(16);
+    meta.height = buffer.readUInt32BE(20);
+    return meta;
+  }
+
+  if (buffer[0] === 0xff && buffer[1] === 0xd8) {
+    meta.format = 'jpg';
+    let offset = 2;
+    while (offset < buffer.length - 9) {
+      if (buffer[offset] !== 0xff) {
+        offset += 1;
+        continue;
+      }
+      while (buffer[offset] === 0xff) offset += 1;
+      const marker = buffer[offset];
+      offset += 1;
+      if (marker === 0xd9 || marker === 0xda) break;
+      const length = buffer.readUInt16BE(offset);
+      if (length < 2) break;
+      if ((marker >= 0xc0 && marker <= 0xc3) || (marker >= 0xc5 && marker <= 0xc7) || (marker >= 0xc9 && marker <= 0xcb) || (marker >= 0xcd && marker <= 0xcf)) {
+        meta.height = buffer.readUInt16BE(offset + 3);
+        meta.width = buffer.readUInt16BE(offset + 5);
+        return meta;
+      }
+      offset += length;
+    }
+  }
+
+  return meta;
+}
+
+function getEffectiveAiImagePrompt(data = {}) {
+  const prompt = String(data.prompt || '').trim();
+  if (prompt) return prompt;
+  return data.mode === 'image' ? '请基于参考图生成一张高质量图片' : '';
+}
+
+function isAiImageLoadingStatus(status) {
+  return ['queued', 'pending', 'in_progress', 'processing', 'running', 'submitted'].includes(status || '');
+}
+
+function normalizeAiImageItem(image = {}, fallback = {}) {
+  const key = image.key || image.fileID || '';
+  const publicUrl = image.publicUrl || image.publicURL || '';
+  const signedUrl = image.signedUrl || image.signedURL || image.tempFileURL || '';
+  const url = image.url || signedUrl || publicUrl || '';
+  const status = image.status || fallback.status || (url ? 'completed' : 'queued');
+
+  return {
+    id: image.id || image.imageId || `${fallback.taskId || ''}_0`,
+    status,
+    key,
+    url,
+    signedUrl,
+    publicUrl,
+    width: image.width || 0,
+    height: image.height || 0,
+    format: image.format || '',
+    bytes: image.bytes || 0,
+    error: image.error || ''
+  };
+}
+
+function buildInitialAiImages(task = {}) {
+  return [normalizeAiImageItem({}, {
+    taskId: task.taskId,
+    status: task.status || 'queued'
+  })];
+}
+
+function buildCompletedAiImages(image, taskId) {
+  return [normalizeAiImageItem({
+    id: `${taskId || Date.now()}_0`,
+    status: 'completed',
+    key: image.fileID || image.key || '',
+    url: image.tempFileURL || image.url || '',
+    signedUrl: image.signedURL || image.signedUrl || image.tempFileURL || '',
+    publicUrl: image.publicURL || image.publicUrl || '',
+    width: image.width || 0,
+    height: image.height || 0,
+    format: image.format || '',
+    bytes: image.bytes || 0
+  }, { status: 'completed', taskId })];
+}
+
+function syncImagesStatus(images, status, error) {
+  const list = images && images.length ? images : [normalizeAiImageItem({}, { status })];
+  return list.map((image, index) => normalizeAiImageItem({
+    ...image,
+    id: image.id || `image_${index}`,
+    status,
+    error: status === 'failed' ? (error || image.error || '生成失败') : image.error
+  }, { status }));
+}
+
 function buildImagePrompt(data) {
   const parts = [
-    data.prompt.trim(),
+    getEffectiveAiImagePrompt(data),
     `视觉风格：${data.style || '旅行海报'}`,
     '请生成适合在旅行社交小程序中展示的高质量图片。'
-  ];
+  ].filter(Boolean);
   return parts.join('\n');
 }
 
 async function callOpenAIImage(data, apiKey, model) {
   const prompt = buildImagePrompt(data);
   const size = mapImageSize(data.ratio);
+  const input = [{ role: 'user', content: [{ type: 'input_text', text: prompt }] }];
 
   if (data.mode === 'image') {
     if (!data.referenceFileID) {
@@ -2480,32 +2614,81 @@ async function callOpenAIImage(data, apiKey, model) {
 
     const downloadRes = await cloud.downloadFile({ fileID: data.referenceFileID });
     const ext = getFileExt(data.referenceFileID);
-    const form = new FormData();
-
-    form.append('model', model);
-    form.append('prompt', prompt);
-    form.append('n', '1');
-    form.append('size', size);
-    form.append('quality', 'medium');
-    form.append('image[]', downloadRes.fileContent, {
-      filename: `reference.${ext}`,
-      contentType: getMimeType(ext)
-    });
-
-    return await requestOpenAIMultipart('/v1/images/edits', form, apiKey);
+    const imageUrl = `data:${getMimeType(ext)};base64,${downloadRes.fileContent.toString('base64')}`;
+    input[0].content.push({ type: 'input_image', image_url: imageUrl });
   }
 
-  return await requestOpenAIJson('/v1/images/generations', {
+  return await requestOpenAI('POST', '/v1/responses', {
     model,
-    prompt,
-    n: 1,
-    size,
-    quality: 'medium'
+    input,
+    background: true,
+    tools: [{
+      type: 'image_generation',
+      model: getOpenAIConfig().imageModel,
+      size,
+      quality: 'high',
+      output_format: 'png'
+    }]
   }, apiKey);
+}
+
+async function createExternalAiImageTask(data, config) {
+  const headers = {};
+  if (config.serviceSecret) {
+    headers['X-AI-Service-Secret'] = config.serviceSecret;
+  }
+
+  const payload = {
+    mode: data.mode,
+    prompt: getEffectiveAiImagePrompt(data),
+    ratio: data.ratio,
+    style: data.style
+  };
+
+  if (data.mode === 'image') {
+    const downloadRes = await cloud.downloadFile({ fileID: data.referenceFileID });
+    payload.referenceImageBase64 = downloadRes.fileContent.toString('base64');
+    payload.referenceMimeType = getMimeType(getFileExt(data.referenceFileID));
+  }
+
+  return await requestJsonUrl('POST', `${config.serviceUrl.replace(/\/$/, '')}/v1/ai-image/tasks`, payload, headers, 30000);
+}
+
+async function getExternalAiImageTask(taskId, config) {
+  const headers = {};
+  if (config.serviceSecret) {
+    headers['X-AI-Service-Secret'] = config.serviceSecret;
+  }
+
+  return await requestJsonUrl('GET', `${config.serviceUrl.replace(/\/$/, '')}/v1/ai-image/tasks/${encodeURIComponent(taskId)}`, null, headers, 20000);
+}
+
+async function getOpenAIResponse(responseId, apiKey) {
+  return await requestOpenAI('GET', `/v1/responses/${encodeURIComponent(responseId)}`, null, apiKey, 20000);
+}
+
+function extractImageBase64FromResponse(response) {
+  const output = response.output || [];
+
+  for (const item of output) {
+    if (item.type === 'image_generation_call' && item.result) {
+      return item.result;
+    }
+
+    const content = item.content || [];
+    for (const contentItem of content) {
+      if (contentItem.type === 'image_generation_call' && contentItem.result) {
+        return contentItem.result;
+      }
+    }
+  }
+
+  return '';
 }
 
 async function uploadGeneratedImage(openid, imageBase64) {
   const buffer = Buffer.from(imageBase64, 'base64');
+  const meta = getImageMeta(buffer, 'image/png');
   const cloudPath = `ai-images/${openid || 'anonymous'}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.png`;
   const uploadRes = await cloud.uploadFile({
     cloudPath,
@@ -2517,18 +2700,23 @@ async function uploadGeneratedImage(openid, imageBase64) {
 
   return {
     fileID: uploadRes.fileID,
-    tempFileURL: file && file.tempFileURL ? file.tempFileURL : ''
+    tempFileURL: file && file.tempFileURL ? file.tempFileURL : '',
+    width: meta.width,
+    height: meta.height,
+    format: meta.format,
+    bytes: meta.bytes
   };
 }
 
 async function aiImageGenerate(openid, data = {}) {
-  const { apiKey, model } = getOpenAIConfig();
+  const config = getOpenAIConfig();
+  const { apiKey, responsesModel, imageModel } = config;
 
-  if (!apiKey) {
+  if (!apiKey && !config.serviceUrl) {
     return { success: false, error: '未配置 OPENAI_API_KEY' };
   }
 
-  if (!data.prompt || !data.prompt.trim()) {
+  if (data.mode === 'text' && !getEffectiveAiImagePrompt(data)) {
     return { success: false, error: '创作描述不能为空' };
   }
 
@@ -2536,29 +2724,50 @@ async function aiImageGenerate(openid, data = {}) {
     return { success: false, error: '生成模式不正确' };
   }
 
-  const openaiRes = await callOpenAIImage(data, apiKey, model);
-  const imageBase64 = openaiRes.data && openaiRes.data[0] && openaiRes.data[0].b64_json;
-
-  if (!imageBase64) {
-    return { success: false, error: 'OpenAI 未返回图片数据' };
+  if (data.mode === 'image' && !data.referenceFileID) {
+    return { success: false, error: '参考图片不能为空' };
   }
 
-  const image = await uploadGeneratedImage(openid, imageBase64);
+  const quota = await ensureAiImageQuota(openid);
+  const remaining = Math.max(0, (quota.total || 100) - (quota.used || 0));
+  if (remaining <= 0) {
+    return { success: false, error: 'AI 生图次数已用完' };
+  }
+
+  if (config.serviceUrl) {
+    let serviceRes;
+    try {
+      serviceRes = await createExternalAiImageTask(data, config);
+    } catch (err) {
+      console.error('创建外部 AI 生图任务失败:', err);
+      return { success: false, error: err.message || '创建外部 AI 生图任务失败' };
+    }
+
+    await recordAiImageTask(openid, data, {
+      taskId: serviceRes.taskId,
+      status: serviceRes.status || 'queued',
+      model: imageModel,
+      external: true
+    });
+
+    return {
+      success: true,
+      taskId: serviceRes.taskId,
+      status: serviceRes.status || 'queued',
+      model: imageModel,
+      external: true,
+      quota: await getAiImageSummaryData(openid)
+    };
+  }
+
+  const openaiRes = await callOpenAIImage(data, apiKey, responsesModel);
 
   try {
-    await db.collection('ai_image_generations').add({
-      data: {
-        userId: openid || '',
-        mode: data.mode,
-        prompt: data.prompt.trim(),
-        style: data.style || '',
-        ratio: data.ratio || '',
-        model,
-        referenceFileID: data.referenceFileID || '',
-        resultFileID: image.fileID,
-        usage: openaiRes.usage || null,
-        createdAt: Date.now()
-      }
+    await recordAiImageTask(openid, data, {
+      taskId: openaiRes.id,
+      status: openaiRes.status || 'queued',
+      model: imageModel,
+      external: false
     });
   } catch (err) {
     console.warn('保存 AI 生图记录失败:', err);
@@ -2566,9 +2775,380 @@ async function aiImageGenerate(openid, data = {}) {
 
   return {
     success: true,
+    taskId: openaiRes.id,
+    status: openaiRes.status || 'queued',
+    model: imageModel,
+    quota: await getAiImageSummaryData(openid)
+  };
+}
+
+async function aiImageStatus(openid, data = {}) {
+  const config = getOpenAIConfig();
+  const { apiKey, imageModel } = config;
+  const responseId = data.taskId || data.responseId;
+
+  if (!apiKey && !config.serviceUrl) {
+    return { success: false, error: '未配置 OPENAI_API_KEY' };
+  }
+
+  if (!responseId) {
+    return { success: false, error: '任务ID不能为空' };
+  }
+
+  let record = null;
+  try {
+    const recordRes = await db.collection('ai_image_generations').where({ responseId }).limit(1).get();
+    record = recordRes.data && recordRes.data[0] ? recordRes.data[0] : null;
+  } catch (err) {
+    console.warn('读取 AI 生图记录失败:', err);
+  }
+
+  if (config.serviceUrl) {
+    let serviceRes;
+    try {
+      serviceRes = await getExternalAiImageTask(responseId, config);
+    } catch (err) {
+      console.error('查询外部 AI 生图任务失败:', err);
+      return { success: false, error: err.message || '查询外部 AI 生图任务失败' };
+    }
+
+    if (serviceRes.status === 'failed') {
+      return { success: false, status: 'failed', error: serviceRes.error || '生成任务失败' };
+    }
+
+    if (serviceRes.status === 'completed') {
+      const image = {
+        fileID: serviceRes.image && serviceRes.image.key ? serviceRes.image.key : '',
+        tempFileURL: serviceRes.image && (serviceRes.image.signedUrl || serviceRes.image.url) ? (serviceRes.image.signedUrl || serviceRes.image.url) : '',
+        publicURL: serviceRes.image && serviceRes.image.url ? serviceRes.image.url : '',
+        signedURL: serviceRes.image && serviceRes.image.signedUrl ? serviceRes.image.signedUrl : '',
+        width: serviceRes.image && serviceRes.image.width ? serviceRes.image.width : 0,
+        height: serviceRes.image && serviceRes.image.height ? serviceRes.image.height : 0,
+        format: serviceRes.image && serviceRes.image.format ? serviceRes.image.format : '',
+        bytes: serviceRes.image && serviceRes.image.bytes ? serviceRes.image.bytes : 0
+      };
+      let charged = false;
+
+      if (record && record._id && !record.chargedAt) {
+        const now = Date.now();
+        await chargeAiImageUsageIfNeeded(openid, record);
+        charged = true;
+        try {
+          await db.collection('ai_image_generations').doc(record._id).update({
+            data: {
+              status: 'completed',
+              images: buildCompletedAiImages(image, responseId),
+              completedAt: now,
+              chargedAt: now,
+              updatedAt: now
+            }
+          });
+        } catch (err) {
+          console.warn('更新外部 AI 生图记录失败:', err);
+        }
+      }
+
+      return {
+        success: true,
+        status: 'completed',
+        image,
+        model: imageModel,
+        charged
+      };
+    }
+
+    return {
+      success: true,
+      status: serviceRes.status || 'queued',
+      taskId: responseId
+    };
+  }
+
+  try {
+    if (record && record.images && record.images[0] && record.images[0].key) {
+      const urlRes = await cloud.getTempFileURL({ fileList: [record.images[0].key] });
+      const file = urlRes.fileList && urlRes.fileList[0];
+      let charged = false;
+      if (!record.chargedAt) {
+        await chargeAiImageUsageIfNeeded(openid, record);
+        charged = true;
+        try {
+          await db.collection('ai_image_generations').doc(record._id).update({
+            data: {
+              chargedAt: Date.now(),
+              updatedAt: Date.now()
+            }
+          });
+        } catch (err) {
+          console.warn('标记 AI 生图扣次失败:', err);
+        }
+      }
+      return {
+        success: true,
+        status: 'completed',
+        image: {
+          fileID: record.images[0].key,
+          tempFileURL: file && file.tempFileURL ? file.tempFileURL : '',
+          width: record.images[0].width || 0,
+          height: record.images[0].height || 0,
+          format: record.images[0].format || '',
+          bytes: record.images[0].bytes || 0
+        },
+        model: record.model || imageModel,
+        charged
+      };
+    }
+  } catch (err) {
+    console.warn('读取 AI 生图记录失败:', err);
+  }
+
+  let response;
+  try {
+    response = await getOpenAIResponse(responseId, apiKey);
+  } catch (err) {
+    if (String(err.message || '').includes('超时')) {
+      return {
+        success: true,
+        status: 'in_progress',
+        taskId: responseId,
+        message: '结果还在处理中'
+      };
+    }
+    throw err;
+  }
+
+  if (response.status !== 'completed') {
+    if (response.status === 'failed' || response.status === 'cancelled') {
+      const message = response.error && response.error.message ? response.error.message : '生成任务失败';
+      return { success: false, status: response.status, error: message };
+    }
+
+    return {
+      success: true,
+      status: response.status || 'queued',
+      taskId: responseId
+    };
+  }
+
+  const imageBase64 = extractImageBase64FromResponse(response);
+
+  if (!imageBase64) {
+    return { success: false, status: response.status, error: 'OpenAI 未返回图片数据' };
+  }
+
+  const image = await uploadGeneratedImage(openid, imageBase64);
+
+  try {
+    if (record && record._id) {
+      let charged = false;
+      const now = Date.now();
+      if (!record.chargedAt) {
+        await chargeAiImageUsageIfNeeded(openid, record);
+        charged = true;
+      }
+
+      await db.collection('ai_image_generations').doc(record._id).update({
+        data: {
+          status: 'completed',
+          images: buildCompletedAiImages(image, responseId),
+          usage: response.usage || null,
+          completedAt: now,
+          chargedAt: record.chargedAt || now
+        }
+      });
+      image.charged = charged;
+    }
+  } catch (err) {
+    console.warn('更新 AI 生图记录失败:', err);
+  }
+
+  return {
+    success: true,
+    status: 'completed',
     image,
-    model,
-    usage: openaiRes.usage || null
+    model: record && record.model ? record.model : imageModel,
+    usage: response.usage || null,
+    charged: Boolean(image.charged)
+  };
+}
+
+async function ensureAiImageQuota(openid) {
+  const userId = openid || 'anonymous';
+  const res = await db.collection('ai_image_quotas').where({ userId }).limit(1).get();
+
+  if (res.data && res.data[0]) {
+    return res.data[0];
+  }
+
+  const quota = {
+    userId,
+    total: 100,
+    used: 0,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  };
+  const addRes = await db.collection('ai_image_quotas').add({ data: quota });
+  quota._id = addRes._id;
+  return quota;
+}
+
+async function incrementAiImageUsage(openid) {
+  const quota = await ensureAiImageQuota(openid);
+  await db.collection('ai_image_quotas').doc(quota._id).update({
+    data: {
+      used: _.inc(1),
+      updatedAt: Date.now()
+    }
+  });
+}
+
+async function chargeAiImageUsageIfNeeded(openid, record) {
+  if (!record || record.chargedAt) {
+    return;
+  }
+
+  await incrementAiImageUsage(openid);
+}
+
+async function getAiImageSummaryData(openid) {
+  const quota = await ensureAiImageQuota(openid);
+  const userId = openid || 'anonymous';
+  const generatedRes = await db.collection('ai_image_generations')
+    .where({ userId, status: 'completed' })
+    .count();
+  const total = quota.total || 100;
+  const used = quota.used || 0;
+
+  return {
+    total,
+    used,
+    remaining: Math.max(0, total - used),
+    generatedCount: generatedRes.total || 0
+  };
+}
+
+async function aiImageSummary(openid) {
+  return {
+    success: true,
+    summary: await getAiImageSummaryData(openid)
+  };
+}
+
+async function recordAiImageTask(openid, data, task) {
+  const newRecord = {
+    userId: openid || 'anonymous',
+    responseId: task.taskId,
+    status: task.status || 'queued',
+    external: Boolean(task.external),
+    mode: data.mode,
+    prompt: getEffectiveAiImagePrompt(data),
+    style: data.style || '',
+    ratio: data.ratio || '',
+    model: task.model || '',
+    referenceFileID: data.referenceFileID || '',
+    images: buildInitialAiImages(task),
+    usage: null,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  };
+
+  const res = await db.collection('ai_image_generations').add({ data: newRecord });
+  newRecord._id = res._id;
+  return newRecord;
+}
+
+async function syncAiImageRecord(openid, record) {
+  if (!record || record.status === 'completed' || record.status === 'failed') {
+    return record;
+  }
+
+  const statusRes = await aiImageStatus(openid, { taskId: record.responseId });
+
+  if (!statusRes.success && statusRes.status !== 'failed') {
+    return record;
+  }
+
+  const updates = {
+    status: statusRes.status || (statusRes.success ? 'completed' : 'failed'),
+    updatedAt: Date.now()
+  };
+
+  if (!statusRes.success) {
+    updates.error = statusRes.error || '生成失败';
+    updates.images = syncImagesStatus(record.images, 'failed', updates.error);
+  } else if (isAiImageLoadingStatus(updates.status)) {
+    updates.images = syncImagesStatus(record.images, updates.status);
+  }
+
+  if (statusRes.status === 'completed' && statusRes.image) {
+    updates.status = 'completed';
+    updates.images = buildCompletedAiImages(statusRes.image, record.responseId);
+    updates.completedAt = Date.now();
+    updates.chargedAt = record.chargedAt || Date.now();
+    if (!record.chargedAt && !statusRes.charged) {
+      await chargeAiImageUsageIfNeeded(openid, record);
+    }
+  }
+
+  try {
+    await db.collection('ai_image_generations').doc(record._id).update({ data: updates });
+  } catch (err) {
+    console.warn('同步 AI 生图记录失败:', err);
+  }
+
+  return { ...record, ...updates };
+}
+
+async function aiImageList(openid) {
+  const userId = openid || 'anonymous';
+  const res = await db.collection('ai_image_generations')
+    .where({ userId })
+    .orderBy('createdAt', 'desc')
+    .limit(50)
+    .get();
+
+  const items = [];
+  for (const record of res.data || []) {
+    const synced = await syncAiImageRecord(openid, record);
+    items.push(formatAiImageRecord(synced));
+  }
+
+  return {
+    success: true,
+    summary: await getAiImageSummaryData(openid),
+    images: items
+  };
+}
+
+function formatAiImageRecord(record) {
+  const images = (record.images && record.images.length ? record.images : buildInitialAiImages({
+    taskId: record.responseId,
+    status: record.status || 'queued'
+  })).map((image, index) => normalizeAiImageItem({
+    ...image,
+    id: image.id || `${record.responseId || record._id || 'image'}_${index}`,
+    status: image.status || record.status || 'queued',
+    error: image.error || record.error || ''
+  }, {
+    taskId: record.responseId,
+    status: record.status || 'queued'
+  }));
+  const firstImage = images[0] || {};
+
+  return {
+    _id: record._id,
+    taskId: record.responseId,
+    status: record.status || 'queued',
+    mode: record.mode || 'text',
+    prompt: record.prompt || '',
+    style: record.style || '',
+    ratio: record.ratio || '',
+    imageUrl: firstImage.signedUrl || firstImage.url || firstImage.publicUrl || '',
+    publicUrl: firstImage.publicUrl || '',
+    images,
+    createdAt: record.createdAt || 0,
+    completedAt: record.completedAt || 0,
+    error: record.error || ''
   };
 }
 

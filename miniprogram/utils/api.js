@@ -347,6 +347,27 @@ function aiImageGenerate(data) {
   return callApi('aiImage/generate', data);
 }
 
+/**
+ * 查询 AI 图片生成状态
+ */
+function aiImageStatus(taskId) {
+  return callApi('aiImage/status', { taskId });
+}
+
+/**
+ * 获取 AI 生图额度与统计
+ */
+function aiImageSummary() {
+  return callApi('aiImage/summary', {});
+}
+
+/**
+ * 获取 AI 生图作品列表
+ */
+function aiImageList() {
+  return callApi('aiImage/list', {});
+}
+
 // ========== 反馈相关 ==========
 
 /**
@@ -418,6 +439,10 @@ module.exports = {
 
   // AI 生图
   aiImageGenerate,
+  aiImageStatus,
+  aiImageSummary,
+  aiImageList,
+  ailmageStatus: aiImageStatus,
 
   // 反馈
   feedbackCreate,
