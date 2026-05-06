@@ -189,40 +189,101 @@ Page({
     }
   },
 
-  // 选择头像
-  onChooseAvatar: async function () {
-    wx.chooseMedia({
-      count: 1,
-      mediaType: ['image'],
-      sourceType: ['album', 'camera'],
-      success: async (res) => {
-        const tempFilePath = res.tempFiles[0].tempFilePath;
-        this.setData({ 'userInfo.avatar': tempFilePath });
+  isLocalAvatarPath(path) {
+    return path && (
+      path.startsWith('wxfile://') ||
+      path.startsWith('http://tmp') ||
+      path.startsWith('https://tmp') ||
+      path.startsWith('tmp/')
+    );
+  },
 
-        if (wx.cloud) {
-          try {
-            const cloudPath = `avatars/${Date.now()}-${Math.random().toString(36).substr(2)}.jpg`;
-            const uploadRes = await wx.cloud.uploadFile({
-              cloudPath: cloudPath,
-              filePath: tempFilePath
-            });
+  getImageSuffix(path) {
+    const cleanPath = (path || '').split('?')[0];
+    const match = cleanPath.match(/\.([a-zA-Z0-9]+)$/);
+    const suffix = match ? match[1].toLowerCase() : 'jpg';
+    return ['jpg', 'jpeg', 'png', 'webp'].includes(suffix) ? suffix : 'jpg';
+  },
 
-            if (uploadRes.fileID) {
-              const urlRes = await wx.cloud.getTempFileURL({ fileList: [uploadRes.fileID] });
-              if (urlRes.fileList && urlRes.fileList[0] && urlRes.fileList[0].tempFileURL) {
-                this.setData({
-                  'userInfo.avatar': urlRes.fileList[0].tempFileURL,
-                  'userInfo.avatarFileID': uploadRes.fileID
-                });
-                this.autoSave();
-              }
-            }
-          } catch (err) {
-            console.warn('头像上传失败', err);
-          }
-        }
-      }
+  getCloudPathName(value) {
+    return String(value || 'anonymous')
+      .replace(/[^a-zA-Z0-9_-]/g, '_')
+      .slice(0, 64) || 'anonymous';
+  },
+
+  async uploadAvatar(tempFilePath) {
+    if (!tempFilePath || !wx.cloud || !wx.cloud.uploadFile) {
+      return null;
+    }
+
+    const openid = this.getCloudPathName(app.globalData.openid || wx.getStorageSync('openid') || this.data.userInfo._id);
+    const suffix = this.getImageSuffix(tempFilePath);
+    const cloudPath = `avatars/${openid}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${suffix}`;
+    const uploadRes = await wx.cloud.uploadFile({
+      cloudPath,
+      filePath: tempFilePath
     });
+
+    if (!uploadRes.fileID) {
+      return null;
+    }
+
+    let displayUrl = uploadRes.fileID;
+    if (wx.cloud.getTempFileURL) {
+      try {
+        const urlRes = await wx.cloud.getTempFileURL({ fileList: [uploadRes.fileID] });
+        if (urlRes.fileList && urlRes.fileList[0] && urlRes.fileList[0].tempFileURL) {
+          displayUrl = urlRes.fileList[0].tempFileURL;
+        }
+      } catch (err) {
+        console.warn('获取头像临时链接失败，使用云存储ID展示', err);
+      }
+    }
+
+    return {
+      fileID: uploadRes.fileID,
+      displayUrl
+    };
+  },
+
+  // 选择微信头像
+  onChooseAvatar: async function (e) {
+    const avatarUrl = e.detail && e.detail.avatarUrl;
+
+    if (!avatarUrl) {
+      return;
+    }
+
+    this.setData({ 'userInfo.avatar': avatarUrl });
+
+    if (!this.isLocalAvatarPath(avatarUrl)) {
+      this.setData({ 'userInfo.avatarFileID': '' });
+      this.autoSave();
+      return;
+    }
+
+    wx.showLoading({ title: '上传中...' });
+    try {
+      const uploaded = await this.uploadAvatar(avatarUrl);
+      wx.hideLoading();
+
+      if (!uploaded) {
+        wx.showToast({ title: '头像上传失败', icon: 'none' });
+        this.setData({ 'userInfo.avatar': this.data.userInfo.avatarFileID || '' });
+        return;
+      }
+
+      this.setData({
+        'userInfo.avatar': uploaded.displayUrl,
+        'userInfo.avatarFileID': uploaded.fileID
+      });
+      this.autoSave();
+    } catch (err) {
+      wx.hideLoading();
+      console.warn('头像上传失败', err);
+      wx.showToast({ title: '头像上传失败', icon: 'none' });
+      this.setData({ 'userInfo.avatar': this.data.userInfo.avatarFileID || '' });
+    }
   },
 
   // 选择背景图

@@ -6,9 +6,9 @@
 
 <view class="container">
   <!-- 头像卡片 -->
-  <view class="profile-header-card" bindtap="onChooseBackground">
-    <image class="profile-bg-image" src="{{userInfo.background}}" mode="aspectFill" wx:if="{{userInfo.background}}"></image>
-    <button class="avatar-container" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar" catchtap="noop">
+  <view class="profile-header-card">
+    <image class="profile-bg-image" src="{{userInfo.background}}" mode="aspectFill" wx:if="{{userInfo.background}}" bindtap="onChooseBackground"></image>
+    <button class="avatar-container" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
       <image class="avatar-large" src="{{userInfo.avatar || defaultAvatar}}" mode="aspectFill" wx:if="{{userInfo.avatar}}"></image>
       <view class="avatar-large-placeholder" wx:else>
         <text>👤</text>
@@ -19,7 +19,7 @@
     </button>
     <view class="profile-nickname">{{userInfo.nickname || '旅行达人'}}</view>
     <view class="profile-id">ID: {{userInfo.userId || 'BJ20260406'}}</view>
-    <view class="background-edit-hint">点击更换背景</view>
+    <view class="background-edit-hint" bindtap="onChooseBackground">点击更换背景</view>
   </view>
 
   <view class="content-section-view">

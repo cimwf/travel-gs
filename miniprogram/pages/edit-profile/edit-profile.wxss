@@ -65,6 +65,19 @@ page {
   position: relative;
   z-index: 1;
   display: inline-block;
+  width: 192rpx;
+  height: 192rpx;
+  padding: 0;
+  margin: 0 auto;
+  line-height: 1;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  overflow: visible;
+}
+
+.avatar-container::after {
+  border: 0;
 }
 
 .avatar-large {

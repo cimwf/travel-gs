@@ -41,7 +41,24 @@ function resetRuntime() {
   global.Page = (definition) => {
     currentPage = definition;
     currentPage.setData = function setData(patch) {
-      this.data = { ...this.data, ...patch };
+      Object.keys(patch).forEach((key) => {
+        if (!key.includes('.')) {
+          this.data = { ...this.data, [key]: patch[key] };
+          return;
+        }
+
+        const parts = key.split('.');
+        const rootKey = parts.shift();
+        const nextRoot = { ...(this.data[rootKey] || {}) };
+        let target = nextRoot;
+        while (parts.length > 1) {
+          const part = parts.shift();
+          target[part] = { ...(target[part] || {}) };
+          target = target[part];
+        }
+        target[parts[0]] = patch[key];
+        this.data = { ...this.data, [rootKey]: nextRoot };
+      });
     };
   };
   global.wx = {
@@ -99,7 +116,12 @@ function resetRuntime() {
         }
         return { result: { success: true } };
       },
-      getTempFileURL: async () => ({ fileList: [] })
+      getTempFileURL: async ({ fileList = [] } = {}) => ({
+        fileList: fileList.map((fileID) => ({
+          fileID,
+          tempFileURL: `https://temp.example.com/${encodeURIComponent(fileID)}`
+        }))
+      })
     }
   };
 }
@@ -243,6 +265,39 @@ test('auth 完成登录会先上传 wxfile 头像并保存云存储 fileID', asy
   const loginCall = wxCalls.cloudCalls.find((call) => call.name === 'api' && call.data.action === 'user/loginByPhone');
   assert(loginCall, 'user/loginByPhone should be called');
   assert(loginCall.data.data.avatar.startsWith('cloud://test-env.avatars/'), 'login avatar should be cloud fileID');
+});
+
+test('edit-profile UI 支持微信头像并上传云存储头像', async () => {
+  const wxml = read('miniprogram/pages/edit-profile/edit-profile.wxml');
+  assert(wxml.includes('open-type="chooseAvatar"'), 'edit-profile avatar should use WeChat chooseAvatar');
+  assert(wxml.includes('bindchooseavatar="onChooseAvatar"'), 'edit-profile avatar should bind chooseAvatar event');
+
+  const page = loadPage('pages/edit-profile/edit-profile.js');
+
+  storage.userInfo = {
+    _id: 'user-doc-id',
+    openid: 'openid-test',
+    nickname: '测试用户',
+    avatar: '',
+    photos: []
+  };
+  storage.userId = 'user-doc-id';
+  storage.openid = 'openid-test';
+  storage.lastLoginTime = Date.now();
+  app.globalData.userInfo = storage.userInfo;
+  app.globalData.openid = 'openid-test';
+
+  await page.onLoad();
+  await page.onChooseAvatar({ detail: { avatarUrl: 'wxfile://tmp_profile_avatar.jpg' } });
+
+  const uploadCall = wxCalls.uploadFile && wxCalls.uploadFile[0];
+  assert(uploadCall, 'edit-profile wxfile avatar should be uploaded');
+  assert.strictEqual(uploadCall.filePath, 'wxfile://tmp_profile_avatar.jpg');
+  assert(page.data.userInfo.avatarFileID.startsWith('cloud://test-env.avatars/'), 'avatarFileID should be cloud fileID');
+
+  const updateCall = wxCalls.cloudCalls.find((call) => call.name === 'api' && call.data.action === 'user/update');
+  assert(updateCall, 'edit-profile should sync avatar to database');
+  assert(updateCall.data.data.avatar.startsWith('cloud://test-env.avatars/'), 'database avatar should be cloud fileID');
 });
 
 test('trip-publish UI 含必填项、发布按钮和出发地弹窗', () => {
