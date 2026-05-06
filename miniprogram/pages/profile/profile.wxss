@@ -40,6 +40,7 @@ page {
    ======================================== */
 .profile-header {
   width: 100%;
+  min-height: 420rpx;
   padding: 120rpx 48rpx 80rpx;
   position: relative;
   overflow: hidden;
