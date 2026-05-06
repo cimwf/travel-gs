@@ -23,29 +23,14 @@
 
 .modal-header {
   text-align: center;
-  margin-bottom: 40rpx;
-}
-
-.modal-icon-wrap {
-  width: 120rpx;
-  height: 120rpx;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border-radius: 32rpx;
-  margin: 0 auto 24rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-icon {
-  font-size: 56rpx;
+  margin-bottom: 36rpx;
 }
 
 .modal-title {
-  font-size: 36rpx;
+  font-size: 38rpx;
   font-weight: 600;
   color: #1A1A2E;
-  margin-bottom: 8rpx;
+  margin-bottom: 10rpx;
 }
 
 .modal-subtitle {

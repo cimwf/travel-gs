@@ -2,9 +2,6 @@
 <view class="modal-mask" wx:if="{{show}}" bindtap="onClose">
   <view class="modal-content" catchtap="preventBubble">
     <view class="modal-header">
-      <view class="modal-icon-wrap">
-        <text class="modal-icon">🏔️</text>
-      </view>
       <view class="modal-title">申请加入行程</view>
       <view class="modal-subtitle">{{placeName}} · 还剩{{remainCount}}个名额</view>
     </view>
@@ -23,7 +20,7 @@
       <!-- 备注 -->
       <view class="form-group">
         <view class="form-label">备注（选填）</view>
-        <textarea class="form-textarea" placeholder="简单介绍一下自己..." value="{{introduction}}" bindinput="onIntroductionInput" />
+        <textarea class="form-textarea" placeholder="可补充出行人数、时间安排等..." value="{{introduction}}" bindinput="onIntroductionInput" />
       </view>
     </view>
 

@@ -300,6 +300,12 @@ test('edit-profile UI 支持微信头像并上传云存储头像', async () => {
   assert(updateCall.data.data.avatar.startsWith('cloud://test-env.avatars/'), 'database avatar should be cloud fileID');
 });
 
+test('apply-modal 顶部不展示无意义默认头像', () => {
+  const wxml = read('miniprogram/components/apply-modal/apply-modal.wxml');
+  assert(wxml.includes('申请加入行程'), 'apply modal should keep title');
+  assert(!wxml.includes('modal-icon-wrap'), 'apply modal should not render decorative avatar/icon wrapper');
+});
+
 test('trip-publish UI 含必填项、发布按钮和出发地弹窗', () => {
   const wxml = read('miniprogram/pages/trip-publish/trip-publish.wxml');
   ['目的地<text class="required">*</text>', '出发地<text class="required">*</text>', '出行日期<text class="required">*</text>', '招募人数<text class="required">*</text>', '手机号<text class="required">*</text>', '发布行程', '选择出发地'].forEach((needle) => {
