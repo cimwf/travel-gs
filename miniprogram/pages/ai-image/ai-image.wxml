@@ -1,0 +1,86 @@
+<view class="container">
+  <view class="hero">
+    <view class="hero-kicker">GPT Image 2</view>
+    <view class="hero-title">最强大的 AI 生图模型</view>
+    <view class="hero-desc">支持文生图与图生图，把旅行灵感、头像、海报和路线封面快速变成可用图片。</view>
+    <view class="hero-tags">
+      <text>高质量细节</text>
+      <text>中文提示词</text>
+      <text>参考图改造</text>
+    </view>
+  </view>
+
+  <view class="mode-tabs">
+    <view class="mode-tab {{mode === 'text' ? 'active' : ''}}" data-mode="text" bindtap="onSwitchMode">文生图</view>
+    <view class="mode-tab {{mode === 'image' ? 'active' : ''}}" data-mode="image" bindtap="onSwitchMode">图生图</view>
+  </view>
+
+  <view class="panel">
+    <view class="section-title">创作描述</view>
+    <textarea
+      class="prompt-input"
+      placeholder="{{mode === 'text' ? '描述你想生成的画面，例如：冬日长城脚下的露营海报，暖色灯光，电影感...' : '描述希望如何改造参考图，例如：保留人物姿态，换成北方雪山旅行海报风格...'}}"
+      placeholder-class="placeholder"
+      maxlength="500"
+      value="{{prompt}}"
+      bindinput="onPromptInput"
+    ></textarea>
+    <view class="input-meta">{{prompt.length}}/500</view>
+  </view>
+
+  <view class="panel" wx:if="{{mode === 'image'}}">
+    <view class="section-head">
+      <view class="section-title">参考图片</view>
+      <view class="section-action" bindtap="onChooseImage">{{referenceImage ? '更换' : '上传'}}</view>
+    </view>
+    <view class="upload-box" bindtap="onChooseImage">
+      <image wx:if="{{referenceImage}}" class="reference-image" src="{{referenceImage}}" mode="aspectFill"></image>
+      <view wx:else class="upload-empty">
+        <view class="upload-mark">+</view>
+        <view class="upload-text">选择一张图片作为生成参考</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="panel">
+    <view class="section-title">生成设置</view>
+    <view class="option-group">
+      <view class="option-label">画面比例</view>
+      <view class="chips">
+        <view class="chip {{ratio === item ? 'selected' : ''}}" wx:for="{{ratios}}" wx:key="*this" data-value="{{item}}" bindtap="onSelectRatio">{{item}}</view>
+      </view>
+    </view>
+    <view class="option-group">
+      <view class="option-label">视觉风格</view>
+      <view class="chips">
+        <view class="chip {{style === item ? 'selected' : ''}}" wx:for="{{styles}}" wx:key="*this" data-value="{{item}}" bindtap="onSelectStyle">{{item}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="preview-panel">
+    <view class="preview-head">
+      <view>
+        <view class="section-title">生成预览</view>
+        <view class="preview-subtitle">这里展示 GPT Image 2 返回的图片</view>
+      </view>
+      <view class="model-badge">GPT Image 2</view>
+    </view>
+    <view class="preview-canvas">
+      <image wx:if="{{resultImage}}" class="result-image" src="{{resultImage}}" mode="aspectFit"></image>
+      <block wx:else>
+        <view class="preview-glow"></view>
+        <view class="preview-placeholder">
+          <view class="preview-icon">✦</view>
+          <view class="preview-text">等待创作</view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <view class="bottom-bar">
+    <view class="generate-btn {{canGenerate ? '' : 'disabled'}}" bindtap="onGenerate">
+      {{loading ? '正在生成...' : (mode === 'text' ? '用文字生成图片' : '用参考图生成图片')}}
+    </view>
+  </view>
+</view>

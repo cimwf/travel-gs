@@ -168,10 +168,12 @@ Page({
   // 加载用户发布的行程
   loadUserTrips: async function (userId) {
     try {
-      const res = await api.tripListByUser(userId);
+      await app.getAttractions();
+      const res = await api.tripListByUser(userId, 1, 50);
 
       if (res.success && res.trips && res.trips.length > 0) {
-        this.setData({ trips: res.trips });
+        const trips = res.trips.map(item => this.formatTrip(item));
+        this.setData({ trips });
       } else {
         this.setData({ trips: [] });
       }
@@ -179,6 +181,115 @@ Page({
       console.error('加载行程失败', err);
       this.setData({ trips: [] });
     }
+  },
+
+  formatTrip: function (trip) {
+    let dateText = trip.date || '';
+    if (trip.date) {
+      const date = new Date(trip.date);
+      if (!Number.isNaN(date.getTime())) {
+        const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+        dateText = `${date.getMonth() + 1}月${date.getDate()}日 周${weekDays[date.getDay()]}`;
+      }
+    }
+
+    let publishTime = '刚刚';
+    if (trip.createdAt) {
+      const diff = Date.now() - trip.createdAt;
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const days = Math.floor(hours / 24);
+      if (days > 0) {
+        publishTime = `${days}天前`;
+      } else if (hours > 0) {
+        publishTime = `${hours}小时前`;
+      }
+    }
+
+    const needCount = trip.needCount || 0;
+    let statusClass = 'recruiting';
+    let statusText = '招募中';
+    if (trip.status === 'stopped') {
+      statusClass = 'stopped';
+      statusText = '停止招募';
+    } else if (trip.status === 'cancelled') {
+      statusClass = 'cancelled';
+      statusText = '已取消';
+    } else if (needCount === 0) {
+      statusClass = 'full';
+      statusText = '已满员';
+    } else if (needCount === 1) {
+      statusClass = 'almost-full';
+      statusText = '即将满员';
+    }
+
+    let carText = '';
+    const carSeats = trip.carSeats || '';
+    const carModel = trip.carModel || '';
+    if (carSeats && carModel) {
+      carText = `🚗 ${carSeats}座·${carModel}`;
+    } else if (carSeats) {
+      carText = `🚗 ${carSeats}座`;
+    } else if (carModel) {
+      carText = `🚗 ${carModel}`;
+    } else {
+      carText = trip.hasCar ? '🚗 有车' : '🚗 无车';
+    }
+
+    let priceText = '';
+    if (trip.price) {
+      priceText = `${trip.price}元/人`;
+    }
+
+    let placeCoverImage = '';
+    if (trip.placeId) {
+      const attractions = app.globalData.attractions || [];
+      const attraction = attractions.find(item => item._id === trip.placeId || item.id === trip.placeId);
+      placeCoverImage = attraction ? (attraction.coverImage || '') : '';
+    }
+
+    return {
+      _id: trip._id,
+      placeName: trip.placeName,
+      displayTitle: trip.tripTitle || trip.title || trip.placeName,
+      dateText,
+      departure: trip.departure || '',
+      carText,
+      priceText,
+      publishTime,
+      participants: trip.participants || [],
+      placeCoverImage,
+      imgBg: this.getImgBg(trip.placeName),
+      emoji: this.getEmoji(trip.category),
+      needCount,
+      statusClass,
+      statusText
+    };
+  },
+
+  getImgBg: function (placeName) {
+    const bgMap = {
+      '东灵山': 'linear-gradient(135deg, #667eea, #764ba2)',
+      '海坨山': 'linear-gradient(135deg, #11998e, #38ef7d)',
+      '百花山': 'linear-gradient(135deg, #56AB2F, #A8E6CF)',
+      '香山': 'linear-gradient(135deg, #FA8C16, #FFC53D)',
+      '八达岭长城': 'linear-gradient(135deg, #667eea, #764ba2)',
+      '慕田峪长城': 'linear-gradient(135deg, #4facfe, #00f2fe)',
+      '十渡': 'linear-gradient(135deg, #4facfe, #00f2fe)',
+      '青龙峡': 'linear-gradient(135deg, #11998e, #38ef7d)',
+      '古北水镇': 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
+      '爨底下村': 'linear-gradient(135deg, #f093fb, #f5576c)'
+    };
+    return bgMap[placeName] || 'linear-gradient(135deg, #667eea, #764ba2)';
+  },
+
+  getEmoji: function (category) {
+    const emojiMap = {
+      '爬山': '🏔️',
+      '水上': '💧',
+      '古镇': '🏯',
+      '露营': '🏕️'
+    };
+    return emojiMap[category] || '🏔️';
   },
 
   // 更多操作

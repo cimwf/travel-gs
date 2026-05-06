@@ -1,5 +1,7 @@
 // 云函数：api - 统一数据接口
 const cloud = require('wx-server-sdk');
+const https = require('https');
+const FormData = require('form-data');
 
 cloud.init({
   env: cloud.DYNAMIC_CURRENT_ENV
@@ -129,6 +131,10 @@ exports.main = async (event, context) => {
       // ========== 用户上传景点相关 ==========
       case 'userSpots/create':
         return await userSpotsCreate(openid, data);
+
+      // ========== AI 生图相关 ==========
+      case 'aiImage/generate':
+        return await aiImageGenerate(openid, data);
 
       default:
         return { success: false, error: '未知操作' };
@@ -1558,24 +1564,26 @@ async function tripListByUser(data) {
       placeImage = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop';
     }
 
-    // 格式化日期
-    let dateText = trip.date || '';
-    if (trip.date) {
-      try {
-        const date = new Date(trip.date);
-        const month = date.getMonth() + 1;
-        const day = date.getDate();
-        dateText = `${month}月${day}日`;
-      } catch (e) {}
-    }
-
     return {
       _id: trip._id,
       title: trip.tripTitle || trip.placeName,
+      tripTitle: trip.tripTitle || '',
       placeName: trip.placeName,
+      placeId: trip.placeId || '',
       placeImage: placeImage,
-      date: dateText,
+      date: trip.date,
       duration: trip.duration || '1天',
+      departure: trip.departure || '',
+      hasCar: trip.hasCar,
+      carSeats: trip.carSeats || '',
+      carModel: trip.carModel || '',
+      price: trip.price || '',
+      currentCount: trip.currentCount || 0,
+      needCount: trip.needCount || 0,
+      participants: trip.participants || [],
+      status: trip.status || 'open',
+      category: trip.category || '',
+      createdAt: trip.createdAt || 0,
       viewCount: trip.viewCount || 0,
       likeCount: trip.likeCount || 0,
       commentCount: trip.commentCount || 0,
@@ -2337,6 +2345,231 @@ async function userSpotsCreate(openid, data) {
   newSpot._id = res._id;
 
   return { success: true, spot: newSpot };
+}
+
+// ========== AI 生图相关 ==========
+
+function getOpenAIConfig() {
+  return {
+    apiKey: process.env.OPENAI_API_KEY,
+    model: process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2'
+  };
+}
+
+function mapImageSize(ratio) {
+  const sizeMap = {
+    '1:1': '1024x1024',
+    '3:4': '1024x1536',
+    '4:3': '1536x1024',
+    '9:16': '1024x1536'
+  };
+  return sizeMap[ratio] || '1024x1024';
+}
+
+function requestOpenAIJson(path, payload, apiKey) {
+  const body = JSON.stringify(payload);
+
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: 'api.openai.com',
+      path,
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body)
+      }
+    }, (res) => {
+      const chunks = [];
+      res.on('data', chunk => chunks.push(chunk));
+      res.on('end', () => {
+        const text = Buffer.concat(chunks).toString('utf8');
+        let parsed;
+        try {
+          parsed = JSON.parse(text);
+        } catch (err) {
+          reject(new Error(`OpenAI 返回异常：${text.slice(0, 200)}`));
+          return;
+        }
+
+        if (res.statusCode >= 400) {
+          reject(new Error(parsed.error && parsed.error.message ? parsed.error.message : 'OpenAI 请求失败'));
+          return;
+        }
+
+        resolve(parsed);
+      });
+    });
+
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+function requestOpenAIMultipart(path, form, apiKey) {
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: 'api.openai.com',
+      path,
+      method: 'POST',
+      headers: {
+        ...form.getHeaders(),
+        Authorization: `Bearer ${apiKey}`
+      }
+    }, (res) => {
+      const chunks = [];
+      res.on('data', chunk => chunks.push(chunk));
+      res.on('end', () => {
+        const text = Buffer.concat(chunks).toString('utf8');
+        let parsed;
+        try {
+          parsed = JSON.parse(text);
+        } catch (err) {
+          reject(new Error(`OpenAI 返回异常：${text.slice(0, 200)}`));
+          return;
+        }
+
+        if (res.statusCode >= 400) {
+          reject(new Error(parsed.error && parsed.error.message ? parsed.error.message : 'OpenAI 请求失败'));
+          return;
+        }
+
+        resolve(parsed);
+      });
+    });
+
+    req.on('error', reject);
+    form.pipe(req);
+  });
+}
+
+function getFileExt(fileID) {
+  const clean = String(fileID || '').split('?')[0];
+  const matched = clean.match(/\.([a-zA-Z0-9]+)$/);
+  return matched ? matched[1].toLowerCase() : 'jpg';
+}
+
+function getMimeType(ext) {
+  const map = {
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    webp: 'image/webp'
+  };
+  return map[ext] || 'image/jpeg';
+}
+
+function buildImagePrompt(data) {
+  const parts = [
+    data.prompt.trim(),
+    `视觉风格：${data.style || '旅行海报'}`,
+    '请生成适合在旅行社交小程序中展示的高质量图片。'
+  ];
+  return parts.join('\n');
+}
+
+async function callOpenAIImage(data, apiKey, model) {
+  const prompt = buildImagePrompt(data);
+  const size = mapImageSize(data.ratio);
+
+  if (data.mode === 'image') {
+    if (!data.referenceFileID) {
+      throw new Error('参考图片不能为空');
+    }
+
+    const downloadRes = await cloud.downloadFile({ fileID: data.referenceFileID });
+    const ext = getFileExt(data.referenceFileID);
+    const form = new FormData();
+
+    form.append('model', model);
+    form.append('prompt', prompt);
+    form.append('n', '1');
+    form.append('size', size);
+    form.append('quality', 'medium');
+    form.append('image[]', downloadRes.fileContent, {
+      filename: `reference.${ext}`,
+      contentType: getMimeType(ext)
+    });
+
+    return await requestOpenAIMultipart('/v1/images/edits', form, apiKey);
+  }
+
+  return await requestOpenAIJson('/v1/images/generations', {
+    model,
+    prompt,
+    n: 1,
+    size,
+    quality: 'medium'
+  }, apiKey);
+}
+
+async function uploadGeneratedImage(openid, imageBase64) {
+  const buffer = Buffer.from(imageBase64, 'base64');
+  const cloudPath = `ai-images/${openid || 'anonymous'}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.png`;
+  const uploadRes = await cloud.uploadFile({
+    cloudPath,
+    fileContent: buffer
+  });
+
+  const urlRes = await cloud.getTempFileURL({ fileList: [uploadRes.fileID] });
+  const file = urlRes.fileList && urlRes.fileList[0];
+
+  return {
+    fileID: uploadRes.fileID,
+    tempFileURL: file && file.tempFileURL ? file.tempFileURL : ''
+  };
+}
+
+async function aiImageGenerate(openid, data = {}) {
+  const { apiKey, model } = getOpenAIConfig();
+
+  if (!apiKey) {
+    return { success: false, error: '未配置 OPENAI_API_KEY' };
+  }
+
+  if (!data.prompt || !data.prompt.trim()) {
+    return { success: false, error: '创作描述不能为空' };
+  }
+
+  if (!['text', 'image'].includes(data.mode)) {
+    return { success: false, error: '生成模式不正确' };
+  }
+
+  const openaiRes = await callOpenAIImage(data, apiKey, model);
+  const imageBase64 = openaiRes.data && openaiRes.data[0] && openaiRes.data[0].b64_json;
+
+  if (!imageBase64) {
+    return { success: false, error: 'OpenAI 未返回图片数据' };
+  }
+
+  const image = await uploadGeneratedImage(openid, imageBase64);
+
+  try {
+    await db.collection('ai_image_generations').add({
+      data: {
+        userId: openid || '',
+        mode: data.mode,
+        prompt: data.prompt.trim(),
+        style: data.style || '',
+        ratio: data.ratio || '',
+        model,
+        referenceFileID: data.referenceFileID || '',
+        resultFileID: image.fileID,
+        usage: openaiRes.usage || null,
+        createdAt: Date.now()
+      }
+    });
+  } catch (err) {
+    console.warn('保存 AI 生图记录失败:', err);
+  }
+
+  return {
+    success: true,
+    image,
+    model,
+    usage: openaiRes.usage || null
+  };
 }
 
 // ========== 反馈相关 ==========

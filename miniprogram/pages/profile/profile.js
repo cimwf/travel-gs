@@ -144,6 +144,11 @@ Page({
     auth.navigateIfLoggedIn('/pages/upload-spot/upload-spot');
   },
 
+  // AI 生图
+  onTapAiImage: function () {
+    auth.navigateIfLoggedIn('/pages/ai-image/ai-image');
+  },
+
   // 我的收藏
   onTapCollections: function () {
     if (auth.ensureLogin()) {

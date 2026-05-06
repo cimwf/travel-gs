@@ -64,6 +64,15 @@
       <text class="info-arrow">›</text>
     </view>
 
+    <view class="info-bar ai-entry" bindtap="onTapAiImage">
+      <view class="info-icon ai-icon">✨</view>
+      <view class="info-content">
+        <view class="info-title">AI 生图</view>
+        <view class="info-desc">GPT Image 2 · 文生图 / 图生图</view>
+      </view>
+      <text class="info-arrow">›</text>
+    </view>
+
     <view class="info-bar" bindtap="onTapFeedback">
       <view class="info-icon" style="background: linear-gradient(135deg, var(--primary-bg), var(--tertiary-light));">💡</view>
       <view class="info-content">

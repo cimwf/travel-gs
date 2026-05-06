@@ -183,6 +183,23 @@ page {
   color: var(--text-primary);
 }
 
+.info-desc {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+.ai-entry {
+  background: linear-gradient(135deg, #FFFFFF 0%, #FFF8EF 48%, #F1FAFF 100%);
+  border: 2rpx solid rgba(232, 196, 160, 0.28);
+}
+
+.ai-icon {
+  background: linear-gradient(135deg, #FFE4B8 0%, #CDEEFF 100%);
+  box-shadow: 0 8rpx 24rpx rgba(74, 144, 226, 0.12);
+}
+
 /* 箭头 */
 .info-arrow {
   font-size: 40rpx;

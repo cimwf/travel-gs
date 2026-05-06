@@ -52,16 +52,38 @@
         </view>
 
         <view class="trip-list" wx:if="{{trips.length > 0}}">
-          <view class="trip-item" wx:for="{{trips}}" wx:key="_id" bindtap="onTripTap" data-id="{{item._id}}">
-            <view class="trip-cover">
-              <image class="trip-cover-img" src="{{item.placeImage}}" mode="aspectFill"></image>
-            </view>
-            <view class="trip-info">
-              <view class="trip-title">{{item.title || item.placeName}}</view>
-              <view class="trip-meta">{{item.date}} · {{item.duration || '1天'}}</view>
-              <view class="trip-tags">
-                <text class="trip-tag" wx:for="{{item.tags}}" wx:key="index" wx:for-item="tag">{{tag}}</text>
+          <view class="trip-card" wx:for="{{trips}}" wx:key="_id" bindtap="onTripTap" data-id="{{item._id}}">
+            <view class="trip-header">
+              <image class="trip-img" src="{{item.placeCoverImage}}" mode="aspectFill" wx:if="{{item.placeCoverImage}}"></image>
+              <view class="trip-img" style="background: {{item.imgBg}};" wx:else>
+                <text class="trip-emoji">{{item.emoji}}</text>
               </view>
+              <view class="trip-info">
+                <view class="trip-title-row">
+                  <view class="trip-title">{{item.displayTitle || item.placeName}}</view>
+                  <view class="trip-status {{item.statusClass}}">{{item.statusText}}</view>
+                </view>
+                <view class="trip-meta">
+                  <text>📅 {{item.dateText}}</text>
+                  <text class="meta-dot">·</text>
+                  <text>📍 {{item.departure || '待定'}}</text>
+                </view>
+                <view class="trip-meta trip-meta-second">
+                  <text>{{item.carText}}</text>
+                  <text class="meta-dot" wx:if="{{item.priceText}}">·</text>
+                  <text wx:if="{{item.priceText}}">{{item.priceText}}</text>
+                </view>
+              </view>
+            </view>
+
+            <view class="trip-footer">
+              <view class="trip-footer-left">
+                <view class="participants">
+                  <image class="participant-avatar" wx:for="{{item.participants}}" wx:for-item="p" wx:for-index="pIndex" wx:key="userId" src="{{p.avatar}}" mode="aspectFill"></image>
+                </view>
+                <text class="trip-need" wx:if="{{item.needCount > 0}}">还差{{item.needCount}}人</text>
+              </view>
+              <text class="publish-time">{{item.publishTime}}</text>
             </view>
           </view>
         </view>

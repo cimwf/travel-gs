@@ -221,63 +221,128 @@ page {
   padding: 32rpx;
 }
 
-.trip-item {
-  display: flex;
-  gap: 24rpx;
+.trip-card {
   background: #f8f9fa;
   border-radius: 24rpx;
-  padding: 32rpx;
+  padding: 24rpx;
   margin-bottom: 24rpx;
 }
 
-.trip-item:last-child {
+.trip-card:last-child {
   margin-bottom: 0;
 }
 
-.trip-cover {
+.trip-header {
+  display: flex;
+  gap: 24rpx;
+}
+
+.trip-img {
   width: 160rpx;
   height: 160rpx;
   border-radius: 20rpx;
   overflow: hidden;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.trip-cover-img {
-  width: 100%;
-  height: 100%;
+.trip-emoji {
+  font-size: 64rpx;
 }
 
 .trip-info {
   flex: 1;
+  min-width: 0;
+}
+
+.trip-title-row {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 10rpx;
 }
 
 .trip-title {
+  flex: 1;
+  min-width: 0;
   font-size: 30rpx;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 8rpx;
+  line-height: 1.35;
+}
+
+.trip-status {
+  flex-shrink: 0;
+  padding: 6rpx 14rpx;
+  border-radius: 18rpx;
+  font-size: 22rpx;
+  color: #fff;
+  background: #52c41a;
+}
+
+.trip-status.almost-full {
+  background: #fa8c16;
+}
+
+.trip-status.full,
+.trip-status.stopped,
+.trip-status.cancelled {
+  background: #8c8c8c;
 }
 
 .trip-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8rpx;
   font-size: 24rpx;
   color: var(--text-hint);
-  margin-bottom: 16rpx;
+  margin-top: 10rpx;
 }
 
-.trip-tags {
+.meta-dot {
+  color: #c0c4cc;
+}
+
+.trip-footer {
   display: flex;
-  gap: 12rpx;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 22rpx;
 }
 
-.trip-tag {
-  padding: 8rpx 16rpx;
-  background: rgba(74, 144, 226, 0.1);
-  color: var(--primary-color);
-  border-radius: 20rpx;
-  font-size: 22rpx;
+.trip-footer-left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.participants {
+  display: flex;
+  align-items: center;
+  margin-right: 16rpx;
+}
+
+.participant-avatar {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  border: 2rpx solid #fff;
+  margin-left: -10rpx;
+  background: #e8e8f0;
+}
+
+.participant-avatar:first-child {
+  margin-left: 0;
+}
+
+.trip-need,
+.publish-time {
+  font-size: 24rpx;
+  color: var(--text-hint);
 }
 
 .trip-stats {

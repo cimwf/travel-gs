@@ -15,6 +15,7 @@
     "pages/chat/chat",
     "pages/comments/comments",
     "pages/profile/profile",
+    "pages/ai-image/ai-image",
     "pages/edit-profile/edit-profile",
     "pages/followers/followers",
     "pages/feedback/feedback",

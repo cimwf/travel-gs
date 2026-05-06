@@ -338,6 +338,15 @@ function userSpotsCreate(data) {
   return callApi('userSpots/create', data);
 }
 
+// ========== AI 生图相关 ==========
+
+/**
+ * 生成 AI 图片
+ */
+function aiImageGenerate(data) {
+  return callApi('aiImage/generate', data);
+}
+
 // ========== 反馈相关 ==========
 
 /**
@@ -406,6 +415,9 @@ module.exports = {
   attractionsList,
   attractionsGet,
   userSpotsCreate,
+
+  // AI 生图
+  aiImageGenerate,
 
   // 反馈
   feedbackCreate,
