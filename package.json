@@ -9,6 +9,7 @@
   },
   "scripts": {
     "test": "node tests/mvp-ui-flow.test.js",
+    "test:metrics": "node tests/conversion-metrics.test.js",
     "test:e2e": "node tests/e2e-click-flow.test.js",
     "test:core": "node tests/e2e-core-flow.test.js"
   },

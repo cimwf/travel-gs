@@ -52,7 +52,7 @@ exports.main = async (event, context) => {
       case 'trip/create':
         return await tripCreate(openid, data);
       case 'trip/list':
-        return await tripList(data);
+        return await tripList(openid, data);
       case 'trip/get':
         return await tripGet(data.tripId);
       case 'trip/view':
@@ -167,49 +167,57 @@ async function authTrackEvent(data) {
     return { success: false, error: '参数不完整' };
   }
 
-  const today = new Date();
-  const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-
   try {
-    const statsRes = await db.collection('user_stats')
-      .where({ type: eventType, date: dateStr })
-      .get();
-
-    if (statsRes.data.length > 0) {
-      const existing = statsRes.data[0];
-      // 检查 openid 是否已存在（去重）
-      const openids = existing.openids || [];
-      if (openids.includes(openid)) {
-        return { success: true, duplicated: true };
-      }
-
-      // 新用户，更新计数和 openid 列表
-      await db.collection('user_stats').doc(existing._id).update({
-        data: {
-          count: _.inc(1),
-          openids: _.push(openid),
-          updatedAt: Date.now()
-        }
-      });
-    } else {
-      // 创建今日统计记录
-      await db.collection('user_stats').add({
-        data: {
-          type: eventType,
-          date: dateStr,
-          count: 1,
-          openids: [openid],
-          createdAt: Date.now(),
-          updatedAt: Date.now()
-        }
-      });
-    }
-
-    return { success: true };
+    return await recordUserStatEvent(eventType, openid, data.extra || {});
   } catch (err) {
     console.error('记录事件失败:', err);
     return { success: false, error: err.message };
   }
+}
+
+async function recordUserStatEvent(eventType, openid, extra = {}) {
+  if (!eventType || !openid) {
+    return { success: false, error: '参数不完整' };
+  }
+
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  const statsRes = await db.collection('user_stats')
+    .where({ type: eventType, date: dateStr })
+    .get();
+
+  if (statsRes.data.length > 0) {
+    const existing = statsRes.data[0];
+    const openids = existing.openids || [];
+
+    if (openids.includes(openid)) {
+      return { success: true, duplicated: true };
+    }
+
+    await db.collection('user_stats').doc(existing._id).update({
+      data: {
+        count: _.inc(1),
+        openids: _.push(openid),
+        updatedAt: Date.now(),
+        lastExtra: extra
+      }
+    });
+  } else {
+    await db.collection('user_stats').add({
+      data: {
+        type: eventType,
+        date: dateStr,
+        count: 1,
+        openids: [openid],
+        lastExtra: extra,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      }
+    });
+  }
+
+  return { success: true };
 }
 
 // ========== 用户相关 ==========
@@ -814,8 +822,19 @@ async function tripCreate(openid, data) {
   return { success: true, trip: newTrip, tripImage };
 }
 
-async function tripList(data) {
+async function tripList(openid, data) {
   const { placeId, status, date, excludeStatus, page = 1, pageSize = 8 } = data;
+
+  // 记录行程列表访问人数。云函数上下文拿到的 openid 比前端传参更可信。
+  // 只按天去重 openid，用于后台计算访问人数、登录人数和转化率。
+  if (openid) {
+    try {
+      await recordUserStatEvent('tripListVisit', openid, { page, pageSize });
+    } catch (err) {
+      console.warn('记录行程访问统计失败', err);
+    }
+  }
+
   let query = db.collection('trips');
 
   const conditions = {};

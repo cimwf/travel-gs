@@ -58,6 +58,8 @@ Page({
 
   // 加载行程列表
   loadTrips: async function (reset = true, silent = false) {
+    const openid = await this.ensureOpenid();
+
     if (reset && !silent) {
       this.setData({ loading: true, page: 0 });
     } else if (reset) {
@@ -73,6 +75,7 @@ Page({
         data: {
           action: 'trip/list',
           data: {
+            openid,
             page: page + 1, // 云函数使用1-based分页
             pageSize,
             excludeStatus: 'cancelled'
@@ -90,7 +93,6 @@ Page({
 
       if (tripsData.length > 0) {
         const trips = [];
-        console.log(tripRes)
         for (const trip of tripsData) {
           // 格式化日期
           let dateText = trip.date || '';
@@ -214,6 +216,29 @@ Page({
       console.error('加载行程失败', err);
       this.setData({ loading: false });
     }
+  },
+
+  // 确保行程列表请求带上 openid，方便云端做访问人数和登录转化统计。
+  ensureOpenid: async function () {
+    if (app.globalData.openid) {
+      return app.globalData.openid;
+    }
+
+    const cachedOpenid = wx.getStorageSync('openid');
+    if (cachedOpenid) {
+      app.globalData.openid = cachedOpenid;
+      return cachedOpenid;
+    }
+
+    if (typeof app.getOpenid === 'function') {
+      try {
+        return await app.getOpenid();
+      } catch (err) {
+        console.warn('获取openid失败，继续加载行程', err);
+      }
+    }
+
+    return '';
   },
 
   // 筛选行程
