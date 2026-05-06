@@ -139,6 +139,26 @@ exports.main = async (event, context) => {
   }
 };
 
+function isLocalTempFilePath(path) {
+  return typeof path === 'string' && (
+    path.startsWith('wxfile://') ||
+    path.startsWith('http://tmp') ||
+    path.startsWith('https://tmp') ||
+    path.startsWith('tmp/')
+  );
+}
+
+function normalizeAvatarForDb(avatar) {
+  if (!avatar || isLocalTempFilePath(avatar)) {
+    return '';
+  }
+  return avatar;
+}
+
+function safeAvatar(avatar) {
+  return normalizeAvatarForDb(avatar);
+}
+
 // ========== 认证相关 ==========
 
 // 获取公钥
@@ -244,6 +264,7 @@ async function userCheck(phone) {
 // 用户注册（新用户）
 async function userRegister(openid, data) {
   const { phone, password, encryptedPassword, key, iv, keyId, nickname, avatar, gender } = data;
+  const avatarForDb = normalizeAvatarForDb(avatar);
 
   if (!phone) {
     return { success: false, error: '手机号不能为空' };
@@ -305,7 +326,7 @@ async function userRegister(openid, data) {
     contactPhone: phone, // 联系方式，默认等于手机号
     password: hashedPassword,
     nickname: defaultNickname.trim(),
-    avatar: avatar || '',
+    avatar: avatarForDb,
     gender: gender || 0,
     bio: '',
     following: 0,
@@ -330,6 +351,8 @@ async function userRegister(openid, data) {
 }
 
 async function userLogin(openid, data) {
+  const avatarForDb = normalizeAvatarForDb(data.avatar);
+
   // 查找用户
   const userRes = await db.collection('users').where({ openid }).get();
   
@@ -345,7 +368,7 @@ async function userLogin(openid, data) {
   const newUser = {
     openid,
     nickname: data.nickname || '旅行者',
-    avatar: data.avatar || '',
+    avatar: avatarForDb,
     gender: data.gender || 0,
     bio: '',
     phone: '',
@@ -475,6 +498,7 @@ async function userLoginPassword(data) {
 // 手机号一键登录（无需密码，自动注册）
 async function userLoginByPhone(openid, data) {
   const { phone, nickname, avatar } = data;
+  const avatarForDb = normalizeAvatarForDb(avatar);
 
   if (!phone) {
     return { success: false, error: '手机号不能为空' };
@@ -493,8 +517,10 @@ async function userLoginByPhone(openid, data) {
     if (nickname && (!user.nickname || user.nickname.startsWith('用户'))) {
       updateData.nickname = nickname;
     }
-    if (avatar && !user.avatar) {
-      updateData.avatar = avatar;
+    if (avatarForDb && (!user.avatar || isLocalTempFilePath(user.avatar))) {
+      updateData.avatar = avatarForDb;
+    } else if (!avatarForDb && isLocalTempFilePath(user.avatar)) {
+      updateData.avatar = '';
     }
     await db.collection('users').doc(user._id).update({ data: updateData });
 
@@ -519,7 +545,7 @@ async function userLoginByPhone(openid, data) {
     contactPhone: phone,
     password: '',
     nickname: (nickname || '用户' + phone.slice(-4)).trim(),
-    avatar: avatar || '',
+    avatar: avatarForDb,
     gender: 0,
     bio: '',
     following: 0,
@@ -567,7 +593,7 @@ async function userUpdate(openid, data) {
   // 更新用户信息
   const updateData = {
     nickname: data.nickname,
-    avatar: data.avatar,
+    avatar: data.avatar === undefined ? undefined : normalizeAvatarForDb(data.avatar),
     gender: data.gender,
     contactPhone: data.contactPhone,
     bio: data.bio,
@@ -762,11 +788,11 @@ async function tripCreate(openid, data) {
     remark: data.remark || '',
     creatorId: openid,
     creatorName: user.nickname,
-    creatorAvatar: user.avatar,
+    creatorAvatar: safeAvatar(user.avatar),
     participants: data.participants || [{
       userId: openid,
       nickname: user.nickname,
-      avatar: user.avatar
+      avatar: safeAvatar(user.avatar)
     }],
     status: data.status || 'open',
     createdAt: Date.now()
@@ -848,13 +874,13 @@ async function tripList(openid, data) {
           // 同时用 openid 和 userId 作为 key，方便查找
           if (user.openid) {
             userMap[user.openid] = {
-              avatar: user.avatar || '',
+              avatar: safeAvatar(user.avatar),
               nickname: user.nickname || '旅行者'
             };
           }
           if (user.userId) {
             userMap[user.userId] = {
-              avatar: user.avatar || '',
+              avatar: safeAvatar(user.avatar),
               nickname: user.nickname || '旅行者'
             };
           }
@@ -959,13 +985,13 @@ async function tripGet(tripId) {
           // 同时用 openid 和 userId 作为 key，方便查找
           if (user.openid) {
             userMap[user.openid] = {
-              avatar: user.avatar || '',
+              avatar: safeAvatar(user.avatar),
               nickname: user.nickname || '旅行者'
             };
           }
           if (user.userId) {
             userMap[user.userId] = {
-              avatar: user.avatar || '',
+              avatar: safeAvatar(user.avatar),
               nickname: user.nickname || '旅行者'
             };
           }
@@ -1074,7 +1100,7 @@ async function tripJoin(openid, data) {
   const newParticipant = {
     userId: openid,
     nickname: user.nickname,
-    avatar: user.avatar
+    avatar: safeAvatar(user.avatar)
   };
   
   const updateData = {
@@ -1123,7 +1149,7 @@ async function tripQuit(openid, data) {
   // 获取退出者信息（从参与者列表中）
   const quitter = trip.participants.find(p => p.userId === openid);
   const quitterName = quitter ? quitter.nickname : '旅行者';
-  const quitterAvatar = quitter ? quitter.avatar : '';
+  const quitterAvatar = quitter ? safeAvatar(quitter.avatar) : '';
 
   // 从参与者列表中移除当前用户
   const newParticipants = trip.participants.filter(p => p.userId !== openid);
@@ -1415,13 +1441,13 @@ async function tripMy(openid) {
           // 同时用 openid 和 userId 作为 key，方便查找
           if (user.openid) {
             userMap[user.openid] = {
-              avatar: user.avatar || '',
+              avatar: safeAvatar(user.avatar),
               nickname: user.nickname || '旅行者'
             };
           }
           if (user.userId) {
             userMap[user.userId] = {
-              avatar: user.avatar || '',
+              avatar: safeAvatar(user.avatar),
               nickname: user.nickname || '旅行者'
             };
           }
@@ -1597,7 +1623,7 @@ async function applyCreate(openid, data) {
     placeName: placeName || '',
     fromUserId: openid,
     fromUserName: user.nickname || '旅行者',
-    fromUserAvatar: user.avatar || '',
+    fromUserAvatar: safeAvatar(user.avatar),
     toUserId,
     toUserName: toUserName || '',
     contactType: 'phone',
@@ -2167,7 +2193,7 @@ async function messageSend(openid, data) {
     conversationId,
     fromUserId: openid,
     fromUserName: user.nickname,
-    fromUserAvatar: user.avatar,
+    fromUserAvatar: safeAvatar(user.avatar),
     toUserId,
     content,
     type,
@@ -2220,7 +2246,7 @@ async function commentCreate(openid, data) {
     placeName: place.name,
     userId: openid,
     userName: user.nickname,
-    userAvatar: user.avatar,
+    userAvatar: safeAvatar(user.avatar),
     content,
     rating: rating || 5,
     images: images || [],
@@ -2330,7 +2356,7 @@ async function feedbackCreate(openid, data) {
       if (userRes.data.length > 0) {
         userInfo = {
           nickname: userRes.data[0].nickname,
-          avatar: userRes.data[0].avatar
+          avatar: safeAvatar(userRes.data[0].avatar)
         };
       }
     } catch (err) {

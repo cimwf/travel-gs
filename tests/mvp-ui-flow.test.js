@@ -58,6 +58,11 @@ function resetRuntime() {
     showLoading: (options) => { wxCalls.showLoading.push(options); },
     hideLoading: () => { wxCalls.hideLoading += 1; },
     cloud: {
+      uploadFile: async ({ cloudPath, filePath }) => {
+        wxCalls.uploadFile = wxCalls.uploadFile || [];
+        wxCalls.uploadFile.push({ cloudPath, filePath });
+        return { fileID: `cloud://test-env.${cloudPath}` };
+      },
       callFunction: async ({ name, data = {} }) => {
         wxCalls.cloudCalls.push({ name, data });
         if (name === 'login') {
@@ -222,6 +227,24 @@ test('auth 勾选协议后获取手机号进入完善资料，完成登录跳回
   assert.strictEqual(app.globalData.isLoggedIn, true);
 });
 
+test('auth 完成登录会先上传 wxfile 头像并保存云存储 fileID', async () => {
+  const page = loadPage('pages/auth/auth.js');
+  page.onAgreeChange();
+  await page.onGetPhoneNumber({ detail: { code: 'phone-code' } });
+
+  page.onNicknameInput({ detail: { value: '测试用户' } });
+  page.onChooseAvatar({ detail: { avatarUrl: 'wxfile://tmp_755cd2900a1262da09d2da57cea295b8.jpg' } });
+  await page.onCompleteLogin();
+
+  const uploadCall = wxCalls.uploadFile && wxCalls.uploadFile[0];
+  assert(uploadCall, 'wxfile avatar should be uploaded before login');
+  assert.strictEqual(uploadCall.filePath, 'wxfile://tmp_755cd2900a1262da09d2da57cea295b8.jpg');
+
+  const loginCall = wxCalls.cloudCalls.find((call) => call.name === 'api' && call.data.action === 'user/loginByPhone');
+  assert(loginCall, 'user/loginByPhone should be called');
+  assert(loginCall.data.data.avatar.startsWith('cloud://test-env.avatars/'), 'login avatar should be cloud fileID');
+});
+
 test('trip-publish UI 含必填项、发布按钮和出发地弹窗', () => {
   const wxml = read('miniprogram/pages/trip-publish/trip-publish.wxml');
   ['目的地<text class="required">*</text>', '出发地<text class="required">*</text>', '出行日期<text class="required">*</text>', '招募人数<text class="required">*</text>', '手机号<text class="required">*</text>', '发布行程', '选择出发地'].forEach((needle) => {
@@ -311,4 +334,3 @@ async function run() {
 }
 
 run();
-

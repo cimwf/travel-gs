@@ -11,6 +11,7 @@ Page({
     statusBarHeight: 0,
     step: 'phone',
     phone: '',
+    openid: '',
     nickName: '',
     avatarUrl: ''
   },
@@ -81,6 +82,7 @@ Page({
 
       this.setData({
         phone: loginRes.result.phoneNumber,
+        openid: loginRes.result.openid || '',
         step: 'profile',
         loading: false
       });
@@ -113,11 +115,12 @@ Page({
     this.setData({ loading: true });
 
     try {
+      const avatar = await this.uploadAvatarIfNeeded(avatarUrl);
       const apiRes = await wx.cloud.callFunction({
         name: 'api',
         data: {
           action: 'user/loginByPhone',
-          data: { phone, nickname: nickName, avatar: avatarUrl }
+          data: { phone, nickname: nickName, avatar }
         }
       });
 
@@ -131,6 +134,47 @@ Page({
       wx.showToast({ title: err.message || '登录失败，请重试', icon: 'none' });
     } finally {
       this.setData({ loading: false });
+    }
+  },
+
+  isLocalAvatarPath(path) {
+    return path && (
+      path.startsWith('wxfile://') ||
+      path.startsWith('http://tmp') ||
+      path.startsWith('https://tmp') ||
+      path.startsWith('tmp/')
+    );
+  },
+
+  getAvatarSuffix(path) {
+    const cleanPath = (path || '').split('?')[0];
+    const match = cleanPath.match(/\.([a-zA-Z0-9]+)$/);
+    const suffix = match ? match[1].toLowerCase() : 'jpg';
+    return ['jpg', 'jpeg', 'png', 'webp'].includes(suffix) ? suffix : 'jpg';
+  },
+
+  async uploadAvatarIfNeeded(avatarUrl) {
+    if (!avatarUrl || !this.isLocalAvatarPath(avatarUrl)) {
+      return avatarUrl || '';
+    }
+
+    if (!wx.cloud || !wx.cloud.uploadFile) {
+      return '';
+    }
+
+    const openid = this.data.openid || app.globalData.openid || wx.getStorageSync('openid') || 'anonymous';
+    const suffix = this.getAvatarSuffix(avatarUrl);
+    const cloudPath = `avatars/${openid}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${suffix}`;
+
+    try {
+      const uploadRes = await wx.cloud.uploadFile({
+        cloudPath,
+        filePath: avatarUrl
+      });
+      return uploadRes.fileID || '';
+    } catch (err) {
+      console.warn('头像上传失败，将不保存临时头像', err);
+      return '';
     }
   },
 
