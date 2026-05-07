@@ -2535,6 +2535,13 @@ function getEffectiveAiImagePrompt(data = {}) {
   return data.mode === 'image' ? '请基于参考图生成一张高质量图片' : '';
 }
 
+function getEffectiveAiImageStyle(data = {}) {
+  const style = String(data.style || '').trim();
+  if (!style) return '';
+  if (['none', '无', '不要', '不加风格', '无风格'].includes(style)) return '';
+  return style;
+}
+
 function isAiImageLoadingStatus(status) {
   return ['queued', 'pending', 'in_progress', 'processing', 'running', 'submitted'].includes(status || '');
 }
@@ -2610,9 +2617,10 @@ function syncImagesStatus(images, status, error) {
 }
 
 function buildImagePrompt(data) {
+  const style = getEffectiveAiImageStyle(data);
   const parts = [
     getEffectiveAiImagePrompt(data),
-    `视觉风格：${data.style || '旅行海报'}`,
+    style ? `视觉风格：${style}` : '',
     '请生成适合在旅行社交小程序中展示的高质量图片。'
   ].filter(Boolean);
   return parts.join('\n');
@@ -2658,7 +2666,7 @@ async function createExternalAiImageTask(data, config) {
     mode: data.mode,
     prompt: getEffectiveAiImagePrompt(data),
     ratio: data.ratio,
-    style: data.style
+    style: getEffectiveAiImageStyle(data)
   };
 
   if (data.mode === 'image') {
@@ -3068,7 +3076,7 @@ async function recordAiImageTask(openid, data, task) {
     external: Boolean(task.external),
     mode: data.mode,
     prompt: getEffectiveAiImagePrompt(data),
-    style: data.style || '',
+    style: getEffectiveAiImageStyle(data),
     ratio: data.ratio || '',
     model: task.model || '',
     referenceFileID: data.referenceFileID || '',

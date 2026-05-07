@@ -1,0 +1,28 @@
+<view class="template-page">
+  <view class="hero">
+    <view class="hero-kicker">模板库</view>
+    <view class="hero-title">一键挑模板，直接出图</view>
+    <view class="hero-desc">先选一个方向，再让 AI 把细节补齐，测试用户会更容易立刻生成第一张图。</view>
+  </view>
+
+  <view class="mode-tabs">
+    <view class="mode-tab {{activeMode === 'text' ? 'active' : ''}}" data-mode="text" bindtap="onSwitchMode">文生图</view>
+    <view class="mode-tab {{activeMode === 'image' ? 'active' : ''}}" data-mode="image" bindtap="onSwitchMode">图生图</view>
+  </view>
+
+  <view class="template-list">
+    <view class="template-card" wx:for="{{templates}}" wx:key="id" data-template="{{item}}" bindtap="onSelectTemplate">
+      <view class="template-card-top">
+        <text class="template-badge">{{item.badge}}</text>
+        <text class="template-ratio">{{item.ratio}}</text>
+      </view>
+      <view class="template-name">{{item.title}}</view>
+      <view class="template-desc">{{item.desc}}</view>
+      <view class="template-prompt">{{item.prompt}}</view>
+      <view class="template-footer">
+        <text class="template-style">{{item.style || '无风格'}}</text>
+        <view class="template-use">使用这个</view>
+      </view>
+    </view>
+  </view>
+</view>

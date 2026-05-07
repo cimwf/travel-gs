@@ -37,7 +37,7 @@
             <view class="skeleton-line short"></view>
             <view class="skeleton-line"></view>
             <view class="status-title">生成中</view>
-            <view class="status-desc">高清图片正在生成，请稍后刷新</view>
+            <view class="status-desc">高清图片正在生成，请3-5分钟后刷新</view>
           </view>
         </block>
       </view>

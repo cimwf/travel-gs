@@ -29,8 +29,13 @@
   </view>
 
   <view class="panel">
-    <view class="section-title">创作描述</view>
-    <view class="section-tip" wx:if="{{mode === 'image'}}">图生图可只上传参考图，描述可选。</view>
+    <view class="section-head">
+      <view>
+        <view class="section-title">创作描述</view>
+        <view class="section-tip" wx:if="{{mode === 'image'}}">图生图可只上传参考图，描述可选。</view>
+      </view>
+      <view class="section-action" bindtap="onOpenTemplateLibrary">更多模板</view>
+    </view>
     <textarea
       class="prompt-input"
       placeholder="{{mode === 'text' ? '描述你想生成的画面，例如：冬日长城脚下的露营海报，暖色灯光，电影感...' : '选填：描述希望如何改造参考图，例如：保留人物姿态，换成北方雪山旅行海报风格...'}}"
@@ -40,6 +45,22 @@
       bindinput="onPromptInput"
     ></textarea>
     <view class="input-meta">{{prompt.length}}/500</view>
+    <view class="template-block">
+      <view class="template-head">
+        <view class="template-title">{{mode === 'image' ? '图生图快捷模板' : '热门创作模板'}}</view>
+        <view class="template-more" bindtap="onOpenTemplateLibrary">更多</view>
+      </view>
+      <view class="template-grid">
+        <view class="template-card" wx:for="{{quickTemplates}}" wx:key="id" data-template="{{item}}" bindtap="onUseTemplate">
+          <view class="template-card-top">
+            <text class="template-badge">{{item.badge}}</text>
+            <text class="template-ratio">{{item.ratio}}</text>
+          </view>
+          <view class="template-name">{{item.title}}</view>
+          <view class="template-desc">{{item.desc}}</view>
+        </view>
+      </view>
+    </view>
   </view>
 
   <view class="panel" wx:if="{{mode === 'image'}}">
@@ -67,7 +88,7 @@
     <view class="option-group">
       <view class="option-label">视觉风格</view>
       <view class="chips">
-        <view class="chip {{style === item ? 'selected' : ''}}" wx:for="{{styles}}" wx:key="*this" data-value="{{item}}" bindtap="onSelectStyle">{{item}}</view>
+        <view class="chip {{style === item.value ? 'selected' : ''}}" wx:for="{{styles}}" wx:key="value" data-value="{{item.value}}" bindtap="onSelectStyle">{{item.label}}</view>
       </view>
     </view>
   </view>

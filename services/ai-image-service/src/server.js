@@ -170,9 +170,11 @@ function mapImageSize(ratio) {
 }
 
 function buildPrompt(data) {
+  const rawStyle = String(data.style || '').trim();
+  const style = ['none', '无', '不要', '不加风格', '无风格'].includes(rawStyle) ? '' : rawStyle;
   const parts = [
     String(data.prompt || '').trim() || (data.mode === 'image' ? '请基于参考图生成一张高质量图片' : ''),
-    `视觉风格：${data.style || '旅行海报'}`,
+    style ? `视觉风格：${style}` : '',
     '请生成适合在旅行社交小程序中展示的高质量图片。'
   ].filter(Boolean);
 

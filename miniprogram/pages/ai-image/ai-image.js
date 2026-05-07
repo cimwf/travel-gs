@@ -1,4 +1,5 @@
 const api = require('../../utils/api.js');
+const { styleOptions, getTemplatesByMode } = require('../../utils/ai-image-templates.js');
 
 Page({
   data: {
@@ -9,28 +10,11 @@ Page({
     taskId: '',
     generationStatus: '',
     ratio: '1:1',
-    style: '旅行海报',
+    style: '',
     ratios: ['1:1', '3:4', '4:3', '9:16'],
-    styles: [
-      '旅行海报',
-      '写实摄影',
-      '漫画风',
-      '韩系写真',
-      '日系清新',
-      '甜酷风',
-      '梦幻公主',
-      '复古胶片',
-      '水彩插画',
-      '油画质感',
-      '电影感',
-      '杂志封面',
-      '头像写真',
-      '婚纱大片',
-      '萌宠拟人',
-      '古风国潮',
-      '治愈手账',
-      '轻奢穿搭'
-    ],
+    styles: styleOptions,
+    quickTemplates: getTemplatesByMode('text').slice(0, 4),
+    currentTemplates: getTemplatesByMode('text'),
     canGenerate: false,
     loading: false,
     summary: {
@@ -42,7 +26,22 @@ Page({
   },
 
   onShow: function () {
+    const selectedTemplate = wx.getStorageSync('aiImageSelectedTemplate');
+    if (selectedTemplate) {
+      wx.removeStorageSync('aiImageSelectedTemplate');
+      this.applyTemplate(selectedTemplate);
+    }
     this.loadSummary();
+  },
+
+  onLoad: function (options) {
+    if (options && options.mode === 'image') {
+      this.setData({
+        mode: 'image',
+        quickTemplates: getTemplatesByMode('image').slice(0, 4),
+        currentTemplates: getTemplatesByMode('image')
+      }, this.updateCanGenerate);
+    }
   },
 
   onPullDownRefresh: function () {
@@ -51,7 +50,12 @@ Page({
 
   onSwitchMode: function (event) {
     const mode = event.currentTarget.dataset.mode;
-    this.setData({ mode }, this.updateCanGenerate);
+    this.setData({
+      mode,
+      quickTemplates: getTemplatesByMode(mode).slice(0, 4),
+      currentTemplates: getTemplatesByMode(mode),
+      style: this.data.style
+    }, this.updateCanGenerate);
   },
 
   onPromptInput: function (event) {
@@ -81,6 +85,52 @@ Page({
 
   onSelectStyle: function (event) {
     this.setData({ style: event.currentTarget.dataset.value });
+  },
+
+  onUseTemplate: function (event) {
+    const template = event.currentTarget.dataset.template;
+    if (!template) return;
+    this.applyTemplate(template);
+  },
+
+  onOpenTemplateLibrary: function () {
+    const mode = this.data.mode;
+    wx.navigateTo({
+      url: `/pages/ai-image-template/ai-image-template?mode=${mode}`,
+      success: (res) => {
+        if (!res.eventChannel) return;
+        res.eventChannel.on('selectTemplate', (template) => {
+          this.applyTemplate(template);
+        });
+      },
+      fail: (err) => {
+        console.error('打开模板库失败', err);
+        wx.showToast({
+          title: '打开模板库失败',
+          icon: 'none'
+        });
+      }
+    });
+  },
+
+  applyTemplate: function (template) {
+    if (!template) return;
+    const nextData = {
+      prompt: template.prompt || this.data.prompt,
+      mode: template.mode || this.data.mode,
+      style: Object.prototype.hasOwnProperty.call(template, 'style') ? (template.style || '') : this.data.style
+    };
+
+    if (template.ratio) {
+      nextData.ratio = template.ratio;
+    }
+
+    const nextTemplates = getTemplatesByMode(nextData.mode);
+    this.setData({
+      ...nextData,
+      quickTemplates: nextTemplates.slice(0, 4),
+      currentTemplates: nextTemplates
+    }, this.updateCanGenerate);
   },
 
   loadSummary: async function () {
@@ -156,7 +206,7 @@ Page({
         prompt: this.data.prompt,
         referenceFileID,
         ratio: this.data.ratio,
-        style: this.data.style
+        style: this.data.style || ''
       });
 
       this.setData({ taskId: res.taskId, generationStatus: '' });

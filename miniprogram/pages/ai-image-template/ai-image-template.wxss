@@ -1,0 +1,150 @@
+page {
+  background: #F6F8FC;
+  color: #182033;
+}
+
+.template-page {
+  min-height: 100vh;
+  padding: 32rpx 32rpx calc(env(safe-area-inset-bottom) + 40rpx);
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #EEF6FF 0%, #FFFFFF 34%, #F6F8FC 100%);
+}
+
+.hero {
+  padding: 42rpx 36rpx 34rpx;
+  border-radius: 28rpx;
+  background: linear-gradient(135deg, #111827 0%, #2F4858 58%, #D77D7D 100%);
+  color: #FFFFFF;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 24rpx 58rpx rgba(17, 24, 39, 0.16);
+}
+
+.hero-kicker {
+  display: inline-flex;
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.hero-title {
+  margin-top: 24rpx;
+  font-size: 44rpx;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.hero-desc {
+  margin-top: 18rpx;
+  max-width: 610rpx;
+  font-size: 26rpx;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.mode-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10rpx;
+  margin: 28rpx 0;
+  padding: 8rpx;
+  border-radius: 22rpx;
+  background: rgba(232, 237, 246, 0.92);
+  box-shadow: 0 10rpx 30rpx rgba(39, 67, 94, 0.08);
+}
+
+.mode-tab {
+  height: 76rpx;
+  border-radius: 18rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8A8A8A;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.mode-tab.active {
+  color: #FFFFFF;
+  background: linear-gradient(135deg, #27435E 0%, #4990E2 100%);
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.08);
+}
+
+.template-list {
+  display: flex;
+  flex-direction: column;
+  gap: 22rpx;
+}
+
+.template-card {
+  padding: 30rpx;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1rpx solid rgba(39, 67, 94, 0.06);
+  box-shadow: 0 14rpx 42rpx rgba(39, 67, 94, 0.08);
+}
+
+.template-card-top,
+.template-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+}
+
+.template-badge {
+  padding: 8rpx 14rpx;
+  border-radius: 999rpx;
+  background: #E9F3FF;
+  color: #27435E;
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.template-ratio,
+.template-style {
+  color: #8A8A8A;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.template-name {
+  margin-top: 18rpx;
+  color: #182033;
+  font-size: 32rpx;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.template-desc {
+  margin-top: 10rpx;
+  color: #667085;
+  font-size: 24rpx;
+  line-height: 1.45;
+}
+
+.template-prompt {
+  margin-top: 18rpx;
+  padding: 22rpx;
+  border-radius: 18rpx;
+  background: #F7F9FC;
+  color: #475467;
+  font-size: 24rpx;
+  line-height: 1.55;
+}
+
+.template-footer {
+  margin-top: 22rpx;
+}
+
+.template-use {
+  flex-shrink: 0;
+  padding: 14rpx 24rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #27435E, #4990E2);
+  color: #FFFFFF;
+  font-size: 24rpx;
+  font-weight: 800;
+}

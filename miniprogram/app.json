@@ -16,6 +16,7 @@
     "pages/comments/comments",
     "pages/profile/profile",
     "pages/ai-image/ai-image",
+    "pages/ai-image-template/ai-image-template",
     "pages/ai-gallery/ai-gallery",
     "pages/edit-profile/edit-profile",
     "pages/followers/followers",
