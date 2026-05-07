@@ -140,6 +140,10 @@ exports.main = async (event, context) => {
         return await aiImageSummary(openid);
       case 'aiImage/list':
         return await aiImageList(openid);
+      case 'aiImage/templates':
+        return await aiImageTemplates(openid, data);
+      case 'aiImage/templateVote':
+        return await aiImageTemplateVote(openid, data);
 
       default:
         return { success: false, error: '未知操作' };
@@ -537,7 +541,7 @@ async function userLoginByPhone(openid, data) {
 
     const safeUser = { ...user, openid: openid, ...updateData };
     delete safeUser.password;
-    return { success: true, user: safeUser };
+    return { success: true, user: safeUser, isNew: false };
   }
 
   // 新用户自动注册
@@ -3065,6 +3069,152 @@ async function aiImageSummary(openid) {
   return {
     success: true,
     summary: await getAiImageSummaryData(openid)
+  };
+}
+
+function normalizeAiImageTemplate(item = {}) {
+  return {
+    id: item.templateId || item._id || '',
+    _id: item._id || '',
+    mode: item.mode === 'image' ? 'image' : 'text',
+    title: item.title || '',
+    desc: item.desc || '',
+    badge: item.badge || '',
+    ratio: item.ratio || '1:1',
+    style: item.style || '',
+    prompt: item.prompt || '',
+    sort: typeof item.sort === 'number' ? item.sort : 0,
+    enabled: item.enabled !== false,
+    likeCount: item.likeCount || 0,
+    dislikeCount: item.dislikeCount || 0,
+    userVote: item.userVote || ''
+  };
+}
+
+async function aiImageTemplates(openid, data = {}) {
+  const mode = data.mode === 'image' ? 'image' : data.mode === 'text' ? 'text' : '';
+  const where = { enabled: true };
+  if (mode) where.mode = mode;
+
+  try {
+    const res = await db.collection('ai_image_templates')
+      .where(where)
+      .orderBy('sort', 'asc')
+      .orderBy('createdAt', 'desc')
+      .limit(100)
+      .get();
+
+    const templates = (res.data || []).map(normalizeAiImageTemplate);
+
+    if (openid) {
+      for (const template of templates) {
+        try {
+          const voteRes = await db.collection('ai_image_template_votes')
+            .where({
+              userId: openid,
+              templateId: template._id
+            })
+            .limit(1)
+            .get();
+          template.userVote = voteRes.data && voteRes.data[0] ? voteRes.data[0].vote || '' : '';
+        } catch (err) {
+          console.warn('读取 AI 模板反馈失败:', err);
+        }
+      }
+    }
+
+    return {
+      success: true,
+      templates
+    };
+  } catch (err) {
+    console.warn('读取 AI 生图模板失败:', err);
+    return {
+      success: true,
+      templates: []
+    };
+  }
+}
+
+async function getAiImageTemplateById(templateId) {
+  if (!templateId) return null;
+
+  try {
+    const docRes = await db.collection('ai_image_templates').doc(templateId).get();
+    const doc = Array.isArray(docRes.data) ? docRes.data[0] : docRes.data;
+    if (doc && doc._id) return doc;
+  } catch (err) {
+    // 不是文档 _id 时继续按 templateId 查。
+  }
+
+  const res = await db.collection('ai_image_templates')
+    .where({ templateId })
+    .limit(1)
+    .get();
+  return res.data && res.data[0] ? res.data[0] : null;
+}
+
+async function aiImageTemplateVote(openid, data = {}) {
+  const template = await getAiImageTemplateById(data.templateId);
+  const vote = data.vote === 'dislike' ? 'dislike' : data.vote === 'like' ? 'like' : '';
+  const userId = openid || 'anonymous';
+
+  if (!template || !template._id) {
+    return { success: false, error: '模板不存在' };
+  }
+
+  if (!vote) {
+    return { success: false, error: '反馈类型不正确' };
+  }
+
+  const voteRes = await db.collection('ai_image_template_votes')
+    .where({
+      userId,
+      templateId: template._id
+    })
+    .limit(1)
+    .get();
+  const existedVote = voteRes.data && voteRes.data[0] ? voteRes.data[0] : null;
+  const updates = { updatedAt: Date.now() };
+  let userVote = vote;
+
+  if (!existedVote) {
+    updates[vote === 'like' ? 'likeCount' : 'dislikeCount'] = _.inc(1);
+    await db.collection('ai_image_template_votes').add({
+      data: {
+        userId,
+        templateId: template._id,
+        vote,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      }
+    });
+  } else if (existedVote.vote === vote) {
+    updates[vote === 'like' ? 'likeCount' : 'dislikeCount'] = _.inc(-1);
+    userVote = '';
+    await db.collection('ai_image_template_votes').doc(existedVote._id).remove();
+  } else {
+    updates[vote === 'like' ? 'likeCount' : 'dislikeCount'] = _.inc(1);
+    if (existedVote.vote === 'like' || existedVote.vote === 'dislike') {
+      updates[existedVote.vote === 'like' ? 'likeCount' : 'dislikeCount'] = _.inc(-1);
+    }
+    await db.collection('ai_image_template_votes').doc(existedVote._id).update({
+      data: {
+        vote,
+        updatedAt: Date.now()
+      }
+    });
+  }
+
+  await db.collection('ai_image_templates').doc(template._id).update({ data: updates });
+  const latest = await getAiImageTemplateById(template._id);
+
+  return {
+    success: true,
+    templateId: template._id,
+    likeCount: latest && latest.likeCount ? latest.likeCount : 0,
+    dislikeCount: latest && latest.dislikeCount ? latest.dislikeCount : 0,
+    userVote
   };
 }
 

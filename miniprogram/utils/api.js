@@ -368,6 +368,20 @@ function aiImageList() {
   return callApi('aiImage/list', {});
 }
 
+/**
+ * 获取 AI 生图模板
+ */
+function aiImageTemplates(mode) {
+  return callApi('aiImage/templates', { mode });
+}
+
+/**
+ * 提交 AI 生图模板赞/踩
+ */
+function aiImageTemplateVote(templateId, vote) {
+  return callApi('aiImage/templateVote', { templateId, vote });
+}
+
 // ========== 反馈相关 ==========
 
 /**
@@ -442,6 +456,8 @@ module.exports = {
   aiImageStatus,
   aiImageSummary,
   aiImageList,
+  aiImageTemplates,
+  aiImageTemplateVote,
   ailmageStatus: aiImageStatus,
 
   // 反馈

@@ -93,6 +93,7 @@ function resetRuntime() {
             return {
               result: {
                 success: true,
+                isNew: Boolean(wxCalls.loginByPhoneIsNew),
                 user: {
                   _id: 'user-doc-id',
                   openid: 'openid-test',
@@ -233,8 +234,20 @@ test('auth 未勾选协议时手机号登录给出提示', async () => {
   assert.strictEqual(latestToast().title, '请先同意用户协议');
 });
 
-test('auth 勾选协议后获取手机号进入完善资料，完成登录跳回首页', async () => {
+test('auth 勾选协议后老用户一键登录直接跳回首页', async () => {
   const page = loadPage('pages/auth/auth.js');
+  page.onAgreeChange();
+  await page.onGetPhoneNumber({ detail: { code: 'phone-code' } });
+  assert.strictEqual(page.data.step, 'phone');
+  assert.strictEqual(page.data.phone, '13800138000');
+  assert.strictEqual(latestToast().title, '登录成功');
+  assert.strictEqual(storage.openid, 'openid-test');
+  assert.strictEqual(app.globalData.isLoggedIn, true);
+});
+
+test('auth 勾选协议后新用户进入完善资料，完成登录跳回首页', async () => {
+  const page = loadPage('pages/auth/auth.js');
+  wxCalls.loginByPhoneIsNew = true;
   page.onAgreeChange();
   await page.onGetPhoneNumber({ detail: { code: 'phone-code' } });
   assert.strictEqual(page.data.step, 'profile');
@@ -249,8 +262,34 @@ test('auth 勾选协议后获取手机号进入完善资料，完成登录跳回
   assert.strictEqual(app.globalData.isLoggedIn, true);
 });
 
+test('auth 新用户点击完成登录必须填写头像和昵称', async () => {
+  const page = loadPage('pages/auth/auth.js');
+  wxCalls.loginByPhoneIsNew = true;
+  page.onAgreeChange();
+  await page.onGetPhoneNumber({ detail: { code: 'phone-code' } });
+
+  await page.onCompleteLogin();
+  assert.strictEqual(latestToast().title, '请先设置头像');
+
+  page.onChooseAvatar({ detail: { avatarUrl: 'https://example.com/avatar.jpg' } });
+  await page.onCompleteLogin();
+  assert.strictEqual(latestToast().title, '请输入昵称');
+});
+
+test('auth 新用户点击暂不填写可以跳过资料', async () => {
+  const page = loadPage('pages/auth/auth.js');
+  wxCalls.loginByPhoneIsNew = true;
+  page.onAgreeChange();
+  await page.onGetPhoneNumber({ detail: { code: 'phone-code' } });
+
+  await page.onSkipProfile();
+  assert.strictEqual(latestToast().title, '登录成功');
+  assert.strictEqual(app.globalData.isLoggedIn, true);
+});
+
 test('auth 完成登录会先上传 wxfile 头像并保存云存储 fileID', async () => {
   const page = loadPage('pages/auth/auth.js');
+  wxCalls.loginByPhoneIsNew = true;
   page.onAgreeChange();
   await page.onGetPhoneNumber({ detail: { code: 'phone-code' } });
 
@@ -262,7 +301,11 @@ test('auth 完成登录会先上传 wxfile 头像并保存云存储 fileID', asy
   assert(uploadCall, 'wxfile avatar should be uploaded before login');
   assert.strictEqual(uploadCall.filePath, 'wxfile://tmp_755cd2900a1262da09d2da57cea295b8.jpg');
 
-  const loginCall = wxCalls.cloudCalls.find((call) => call.name === 'api' && call.data.action === 'user/loginByPhone');
+  const loginCall = wxCalls.cloudCalls.find((call) => (
+    call.name === 'api' &&
+    call.data.action === 'user/loginByPhone' &&
+    call.data.data.avatar
+  ));
   assert(loginCall, 'user/loginByPhone should be called');
   assert(loginCall.data.data.avatar.startsWith('cloud://test-env.avatars/'), 'login avatar should be cloud fileID');
 });

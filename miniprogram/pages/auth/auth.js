@@ -12,6 +12,7 @@ Page({
     step: 'phone',
     phone: '',
     openid: '',
+    pendingUser: null,
     nickName: '',
     avatarUrl: ''
   },
@@ -83,8 +84,13 @@ Page({
       this.setData({
         phone: loginRes.result.phoneNumber,
         openid: loginRes.result.openid || '',
-        step: 'profile',
         loading: false
+      });
+
+      await this.loginByPhone({
+        phone: loginRes.result.phoneNumber,
+        nickname: '',
+        avatar: ''
       });
     } catch (err) {
       console.error('获取手机号失败:', err);
@@ -111,30 +117,74 @@ Page({
   // 第二步：完成登录
   async onCompleteLogin() {
     const { phone, nickName, avatarUrl } = this.data;
+    const nickname = (nickName || '').trim();
+
+    if (!avatarUrl) {
+      wx.showToast({ title: '请先设置头像', icon: 'none' });
+      return;
+    }
+
+    if (!nickname) {
+      wx.showToast({ title: '请输入昵称', icon: 'none' });
+      return;
+    }
 
     this.setData({ loading: true });
 
     try {
       const avatar = await this.uploadAvatarIfNeeded(avatarUrl);
-      const apiRes = await wx.cloud.callFunction({
-        name: 'api',
-        data: {
-          action: 'user/loginByPhone',
-          data: { phone, nickname: nickName, avatar }
-        }
-      });
-
-      if (apiRes.result.success) {
-        await this.handleLoginSuccess(apiRes.result.user);
-      } else {
-        throw new Error(apiRes.result.error || '登录失败');
-      }
+      await this.loginByPhone({ phone, nickname, avatar }, { forceComplete: true });
     } catch (err) {
       console.error('手机号登录失败:', err);
       wx.showToast({ title: err.message || '登录失败，请重试', icon: 'none' });
     } finally {
       this.setData({ loading: false });
     }
+  },
+
+  async onSkipProfile() {
+    const { pendingUser, phone } = this.data;
+
+    if (pendingUser) {
+      await this.handleLoginSuccess(pendingUser);
+      return;
+    }
+
+    this.setData({ loading: true });
+    try {
+      await this.loginByPhone({ phone, nickname: '', avatar: '' }, { forceComplete: true });
+    } catch (err) {
+      console.error('跳过资料失败:', err);
+      wx.showToast({ title: err.message || '登录失败，请重试', icon: 'none' });
+    } finally {
+      this.setData({ loading: false });
+    }
+  },
+
+  async loginByPhone(data, options = {}) {
+    const apiRes = await wx.cloud.callFunction({
+      name: 'api',
+      data: {
+        action: 'user/loginByPhone',
+        data
+      }
+    });
+
+    if (!apiRes.result.success) {
+      throw new Error(apiRes.result.error || '登录失败');
+    }
+
+    if (apiRes.result.isNew && !options.forceComplete) {
+      this.setData({
+        pendingUser: apiRes.result.user,
+        step: 'profile',
+        loading: false
+      });
+      return apiRes.result.user;
+    }
+
+    await this.handleLoginSuccess(apiRes.result.user);
+    return apiRes.result.user;
   },
 
   isLocalAvatarPath(path) {

@@ -78,7 +78,7 @@
         完成登录
       </button>
 
-      <view class="skip-link" bindtap="onCompleteLogin">跳过，直接登录</view>
+      <view class="skip-link" bindtap="onSkipProfile">暂不填写，直接登录</view>
     </view>
   </view>
 </view>

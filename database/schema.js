@@ -14,6 +14,8 @@
 6. messages - 消息表
 7. comments - 评论表
 8. notifications - 通知表
+9. ai_image_templates - AI 生图模板表
+10. ai_image_template_votes - AI 生图模板用户反馈表
 
 ==========================================
 集合结构说明
@@ -201,6 +203,35 @@ const notificationSchema = {
   createdAt: 1711123200000
 };
 
+// 9. ai_image_templates - AI 生图模板表
+const aiImageTemplateSchema = {
+  _id: "template_xxx",
+  templateId: "soft-portrait",     // 默认模板稳定标识，后台新建可为空
+  mode: "image",                   // text 文生图 / image 图生图
+  title: "清透约拍",
+  desc: "保留人物姿态，修成干净通透的写真。",
+  badge: "女生最爱",
+  ratio: "3:4",                    // 1:1 / 3:4 / 4:3 / 9:16
+  style: "韩系写真",                // 为空表示无风格
+  prompt: "保留原图人物脸型、姿态和构图，优化成清透干净的韩系写真风...",
+  sort: 110,                       // 数字越小越靠前
+  enabled: true,
+  likeCount: 0,
+  dislikeCount: 0,
+  createdAt: 1711123200000,
+  updatedAt: 1711123200000
+};
+
+// 10. ai_image_template_votes - AI 生图模板用户反馈表
+const aiImageTemplateVoteSchema = {
+  _id: "vote_xxx",
+  userId: "openid_xxx",
+  templateId: "template_xxx",       // ai_image_templates 的 _id
+  vote: "like",                     // like / dislike
+  createdAt: 1711123200000,
+  updatedAt: 1711123200000
+};
+
 /*
 ==========================================
 索引配置（在云开发控制台创建）
@@ -245,4 +276,11 @@ notifications:
   - userId
   - read
   - createdAt
+
+ai_image_templates:
+  - enabled + mode + sort
+  - templateId
+
+ai_image_template_votes:
+  - userId + templateId
 */

@@ -1,5 +1,5 @@
 const api = require('../../utils/api.js');
-const { styleOptions, getTemplatesByMode } = require('../../utils/ai-image-templates.js');
+const { styleOptions } = require('../../utils/ai-image-templates.js');
 
 Page({
   data: {
@@ -13,8 +13,9 @@ Page({
     style: '',
     ratios: ['1:1', '3:4', '4:3', '9:16'],
     styles: styleOptions,
-    quickTemplates: getTemplatesByMode('text').slice(0, 4),
-    currentTemplates: getTemplatesByMode('text'),
+    quickTemplates: [],
+    currentTemplates: [],
+    templateLoading: false,
     canGenerate: false,
     loading: false,
     summary: {
@@ -37,11 +38,10 @@ Page({
   onLoad: function (options) {
     if (options && options.mode === 'image') {
       this.setData({
-        mode: 'image',
-        quickTemplates: getTemplatesByMode('image').slice(0, 4),
-        currentTemplates: getTemplatesByMode('image')
+        mode: 'image'
       }, this.updateCanGenerate);
     }
+    this.loadTemplates();
   },
 
   onPullDownRefresh: function () {
@@ -52,10 +52,11 @@ Page({
     const mode = event.currentTarget.dataset.mode;
     this.setData({
       mode,
-      quickTemplates: getTemplatesByMode(mode).slice(0, 4),
-      currentTemplates: getTemplatesByMode(mode),
+      quickTemplates: [],
+      currentTemplates: [],
       style: this.data.style
     }, this.updateCanGenerate);
+    this.loadTemplates(mode);
   },
 
   onPromptInput: function (event) {
@@ -93,6 +94,26 @@ Page({
     this.applyTemplate(template);
   },
 
+  loadTemplates: async function (mode = this.data.mode) {
+    this.setData({ templateLoading: true });
+    try {
+      const res = await api.aiImageTemplates(mode);
+      const templates = Array.isArray(res.templates) ? res.templates : [];
+      this.setData({
+        quickTemplates: templates.slice(0, 4),
+        currentTemplates: templates
+      });
+    } catch (err) {
+      console.warn('加载 AI 模板失败', err);
+      this.setData({
+        quickTemplates: [],
+        currentTemplates: []
+      });
+    } finally {
+      this.setData({ templateLoading: false });
+    }
+  },
+
   onOpenTemplateLibrary: function () {
     const mode = this.data.mode;
     wx.navigateTo({
@@ -115,6 +136,7 @@ Page({
 
   applyTemplate: function (template) {
     if (!template) return;
+    const previousMode = this.data.mode;
     const nextData = {
       prompt: template.prompt || this.data.prompt,
       mode: template.mode || this.data.mode,
@@ -125,12 +147,15 @@ Page({
       nextData.ratio = template.ratio;
     }
 
-    const nextTemplates = getTemplatesByMode(nextData.mode);
     this.setData({
       ...nextData,
-      quickTemplates: nextTemplates.slice(0, 4),
-      currentTemplates: nextTemplates
+      quickTemplates: nextData.mode === previousMode ? this.data.currentTemplates.slice(0, 4) : [],
+      currentTemplates: nextData.mode === previousMode ? this.data.currentTemplates : []
     }, this.updateCanGenerate);
+
+    if (nextData.mode !== previousMode) {
+      this.loadTemplates(nextData.mode);
+    }
   },
 
   loadSummary: async function () {

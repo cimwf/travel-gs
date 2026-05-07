@@ -97,6 +97,7 @@ async function installCloudCallFunctionMock(miniProgram) {
       } else if (name === 'api' && data.action === 'user/loginByPhone') {
         result = {
           success: true,
+          isNew: true,
           user: {
             _id: 'auto-user-doc',
             openid: 'auto-openid',
