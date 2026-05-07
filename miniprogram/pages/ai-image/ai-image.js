@@ -1,6 +1,11 @@
 const api = require('../../utils/api.js');
 const { styleOptions } = require('../../utils/ai-image-templates.js');
 
+function toSafeNumber(value, fallback = 0) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : fallback;
+}
+
 Page({
   data: {
     mode: 'text',
@@ -16,12 +21,18 @@ Page({
     quickTemplates: [],
     currentTemplates: [],
     templateLoading: false,
+    packages: [],
+    packageLoading: false,
+    purchasingPackageId: '',
+    showPackageModal: false,
     canGenerate: false,
     loading: false,
+    summaryReady: false,
+    summaryLoading: false,
     summary: {
-      total: 100,
+      total: 3,
       used: 0,
-      remaining: 100,
+      remaining: 3,
       generatedCount: 0
     }
   },
@@ -33,6 +44,7 @@ Page({
       this.applyTemplate(selectedTemplate);
     }
     this.loadSummary();
+    this.loadPackages();
   },
 
   onLoad: function (options) {
@@ -93,6 +105,8 @@ Page({
     if (!template) return;
     this.applyTemplate(template);
   },
+
+  noop: function () {},
 
   loadTemplates: async function (mode = this.data.mode) {
     this.setData({ templateLoading: true });
@@ -159,13 +173,72 @@ Page({
   },
 
   loadSummary: async function () {
+    this.setData({ summaryLoading: true });
     try {
       const res = await api.aiImageSummary();
       if (res.summary) {
-        this.setData({ summary: res.summary });
+        const summary = this.normalizeSummary(res.summary);
+        this.setData({ summary, summaryReady: true });
+        return summary;
       }
+      this.setData({ summaryReady: false });
+      return null;
     } catch (err) {
       console.warn('加载 AI 生图统计失败', err);
+      return null;
+    } finally {
+      this.setData({ summaryLoading: false });
+    }
+  },
+
+  loadPackages: async function () {
+    this.setData({ packageLoading: true });
+    try {
+      const res = await api.aiImagePackages();
+      this.setData({ packages: Array.isArray(res.packages) ? res.packages : [] });
+    } catch (err) {
+      console.warn('加载 AI 套餐失败', err);
+      this.setData({ packages: [] });
+    } finally {
+      this.setData({ packageLoading: false });
+    }
+  },
+
+  openPackageModal: function () {
+    this.setData({ showPackageModal: true });
+    if (!this.data.packages.length) {
+      this.loadPackages();
+    }
+  },
+
+  closePackageModal: function () {
+    if (this.data.purchasingPackageId) return;
+    this.setData({ showPackageModal: false });
+  },
+
+  onPurchasePackage: async function (event) {
+    const packageId = event.currentTarget.dataset.id;
+    if (!packageId || this.data.purchasingPackageId) return;
+
+    this.setData({ purchasingPackageId: packageId });
+    try {
+      const res = await api.aiImagePurchasePackage(packageId);
+      if (res.summary) {
+        this.setData({ summary: this.normalizeSummary(res.summary), summaryReady: true });
+      }
+      wx.showToast({
+        title: '充值成功',
+        icon: 'success'
+      });
+      this.setData({ showPackageModal: false });
+    } catch (err) {
+      console.error('模拟购买 AI 套餐失败', err);
+      wx.showToast({
+        title: this.formatErrorMessage(err, '充值失败'),
+        icon: 'none'
+      });
+    } finally {
+      this.setData({ purchasingPackageId: '' });
     }
   },
 
@@ -218,6 +291,26 @@ Page({
 
     if (this.data.loading) return;
 
+    let summary = this.data.summary;
+    if (!this.data.summaryReady) {
+      wx.showLoading({ title: '读取额度...' });
+      summary = await this.loadSummary();
+      wx.hideLoading();
+
+      if (!summary) {
+        wx.showToast({
+          title: '额度读取失败，请稍后重试',
+          icon: 'none'
+        });
+        return;
+      }
+    }
+
+    if (summary.remaining <= 0) {
+      this.openPackageModal();
+      return;
+    }
+
     this.setData({
       loading: true,
       taskId: '',
@@ -236,7 +329,7 @@ Page({
 
       this.setData({ taskId: res.taskId, generationStatus: '' });
       if (res.quota) {
-        this.setData({ summary: res.quota });
+        this.setData({ summary: this.normalizeSummary(res.quota), summaryReady: true });
       }
 
       wx.showModal({
@@ -252,8 +345,13 @@ Page({
       });
     } catch (err) {
       console.error('提交 AI 生图任务失败', err);
+      const message = this.formatErrorMessage(err, '生成失败');
+      if (message.includes('次数已用完')) {
+        this.openPackageModal();
+        return;
+      }
       wx.showToast({
-        title: this.formatErrorMessage(err, '生成失败'),
+        title: message,
         icon: 'none'
       });
     } finally {
@@ -265,5 +363,17 @@ Page({
     const message = err && (err.message || err.errMsg || err.error || String(err));
     if (!message) return fallback;
     return message.length > 60 ? message.slice(0, 60) : message;
+  },
+
+  normalizeSummary: function (summary = {}) {
+    const total = toSafeNumber(summary.total, 3);
+    const used = toSafeNumber(summary.used, toSafeNumber(summary.generatedCount));
+
+    return {
+      total,
+      used,
+      remaining: typeof summary.remaining === 'number' ? toSafeNumber(summary.remaining) : Math.max(0, total - used),
+      generatedCount: toSafeNumber(summary.generatedCount, used)
+    };
   }
 });

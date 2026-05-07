@@ -9,6 +9,52 @@ cloud.init({
 const db = cloud.database();
 const _ = db.command;
 const crypto = require('./utils/crypto');
+const AI_IMAGE_FREE_QUOTA = 3;
+
+function normalizeAiImageQuotaNumber(value, fallback = AI_IMAGE_FREE_QUOTA) {
+  if (value === null || value === undefined || value === '') {
+    return fallback;
+  }
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : fallback;
+}
+
+function buildAiImageQuotaUserInfo(user = {}) {
+  return {
+    appUserId: user.userId || '',
+    nickname: user.nickname || '',
+    phone: user.phone || '',
+    phoneMask: user.phoneMask || (user.phone ? crypto.maskPhone(user.phone) : ''),
+    avatar: safeAvatar(user.avatar || '')
+  };
+}
+
+function hasAiImageQuotaUserInfo(userInfo = {}) {
+  return Boolean(
+    userInfo.appUserId ||
+    userInfo.nickname ||
+    userInfo.phone ||
+    userInfo.phoneMask ||
+    userInfo.avatar
+  );
+}
+
+function getAiImageQuotaUserInfoPatch(quota = {}, userInfo = {}) {
+  const patch = {};
+  if (!hasAiImageQuotaUserInfo(userInfo)) return patch;
+
+  ['appUserId', 'nickname', 'phone', 'phoneMask', 'avatar'].forEach(key => {
+    if (userInfo[key] && quota[key] !== userInfo[key]) {
+      patch[key] = userInfo[key];
+    }
+  });
+
+  return patch;
+}
+
+function createAiImageOrderNo(now = Date.now()) {
+  return `AI${now}${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+}
 
 exports.main = async (event, context) => {
   const { action, data } = event;
@@ -140,6 +186,10 @@ exports.main = async (event, context) => {
         return await aiImageSummary(openid);
       case 'aiImage/list':
         return await aiImageList(openid);
+      case 'aiImage/packages':
+        return await aiImagePackages();
+      case 'aiImage/purchasePackage':
+        return await aiImagePurchasePackage(openid, data);
       case 'aiImage/templates':
         return await aiImageTemplates(openid, data);
       case 'aiImage/templateVote':
@@ -358,6 +408,7 @@ async function userRegister(openid, data) {
 
   const res = await db.collection('users').add({ data: newUser });
   newUser._id = res._id;
+  await syncAiImageQuotaUserInfo(openid, newUser);
 
   // 返回用户信息（不返回密码）
   const safeUser = { ...newUser };
@@ -505,8 +556,9 @@ async function userLoginPassword(data) {
   });
 
   // 返回用户信息（不返回密码），包含最新的 openid
-  const safeUser = { ...user, openid: user.openid || currentOpenid };
+  const safeUser = { ...user, ...updateData, openid: user.openid || currentOpenid };
   delete safeUser.password;
+  await syncAiImageQuotaUserInfo(safeUser.openid, safeUser);
   return { success: true, user: safeUser };
 }
 
@@ -541,6 +593,7 @@ async function userLoginByPhone(openid, data) {
 
     const safeUser = { ...user, openid: openid, ...updateData };
     delete safeUser.password;
+    await syncAiImageQuotaUserInfo(openid, safeUser);
     return { success: true, user: safeUser, isNew: false };
   }
 
@@ -577,6 +630,7 @@ async function userLoginByPhone(openid, data) {
 
   const res = await db.collection('users').add({ data: newUser });
   newUser._id = res._id;
+  await syncAiImageQuotaUserInfo(openid, newUser);
 
   const safeUser = { ...newUser };
   delete safeUser.password;
@@ -627,6 +681,7 @@ async function userUpdate(openid, data) {
   await db.collection('users').doc(user._id).update({
     data: updateData
   });
+  await syncAiImageQuotaUserInfo(user.openid || openid, { ...user, ...updateData });
 
   return { success: true };
 }
@@ -3004,12 +3059,28 @@ async function ensureAiImageQuota(openid) {
   const res = await db.collection('ai_image_quotas').where({ userId }).limit(1).get();
 
   if (res.data && res.data[0]) {
-    return res.data[0];
+    const quota = res.data[0];
+    if (!quota.appUserId || !quota.nickname || !quota.phoneMask) {
+      const userInfo = await getAiImageQuotaUserInfo(userId);
+      const patch = getAiImageQuotaUserInfoPatch(quota, userInfo);
+      if (Object.keys(patch).length > 0) {
+        patch.updatedAt = Date.now();
+        try {
+          await db.collection('ai_image_quotas').doc(quota._id).update({ data: patch });
+          return { ...quota, ...patch };
+        } catch (err) {
+          console.warn('同步 AI 生图额度用户信息失败:', err);
+        }
+      }
+    }
+    return quota;
   }
 
+  const userInfo = await getAiImageQuotaUserInfo(userId);
   const quota = {
     userId,
-    total: 100,
+    ...userInfo,
+    total: AI_IMAGE_FREE_QUOTA,
     used: 0,
     createdAt: Date.now(),
     updatedAt: Date.now()
@@ -3019,8 +3090,68 @@ async function ensureAiImageQuota(openid) {
   return quota;
 }
 
+async function getAiImageQuotaUserInfo(userId) {
+  if (!userId || userId === 'anonymous') {
+    return buildAiImageQuotaUserInfo();
+  }
+
+  try {
+    const userRes = await db.collection('users').where(
+      _.or(
+        { openid: userId },
+        { userId },
+        { phone: userId },
+        { phoneMask: userId }
+      )
+    ).limit(1).get();
+
+    const user = userRes.data && userRes.data[0] ? userRes.data[0] : null;
+    return user ? buildAiImageQuotaUserInfo(user) : buildAiImageQuotaUserInfo();
+  } catch (err) {
+    console.warn('读取 AI 生图额度用户信息失败:', err);
+    return buildAiImageQuotaUserInfo();
+  }
+}
+
+async function syncAiImageQuotaUserInfo(userId, user) {
+  const quotaUserId = userId || (user && user.openid) || '';
+  if (!quotaUserId || quotaUserId === 'anonymous') return;
+
+  try {
+    const userInfo = user ? buildAiImageQuotaUserInfo(user) : await getAiImageQuotaUserInfo(quotaUserId);
+    if (!hasAiImageQuotaUserInfo(userInfo)) return;
+
+    const quotaRes = await db.collection('ai_image_quotas')
+      .where({ userId: quotaUserId })
+      .limit(1)
+      .get();
+    const quota = quotaRes.data && quotaRes.data[0] ? quotaRes.data[0] : null;
+    if (!quota || !quota._id) return;
+
+    const patch = getAiImageQuotaUserInfoPatch(quota, userInfo);
+    if (Object.keys(patch).length === 0) return;
+
+    await db.collection('ai_image_quotas').doc(quota._id).update({
+      data: {
+        ...patch,
+        updatedAt: Date.now()
+      }
+    });
+  } catch (err) {
+    console.warn('同步 AI 生图额度用户信息失败:', err);
+  }
+}
+
 async function incrementAiImageUsage(openid) {
-  await syncAiImageQuotaUsage(openid);
+  const quota = await ensureAiImageQuota(openid);
+  const used = normalizeAiImageQuotaNumber(quota.used, 0) + 1;
+  await db.collection('ai_image_quotas').doc(quota._id).update({
+    data: {
+      used,
+      updatedAt: Date.now()
+    }
+  });
+  return { ...quota, used };
 }
 
 async function chargeAiImageUsageIfNeeded(openid, record) {
@@ -3028,7 +3159,7 @@ async function chargeAiImageUsageIfNeeded(openid, record) {
     return;
   }
 
-  await syncAiImageQuotaUsage(openid);
+  await incrementAiImageUsage(openid);
 }
 
 async function getAiImageSummaryData(openid) {
@@ -3037,13 +3168,15 @@ async function getAiImageSummaryData(openid) {
   const generatedRes = await db.collection('ai_image_generations')
     .where({ userId, status: 'completed' })
     .count();
-  const total = quota.total || 100;
-  const used = generatedRes.total || 0;
+  const total = normalizeAiImageQuotaNumber(quota.total);
+  const used = normalizeAiImageQuotaNumber(quota.used, 0);
+  const generatedCount = generatedRes.total || 0;
 
-  if ((quota.used || 0) !== used) {
+  if (quota.used !== used || quota.total !== total) {
     try {
       await db.collection('ai_image_quotas').doc(quota._id).update({
         data: {
+          total,
           used,
           updatedAt: Date.now()
         }
@@ -3057,7 +3190,7 @@ async function getAiImageSummaryData(openid) {
     total,
     used,
     remaining: Math.max(0, total - used),
-    generatedCount: used
+    generatedCount
   };
 }
 
@@ -3069,6 +3202,133 @@ async function aiImageSummary(openid) {
   return {
     success: true,
     summary: await getAiImageSummaryData(openid)
+  };
+}
+
+function normalizeAiImagePackage(item = {}) {
+  return {
+    id: item.packageId || item._id || '',
+    _id: item._id || '',
+    packageId: item.packageId || '',
+    title: item.title || '',
+    desc: item.desc || '',
+    price: typeof item.price === 'number' ? item.price : 0,
+    imageCount: typeof item.imageCount === 'number' ? item.imageCount : 0,
+    badge: item.badge || '',
+    sort: typeof item.sort === 'number' ? item.sort : 0,
+    enabled: item.enabled !== false
+  };
+}
+
+async function aiImagePackages() {
+  try {
+    const res = await db.collection('ai_image_packages')
+      .where({ enabled: true })
+      .orderBy('sort', 'asc')
+      .orderBy('createdAt', 'desc')
+      .limit(50)
+      .get();
+
+    return {
+      success: true,
+      packages: (res.data || []).map(normalizeAiImagePackage)
+    };
+  } catch (err) {
+    console.warn('读取 AI 生图套餐失败:', err);
+    return {
+      success: true,
+      packages: []
+    };
+  }
+}
+
+async function getAiImagePackageById(packageId) {
+  if (!packageId) return null;
+
+  try {
+    const docRes = await db.collection('ai_image_packages').doc(packageId).get();
+    const doc = Array.isArray(docRes.data) ? docRes.data[0] : docRes.data;
+    if (doc && doc._id) return doc;
+  } catch (err) {
+    // 不是文档 _id 时继续按 packageId 查。
+  }
+
+  const res = await db.collection('ai_image_packages')
+    .where({ packageId })
+    .limit(1)
+    .get();
+  return res.data && res.data[0] ? res.data[0] : null;
+}
+
+async function aiImagePurchasePackage(openid, data = {}) {
+  const userId = openid || 'anonymous';
+  const pack = await getAiImagePackageById(data.packageId);
+
+  if (!pack || pack.enabled === false) {
+    return { success: false, error: '套餐不存在或已下架' };
+  }
+
+  const imageCount = Number(pack.imageCount || 0);
+  if (!imageCount || imageCount <= 0) {
+    return { success: false, error: '套餐图片数量配置不正确' };
+  }
+
+  const quota = await ensureAiImageQuota(userId);
+  const beforeTotal = normalizeAiImageQuotaNumber(quota.total);
+  const beforeUsed = normalizeAiImageQuotaNumber(quota.used, 0);
+  const beforeRemaining = Math.max(0, beforeTotal - beforeUsed);
+
+  if (beforeRemaining > 0) {
+    return { success: false, error: '当前仍有剩余次数，无需充值' };
+  }
+
+  const afterTotal = imageCount;
+  const afterUsed = 0;
+  const now = Date.now();
+  const orderNo = createAiImageOrderNo(now);
+  const userInfo = {
+    appUserId: quota.appUserId || '',
+    nickname: quota.nickname || '',
+    phone: quota.phone || '',
+    phoneMask: quota.phoneMask || '',
+    avatar: quota.avatar || ''
+  };
+
+  await db.collection('ai_image_quotas').doc(quota._id).update({
+    data: {
+      total: afterTotal,
+      used: afterUsed,
+      updatedAt: now
+    }
+  });
+
+  await db.collection('ai_image_orders').add({
+    data: {
+      orderNo,
+      userId,
+      ...userInfo,
+      packageId: pack._id,
+      packageKey: pack.packageId || '',
+      title: pack.title || '',
+      price: typeof pack.price === 'number' ? pack.price : 0,
+      imageCount,
+      beforeTotal,
+      beforeUsed,
+      beforeRemaining,
+      afterTotal,
+      afterUsed,
+      afterRemaining: Math.max(0, afterTotal - afterUsed),
+      status: 'paid',
+      payType: 'mock',
+      createdAt: now,
+      paidAt: now
+    }
+  });
+
+  return {
+    success: true,
+    package: normalizeAiImagePackage(pack),
+    summary: await getAiImageSummaryData(userId)
   };
 }
 

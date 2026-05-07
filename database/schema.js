@@ -16,6 +16,9 @@
 8. notifications - 通知表
 9. ai_image_templates - AI 生图模板表
 10. ai_image_template_votes - AI 生图模板用户反馈表
+11. ai_image_packages - AI 生图套餐表
+12. ai_image_orders - AI 生图模拟订单表
+13. ai_image_quotas - AI 生图额度表
 
 ==========================================
 集合结构说明
@@ -232,6 +235,63 @@ const aiImageTemplateVoteSchema = {
   updatedAt: 1711123200000
 };
 
+// 11. ai_image_packages - AI 生图套餐表
+const aiImagePackageSchema = {
+  _id: "package_xxx",
+  packageId: "standard-50",
+  title: "AI 生图 50 张",
+  desc: "适合集中测试和日常创作，支付后立即到账。",
+  badge: "推荐",
+  price: 19.9,
+  imageCount: 50,
+  sort: 10,
+  enabled: true,
+  createdAt: 1711123200000,
+  updatedAt: 1711123200000
+};
+
+// 12. ai_image_orders - AI 生图模拟订单表
+const aiImageOrderSchema = {
+  _id: "order_xxx",
+  orderNo: "AI1711123200000ABCDEF",
+  userId: "openid_xxx",
+  appUserId: "BJ143052A7F3",
+  nickname: "旅行达人",
+  phone: "13800138000",
+  phoneMask: "138****8000",
+  avatar: "https://...",
+  packageId: "package_xxx",
+  packageKey: "standard-50",
+  title: "AI 生图 50 张",
+  price: 19.9,
+  imageCount: 50,
+  beforeTotal: 3,
+  beforeUsed: 3,
+  beforeRemaining: 0,
+  afterTotal: 50,
+  afterUsed: 0,
+  afterRemaining: 50,
+  status: "paid",
+  payType: "mock",
+  createdAt: 1711123200000,
+  paidAt: 1711123200000
+};
+
+// 13. ai_image_quotas - AI 生图额度表
+const aiImageQuotaSchema = {
+  _id: "quota_xxx",
+  userId: "openid_xxx",             // 用户 openid
+  appUserId: "BJ143052A7F3",        // users.userId，后台搜索用
+  nickname: "旅行达人",              // 用户昵称快照，后台搜索用
+  phone: "13800138000",             // 用户手机号快照，后台搜索用
+  phoneMask: "138****8000",         // 脱敏手机号
+  avatar: "https://...",            // 用户头像快照
+  total: 3,                         // 总额度，可在后台管理修改
+  used: 0,                          // 当前额度周期已用次数，充值重置为 0
+  createdAt: 1711123200000,
+  updatedAt: 1711123200000
+};
+
 /*
 ==========================================
 索引配置（在云开发控制台创建）
@@ -283,4 +343,25 @@ ai_image_templates:
 
 ai_image_template_votes:
   - userId + templateId
+
+ai_image_packages:
+  - enabled + sort
+  - packageId
+
+ai_image_orders:
+  - orderNo
+  - userId + createdAt
+  - nickname
+  - phone
+  - phoneMask
+  - appUserId
+  - packageId
+
+ai_image_quotas:
+  - userId
+  - nickname
+  - phone
+  - phoneMask
+  - appUserId
+  - updatedAt
 */

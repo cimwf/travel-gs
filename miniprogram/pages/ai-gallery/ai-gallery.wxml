@@ -7,7 +7,8 @@
   <view class="summary-card">
     <view>
       <view class="summary-title">我的 AI 作品</view>
-      <view class="summary-desc">已生成 {{summary.generatedCount}} 张 · 剩余 {{summary.remaining}} / {{summary.total}} 次</view>
+      <view class="summary-desc" wx:if="{{summaryReady}}">已生成 {{summary.generatedCount}} 张 · 剩余 {{summary.remaining}} / {{summary.total}} 次</view>
+      <view class="summary-desc" wx:else>额度读取中...</view>
     </view>
     <view class="refresh-btn" bindtap="loadWorks">{{loading ? '刷新中' : '刷新'}}</view>
   </view>

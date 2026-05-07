@@ -1,12 +1,18 @@
 const api = require('../../utils/api.js');
 
+function toSafeNumber(value, fallback = 0) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : fallback;
+}
+
 Page({
   data: {
     loading: false,
+    summaryReady: false,
     summary: {
-      total: 100,
+      total: 3,
       used: 0,
-      remaining: 100,
+      remaining: 3,
       generatedCount: 0
     },
     works: [],
@@ -27,7 +33,8 @@ Page({
       const res = await api.aiImageList();
       const works = (res.images || []).map(item => this.formatWork(item));
       this.setData({
-        summary: res.summary || this.data.summary,
+        summary: res.summary ? this.normalizeSummary(res.summary) : this.data.summary,
+        summaryReady: Boolean(res.summary),
         works,
         isEmpty: works.length === 0
       });
@@ -75,6 +82,18 @@ Page({
       createdText: this.formatTime(item.createdAt),
       metaText: firstImage.metaText || '',
       errorText: item.error || firstImage.errorText || '请重新生成'
+    };
+  },
+
+  normalizeSummary: function (summary = {}) {
+    const total = toSafeNumber(summary.total, 3);
+    const used = toSafeNumber(summary.used, toSafeNumber(summary.generatedCount));
+
+    return {
+      total,
+      used,
+      remaining: typeof summary.remaining === 'number' ? toSafeNumber(summary.remaining) : Math.max(0, total - used),
+      generatedCount: toSafeNumber(summary.generatedCount, used)
     };
   },
 

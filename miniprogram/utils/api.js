@@ -369,6 +369,20 @@ function aiImageList() {
 }
 
 /**
+ * 获取 AI 生图套餐
+ */
+function aiImagePackages() {
+  return callApi('aiImage/packages', {});
+}
+
+/**
+ * 模拟购买 AI 生图套餐
+ */
+function aiImagePurchasePackage(packageId) {
+  return callApi('aiImage/purchasePackage', { packageId });
+}
+
+/**
  * 获取 AI 生图模板
  */
 function aiImageTemplates(mode) {
@@ -456,6 +470,8 @@ module.exports = {
   aiImageStatus,
   aiImageSummary,
   aiImageList,
+  aiImagePackages,
+  aiImagePurchasePackage,
   aiImageTemplates,
   aiImageTemplateVote,
   ailmageStatus: aiImageStatus,

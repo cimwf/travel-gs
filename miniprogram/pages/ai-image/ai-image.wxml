@@ -18,7 +18,8 @@
   <view class="quota-panel" bindtap="onOpenGallery">
     <view>
       <view class="quota-title">我的 AI 作品</view>
-      <view class="quota-desc">已生成 {{summary.generatedCount}} 张 · 剩余 {{summary.remaining}} / {{summary.total}} 次</view>
+      <view class="quota-desc" wx:if="{{summaryReady}}">已生成 {{summary.generatedCount}} 张 · 剩余 {{summary.remaining}} / {{summary.total}} 次</view>
+      <view class="quota-desc" wx:else>额度读取中...</view>
     </view>
     <view class="quota-button">查看</view>
   </view>
@@ -96,6 +97,34 @@
   <view class="bottom-bar">
     <view class="generate-btn {{canGenerate ? '' : 'disabled'}}" bindtap="onGenerate">
       {{loading ? '正在提交...' : (mode === 'text' ? '用文字生成图片' : '用参考图生成图片')}}
+    </view>
+  </view>
+
+  <view class="package-mask" wx:if="{{showPackageModal}}" catchtap="closePackageModal">
+    <view class="package-modal" catchtap="noop">
+      <view class="package-title">AI 生图次数已用完</view>
+      <view class="package-desc" wx:if="{{summaryReady}}">当前剩余 {{summary.remaining}} 次，选择套餐后会立即充值到账户。</view>
+      <view class="package-desc" wx:else>正在读取账户额度，选择套餐后会立即充值到账户。</view>
+      <view class="package-list" wx:if="{{packages.length}}">
+        <view class="package-card" wx:for="{{packages}}" wx:key="_id">
+          <view>
+            <view class="package-card-title">{{item.title}}</view>
+            <view class="package-card-desc">{{item.desc}}</view>
+            <view class="package-card-desc">可生成 {{item.imageCount}} 张图</view>
+            <view class="package-badge" wx:if="{{item.badge}}">{{item.badge}}</view>
+          </view>
+          <view class="package-buy">
+            <view class="package-price">¥{{item.price}}</view>
+            <view class="package-button" data-id="{{item._id || item.id}}" bindtap="onPurchasePackage">
+              {{purchasingPackageId === (item._id || item.id) ? '充值中' : '支付'}}
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="package-empty" wx:else>
+        {{packageLoading ? '套餐加载中...' : '暂无可购买套餐，请稍后再试'}}
+      </view>
+      <view class="package-cancel" bindtap="closePackageModal">暂不充值</view>
     </view>
   </view>
 </view>
