@@ -1,0 +1,62 @@
+<view class="gallery-page">
+  <view class="bg">
+    <view class="circle c1"></view>
+    <view class="circle c2"></view>
+  </view>
+
+  <view class="summary-card">
+    <view>
+      <view class="summary-title">我的 AI 作品</view>
+      <view class="summary-desc">已生成 {{summary.generatedCount}} 张 · 剩余 {{summary.remaining}} / {{summary.total}} 次</view>
+    </view>
+    <view class="refresh-btn" bindtap="loadWorks">{{loading ? '刷新中' : '刷新'}}</view>
+  </view>
+
+  <view class="empty" wx:if="{{isEmpty && !loading}}">
+    <view class="empty-icon">+</view>
+    <view class="empty-title">还没有 AI 作品</view>
+    <view class="empty-desc">提交生成后，任务和结果会按最新时间显示在这里。</view>
+  </view>
+
+  <view class="image-list" wx:else>
+    <view class="image-card" wx:for="{{works}}" wx:key="_id">
+      <view class="image-wrap {{item.status !== 'completed' ? 'pending' : ''}}">
+        <block wx:if="{{item.status === 'completed' && item.imageUrl}}">
+          <image class="work-image" src="{{item.imageUrl}}" mode="aspectFill" data-url="{{item.imageUrl}}" bindtap="onPreviewImage"></image>
+        </block>
+        <block wx:elif="{{item.status === 'failed' || item.status === 'cancelled'}}">
+          <view class="failed-box">
+            <view class="failed-mark">!</view>
+            <view class="status-title">生成失败</view>
+            <view class="status-desc">{{item.errorText}}</view>
+          </view>
+        </block>
+        <block wx:else>
+          <view class="skeleton-box">
+            <view class="skeleton-image"></view>
+            <view class="skeleton-line short"></view>
+            <view class="skeleton-line"></view>
+            <view class="status-title">生成中</view>
+            <view class="status-desc">高清图片正在生成，请稍后刷新</view>
+          </view>
+        </block>
+      </view>
+      <view class="card-body">
+        <view class="meta-row">
+          <text>{{item.mode === 'image' ? '图生图' : '文生图'}}</text>
+          <text>{{item.style}}</text>
+          <text>{{item.ratio}}</text>
+          <text>{{item.statusText}}</text>
+        </view>
+        <view class="prompt">{{item.prompt || '基于参考图生成'}}</view>
+        <view class="image-meta" wx:if="{{item.metaText}}">{{item.metaText}}</view>
+        <view class="time-text" wx:if="{{item.createdText}}">{{item.createdText}}</view>
+        <view class="actions" wx:if="{{item.status === 'completed' && item.imageUrl}}">
+          <view class="action primary" data-url="{{item.saveUrl}}" data-fallback-url="{{item.imageUrl}}" bindtap="onSaveImage">保存</view>
+          <view class="action" data-url="{{item.imageUrl}}" bindtap="onPreviewImage">放大</view>
+          <view class="action" data-url="{{item.copyUrl}}" bindtap="onCopyLink">复制链接</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

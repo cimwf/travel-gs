@@ -351,6 +351,18 @@ async function uploadToCos(taskId, imageBase64) {
   return await uploadBufferToCos(taskId, Buffer.from(imageBase64, 'base64'), 'image/png', 'png');
 }
 
+function normalizePublicBaseUrl(url) {
+  const value = String(url || '').trim();
+  if (!value) return '';
+  if (value.startsWith('https://') || value.startsWith('http://')) {
+    return value.replace(/\/$/, '');
+  }
+  if (value.startsWith('//')) {
+    return `https:${value}`.replace(/\/$/, '');
+  }
+  return `https://${value}`.replace(/\/$/, '');
+}
+
 async function uploadBufferToCos(taskId, buffer, contentType = 'image/png', ext = 'png') {
   const config = getConfig();
   const cos = getCosClient();
@@ -369,7 +381,7 @@ async function uploadBufferToCos(taskId, buffer, contentType = 'image/png', ext 
     });
   });
 
-  const baseUrl = config.publicBaseUrl || `https://${config.cosBucket}.cos.${config.cosRegion}.myqcloud.com`;
+  const baseUrl = normalizePublicBaseUrl(config.publicBaseUrl) || `https://${config.cosBucket}.cos.${config.cosRegion}.myqcloud.com`;
   const signedUrl = cos.getObjectUrl({
     Bucket: config.cosBucket,
     Region: config.cosRegion,
@@ -379,7 +391,7 @@ async function uploadBufferToCos(taskId, buffer, contentType = 'image/png', ext 
   });
 
   return {
-    url: `${baseUrl.replace(/\/$/, '')}/${key}`,
+    url: `${baseUrl}/${key}`,
     signedUrl,
     key,
     ...getImageMeta(buffer, contentType)

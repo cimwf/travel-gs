@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "我的 AI 作品",
+  "navigationBarBackgroundColor": "#27435E",
+  "navigationBarTextStyle": "white",
+  "enablePullDownRefresh": true,
+  "usingComponents": {}
+}

@@ -2539,11 +2539,27 @@ function isAiImageLoadingStatus(status) {
   return ['queued', 'pending', 'in_progress', 'processing', 'running', 'submitted'].includes(status || '');
 }
 
+function normalizeAiImageUrl(url) {
+  if (!url) return '';
+  const value = String(url).trim();
+  if (!value) return '';
+  if (value.startsWith('https://') || value.startsWith('http://') || value.startsWith('cloud://')) {
+    return value;
+  }
+  if (value.startsWith('//')) {
+    return `https:${value}`;
+  }
+  if (value.includes('.') && value.includes('/')) {
+    return `https://${value}`;
+  }
+  return value;
+}
+
 function normalizeAiImageItem(image = {}, fallback = {}) {
   const key = image.key || image.fileID || '';
-  const publicUrl = image.publicUrl || image.publicURL || '';
-  const signedUrl = image.signedUrl || image.signedURL || image.tempFileURL || '';
-  const url = image.url || signedUrl || publicUrl || '';
+  const publicUrl = normalizeAiImageUrl(image.publicUrl || image.publicURL || '');
+  const signedUrl = normalizeAiImageUrl(image.signedUrl || image.signedURL || image.tempFileURL || '');
+  const url = normalizeAiImageUrl(image.url || signedUrl || publicUrl || '');
   const status = image.status || fallback.status || (url ? 'completed' : 'queued');
 
   return {
@@ -2728,9 +2744,8 @@ async function aiImageGenerate(openid, data = {}) {
     return { success: false, error: '参考图片不能为空' };
   }
 
-  const quota = await ensureAiImageQuota(openid);
-  const remaining = Math.max(0, (quota.total || 100) - (quota.used || 0));
-  if (remaining <= 0) {
+  const summary = await getAiImageSummaryData(openid);
+  if (summary.remaining <= 0) {
     return { success: false, error: 'AI 生图次数已用完' };
   }
 
@@ -2993,13 +3008,7 @@ async function ensureAiImageQuota(openid) {
 }
 
 async function incrementAiImageUsage(openid) {
-  const quota = await ensureAiImageQuota(openid);
-  await db.collection('ai_image_quotas').doc(quota._id).update({
-    data: {
-      used: _.inc(1),
-      updatedAt: Date.now()
-    }
-  });
+  await syncAiImageQuotaUsage(openid);
 }
 
 async function chargeAiImageUsageIfNeeded(openid, record) {
@@ -3007,7 +3016,7 @@ async function chargeAiImageUsageIfNeeded(openid, record) {
     return;
   }
 
-  await incrementAiImageUsage(openid);
+  await syncAiImageQuotaUsage(openid);
 }
 
 async function getAiImageSummaryData(openid) {
@@ -3017,14 +3026,31 @@ async function getAiImageSummaryData(openid) {
     .where({ userId, status: 'completed' })
     .count();
   const total = quota.total || 100;
-  const used = quota.used || 0;
+  const used = generatedRes.total || 0;
+
+  if ((quota.used || 0) !== used) {
+    try {
+      await db.collection('ai_image_quotas').doc(quota._id).update({
+        data: {
+          used,
+          updatedAt: Date.now()
+        }
+      });
+    } catch (err) {
+      console.warn('同步 AI 生图额度失败:', err);
+    }
+  }
 
   return {
     total,
     used,
     remaining: Math.max(0, total - used),
-    generatedCount: generatedRes.total || 0
+    generatedCount: used
   };
+}
+
+async function syncAiImageQuotaUsage(openid) {
+  return await getAiImageSummaryData(openid);
 }
 
 async function aiImageSummary(openid) {
