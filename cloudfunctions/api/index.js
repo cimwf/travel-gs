@@ -2688,9 +2688,6 @@ function buildCompletedAiImages(image, taskId) {
     key: image.fileID || image.key || '',
     fileID: image.fileID || image.key || '',
     cloudPath: image.cloudPath || '',
-    url: image.tempFileURL || image.url || '',
-    signedUrl: image.signedURL || image.signedUrl || image.tempFileURL || '',
-    publicUrl: image.publicURL || image.publicUrl || '',
     width: image.width || 0,
     height: image.height || 0,
     format: image.format || '',
@@ -3526,6 +3523,7 @@ async function recordAiImageTask(openid, data, task) {
     ratio: data.ratio || '',
     model: task.model || '',
     referenceFileID: data.referenceFileID || '',
+    generatedFileID: '',
     images: buildInitialAiImages(task),
     usage: null,
     createdAt: Date.now(),
@@ -3563,6 +3561,7 @@ async function syncAiImageRecord(openid, record) {
   if (statusRes.status === 'completed' && statusRes.image) {
     updates.status = 'completed';
     updates.images = buildCompletedAiImages(statusRes.image, record.responseId);
+    updates.generatedFileID = statusRes.image.fileID || statusRes.image.key || '';
     updates.completedAt = Date.now();
     updates.chargedAt = record.chargedAt || Date.now();
     if (!record.chargedAt && !statusRes.charged) {
@@ -3587,11 +3586,53 @@ async function aiImageList(openid) {
     .limit(50)
     .get();
 
-  const items = [];
+  const synced = [];
   for (const record of res.data || []) {
-    const synced = await syncAiImageRecord(openid, record);
-    items.push(formatAiImageRecord(synced));
+    synced.push(await syncAiImageRecord(openid, record));
   }
+
+  // collect all fileIDs from completed records for batch URL refresh
+  const fileIDSet = new Set();
+  for (const record of synced) {
+    if (record.status === 'completed') {
+      for (const image of record.images || []) {
+        const fid = image.key || image.fileID;
+        if (fid) fileIDSet.add(fid);
+      }
+    }
+  }
+
+  const tempUrlMap = {};
+  if (fileIDSet.size > 0) {
+    try {
+      const urlRes = await cloud.getTempFileURL({ fileList: Array.from(fileIDSet) });
+      for (const file of urlRes.fileList || []) {
+        if (file.fileID && file.tempFileURL) {
+          tempUrlMap[file.fileID] = file.tempFileURL;
+        }
+      }
+    } catch (err) {
+      console.warn('批量获取 AI 图片临时链接失败:', err);
+    }
+  }
+
+  const items = synced.map(record => {
+    const formatted = formatAiImageRecord(record);
+    if (record.status !== 'completed') return formatted;
+
+    const images = formatted.images.map(image => {
+      const tempUrl = tempUrlMap[image.fileID] || tempUrlMap[image.key] || '';
+      return { ...image, signedUrl: tempUrl, url: tempUrl, imageUrl: tempUrl, saveUrl: tempUrl, copyUrl: tempUrl };
+    });
+    const firstImage = images[0] || {};
+    return {
+      ...formatted,
+      images,
+      imageUrl: firstImage.imageUrl || '',
+      saveUrl: firstImage.saveUrl || '',
+      copyUrl: firstImage.copyUrl || ''
+    };
+  });
 
   return {
     success: true,
@@ -3807,6 +3848,7 @@ function formatAiImageRecord(record) {
     style: record.style || '',
     ratio: record.ratio || '',
     referenceFileID: record.referenceFileID || '',
+    generatedFileID: record.generatedFileID || firstImage.fileID || '',
     imageUrl: firstImage.signedUrl || firstImage.url || firstImage.publicUrl || '',
     publicUrl: firstImage.publicUrl || '',
     images,
