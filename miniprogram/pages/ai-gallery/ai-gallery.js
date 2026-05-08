@@ -52,19 +52,15 @@ Page({
 
   formatWork: function (item) {
     const images = (item.images || []).map((image, index) => {
-      const signedUrl = this.normalizeImageUrl(image.signedUrl);
-      const url = this.normalizeImageUrl(image.url);
       const publicUrl = this.normalizeImageUrl(image.publicUrl);
-      const imageUrl = signedUrl || url || publicUrl || '';
-      const saveUrl = url || signedUrl || publicUrl || imageUrl || '';
-      const status = image.status || item.status || (imageUrl ? 'completed' : 'queued');
+      const status = image.status || item.status || (publicUrl ? 'completed' : 'queued');
       return {
         ...image,
         id: image.id || `${item.taskId || item._id || 'image'}_${index}`,
         status,
-        imageUrl,
-        saveUrl,
-        copyUrl: url || signedUrl || publicUrl || imageUrl || '',
+        imageUrl: publicUrl,
+        saveUrl: publicUrl,
+        copyUrl: publicUrl,
         metaText: this.formatImageMeta(image),
         errorText: image.error || item.error || '请重新生成'
       };
@@ -76,9 +72,9 @@ Page({
       status,
       statusText: this.getStatusText(status),
       statusDesc: this.getStatusDesc(status),
-      imageUrl: firstImage.imageUrl || this.normalizeImageUrl(item.imageUrl) || '',
-      saveUrl: firstImage.saveUrl || firstImage.imageUrl || this.normalizeImageUrl(item.imageUrl) || '',
-      copyUrl: firstImage.copyUrl || this.normalizeImageUrl(item.imageUrl) || this.normalizeImageUrl(item.publicUrl) || '',
+      imageUrl: firstImage.imageUrl || this.normalizeImageUrl(item.publicUrl) || this.normalizeImageUrl(item.imageUrl) || '',
+      saveUrl: firstImage.saveUrl || this.normalizeImageUrl(item.publicUrl) || this.normalizeImageUrl(item.imageUrl) || '',
+      copyUrl: firstImage.copyUrl || this.normalizeImageUrl(item.publicUrl) || this.normalizeImageUrl(item.imageUrl) || '',
       images,
       createdText: this.formatTime(item.createdAt),
       metaText: firstImage.metaText || '',

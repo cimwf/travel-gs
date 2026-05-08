@@ -2651,11 +2651,10 @@ function normalizeAiImageUrl(url) {
 
 function normalizeAiImageItem(image = {}, fallback = {}) {
   const key = image.key || image.fileID || '';
-  const cloudPath = image.cloudPath || '';
-  const publicUrl = normalizeAiImageUrl(image.publicUrl || image.publicURL || '');
-  const signedUrl = normalizeAiImageUrl(image.signedUrl || image.signedURL || image.tempFileURL || '');
-  const url = normalizeAiImageUrl(image.url || signedUrl || publicUrl || '');
-  const status = image.status || fallback.status || (url ? 'completed' : 'queued');
+  const cloudPath = image.cloudPath || (key.startsWith('cloud://') ? key.replace(/^cloud:\/\/[^/]+\//, '') : '');
+  const derivedPublicUrl = cloudPath ? `https://${DEFAULT_CLOUD_STORAGE_BUCKET}.tcb.qcloud.la/${cloudPath}` : '';
+  const publicUrl = normalizeAiImageUrl(image.publicUrl || image.publicURL || derivedPublicUrl || '');
+  const status = image.status || fallback.status || (publicUrl ? 'completed' : 'queued');
 
   return {
     id: image.id || image.imageId || `${fallback.taskId || ''}_0`,
@@ -2663,8 +2662,6 @@ function normalizeAiImageItem(image = {}, fallback = {}) {
     key,
     fileID: key,
     cloudPath,
-    url,
-    signedUrl,
     publicUrl,
     width: image.width || 0,
     height: image.height || 0,
@@ -2688,6 +2685,7 @@ function buildCompletedAiImages(image, taskId) {
     key: image.fileID || image.key || '',
     fileID: image.fileID || image.key || '',
     cloudPath: image.cloudPath || '',
+    publicUrl: image.publicUrl || image.publicURL || '',
     width: image.width || 0,
     height: image.height || 0,
     format: image.format || '',
@@ -2810,13 +2808,10 @@ async function uploadGeneratedImage(openid, imageBase64, responseId = '') {
     fileContent: buffer
   });
 
-  const urlRes = await cloud.getTempFileURL({ fileList: [uploadRes.fileID] });
-  const file = urlRes.fileList && urlRes.fileList[0];
-
   return {
     fileID: uploadRes.fileID,
     cloudPath,
-    tempFileURL: file && file.tempFileURL ? file.tempFileURL : '',
+    publicUrl: `https://${DEFAULT_CLOUD_STORAGE_BUCKET}.tcb.qcloud.la/${cloudPath}`,
     width: meta.width,
     height: meta.height,
     format: meta.format,
@@ -3523,7 +3518,6 @@ async function recordAiImageTask(openid, data, task) {
     ratio: data.ratio || '',
     model: task.model || '',
     referenceFileID: data.referenceFileID || '',
-    generatedFileID: '',
     images: buildInitialAiImages(task),
     usage: null,
     createdAt: Date.now(),
@@ -3561,7 +3555,6 @@ async function syncAiImageRecord(openid, record) {
   if (statusRes.status === 'completed' && statusRes.image) {
     updates.status = 'completed';
     updates.images = buildCompletedAiImages(statusRes.image, record.responseId);
-    updates.generatedFileID = statusRes.image.fileID || statusRes.image.key || '';
     updates.completedAt = Date.now();
     updates.chargedAt = record.chargedAt || Date.now();
     if (!record.chargedAt && !statusRes.charged) {
@@ -3586,53 +3579,11 @@ async function aiImageList(openid) {
     .limit(50)
     .get();
 
-  const synced = [];
+  const items = [];
   for (const record of res.data || []) {
-    synced.push(await syncAiImageRecord(openid, record));
+    const synced = await syncAiImageRecord(openid, record);
+    items.push(formatAiImageRecord(synced));
   }
-
-  // collect all fileIDs from completed records for batch URL refresh
-  const fileIDSet = new Set();
-  for (const record of synced) {
-    if (record.status === 'completed') {
-      for (const image of record.images || []) {
-        const fid = image.key || image.fileID;
-        if (fid) fileIDSet.add(fid);
-      }
-    }
-  }
-
-  const tempUrlMap = {};
-  if (fileIDSet.size > 0) {
-    try {
-      const urlRes = await cloud.getTempFileURL({ fileList: Array.from(fileIDSet) });
-      for (const file of urlRes.fileList || []) {
-        if (file.fileID && file.tempFileURL) {
-          tempUrlMap[file.fileID] = file.tempFileURL;
-        }
-      }
-    } catch (err) {
-      console.warn('批量获取 AI 图片临时链接失败:', err);
-    }
-  }
-
-  const items = synced.map(record => {
-    const formatted = formatAiImageRecord(record);
-    if (record.status !== 'completed') return formatted;
-
-    const images = formatted.images.map(image => {
-      const tempUrl = tempUrlMap[image.fileID] || tempUrlMap[image.key] || '';
-      return { ...image, signedUrl: tempUrl, url: tempUrl, imageUrl: tempUrl, saveUrl: tempUrl, copyUrl: tempUrl };
-    });
-    const firstImage = images[0] || {};
-    return {
-      ...formatted,
-      images,
-      imageUrl: firstImage.imageUrl || '',
-      saveUrl: firstImage.saveUrl || '',
-      copyUrl: firstImage.copyUrl || ''
-    };
-  });
 
   return {
     success: true,
@@ -3848,8 +3799,7 @@ function formatAiImageRecord(record) {
     style: record.style || '',
     ratio: record.ratio || '',
     referenceFileID: record.referenceFileID || '',
-    generatedFileID: record.generatedFileID || firstImage.fileID || '',
-    imageUrl: firstImage.signedUrl || firstImage.url || firstImage.publicUrl || '',
+    imageUrl: firstImage.publicUrl || '',
     publicUrl: firstImage.publicUrl || '',
     images,
     createdAt: record.createdAt || 0,
