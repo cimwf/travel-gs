@@ -279,7 +279,7 @@ Page({
 
     wx.showModal({
       title: '删除作品',
-      content: '删除后作品记录和云存储图片都会移除，已消耗次数不会返还。',
+      content: '删除后不可恢复，确认是否删除。',
       confirmText: '删除',
       confirmColor: '#D92D20',
       success: async (modalRes) => {

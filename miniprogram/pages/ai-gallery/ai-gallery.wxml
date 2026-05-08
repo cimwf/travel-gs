@@ -53,7 +53,7 @@
         <view class="image-meta" wx:if="{{item.metaText}}">{{item.metaText}}</view>
         <view class="time-text" wx:if="{{item.createdText}}">{{item.createdText}}</view>
         <view class="actions">
-          <view class="action danger" data-id="{{item._id || item.taskId}}" bindtap="onDeleteWork">
+          <view class="action danger" wx:if="{{item.status !== 'pending' && item.status !== 'processing'}}" data-id="{{item._id || item.taskId}}" bindtap="onDeleteWork">
             {{deletingId === (item._id || item.taskId) ? '删除中' : '删除'}}
           </view>
           <block wx:if="{{item.status === 'completed' && item.imageUrl}}">
