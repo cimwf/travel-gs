@@ -12,6 +12,7 @@ Page({
     prompt: '',
     referenceImage: '',
     referenceFileID: '',
+    referenceImageType: '',
     taskId: '',
     generationStatus: '',
     ratio: '1:1',
@@ -85,7 +86,8 @@ Page({
         if (file && file.tempFilePath) {
           this.setData({
             referenceImage: file.tempFilePath,
-            referenceFileID: ''
+            referenceFileID: '',
+            referenceImageType: file.fileType || file.type || ''
           }, this.updateCanGenerate);
         }
       }
@@ -262,14 +264,47 @@ Page({
     this.setData({ canGenerate: textModeReady || imageModeReady });
   },
 
+  normalizeImageSuffix: function (value) {
+    const suffix = String(value || '').trim().toLowerCase().replace(/^\./, '');
+    if (suffix === 'jpeg') return 'jpg';
+    if (['jpg', 'png', 'webp'].includes(suffix)) return suffix;
+    return '';
+  },
+
+  getImageSuffixFromPath: function (filePath) {
+    const cleanPath = String(filePath || '').split('?')[0];
+    const suffixMatch = cleanPath.match(/\.([a-zA-Z0-9]+)$/);
+    return this.normalizeImageSuffix(suffixMatch ? suffixMatch[1] : '');
+  },
+
+  getReferenceImageSuffix: function (tempFilePath) {
+    return new Promise((resolve) => {
+      const fallback = this.normalizeImageSuffix(this.data.referenceImageType) ||
+        this.getImageSuffixFromPath(tempFilePath) ||
+        'jpg';
+
+      if (!wx.getImageInfo || !tempFilePath) {
+        resolve(fallback);
+        return;
+      }
+
+      wx.getImageInfo({
+        src: tempFilePath,
+        success: (res) => {
+          resolve(this.normalizeImageSuffix(res.type) || fallback);
+        },
+        fail: () => resolve(fallback)
+      });
+    });
+  },
+
   uploadReferenceImage: async function () {
     if (this.data.referenceFileID) {
       return this.data.referenceFileID;
     }
 
     const tempFilePath = this.data.referenceImage;
-    const suffixMatch = tempFilePath.match(/\.([a-zA-Z0-9]+)$/);
-    const suffix = suffixMatch ? suffixMatch[1] : 'jpg';
+    const suffix = await this.getReferenceImageSuffix(tempFilePath);
     const cloudPath = `ai-references/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${suffix}`;
     const uploadRes = await wx.cloud.uploadFile({
       cloudPath,

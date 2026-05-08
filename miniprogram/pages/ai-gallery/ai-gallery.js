@@ -8,6 +8,7 @@ function toSafeNumber(value, fallback = 0) {
 Page({
   data: {
     loading: false,
+    deletingId: '',
     summaryReady: false,
     summary: {
       total: 3,
@@ -242,6 +243,78 @@ Page({
     wx.setClipboardData({
       data: url,
       success: () => wx.showToast({ title: '链接已复制', icon: 'success' })
+    });
+  },
+
+  collectWorkFileIDs: function (work = {}) {
+    const fileIDs = [];
+    const add = (value) => {
+      if (!value || typeof value !== 'string') return;
+      const next = value.trim();
+      if (next && !fileIDs.includes(next)) {
+        fileIDs.push(next);
+      }
+    };
+
+    add(work.referenceFileID);
+    (work.images || []).forEach((image) => {
+      add(image.key);
+      add(image.fileID);
+      add(image.cloudPath);
+      add(image.url);
+      add(image.signedUrl);
+      add(image.publicUrl);
+      add(image.imageUrl);
+      add(image.saveUrl);
+      add(image.copyUrl);
+    });
+    add(work.imageUrl);
+    add(work.saveUrl);
+    add(work.copyUrl);
+    add(work.publicUrl);
+    return fileIDs;
+  },
+
+  onDeleteWork: function (event) {
+    const id = event.currentTarget.dataset.id;
+    if (!id || this.data.deletingId) return;
+    const work = this.data.works.find(item => item._id === id || item.taskId === id) || {};
+    const fileIDs = this.collectWorkFileIDs(work);
+
+    wx.showModal({
+      title: '删除作品',
+      content: '删除后作品记录和云存储图片都会移除，已消耗次数不会返还。',
+      confirmText: '删除',
+      confirmColor: '#D92D20',
+      success: async (modalRes) => {
+        if (!modalRes.confirm) return;
+
+        this.setData({ deletingId: id });
+        wx.showLoading({ title: '删除中' });
+        try {
+          const res = await api.aiImageDelete(id, fileIDs);
+          const works = this.data.works.filter(item => item._id !== id && item.taskId !== id);
+          const nextData = {
+            works,
+            isEmpty: works.length === 0
+          };
+          if (res.summary) {
+            nextData.summary = this.normalizeSummary(res.summary);
+            nextData.summaryReady = true;
+          }
+          this.setData(nextData);
+          wx.showToast({ title: '已删除', icon: 'success' });
+        } catch (err) {
+          console.error('删除 AI 作品失败', err);
+          wx.showToast({
+            title: this.formatErrorMessage(err, '删除失败'),
+            icon: 'none'
+          });
+        } finally {
+          wx.hideLoading();
+          this.setData({ deletingId: '' });
+        }
+      }
     });
   },
 

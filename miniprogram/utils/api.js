@@ -369,6 +369,13 @@ function aiImageList() {
 }
 
 /**
+ * 删除 AI 生图作品
+ */
+function aiImageDelete(id, fileIDs = []) {
+  return callApi('aiImage/delete', { id, fileIDs });
+}
+
+/**
  * 获取 AI 生图套餐
  */
 function aiImagePackages() {
@@ -470,6 +477,7 @@ module.exports = {
   aiImageStatus,
   aiImageSummary,
   aiImageList,
+  aiImageDelete,
   aiImagePackages,
   aiImagePurchasePackage,
   aiImageTemplates,

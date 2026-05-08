@@ -10,6 +10,8 @@ const db = cloud.database();
 const _ = db.command;
 const crypto = require('./utils/crypto');
 const AI_IMAGE_FREE_QUOTA = 3;
+const DEFAULT_CLOUD_ENV_ID = 'prod-d2gkmbquec074b1df';
+const DEFAULT_CLOUD_STORAGE_BUCKET = '7072-prod-d2gkmbquec074b1df-1427058553';
 
 function normalizeAiImageQuotaNumber(value, fallback = AI_IMAGE_FREE_QUOTA) {
   if (value === null || value === undefined || value === '') {
@@ -186,6 +188,8 @@ exports.main = async (event, context) => {
         return await aiImageSummary(openid);
       case 'aiImage/list':
         return await aiImageList(openid);
+      case 'aiImage/delete':
+        return await aiImageDelete(openid, data);
       case 'aiImage/packages':
         return await aiImagePackages();
       case 'aiImage/purchasePackage':
@@ -2543,6 +2547,30 @@ function getMimeType(ext) {
   return map[ext] || 'image/jpeg';
 }
 
+function getMimeTypeFromImageBuffer(buffer, fallbackExt = 'jpg') {
+  if (buffer && buffer.length >= 12) {
+    if (buffer[0] === 0x89 && buffer.toString('ascii', 1, 4) === 'PNG') {
+      return 'image/png';
+    }
+    if (buffer[0] === 0xff && buffer[1] === 0xd8) {
+      return 'image/jpeg';
+    }
+    if (buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP') {
+      return 'image/webp';
+    }
+  }
+  return getMimeType(fallbackExt);
+}
+
+function sanitizeAiImageFileName(value) {
+  return String(value || '').trim().replace(/[^a-zA-Z0-9_-]/g, '');
+}
+
+function buildAiImageGeneratedCloudPath(responseId) {
+  const fileName = sanitizeAiImageFileName(responseId);
+  return fileName ? `ai-images/${fileName}.png` : '';
+}
+
 function getImageMeta(buffer, contentType = '') {
   const meta = {
     width: 0,
@@ -2623,6 +2651,7 @@ function normalizeAiImageUrl(url) {
 
 function normalizeAiImageItem(image = {}, fallback = {}) {
   const key = image.key || image.fileID || '';
+  const cloudPath = image.cloudPath || '';
   const publicUrl = normalizeAiImageUrl(image.publicUrl || image.publicURL || '');
   const signedUrl = normalizeAiImageUrl(image.signedUrl || image.signedURL || image.tempFileURL || '');
   const url = normalizeAiImageUrl(image.url || signedUrl || publicUrl || '');
@@ -2632,6 +2661,8 @@ function normalizeAiImageItem(image = {}, fallback = {}) {
     id: image.id || image.imageId || `${fallback.taskId || ''}_0`,
     status,
     key,
+    fileID: key,
+    cloudPath,
     url,
     signedUrl,
     publicUrl,
@@ -2655,6 +2686,8 @@ function buildCompletedAiImages(image, taskId) {
     id: `${taskId || Date.now()}_0`,
     status: 'completed',
     key: image.fileID || image.key || '',
+    fileID: image.fileID || image.key || '',
+    cloudPath: image.cloudPath || '',
     url: image.tempFileURL || image.url || '',
     signedUrl: image.signedURL || image.signedUrl || image.tempFileURL || '',
     publicUrl: image.publicURL || image.publicUrl || '',
@@ -2697,7 +2730,8 @@ async function callOpenAIImage(data, apiKey, model) {
 
     const downloadRes = await cloud.downloadFile({ fileID: data.referenceFileID });
     const ext = getFileExt(data.referenceFileID);
-    const imageUrl = `data:${getMimeType(ext)};base64,${downloadRes.fileContent.toString('base64')}`;
+    const mimeType = getMimeTypeFromImageBuffer(downloadRes.fileContent, ext);
+    const imageUrl = `data:${mimeType};base64,${downloadRes.fileContent.toString('base64')}`;
     input[0].content.push({ type: 'input_image', image_url: imageUrl });
   }
 
@@ -2731,7 +2765,7 @@ async function createExternalAiImageTask(data, config) {
   if (data.mode === 'image') {
     const downloadRes = await cloud.downloadFile({ fileID: data.referenceFileID });
     payload.referenceImageBase64 = downloadRes.fileContent.toString('base64');
-    payload.referenceMimeType = getMimeType(getFileExt(data.referenceFileID));
+    payload.referenceMimeType = getMimeTypeFromImageBuffer(downloadRes.fileContent, getFileExt(data.referenceFileID));
   }
 
   return await requestJsonUrl('POST', `${config.serviceUrl.replace(/\/$/, '')}/v1/ai-image/tasks`, payload, headers, 30000);
@@ -2769,10 +2803,11 @@ function extractImageBase64FromResponse(response) {
   return '';
 }
 
-async function uploadGeneratedImage(openid, imageBase64) {
+async function uploadGeneratedImage(openid, imageBase64, responseId = '') {
   const buffer = Buffer.from(imageBase64, 'base64');
   const meta = getImageMeta(buffer, 'image/png');
-  const cloudPath = `ai-images/${openid || 'anonymous'}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.png`;
+  const cloudPath = buildAiImageGeneratedCloudPath(responseId) ||
+    `ai-images/${openid || 'anonymous'}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.png`;
   const uploadRes = await cloud.uploadFile({
     cloudPath,
     fileContent: buffer
@@ -2783,6 +2818,7 @@ async function uploadGeneratedImage(openid, imageBase64) {
 
   return {
     fileID: uploadRes.fileID,
+    cloudPath,
     tempFileURL: file && file.tempFileURL ? file.tempFileURL : '',
     width: meta.width,
     height: meta.height,
@@ -3018,7 +3054,7 @@ async function aiImageStatus(openid, data = {}) {
     return { success: false, status: response.status, error: 'OpenAI 未返回图片数据' };
   }
 
-  const image = await uploadGeneratedImage(openid, imageBase64);
+  const image = await uploadGeneratedImage(openid, imageBase64, responseId);
 
   try {
     if (record && record._id) {
@@ -3564,6 +3600,189 @@ async function aiImageList(openid) {
   };
 }
 
+function normalizeAiImageCloudFileID(value) {
+  if (!value || typeof value !== 'string') return '';
+  let fileID = value.trim().split('?')[0];
+  if (!fileID) return '';
+
+  if (fileID.startsWith('//')) {
+    fileID = `https:${fileID}`;
+  }
+
+  if (fileID.startsWith('https://') || fileID.startsWith('http://')) {
+    try {
+      const parsed = new URL(fileID);
+      const pathname = decodeURIComponent(parsed.pathname || '').replace(/^\/+/, '');
+      if (pathname.startsWith('ai-images/') || pathname.startsWith('ai-references/')) {
+        return `cloud://${DEFAULT_CLOUD_ENV_ID}.${DEFAULT_CLOUD_STORAGE_BUCKET}/${pathname}`;
+      }
+    } catch (err) {
+      return '';
+    }
+    return '';
+  }
+
+  if (fileID.startsWith('cloud://')) {
+    const path = fileID.replace(/^cloud:\/\/[^/]+\//, '');
+    if (path.startsWith('ai-images/') || path.startsWith('ai-references/')) {
+      return fileID;
+    }
+    return '';
+  }
+
+  if (fileID.startsWith('ai-images/') || fileID.startsWith('ai-references/')) {
+    return `cloud://${DEFAULT_CLOUD_ENV_ID}.${DEFAULT_CLOUD_STORAGE_BUCKET}/${fileID}`;
+  }
+
+  return '';
+}
+
+function collectAiImageCloudFileIDs(record = {}, candidates = []) {
+  const fileIDs = [];
+  const addFileID = (value) => {
+    const fileID = normalizeAiImageCloudFileID(value);
+    if (fileID && !fileIDs.includes(fileID)) {
+      fileIDs.push(fileID);
+    }
+  };
+
+  addFileID(buildAiImageGeneratedCloudPath(record.responseId));
+  addFileID(record.generatedFileID);
+  addFileID(record.fileID);
+  candidates.forEach(addFileID);
+  addFileID(record.referenceFileID);
+  (record.images || []).forEach((image) => {
+    addFileID(image.key);
+    addFileID(image.fileID);
+    addFileID(image.cloudPath);
+    addFileID(image.url);
+    addFileID(image.signedUrl);
+    addFileID(image.publicUrl);
+  });
+
+  return fileIDs;
+}
+
+function isCloudDeleteSuccess(item = {}) {
+  const message = String(`${item.status || ''} ${item.code || ''} ${item.errMsg || ''} ${item.message || ''}`).toLowerCase();
+  return item.status === 0 ||
+    item.status === '0' ||
+    item.code === 'SUCCESS' ||
+    item.code === 'OK' ||
+    item.success === true ||
+    String(item.errMsg || '').toLowerCase().includes('ok') ||
+    message.includes('-503003') ||
+    message.includes('not exist') ||
+    message.includes('not found') ||
+    message.includes('does not exist') ||
+    message.includes('no such file');
+}
+
+async function deleteAiImageCloudFiles(fileIDs) {
+  if (!fileIDs.length) {
+    return { deletedFiles: 0 };
+  }
+
+  const failed = [];
+
+  for (let i = 0; i < fileIDs.length; i += 50) {
+    const fileList = fileIDs.slice(i, i + 50);
+    const res = await cloud.deleteFile({ fileList });
+    const resultList = res.fileList || [];
+
+    fileList.forEach((fileID, index) => {
+      const item = resultList[index] || {};
+      if (!isCloudDeleteSuccess(item)) {
+        failed.push({
+          fileID,
+          status: item.status,
+          code: item.code,
+          errMsg: item.errMsg || item.message || ''
+        });
+      }
+    });
+  }
+
+  if (failed.length > 0) {
+    const first = failed[0];
+    const detail = first.errMsg || first.code || first.status || 'unknown';
+    const error = new Error(`云存储文件删除失败：${detail}`);
+    error.failedFiles = failed;
+    throw error;
+  }
+
+  return { deletedFiles: fileIDs.length };
+}
+
+async function aiImageDelete(openid, data = {}) {
+  const userId = openid || 'anonymous';
+  const id = data.id || data._id || data.taskId || data.responseId;
+  const candidateFileIDs = Array.isArray(data.fileIDs) ? data.fileIDs : [];
+
+  if (!id) {
+    return { success: false, error: '作品ID不能为空' };
+  }
+
+  let record = null;
+
+  try {
+    const docRes = await db.collection('ai_image_generations').doc(id).get();
+    const doc = Array.isArray(docRes.data) ? docRes.data[0] : docRes.data;
+    if (doc) {
+      record = {
+        ...doc,
+        _id: doc._id || id
+      };
+    }
+  } catch (err) {
+    // 不是文档 _id 时继续按 responseId 查询。
+  }
+
+  if (!record) {
+    const res = await db.collection('ai_image_generations')
+      .where({
+        userId,
+        responseId: id
+      })
+      .limit(1)
+      .get();
+    record = res.data && res.data[0] ? res.data[0] : null;
+  }
+
+  if (!record || !record._id) {
+    return { success: false, error: '作品不存在' };
+  }
+
+  if (record.userId !== userId) {
+    return { success: false, error: '无权删除该作品' };
+  }
+
+  const fileIDs = collectAiImageCloudFileIDs(record, candidateFileIDs);
+  let deleteResult = { deletedFiles: 0 };
+  if (fileIDs.length > 0) {
+    try {
+      deleteResult = await deleteAiImageCloudFiles(fileIDs);
+    } catch (err) {
+      console.warn('删除 AI 作品云存储文件失败:', err);
+      return {
+        success: false,
+        error: err.message || '云存储文件删除失败，请稍后重试',
+        fileIDs,
+        failedFiles: err.failedFiles || []
+      };
+    }
+  }
+
+  await db.collection('ai_image_generations').doc(record._id).remove();
+
+  return {
+    success: true,
+    deletedId: record._id,
+    deletedFiles: deleteResult.deletedFiles,
+    summary: await getAiImageSummaryData(openid)
+  };
+}
+
 function formatAiImageRecord(record) {
   const images = (record.images && record.images.length ? record.images : buildInitialAiImages({
     taskId: record.responseId,
@@ -3587,6 +3806,7 @@ function formatAiImageRecord(record) {
     prompt: record.prompt || '',
     style: record.style || '',
     ratio: record.ratio || '',
+    referenceFileID: record.referenceFileID || '',
     imageUrl: firstImage.signedUrl || firstImage.url || firstImage.publicUrl || '',
     publicUrl: firstImage.publicUrl || '',
     images,

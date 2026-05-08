@@ -282,6 +282,11 @@ page {
   font-weight: 800;
 }
 
+.action.danger {
+  background: #FFF0F0;
+  color: #D92D20;
+}
+
 .action.primary {
   background: linear-gradient(135deg, #27435E, #4990E2);
   color: #FFFFFF;

@@ -52,10 +52,15 @@
         <view class="prompt">{{item.prompt || '基于参考图生成'}}</view>
         <view class="image-meta" wx:if="{{item.metaText}}">{{item.metaText}}</view>
         <view class="time-text" wx:if="{{item.createdText}}">{{item.createdText}}</view>
-        <view class="actions" wx:if="{{item.status === 'completed' && item.imageUrl}}">
-          <view class="action primary" data-url="{{item.saveUrl}}" data-fallback-url="{{item.imageUrl}}" bindtap="onSaveImage">保存</view>
-          <view class="action" data-url="{{item.imageUrl}}" bindtap="onPreviewImage">放大</view>
-          <view class="action" data-url="{{item.copyUrl}}" bindtap="onCopyLink">复制链接</view>
+        <view class="actions">
+          <view class="action danger" data-id="{{item._id || item.taskId}}" bindtap="onDeleteWork">
+            {{deletingId === (item._id || item.taskId) ? '删除中' : '删除'}}
+          </view>
+          <block wx:if="{{item.status === 'completed' && item.imageUrl}}">
+            <view class="action" data-url="{{item.imageUrl}}" bindtap="onPreviewImage">放大</view>
+            <view class="action" data-url="{{item.copyUrl}}" bindtap="onCopyLink">复制链接</view>
+            <view class="action primary" data-url="{{item.saveUrl}}" data-fallback-url="{{item.imageUrl}}" bindtap="onSaveImage">保存</view>
+          </block>
         </view>
       </view>
     </view>
