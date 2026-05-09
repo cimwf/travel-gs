@@ -397,7 +397,44 @@ Page({
   formatErrorMessage: function (err, fallback) {
     const message = err && (err.message || err.errMsg || err.error || String(err));
     if (!message) return fallback;
-    return message.length > 60 ? message.slice(0, 60) : message;
+    const lower = String(message).toLowerCase();
+
+    if (message.includes('次数已用完')) return 'AI 生图次数已用完';
+    if (message.includes('创作描述不能为空')) return '请先填写创作描述';
+    if (message.includes('参考图片不能为空')) return '请先上传参考图';
+    if (lower.includes('429') || lower.includes('rate limit') || lower.includes('too many requests')) {
+      return '生成服务有点忙，请稍后再试';
+    }
+    if (
+      lower.includes('timeout') ||
+      message.includes('超时') ||
+      lower.includes('503') ||
+      lower.includes('502') ||
+      lower.includes('500') ||
+      lower.includes('econnreset') ||
+      lower.includes('socket hang up') ||
+      message.includes('服务连接失败') ||
+      message.includes('服务请求失败')
+    ) {
+      return '生成服务暂时不稳定，请稍后重试';
+    }
+    if (
+      lower.includes('400') ||
+      lower.includes('bad request') ||
+      lower.includes('invalid') ||
+      lower.includes('policy') ||
+      lower.includes('safety') ||
+      lower.includes('content') ||
+      lower.includes('moderation') ||
+      message.includes('不支持') ||
+      message.includes('违规') ||
+      message.includes('敏感')
+    ) {
+      return '这次没有生成成功，可以换个描述或换张参考图再试';
+    }
+
+    const text = message.length > 60 ? message.slice(0, 60) : message;
+    return text || fallback;
   },
 
   normalizeSummary: function (summary = {}) {

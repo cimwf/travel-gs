@@ -48,7 +48,7 @@ page {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10rpx;
-  margin: 28rpx 0;
+  margin: 28rpx 0 18rpx;
   padding: 8rpx;
   border-radius: 22rpx;
   background: rgba(232, 237, 246, 0.92);
@@ -70,6 +70,57 @@ page {
   color: #FFFFFF;
   background: linear-gradient(135deg, #27435E 0%, #4990E2 100%);
   box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.08);
+}
+
+.scene-filter {
+  width: 100%;
+  margin-bottom: 24rpx;
+  white-space: nowrap;
+}
+
+.scene-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 14rpx;
+  min-width: 100%;
+}
+
+.scene-chip {
+  height: 64rpx;
+  padding: 0 22rpx;
+  border-radius: 999rpx;
+  display: inline-flex;
+  align-items: center;
+  gap: 10rpx;
+  background: #FFFFFF;
+  border: 1rpx solid rgba(39, 67, 94, 0.08);
+  color: #667085;
+  font-size: 24rpx;
+  font-weight: 800;
+  box-shadow: 0 8rpx 22rpx rgba(39, 67, 94, 0.06);
+}
+
+.scene-chip.active {
+  background: #182033;
+  color: #FFFFFF;
+  border-color: #182033;
+}
+
+.scene-count {
+  min-width: 32rpx;
+  height: 32rpx;
+  padding: 0 8rpx;
+  border-radius: 999rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(102, 112, 133, 0.12);
+  font-size: 20rpx;
+  box-sizing: border-box;
+}
+
+.scene-chip.active .scene-count {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .template-list {
@@ -106,6 +157,15 @@ page {
   background: rgba(255, 255, 255, 0.94);
   border: 1rpx solid rgba(39, 67, 94, 0.06);
   box-shadow: 0 14rpx 42rpx rgba(39, 67, 94, 0.08);
+}
+
+.template-cover {
+  width: 100%;
+  height: 300rpx;
+  margin-bottom: 24rpx;
+  border-radius: 20rpx;
+  background: #E8EDF6;
+  display: block;
 }
 
 .template-card-top,
@@ -145,6 +205,23 @@ page {
   color: #667085;
   font-size: 24rpx;
   line-height: 1.45;
+}
+
+.template-meta {
+  margin-top: 14rpx;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.template-scene {
+  padding: 8rpx 14rpx;
+  border-radius: 999rpx;
+  background: #FFF5EA;
+  color: #A15C20;
+  font-size: 22rpx;
+  font-weight: 800;
 }
 
 .template-prompt {

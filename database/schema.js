@@ -211,12 +211,15 @@ const aiImageTemplateSchema = {
   _id: "template_xxx",
   templateId: "soft-portrait",     // 默认模板稳定标识，后台新建可为空
   mode: "image",                   // text 文生图 / image 图生图
+  scene: "人像",                    // 场景：人像/旅行/穿搭/美食/活动
   title: "清透约拍",
   desc: "保留人物姿态，修成干净通透的写真。",
   badge: "女生最爱",
   ratio: "3:4",                    // 1:1 / 3:4 / 4:3 / 9:16
   style: "韩系写真",                // 为空表示无风格
   prompt: "保留原图人物脸型、姿态和构图，优化成清透干净的韩系写真风...",
+  imageUrl: "https://...",          // 后台上传后的预览图 URL 或云存储 fileID
+  imageFileID: "cloud://...",       // 可选，云存储 fileID
   sort: 110,                       // 数字越小越靠前
   enabled: true,
   likeCount: 0,
@@ -339,6 +342,7 @@ notifications:
 
 ai_image_templates:
   - enabled + mode + sort
+  - enabled + mode + scene + sort
   - templateId
 
 ai_image_template_votes:

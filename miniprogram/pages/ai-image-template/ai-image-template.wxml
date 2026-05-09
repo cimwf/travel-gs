@@ -10,18 +10,37 @@
     <view class="mode-tab {{activeMode === 'image' ? 'active' : ''}}" data-mode="image" bindtap="onSwitchMode">图生图</view>
   </view>
 
+  <scroll-view class="scene-filter" scroll-x="true" show-scrollbar="false" wx:if="{{scenes.length > 1}}">
+    <view class="scene-track">
+      <view
+        class="scene-chip {{activeScene === item.value ? 'active' : ''}}"
+        wx:for="{{scenes}}"
+        wx:key="value"
+        data-scene="{{item.value}}"
+        bindtap="onSwitchScene"
+      >
+        <text>{{item.label}}</text>
+        <text class="scene-count">{{item.count}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
   <view class="template-list">
     <view class="empty-state" wx:if="{{!templates.length && !loading}}">
       <view class="empty-title">还没有模板</view>
-      <view class="empty-desc">请到后台新增模板，或者先初始化默认模板。</view>
+      <view class="empty-desc">请到后台新增模板，上传后会显示在这里。</view>
     </view>
     <view class="template-card" wx:for="{{templates}}" wx:key="_id" data-template="{{item}}" bindtap="onSelectTemplate">
+      <image class="template-cover" wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill"></image>
       <view class="template-card-top">
         <text class="template-badge">{{item.badge}}</text>
         <text class="template-ratio">{{item.ratio}}</text>
       </view>
       <view class="template-name">{{item.title}}</view>
       <view class="template-desc">{{item.desc}}</view>
+      <view class="template-meta">
+        <text class="template-scene">{{item.scene || '未分类'}}</text>
+      </view>
       <view class="template-prompt">{{item.prompt}}</view>
       <view class="template-footer">
         <text class="template-style">{{item.style || '无风格'}}</text>

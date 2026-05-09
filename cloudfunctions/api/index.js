@@ -198,6 +198,10 @@ exports.main = async (event, context) => {
         return await aiImageTemplates(openid, data);
       case 'aiImage/templateVote':
         return await aiImageTemplateVote(openid, data);
+      case 'aiImage/templateCreate':
+        return await aiImageTemplateCreate(openid, data);
+      case 'aiImage/templateUpdate':
+        return await aiImageTemplateUpdate(openid, data);
 
       default:
         return { success: false, error: '未知操作' };
@@ -2633,6 +2637,68 @@ function isAiImageLoadingStatus(status) {
   return ['queued', 'pending', 'in_progress', 'processing', 'running', 'submitted'].includes(status || '');
 }
 
+function getAiImageErrorText(error, fallback = '这次没有生成成功，请稍后重试，或换个描述/参考图再试') {
+  const message = String(
+    error && (error.message || error.errMsg || error.error || error.Message || error) || ''
+  ).trim();
+  const lower = message.toLowerCase();
+
+  if (!message) return fallback;
+  if (message.includes('次数已用完')) return 'AI 生图次数已用完';
+  if (message.includes('创作描述不能为空')) return '请先填写创作描述';
+  if (message.includes('参考图片不能为空')) return '请先上传参考图';
+  if (message.includes('生成模式不正确')) return '生成模式不正确，请返回后重试';
+  if (message.includes('未配置 OPENAI_API_KEY')) return 'AI 生图服务暂未配置，请稍后再试';
+  if (message.includes('任务ID不能为空')) return '生成任务异常，请重新提交';
+  if (message.includes('任务不存在')) return '生成任务已失效，请重新提交';
+
+  if (
+    lower.includes('timeout') ||
+    message.includes('超时') ||
+    lower.includes('timed out') ||
+    lower.includes('econnreset') ||
+    lower.includes('socket hang up') ||
+    lower.includes('503') ||
+    lower.includes('502') ||
+    lower.includes('500') ||
+    lower.includes('服务连接失败') ||
+    lower.includes('服务请求失败')
+  ) {
+    return '生成服务暂时不稳定，请稍后重试';
+  }
+
+  if (lower.includes('429') || lower.includes('rate limit') || lower.includes('too many requests')) {
+    return '生成服务有点忙，请稍后再试';
+  }
+
+  if (
+    lower.includes('400') ||
+    lower.includes('bad request') ||
+    lower.includes('invalid') ||
+    lower.includes('policy') ||
+    lower.includes('safety') ||
+    lower.includes('content') ||
+    lower.includes('moderation') ||
+    message.includes('不支持') ||
+    message.includes('违规') ||
+    message.includes('敏感')
+  ) {
+    return '这次没有生成成功，可以换个描述或换张参考图再试';
+  }
+
+  if (
+    message.includes('图片下载失败') ||
+    message.includes('图片获取失败') ||
+    message.includes('COS 上传失败') ||
+    message.includes('云存储') ||
+    message.includes('未返回图片')
+  ) {
+    return '图片生成后保存失败，请稍后重试';
+  }
+
+  return fallback;
+}
+
 function normalizeAiImageUrl(url) {
   if (!url) return '';
   const value = String(url).trim();
@@ -2667,7 +2733,7 @@ function normalizeAiImageItem(image = {}, fallback = {}) {
     height: image.height || 0,
     format: image.format || '',
     bytes: image.bytes || 0,
-    error: image.error || ''
+    error: image.error ? getAiImageErrorText(image.error) : ''
   };
 }
 
@@ -2850,7 +2916,7 @@ async function aiImageGenerate(openid, data = {}) {
       serviceRes = await createExternalAiImageTask(data, config);
     } catch (err) {
       console.error('创建外部 AI 生图任务失败:', err);
-      return { success: false, error: err.message || '创建外部 AI 生图任务失败' };
+      return { success: false, error: getAiImageErrorText(err, '提交失败，生成服务暂时不稳定，请稍后重试') };
     }
 
     await recordAiImageTask(openid, data, {
@@ -2919,11 +2985,11 @@ async function aiImageStatus(openid, data = {}) {
       serviceRes = await getExternalAiImageTask(responseId, config);
     } catch (err) {
       console.error('查询外部 AI 生图任务失败:', err);
-      return { success: false, error: err.message || '查询外部 AI 生图任务失败' };
+      return { success: false, error: getAiImageErrorText(err, '生成服务暂时不稳定，请稍后重试') };
     }
 
     if (serviceRes.status === 'failed') {
-      return { success: false, status: 'failed', error: serviceRes.error || '生成任务失败' };
+      return { success: false, status: 'failed', error: getAiImageErrorText(serviceRes.error) };
     }
 
     if (serviceRes.status === 'completed') {
@@ -3030,7 +3096,7 @@ async function aiImageStatus(openid, data = {}) {
   if (response.status !== 'completed') {
     if (response.status === 'failed' || response.status === 'cancelled') {
       const message = response.error && response.error.message ? response.error.message : '生成任务失败';
-      return { success: false, status: response.status, error: message };
+      return { success: false, status: response.status, error: getAiImageErrorText(message) };
     }
 
     return {
@@ -3043,7 +3109,7 @@ async function aiImageStatus(openid, data = {}) {
   const imageBase64 = extractImageBase64FromResponse(response);
 
   if (!imageBase64) {
-    return { success: false, status: response.status, error: 'OpenAI 未返回图片数据' };
+    return { success: false, status: response.status, error: getAiImageErrorText('OpenAI 未返回图片数据') };
   }
 
   const image = await uploadGeneratedImage(openid, imageBase64, responseId);
@@ -3361,16 +3427,22 @@ async function aiImagePurchasePackage(openid, data = {}) {
 }
 
 function normalizeAiImageTemplate(item = {}) {
+  const imageUrl = item.imageUrl || item.coverUrl || item.previewUrl || item.coverImage || item.image || '';
+  const imageFileID = item.imageFileID || item.coverFileID || item.previewFileID || '';
+
   return {
     id: item.templateId || item._id || '',
     _id: item._id || '',
     mode: item.mode === 'image' ? 'image' : 'text',
+    scene: String(item.scene || '').trim(),
     title: item.title || '',
     desc: item.desc || '',
     badge: item.badge || '',
     ratio: item.ratio || '1:1',
     style: item.style || '',
     prompt: item.prompt || '',
+    imageUrl: imageUrl || imageFileID,
+    imageFileID,
     sort: typeof item.sort === 'number' ? item.sort : 0,
     enabled: item.enabled !== false,
     likeCount: item.likeCount || 0,
@@ -3379,10 +3451,52 @@ function normalizeAiImageTemplate(item = {}) {
   };
 }
 
+function sanitizeAiImageTemplatePayload(data = {}, existed = {}) {
+  const now = Date.now();
+  const templateId = String(data.templateId || existed.templateId || '').trim();
+  const rawMode = data.mode || existed.mode;
+  const mode = rawMode === 'image' ? 'image' : 'text';
+  const scene = String(data.scene || existed.scene || '').trim();
+  const title = String(data.title || existed.title || '').trim();
+  const prompt = String(data.prompt || existed.prompt || '').trim();
+
+  if (!title) {
+    throw new Error('模板标题不能为空');
+  }
+
+  if (!prompt) {
+    throw new Error('模板提示词不能为空');
+  }
+
+  const imageFileID = String(data.imageFileID || data.coverFileID || data.previewFileID || existed.imageFileID || existed.coverFileID || '').trim();
+  const imageUrl = String(data.imageUrl || data.coverUrl || data.previewUrl || data.coverImage || existed.imageUrl || existed.coverUrl || existed.previewUrl || existed.coverImage || '').trim();
+
+  return {
+    templateId,
+    mode,
+    scene,
+    title,
+    desc: String(data.desc || existed.desc || '').trim(),
+    badge: String(data.badge || existed.badge || scene || '').trim(),
+    ratio: String(data.ratio || existed.ratio || '1:1').trim(),
+    style: String(data.style || existed.style || '').trim(),
+    prompt,
+    imageUrl: imageUrl || imageFileID,
+    imageFileID,
+    sort: Number.isFinite(Number(data.sort)) ? Number(data.sort) : (typeof existed.sort === 'number' ? existed.sort : 999),
+    enabled: data.enabled === undefined ? (existed.enabled !== false) : data.enabled !== false,
+    likeCount: typeof existed.likeCount === 'number' ? existed.likeCount : 0,
+    dislikeCount: typeof existed.dislikeCount === 'number' ? existed.dislikeCount : 0,
+    updatedAt: now
+  };
+}
+
 async function aiImageTemplates(openid, data = {}) {
   const mode = data.mode === 'image' ? 'image' : data.mode === 'text' ? 'text' : '';
+  const scene = String(data.scene || '').trim();
   const where = { enabled: true };
   if (mode) where.mode = mode;
+  if (scene) where.scene = scene;
 
   try {
     const res = await db.collection('ai_image_templates')
@@ -3503,6 +3617,56 @@ async function aiImageTemplateVote(openid, data = {}) {
     likeCount: latest && latest.likeCount ? latest.likeCount : 0,
     dislikeCount: latest && latest.dislikeCount ? latest.dislikeCount : 0,
     userVote
+  };
+}
+
+async function aiImageTemplateCreate(openid, data = {}) {
+  const now = Date.now();
+  const payload = sanitizeAiImageTemplatePayload(data);
+
+  if (payload.templateId) {
+    const existed = await getAiImageTemplateById(payload.templateId);
+    if (existed && existed._id) {
+      return { success: false, error: '模板标识已存在' };
+    }
+  }
+
+  const addRes = await db.collection('ai_image_templates').add({
+    data: {
+      ...payload,
+      createdBy: openid || '',
+      createdAt: now,
+      updatedAt: now
+    }
+  });
+  const latest = await getAiImageTemplateById(addRes._id);
+
+  return {
+    success: true,
+    template: normalizeAiImageTemplate(latest)
+  };
+}
+
+async function aiImageTemplateUpdate(openid, data = {}) {
+  const template = await getAiImageTemplateById(data.templateId || data._id || data.id);
+
+  if (!template || !template._id) {
+    return { success: false, error: '模板不存在' };
+  }
+
+  const payload = sanitizeAiImageTemplatePayload(data, template);
+  await db.collection('ai_image_templates').doc(template._id).update({
+    data: {
+      ...payload,
+      updatedBy: openid || '',
+      updatedAt: Date.now()
+    }
+  });
+  const latest = await getAiImageTemplateById(template._id);
+
+  return {
+    success: true,
+    template: normalizeAiImageTemplate(latest)
   };
 }
 
@@ -3804,7 +3968,7 @@ function formatAiImageRecord(record) {
     images,
     createdAt: record.createdAt || 0,
     completedAt: record.completedAt || 0,
-    error: record.error || ''
+    error: record.error ? getAiImageErrorText(record.error) : ''
   };
 }
 

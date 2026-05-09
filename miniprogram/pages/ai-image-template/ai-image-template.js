@@ -3,7 +3,10 @@ const api = require('../../utils/api.js');
 Page({
   data: {
     activeMode: 'text',
+    activeScene: '',
+    scenes: [{ label: '全部', value: '', count: 0 }],
     templates: [],
+    allTemplates: [],
     loading: false
   },
 
@@ -15,8 +18,22 @@ Page({
 
   onSwitchMode: function (event) {
     const activeMode = event.currentTarget.dataset.mode;
-    this.setData({ activeMode, templates: [] });
+    this.setData({
+      activeMode,
+      activeScene: '',
+      templates: [],
+      allTemplates: [],
+      scenes: [{ label: '全部', value: '', count: 0 }]
+    });
     this.loadTemplates(activeMode);
+  },
+
+  onSwitchScene: function (event) {
+    const activeScene = event.currentTarget.dataset.scene || '';
+    this.setData({
+      activeScene,
+      templates: this.filterTemplates(this.data.allTemplates, activeScene)
+    });
   },
 
   loadTemplates: async function (mode) {
@@ -24,10 +41,19 @@ Page({
     try {
       const res = await api.aiImageTemplates(mode);
       const templates = Array.isArray(res.templates) ? res.templates : [];
-      this.setData({ templates });
+      const scenes = this.buildScenes(templates);
+      this.setData({
+        allTemplates: templates,
+        templates: this.filterTemplates(templates, this.data.activeScene),
+        scenes
+      });
     } catch (err) {
       console.warn('加载 AI 模板库失败', err);
-      this.setData({ templates: [] });
+      this.setData({
+        templates: [],
+        allTemplates: [],
+        scenes: [{ label: '全部', value: '', count: 0 }]
+      });
       wx.showToast({
         title: '模板加载失败',
         icon: 'none'
@@ -35,6 +61,31 @@ Page({
     } finally {
       this.setData({ loading: false });
     }
+  },
+
+  buildScenes: function (templates) {
+    const countMap = {};
+    templates.forEach((item) => {
+      const scene = String(item.scene || '').trim();
+      if (!scene) return;
+      countMap[scene] = (countMap[scene] || 0) + 1;
+    });
+
+    const sceneOptions = Object.keys(countMap).map((value) => ({
+      label: value,
+      value,
+      count: countMap[value]
+    }));
+
+    return [
+      { label: '全部', value: '', count: templates.length },
+      ...sceneOptions
+    ];
+  },
+
+  filterTemplates: function (templates, scene) {
+    if (!scene) return templates;
+    return templates.filter((item) => item.scene === scene);
   },
 
   onVoteTemplate: async function (event) {
@@ -53,7 +104,16 @@ Page({
           userVote: res.userVote || ''
         };
       });
-      this.setData({ templates });
+      const allTemplates = this.data.allTemplates.map((item) => {
+        if (item.id !== id && item._id !== id) return item;
+        return {
+          ...item,
+          likeCount: res.likeCount || 0,
+          dislikeCount: res.dislikeCount || 0,
+          userVote: res.userVote || ''
+        };
+      });
+      this.setData({ templates, allTemplates });
     } catch (err) {
       console.error('提交模板反馈失败', err);
       wx.showToast({

@@ -392,8 +392,8 @@ function aiImagePurchasePackage(packageId) {
 /**
  * 获取 AI 生图模板
  */
-function aiImageTemplates(mode) {
-  return callApi('aiImage/templates', { mode });
+function aiImageTemplates(mode, scene = '') {
+  return callApi('aiImage/templates', { mode, scene });
 }
 
 /**
@@ -401,6 +401,20 @@ function aiImageTemplates(mode) {
  */
 function aiImageTemplateVote(templateId, vote) {
   return callApi('aiImage/templateVote', { templateId, vote });
+}
+
+/**
+ * 后台新增 AI 生图模板
+ */
+function aiImageTemplateCreate(data) {
+  return callApi('aiImage/templateCreate', data);
+}
+
+/**
+ * 后台更新 AI 生图模板
+ */
+function aiImageTemplateUpdate(templateId, data) {
+  return callApi('aiImage/templateUpdate', { templateId, ...data });
 }
 
 // ========== 反馈相关 ==========
@@ -482,6 +496,8 @@ module.exports = {
   aiImagePurchasePackage,
   aiImageTemplates,
   aiImageTemplateVote,
+  aiImageTemplateCreate,
+  aiImageTemplateUpdate,
   ailmageStatus: aiImageStatus,
 
   // 反馈

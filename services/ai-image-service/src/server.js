@@ -292,6 +292,55 @@ function formatError(err, fallback = '生成失败') {
   }
 }
 
+function formatUserFacingError(err, fallback = '这次没有生成成功，请稍后重试，或换个描述/参考图再试') {
+  const message = formatError(err, '');
+  const lower = message.toLowerCase();
+
+  if (!message) return fallback;
+  if (message.includes('创作描述不能为空')) return '请先填写创作描述';
+  if (message.includes('参考图片不能为空')) return '请先上传参考图';
+  if (message.includes('未配置 OPENAI_API_KEY')) return 'AI 生图服务暂未配置，请稍后再试';
+  if (message.includes('任务不存在')) return '生成任务已失效，请重新提交';
+
+  if (
+    lower.includes('timeout') ||
+    message.includes('超时') ||
+    lower.includes('timed out') ||
+    lower.includes('econnreset') ||
+    lower.includes('socket hang up') ||
+    lower.includes('503') ||
+    lower.includes('502') ||
+    lower.includes('500')
+  ) {
+    return '生成服务暂时不稳定，请稍后重试';
+  }
+
+  if (lower.includes('429') || lower.includes('rate limit') || lower.includes('too many requests')) {
+    return '生成服务有点忙，请稍后再试';
+  }
+
+  if (
+    lower.includes('400') ||
+    lower.includes('bad request') ||
+    lower.includes('invalid') ||
+    lower.includes('policy') ||
+    lower.includes('safety') ||
+    lower.includes('content') ||
+    lower.includes('moderation') ||
+    message.includes('不支持') ||
+    message.includes('违规') ||
+    message.includes('敏感')
+  ) {
+    return '这次没有生成成功，可以换个描述或换张参考图再试';
+  }
+
+  if (message.includes('图片获取失败') || message.includes('图片下载失败') || message.includes('COS 上传失败') || message.includes('未返回图片')) {
+    return '图片保存失败，请稍后重试';
+  }
+
+  return fallback;
+}
+
 function getCosClient() {
   const config = getConfig();
   if (!config.cosSecretId || !config.cosSecretKey || !config.cosBucket || !config.cosRegion) {
@@ -479,7 +528,8 @@ async function runGeneration(taskId, payload) {
       rawError: err
     });
     task.status = 'failed';
-    task.error = formatError(err);
+    task.error = formatUserFacingError(err);
+    task.errorDetail = formatError(err);
     task.updatedAt = Date.now();
   }
 }
