@@ -282,6 +282,8 @@ exports.main = async (event, context) => {
         return await aiImageList(openid);
       case 'aiImage/delete':
         return await aiImageDelete(openid, data);
+      case 'aiImage/channels':
+        return await aiImageChannels(data);
       case 'aiImage/packages':
         return await aiImagePackages();
       case 'aiImage/purchasePackage':
@@ -2791,6 +2793,143 @@ function getAiImageErrorText(error, fallback = '这次没有生成成功，请�
   return fallback;
 }
 
+function normalizeAiImageChannelNumber(value, fallback = 0) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : fallback;
+}
+
+function normalizeAiImageChannel(item = {}) {
+  return {
+    _id: item._id || '',
+    channelId: String(item.channelId || item._id || '').trim(),
+    name: String(item.name || '').trim(),
+    remark: String(item.remark || '').trim(),
+    enabled: item.enabled !== false,
+    callCount: normalizeAiImageChannelNumber(item.callCount, 0),
+    successCount: normalizeAiImageChannelNumber(item.successCount, 0),
+    failCount: normalizeAiImageChannelNumber(item.failCount, 0),
+    createdAt: normalizeAiImageChannelNumber(item.createdAt, 0),
+    updatedAt: normalizeAiImageChannelNumber(item.updatedAt, 0)
+  };
+}
+
+async function getAiImageChannelByChannelId(channelId) {
+  const value = String(channelId || '').trim();
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const docRes = await db.collection('ai_image_channels').doc(value).get();
+    const doc = Array.isArray(docRes.data) ? docRes.data[0] : docRes.data;
+    if (doc && (doc.channelId || doc._id)) {
+      return normalizeAiImageChannel(doc);
+    }
+  } catch (err) {
+    // 不是文档 _id 时继续按 channelId 查。
+  }
+
+  try {
+    const res = await db.collection('ai_image_channels')
+      .where({ channelId: value })
+      .limit(1)
+      .get();
+    const doc = res.data && res.data[0] ? res.data[0] : null;
+    return doc ? normalizeAiImageChannel(doc) : null;
+  } catch (err) {
+    console.warn('读取 AI 渠道失败:', err);
+    return null;
+  }
+}
+
+async function getDefaultAiImageChannel() {
+  try {
+    const res = await db.collection('ai_image_channels')
+      .where({ enabled: true })
+      .orderBy('createdAt', 'asc')
+      .limit(1)
+      .get();
+    const doc = res.data && res.data[0] ? res.data[0] : null;
+    return doc ? normalizeAiImageChannel(doc) : null;
+  } catch (err) {
+    console.warn('读取默认 AI 渠道失败:', err);
+    return null;
+  }
+}
+
+async function listAiImageChannels(includeDisabled = false) {
+  try {
+    const res = await db.collection('ai_image_channels')
+      .orderBy('createdAt', 'asc')
+      .get();
+    const channels = (res.data || []).map(normalizeAiImageChannel);
+    return includeDisabled ? channels : channels.filter(item => item.enabled !== false);
+  } catch (err) {
+    console.warn('读取 AI 渠道列表失败:', err);
+    return [];
+  }
+}
+
+async function resolveAiImageChannel(channelId) {
+  const value = String(channelId || '').trim();
+  if (value) {
+    return await getAiImageChannelByChannelId(value);
+  }
+
+  return await getDefaultAiImageChannel();
+}
+
+async function incrementAiImageChannelCallCount(channelId) {
+  const channel = await resolveAiImageChannel(channelId);
+  if (!channel || !channel._id) return false;
+
+  try {
+    await db.collection('ai_image_channels').doc(channel._id).update({
+      data: {
+        callCount: _.inc(1),
+        updatedAt: Date.now()
+      }
+    });
+    return true;
+  } catch (err) {
+    console.warn('更新 AI 渠道调用次数失败:', err);
+    return false;
+  }
+}
+
+async function incrementAiImageChannelOutcome(record, outcome) {
+  if (!record || !record._id || !record.channelId || record.channelCountedAt) {
+    return false;
+  }
+
+  const field = outcome === 'completed' ? 'successCount' : (outcome === 'failed' ? 'failCount' : '');
+  if (!field) return false;
+
+  const channel = await resolveAiImageChannel(record.channelId);
+  if (!channel || !channel._id) return false;
+
+  const now = Date.now();
+  try {
+    await db.collection('ai_image_channels').doc(channel._id).update({
+      data: {
+        [field]: _.inc(1),
+        updatedAt: now
+      }
+    });
+    await db.collection('ai_image_generations').doc(record._id).update({
+      data: {
+        channelCountedAt: now,
+        channelCountedStatus: outcome,
+        updatedAt: now
+      }
+    });
+    return true;
+  } catch (err) {
+    console.warn('更新 AI 渠道结果次数失败:', err);
+    return false;
+  }
+}
+
 function normalizeAiImageUrl(url) {
   if (!url) return '';
   const value = String(url).trim();
@@ -2871,7 +3010,7 @@ function buildImagePrompt(data) {
   return parts.join('\n');
 }
 
-async function callOpenAIImage(data, apiKey, model) {
+async function callOpenAIImage(data, apiKey, model, channelId = '') {
   const prompt = buildImagePrompt(data);
   const size = mapImageSize(data.ratio);
   const input = [{ role: 'user', content: [{ type: 'input_text', text: prompt }] }];
@@ -2902,7 +3041,7 @@ async function callOpenAIImage(data, apiKey, model) {
   }, apiKey);
 }
 
-async function createExternalAiImageTask(data, config) {
+async function createExternalAiImageTask(data, config, channelId = '') {
   const headers = {};
   if (config.serviceSecret) {
     headers['X-AI-Service-Secret'] = config.serviceSecret;
@@ -2912,7 +3051,9 @@ async function createExternalAiImageTask(data, config) {
     mode: data.mode,
     prompt: getEffectiveAiImagePrompt(data),
     ratio: data.ratio,
-    style: getEffectiveAiImageStyle(data)
+    style: getEffectiveAiImageStyle(data),
+    channelId: String(channelId || '').trim(),
+    resolution: data.resolution || data.imageResolution || ''
   };
 
   if (data.mode === 'image') {
@@ -2924,13 +3065,14 @@ async function createExternalAiImageTask(data, config) {
   return await requestJsonUrl('POST', `${config.serviceUrl.replace(/\/$/, '')}/v1/ai-image/tasks`, payload, headers, 30000);
 }
 
-async function getExternalAiImageTask(taskId, config) {
+async function getExternalAiImageTask(taskId, config, channelId = '') {
   const headers = {};
   if (config.serviceSecret) {
     headers['X-AI-Service-Secret'] = config.serviceSecret;
   }
 
-  return await requestJsonUrl('GET', `${config.serviceUrl.replace(/\/$/, '')}/v1/ai-image/tasks/${encodeURIComponent(taskId)}`, null, headers, 20000);
+  const query = String(channelId || '').trim() ? `?channelId=${encodeURIComponent(String(channelId).trim())}` : '';
+  return await requestJsonUrl('GET', `${config.serviceUrl.replace(/\/$/, '')}/v1/ai-image/tasks/${encodeURIComponent(taskId)}${query}`, null, headers, 20000);
 }
 
 async function getOpenAIResponse(responseId, apiKey) {
@@ -2980,9 +3122,16 @@ async function uploadGeneratedImage(openid, imageBase64, responseId = '') {
 async function aiImageGenerate(openid, data = {}) {
   const config = getOpenAIConfig();
   const { apiKey, responsesModel, imageModel } = config;
+  const requestedChannelId = String(data.channelId || '').trim();
+  const channel = requestedChannelId ? await resolveAiImageChannel(requestedChannelId) : await getDefaultAiImageChannel();
+  const channelId = channel && channel.channelId ? channel.channelId : requestedChannelId;
 
   if (!apiKey && !config.serviceUrl) {
     return { success: false, error: '未配置 OPENAI_API_KEY' };
+  }
+
+  if (requestedChannelId && (!channel || channel.enabled === false)) {
+    return { success: false, error: '渠道不存在或已停用' };
   }
 
   if (data.mode === 'text' && !getEffectiveAiImagePrompt(data)) {
@@ -3005,7 +3154,7 @@ async function aiImageGenerate(openid, data = {}) {
   if (config.serviceUrl) {
     let serviceRes;
     try {
-      serviceRes = await createExternalAiImageTask(data, config);
+      serviceRes = await createExternalAiImageTask(data, config, channelId);
     } catch (err) {
       console.error('创建外部 AI 生图任务失败:', err);
       return { success: false, error: getAiImageErrorText(err, '提交失败，生成服务暂时不稳定，请稍后重试') };
@@ -3015,28 +3164,38 @@ async function aiImageGenerate(openid, data = {}) {
       taskId: serviceRes.taskId,
       status: serviceRes.status || 'queued',
       model: imageModel,
-      external: true
+      external: true,
+      channelId
     });
+
+    if (channelId) {
+      await incrementAiImageChannelCallCount(channelId);
+    }
 
     return {
       success: true,
       taskId: serviceRes.taskId,
       status: serviceRes.status || 'queued',
       model: imageModel,
+      channelId,
       external: true,
       quota: await getAiImageSummaryData(openid)
     };
   }
 
-  const openaiRes = await callOpenAIImage(data, apiKey, responsesModel);
+  const openaiRes = await callOpenAIImage(data, apiKey, responsesModel, channelId);
 
   try {
     await recordAiImageTask(openid, data, {
       taskId: openaiRes.id,
       status: openaiRes.status || 'queued',
       model: imageModel,
-      external: false
+      external: false,
+      channelId
     });
+    if (channelId) {
+      await incrementAiImageChannelCallCount(channelId);
+    }
   } catch (err) {
     console.warn('保存 AI 生图记录失败:', err);
   }
@@ -3046,6 +3205,7 @@ async function aiImageGenerate(openid, data = {}) {
     taskId: openaiRes.id,
     status: openaiRes.status || 'queued',
     model: imageModel,
+    channelId,
     quota: await getAiImageSummaryData(openid)
   };
 }
@@ -3071,17 +3231,28 @@ async function aiImageStatus(openid, data = {}) {
     console.warn('读取 AI 生图记录失败:', err);
   }
 
+  const recordChannelId = String((record && record.channelId) || data.channelId || '').trim();
+  const recordForOutcome = record && record._id ? { ...record, channelId: recordChannelId } : null;
+
   if (config.serviceUrl) {
     let serviceRes;
     try {
-      serviceRes = await getExternalAiImageTask(responseId, config);
+      serviceRes = await getExternalAiImageTask(responseId, config, recordChannelId);
     } catch (err) {
       console.error('查询外部 AI 生图任务失败:', err);
       return { success: false, error: getAiImageErrorText(err, '生成服务暂时不稳定，请稍后重试') };
     }
 
     if (serviceRes.status === 'failed') {
-      return { success: false, status: 'failed', error: getAiImageErrorText(serviceRes.error) };
+      if (recordForOutcome) {
+        await incrementAiImageChannelOutcome(recordForOutcome, 'failed');
+      }
+      return {
+        success: false,
+        status: 'failed',
+        channelId: recordChannelId,
+        error: getAiImageErrorText(serviceRes.error)
+      };
     }
 
     if (serviceRes.status === 'completed') {
@@ -3116,11 +3287,16 @@ async function aiImageStatus(openid, data = {}) {
         }
       }
 
+      if (recordForOutcome) {
+        await incrementAiImageChannelOutcome(recordForOutcome, 'completed');
+      }
+
       return {
         success: true,
         status: 'completed',
         image,
         model: imageModel,
+        channelId: recordChannelId,
         charged
       };
     }
@@ -3128,7 +3304,8 @@ async function aiImageStatus(openid, data = {}) {
     return {
       success: true,
       status: serviceRes.status || 'queued',
-      taskId: responseId
+      taskId: responseId,
+      channelId: recordChannelId
     };
   }
 
@@ -3151,6 +3328,9 @@ async function aiImageStatus(openid, data = {}) {
           console.warn('标记 AI 生图扣次失败:', err);
         }
       }
+      if (recordForOutcome) {
+        await incrementAiImageChannelOutcome(recordForOutcome, 'completed');
+      }
       return {
         success: true,
         status: 'completed',
@@ -3163,6 +3343,7 @@ async function aiImageStatus(openid, data = {}) {
           bytes: record.images[0].bytes || 0
         },
         model: record.model || imageModel,
+        channelId: recordChannelId,
         charged
       };
     }
@@ -3179,6 +3360,7 @@ async function aiImageStatus(openid, data = {}) {
         success: true,
         status: 'in_progress',
         taskId: responseId,
+        channelId: recordChannelId,
         message: '结果还在处理中'
       };
     }
@@ -3188,20 +3370,27 @@ async function aiImageStatus(openid, data = {}) {
   if (response.status !== 'completed') {
     if (response.status === 'failed' || response.status === 'cancelled') {
       const message = response.error && response.error.message ? response.error.message : '生成任务失败';
-      return { success: false, status: response.status, error: getAiImageErrorText(message) };
+      if (recordForOutcome) {
+        await incrementAiImageChannelOutcome(recordForOutcome, 'failed');
+      }
+      return { success: false, status: response.status, channelId: recordChannelId, error: getAiImageErrorText(message) };
     }
 
     return {
       success: true,
       status: response.status || 'queued',
-      taskId: responseId
+      taskId: responseId,
+      channelId: recordChannelId
     };
   }
 
   const imageBase64 = extractImageBase64FromResponse(response);
 
   if (!imageBase64) {
-    return { success: false, status: response.status, error: getAiImageErrorText('OpenAI 未返回图片数据') };
+    if (recordForOutcome) {
+      await incrementAiImageChannelOutcome(recordForOutcome, 'failed');
+    }
+    return { success: false, status: response.status, channelId: recordChannelId, error: getAiImageErrorText('OpenAI 未返回图片数据') };
   }
 
   const image = await uploadGeneratedImage(openid, imageBase64, responseId);
@@ -3230,13 +3419,18 @@ async function aiImageStatus(openid, data = {}) {
     console.warn('更新 AI 生图记录失败:', err);
   }
 
+  if (recordForOutcome) {
+    await incrementAiImageChannelOutcome(recordForOutcome, 'completed');
+  }
+
   return {
     success: true,
     status: 'completed',
     image,
     model: record && record.model ? record.model : imageModel,
     usage: response.usage || null,
-    charged: Boolean(image.charged)
+    charged: Boolean(image.charged),
+    channelId: recordChannelId
   };
 }
 
@@ -3784,6 +3978,7 @@ async function recordAiImageTask(openid, data, task) {
     responseId: task.taskId,
     status: task.status || 'queued',
     external: Boolean(task.external),
+    channelId: String(task.channelId || data.channelId || '').trim(),
     mode: data.mode,
     prompt: getEffectiveAiImagePrompt(data),
     style: getEffectiveAiImageStyle(data),
@@ -3861,6 +4056,18 @@ async function aiImageList(openid) {
     success: true,
     summary: await getAiImageSummaryData(openid),
     images: items
+  };
+}
+
+async function aiImageChannels(data = {}) {
+  const includeDisabled = data.includeDisabled === true || data.includeDisabled === 'true';
+  const channels = await listAiImageChannels(includeDisabled);
+  const defaultChannel = includeDisabled ? (channels[0] || null) : await getDefaultAiImageChannel();
+
+  return {
+    success: true,
+    channels,
+    defaultChannelId: defaultChannel && defaultChannel.channelId ? defaultChannel.channelId : ''
   };
 }
 
@@ -4067,6 +4274,7 @@ function formatAiImageRecord(record) {
     taskId: record.responseId,
     status: record.status || 'queued',
     mode: record.mode || 'text',
+    channelId: record.channelId || '',
     prompt: record.prompt || '',
     style: record.style || '',
     ratio: record.ratio || '',

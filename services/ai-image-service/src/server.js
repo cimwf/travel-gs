@@ -14,6 +14,23 @@ function env(name, fallback = '') {
   return process.env[name] || fallback;
 }
 
+function envFirst(names, fallback = '') {
+  for (const name of names) {
+    if (process.env[name]) {
+      return process.env[name];
+    }
+  }
+  return fallback;
+}
+
+function normalizeEnvKey(value) {
+  return String(value || '').trim().replace(/[^a-zA-Z0-9]/g, '_').replace(/^_+|_+$/g, '').toUpperCase();
+}
+
+function uniq(list) {
+  return list.filter((item, index) => item && list.indexOf(item) === index);
+}
+
 function getConfig() {
   return {
     port: Number(env('PORT', '3000')),
@@ -24,13 +41,86 @@ function getConfig() {
     openaiSubmitTimeoutMs: Number(env('OPENAI_SUBMIT_TIMEOUT_MS', '90000')),
     openaiPollTimeoutMs: Number(env('OPENAI_POLL_TIMEOUT_MS', '30000')),
     imageModel: env('OPENAI_IMAGE_MODEL', 'gpt-image-2'),
+    imageResolution: env('OPENAI_IMAGE_RESOLUTION', ''),
     responsesModel: env('OPENAI_RESPONSES_MODEL', 'gpt-4.1-mini'),
+    channelProvider: env('AI_IMAGE_PROVIDER', 'openai'),
     sharedSecret: env('AI_IMAGE_SERVICE_SECRET'),
     cosSecretId: env('TENCENT_SECRET_ID'),
     cosSecretKey: env('TENCENT_SECRET_KEY'),
     cosBucket: env('COS_BUCKET'),
     cosRegion: env('COS_REGION'),
     publicBaseUrl: env('COS_PUBLIC_BASE_URL')
+  };
+}
+
+function getChannelSuffixFromEnv(channelId) {
+  const value = String(channelId || '').trim();
+  if (!value) return '';
+
+  for (const [key, envValue] of Object.entries(process.env)) {
+    const match = key.match(/^(?:AI_IMAGE_)?CHANNEL_?ID(.+)$/i);
+    if (match && String(envValue || '').trim() === value) {
+      return match[1];
+    }
+  }
+
+  return '';
+}
+
+function buildChannelEnvNames(keys, channelId) {
+  const value = String(channelId || '').trim();
+  const normalized = normalizeEnvKey(value);
+  const envSuffix = getChannelSuffixFromEnv(value);
+  const trailingNumber = value.match(/(\d+)$/);
+  const suffixes = uniq([
+    envSuffix,
+    normalized,
+    value,
+    trailingNumber ? trailingNumber[1] : ''
+  ]);
+  const names = [];
+
+  for (const key of keys) {
+    names.push(`${normalized}_${key}`);
+    names.push(`${key}_${normalized}`);
+    for (const suffix of suffixes) {
+      names.push(`${key}${suffix}`);
+      names.push(`${key}_${suffix}`);
+      names.push(`CHANNEL_${suffix}_${key}`);
+    }
+  }
+
+  return uniq(names);
+}
+
+function getChannelConfig(channelId) {
+  const base = getConfig();
+  const id = String(channelId || env('AI_IMAGE_DEFAULT_CHANNEL_ID')).trim();
+  const suffix = getChannelSuffixFromEnv(id);
+
+  if (!id) {
+    return {
+      ...base,
+      channelId: ''
+    };
+  }
+
+  return {
+    ...base,
+    channelId: id,
+    apiKey: envFirst(buildChannelEnvNames(['APIKEY', 'API_KEY', 'OPENAI_API_KEY'], id), base.apiKey),
+    openaiBaseUrl: envFirst(buildChannelEnvNames(['BASEURL', 'BASE_URL', 'OPENAI_BASE_URL'], id), base.openaiBaseUrl),
+    openaiApiMode: envFirst(buildChannelEnvNames(['API_MODE', 'OPENAI_API_MODE'], id), base.openaiApiMode),
+    chatImageInputMode: envFirst(buildChannelEnvNames(['CHAT_IMAGE_INPUT_MODE'], id), base.chatImageInputMode),
+    openaiSubmitTimeoutMs: Number(envFirst(buildChannelEnvNames(['SUBMIT_TIMEOUT_MS', 'OPENAI_SUBMIT_TIMEOUT_MS'], id), String(base.openaiSubmitTimeoutMs))),
+    openaiPollTimeoutMs: Number(envFirst(buildChannelEnvNames(['POLL_TIMEOUT_MS', 'OPENAI_POLL_TIMEOUT_MS'], id), String(base.openaiPollTimeoutMs))),
+    imageModel: base.imageModel,
+    imageResolution: base.imageResolution,
+    responsesModel: envFirst(buildChannelEnvNames(['RESPONSES_MODEL', 'OPENAI_RESPONSES_MODEL'], id), base.responsesModel),
+    channelProvider: envFirst(
+      buildChannelEnvNames(['PROVIDER', 'CHANNEL_PROVIDER', 'AI_IMAGE_PROVIDER'], id),
+      suffix === '2' ? 'toapis' : base.channelProvider
+    )
   };
 }
 
@@ -49,8 +139,8 @@ function requireSecret(req, res, next) {
   next();
 }
 
-function requestOpenAI(method, path, payload, timeoutMs = 180000) {
-  const { apiKey, openaiBaseUrl } = getConfig();
+function requestOpenAI(method, path, payload, timeoutMs = 180000, channelConfig = null) {
+  const { apiKey, openaiBaseUrl } = channelConfig || getConfig();
   const body = payload ? JSON.stringify(payload) : '';
   const baseUrl = new URL(openaiBaseUrl.replace(/\/$/, ''));
   const normalizedPath = baseUrl.pathname.endsWith('/v1') && path.startsWith('/v1/')
@@ -101,8 +191,12 @@ function requestOpenAI(method, path, payload, timeoutMs = 180000) {
   });
 }
 
-function getOpenAIRequestOptions(method, path, headers = {}) {
-  const { apiKey, openaiBaseUrl } = getConfig();
+function requestJsonWithConfig(method, path, payload, timeoutMs = 180000, channelConfig = null) {
+  return requestOpenAI(method, path, payload, timeoutMs, channelConfig);
+}
+
+function getOpenAIRequestOptions(method, path, headers = {}, channelConfig = null) {
+  const { apiKey, openaiBaseUrl } = channelConfig || getConfig();
   const baseUrl = new URL(openaiBaseUrl.replace(/\/$/, ''));
   const normalizedPath = baseUrl.pathname.endsWith('/v1') && path.startsWith('/v1/')
     ? path.slice(3)
@@ -125,8 +219,8 @@ function getOpenAIRequestOptions(method, path, headers = {}) {
   };
 }
 
-function requestOpenAIMultipart(path, form, timeoutMs = 180000) {
-  const { transport, options } = getOpenAIRequestOptions('POST', path, form.getHeaders());
+function requestOpenAIMultipart(path, form, timeoutMs = 180000, channelConfig = null) {
+  const { transport, options } = getOpenAIRequestOptions('POST', path, form.getHeaders(), channelConfig);
 
   return new Promise((resolve, reject) => {
     const req = transport.request(options, (res) => {
@@ -167,6 +261,17 @@ function mapImageSize(ratio) {
     '9:16': '1024x1536'
   };
   return sizeMap[ratio] || '1024x1024';
+}
+
+function mapToapisImageSize(ratio) {
+  const sizeMap = {
+    '1:1': '1:1',
+    '3:4': '3:4',
+    '4:3': '4:3',
+    '9:16': '9:16',
+    '16:9': '16:9'
+  };
+  return sizeMap[ratio] || '1:1';
 }
 
 function buildPrompt(data) {
@@ -211,6 +316,26 @@ function extractImageBase64FromImagesResponse(response) {
   return response && response.data && response.data[0] && response.data[0].b64_json
     ? response.data[0].b64_json
     : '';
+}
+
+function extractToapisTaskId(response) {
+  return String(response && response.id ? response.id : '').trim();
+}
+
+function extractToapisImageUrl(response) {
+  const data = response && response.result && Array.isArray(response.result.data)
+    ? response.result.data
+    : [];
+  const item = data.find(entry => entry && entry.url);
+  return item ? String(item.url || '').trim() : '';
+}
+
+function getToapisErrorMessage(response) {
+  if (!response) return '生成任务失败';
+  if (typeof response.error === 'string') return response.error;
+  if (response.error && response.error.message) return response.error.message;
+  if (response.error && response.error.code) return response.error.code;
+  return `生成任务${response.status || 'failed'}`;
 }
 
 function extractImageUrlFromChatCompletion(response) {
@@ -449,14 +574,20 @@ async function uploadBufferToCos(taskId, buffer, contentType = 'image/png', ext 
   };
 }
 
-async function runGeneration(taskId, payload) {
-  const config = getConfig();
+async function runGeneration(taskId, payload, channelConfig = null) {
+  const config = channelConfig || getChannelConfig(payload.channelId);
   const task = tasks.get(taskId);
 
   try {
     task.status = 'in_progress';
     task.stage = 'openai_submitting';
+    task.channelId = config.channelId || '';
     task.updatedAt = Date.now();
+
+    if (config.channelProvider === 'toapis') {
+      await runToapisGeneration(taskId, payload, config);
+      return;
+    }
 
     const content = [{ type: 'input_text', text: buildPrompt(payload) }];
     if (payload.referenceImageBase64) {
@@ -467,12 +598,12 @@ async function runGeneration(taskId, payload) {
     }
 
     if (config.openaiApiMode === 'images') {
-      await runImagesGeneration(taskId, payload);
+      await runImagesGeneration(taskId, payload, config);
       return;
     }
 
     if (config.openaiApiMode === 'chat_completions') {
-      await runChatCompletionGeneration(taskId, payload);
+      await runChatCompletionGeneration(taskId, payload, config);
       return;
     }
 
@@ -489,7 +620,7 @@ async function runGeneration(taskId, payload) {
           quality: 'high',
           output_format: 'png'
         }]
-      }, config.openaiSubmitTimeoutMs);
+      }, config.openaiSubmitTimeoutMs, config);
     } catch (err) {
       throw new Error(`OpenAI 调用失败：${formatError(err)}`);
     }
@@ -498,7 +629,7 @@ async function runGeneration(taskId, payload) {
     task.stage = 'openai_polling';
     task.updatedAt = Date.now();
 
-    response = await waitForOpenAIResponse(response.id);
+    response = await waitForOpenAIResponse(response.id, config);
 
     const imageBase64 = extractImageBase64(response);
     if (!imageBase64) {
@@ -523,6 +654,9 @@ async function runGeneration(taskId, payload) {
   } catch (err) {
     console.error('AI image generation failed', {
       taskId,
+      channelId: config.channelId || '',
+      provider: config.channelProvider,
+      baseUrl: config.openaiBaseUrl,
       stage: task.stage,
       error: formatError(err),
       rawError: err
@@ -534,8 +668,87 @@ async function runGeneration(taskId, payload) {
   }
 }
 
-async function runImagesGeneration(taskId, payload) {
-  const config = getConfig();
+async function runToapisGeneration(taskId, payload, config = getConfig()) {
+  const task = tasks.get(taskId);
+
+  task.stage = 'toapis_submitting';
+  task.updatedAt = Date.now();
+
+  const requestPayload = {
+    model: config.imageModel,
+    prompt: buildPrompt(payload),
+    n: 1,
+    size: mapToapisImageSize(payload.ratio),
+    resolution: payload.resolution || payload.imageResolution || config.imageResolution || '1K',
+    response_format: 'url'
+  };
+
+  if (payload.mode === 'image' && payload.referenceImageBase64) {
+    const uploadedReference = await uploadBufferToCos(
+      `${taskId}_reference`,
+      Buffer.from(payload.referenceImageBase64, 'base64'),
+      normalizeImageContentType(payload.referenceMimeType || 'image/jpeg'),
+      getExtFromMime(payload.referenceMimeType || 'image/jpeg')
+    );
+    requestPayload.image_urls = [uploadedReference.signedUrl || uploadedReference.url];
+    task.referenceImageUrl = uploadedReference.url;
+  }
+
+  let submitResponse;
+  try {
+    submitResponse = await requestJsonWithConfig('POST', '/v1/images/generations', requestPayload, config.openaiSubmitTimeoutMs, config);
+  } catch (err) {
+    throw new Error(`Toapis 提交失败：${formatError(err)}`);
+  }
+
+  const providerTaskId = extractToapisTaskId(submitResponse);
+  if (!providerTaskId) {
+    throw new Error('Toapis 未返回任务 ID');
+  }
+
+  task.providerTaskId = providerTaskId;
+  task.responseId = providerTaskId;
+  task.stage = 'toapis_polling';
+  task.updatedAt = Date.now();
+
+  const result = await waitForToapisTask(providerTaskId, config);
+  const imageUrl = extractToapisImageUrl(result);
+  if (!imageUrl) {
+    throw new Error(`Toapis 未返回图片 URL，taskId=${providerTaskId}`);
+  }
+
+  task.stage = 'image_downloading';
+  task.sourceImageUrl = imageUrl;
+  task.updatedAt = Date.now();
+
+  let downloaded;
+  try {
+    downloaded = await downloadBinary(imageUrl);
+  } catch (err) {
+    throw new Error(`图片下载失败：${formatError(err)}`);
+  }
+
+  task.stage = 'cos_uploading';
+  task.updatedAt = Date.now();
+
+  const contentType = normalizeImageContentType(downloaded.contentType);
+  const ext = getExtFromMime(contentType);
+
+  let uploaded;
+  try {
+    uploaded = await uploadBufferToCos(taskId, downloaded.buffer, contentType, ext);
+  } catch (err) {
+    throw new Error(`COS 上传失败：${formatError(err)}`);
+  }
+
+  task.status = 'completed';
+  task.stage = 'completed';
+  task.image = uploaded;
+  task.responseId = providerTaskId;
+  task.updatedAt = Date.now();
+}
+
+async function runImagesGeneration(taskId, payload, config = getConfig()) {
   const task = tasks.get(taskId);
 
   task.stage = payload.mode === 'image' ? 'images_editing' : 'images_generating';
@@ -556,7 +769,7 @@ async function runImagesGeneration(taskId, payload) {
         contentType: payload.referenceMimeType || 'image/jpeg'
       });
 
-      response = await requestOpenAIMultipart('/v1/images/edits', form, config.openaiSubmitTimeoutMs);
+      response = await requestOpenAIMultipart('/v1/images/edits', form, config.openaiSubmitTimeoutMs, config);
     } else {
       response = await requestOpenAI('POST', '/v1/images/generations', {
         model: config.imageModel,
@@ -564,7 +777,7 @@ async function runImagesGeneration(taskId, payload) {
         size: mapImageSize(payload.ratio),
         n: 1,
         response_format: 'url'
-      }, config.openaiSubmitTimeoutMs);
+      }, config.openaiSubmitTimeoutMs, config);
     }
   } catch (err) {
     throw new Error(`Images API 调用失败：${formatError(err)}`);
@@ -626,8 +839,7 @@ function getExtFromMime(contentType = '') {
   return 'png';
 }
 
-async function runChatCompletionGeneration(taskId, payload) {
-  const config = getConfig();
+async function runChatCompletionGeneration(taskId, payload, config = getConfig()) {
   const task = tasks.get(taskId);
 
   task.stage = 'chat_generating';
@@ -654,7 +866,7 @@ async function runChatCompletionGeneration(taskId, payload) {
         role: 'user',
         content: messageContent
       }]
-    }, config.openaiSubmitTimeoutMs);
+    }, config.openaiSubmitTimeoutMs, config);
   } catch (err) {
     throw new Error(`Chat Completions 调用失败：${formatError(err)}`);
   }
@@ -701,12 +913,12 @@ async function runChatCompletionGeneration(taskId, payload) {
   task.updatedAt = Date.now();
 }
 
-async function waitForOpenAIResponse(responseId) {
+async function waitForOpenAIResponse(responseId, config = getConfig()) {
   let latest = null;
 
   for (let attempt = 0; attempt < 80; attempt += 1) {
     await sleep(attempt < 5 ? 3000 : 5000);
-    latest = await requestOpenAI('GET', `/v1/responses/${encodeURIComponent(responseId)}`, null, getConfig().openaiPollTimeoutMs);
+    latest = await requestOpenAI('GET', `/v1/responses/${encodeURIComponent(responseId)}`, null, config.openaiPollTimeoutMs, config);
 
     if (latest.status === 'completed') {
       return latest;
@@ -721,6 +933,31 @@ async function waitForOpenAIResponse(responseId) {
   throw new Error('OpenAI 生成超时，请稍后重试');
 }
 
+async function waitForToapisTask(providerTaskId, config = getConfig()) {
+  let latest = null;
+
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    await sleep(attempt < 5 ? 3000 : 5000);
+    latest = await requestJsonWithConfig(
+      'GET',
+      `/v1/images/generations/${encodeURIComponent(providerTaskId)}`,
+      null,
+      config.openaiPollTimeoutMs,
+      config
+    );
+
+    if (latest.status === 'completed') {
+      return latest;
+    }
+
+    if (latest.status === 'failed' || latest.status === 'cancelled') {
+      throw new Error(getToapisErrorMessage(latest));
+    }
+  }
+
+  throw new Error('Toapis 生成超时，请稍后重试');
+}
+
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -730,9 +967,12 @@ app.get('/health', (req, res) => {
 });
 
 app.post('/v1/ai-image/tasks', requireSecret, (req, res) => {
-  const config = getConfig();
+  const config = getChannelConfig(req.body.channelId);
   if (!config.apiKey) {
-    res.status(500).json({ success: false, error: '未配置 OPENAI_API_KEY' });
+    res.status(500).json({
+      success: false,
+      error: config.channelId ? `渠道 ${config.channelId} 未配置 APIKEY` : '未配置 OPENAI_API_KEY'
+    });
     return;
   }
 
@@ -749,18 +989,28 @@ app.post('/v1/ai-image/tasks', requireSecret, (req, res) => {
   const taskId = crypto.randomUUID();
   tasks.set(taskId, {
     taskId,
+    channelId: config.channelId || '',
     status: 'queued',
     createdAt: Date.now(),
     updatedAt: Date.now()
   });
 
-  runGeneration(taskId, req.body);
-  res.json({ success: true, taskId, status: 'queued' });
+  runGeneration(taskId, {
+    ...req.body,
+    channelId: config.channelId || req.body.channelId || ''
+  }, config);
+  res.json({ success: true, taskId, channelId: config.channelId || '', status: 'queued' });
 });
 
 app.get('/v1/ai-image/tasks/:taskId', requireSecret, (req, res) => {
   const task = tasks.get(req.params.taskId);
   if (!task) {
+    res.status(404).json({ success: false, error: '任务不存在' });
+    return;
+  }
+
+  const requestChannelId = String(req.query.channelId || req.headers['x-ai-channel-id'] || '').trim();
+  if (requestChannelId && task.channelId && requestChannelId !== task.channelId) {
     res.status(404).json({ success: false, error: '任务不存在' });
     return;
   }

@@ -19,6 +19,8 @@
 11. ai_image_packages - AI 生图套餐表
 12. ai_image_orders - AI 生图模拟订单表
 13. ai_image_quotas - AI 生图额度表
+14. ai_image_generations - AI 生图任务表
+15. ai_image_channels - AI 生图渠道表
 
 ==========================================
 集合结构说明
@@ -302,6 +304,58 @@ const aiImageQuotaSchema = {
   updatedAt: 1711123200000
 };
 
+// 14. ai_image_generations - AI 生图任务表
+const aiImageGenerationSchema = {
+  _id: "generation_xxx",
+  userId: "openid_xxx",
+  responseId: "resp_xxx",           // 任务 ID / OpenAI responseId / 服务 taskId
+  channelId: "channel_xxx",         // 渠道 ID
+  channelCountedAt: 1711123200000,   // 渠道成功/失败统计时间
+  channelCountedStatus: "completed", // completed / failed
+  external: true,
+  mode: "text",                     // text / image
+  prompt: "旅行海报风格的...",      // 提示词
+  style: "电影感",
+  ratio: "1:1",
+  model: "gpt-image-2",
+  referenceFileID: "cloud://...",
+  images: [
+    {
+      id: "image_xxx",
+      status: "queued",
+      key: "cloud://...",
+      fileID: "cloud://...",
+      cloudPath: "ai-images/resp_xxx.png",
+      publicUrl: "https://...",
+      width: 1024,
+      height: 1024,
+      format: "png",
+      bytes: 123456
+    }
+  ],
+  usage: null,
+  status: "queued",
+  error: "",
+  createdAt: 1711123200000,
+  updatedAt: 1711123200000,
+  completedAt: 1711123200000,
+  chargedAt: 1711123200000
+};
+
+// 15. ai_image_channels - AI 生图渠道表
+const aiImageChannelSchema = {
+  _id: "channel_xxx",
+  channelId: "channel_1",           // 可复制给前端和云托管环境变量使用
+  name: "主渠道",
+  remark: "默认高稳定渠道",
+  enabled: true,
+  callCount: 0,
+  successCount: 0,
+  failCount: 0,
+  createdAt: 1711123200000,
+  updatedAt: 1711123200000
+};
+
 /*
 ==========================================
 索引配置（在云开发控制台创建）
@@ -375,4 +429,15 @@ ai_image_quotas:
   - phoneMask
   - appUserId
   - updatedAt
+
+ai_image_generations:
+  - responseId
+  - userId + createdAt
+  - channelId
+  - status
+
+ai_image_channels:
+  - channelId (唯一)
+  - enabled + createdAt
+  - name
 */

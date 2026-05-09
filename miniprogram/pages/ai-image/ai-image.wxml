@@ -95,8 +95,34 @@
   </view>
 
   <view class="bottom-bar">
-    <view class="generate-btn {{canGenerate ? '' : 'disabled'}}" bindtap="onGenerate">
-      {{loading ? '正在提交...' : (mode === 'text' ? '用文字生成图片' : '用参考图生成图片')}}
+    <view class="bottom-actions">
+      <view class="channel-btn" bindtap="onOpenChannelPicker">
+        <view class="channel-btn-name">{{selectedChannel ? selectedChannel.name : (channelLoading ? '加载中...' : '默认渠道')}}</view>
+      </view>
+      <view class="generate-btn {{canGenerate ? '' : 'disabled'}}" bindtap="onGenerate">
+        {{loading ? '正在提交...' : (mode === 'text' ? '用文字生成图片' : '用参考图生成图片')}}
+      </view>
+    </view>
+  </view>
+
+  <view class="channel-mask" wx:if="{{showChannelPicker}}" catchtap="closeChannelPicker">
+    <view class="channel-modal" catchtap="noop">
+      <view class="channel-modal-title">选择渠道</view>
+      <view class="channel-list" wx:if="{{channels.length}}">
+        <view
+          class="channel-item {{selectedChannelId === item.channelId ? 'active' : ''}}"
+          wx:for="{{channels}}"
+          wx:key="channelId"
+          data-id="{{item.channelId}}"
+          bindtap="onSelectChannel"
+        >
+          <view class="channel-item-main">
+            <view class="channel-item-name">{{item.name}}</view>
+          </view>
+        </view>
+      </view>
+      <view class="channel-empty" wx:else>暂无可用渠道</view>
+      <view class="channel-cancel" bindtap="closeChannelPicker">取消</view>
     </view>
   </view>
 

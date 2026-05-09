@@ -90,11 +90,16 @@ Page({
     generationStatus: '',
     ratio: '1:1',
     style: '',
-    ratios: ['1:1', '3:4', '4:3', '9:16'],
+    ratios: ['1:1', '3:4', '4:3', '16:9', '9:16'],
     styles: styleOptions,
     quickTemplates: [],
     currentTemplates: [],
     templateLoading: false,
+    channels: [],
+    selectedChannelId: '',
+    selectedChannel: null,
+    channelLoading: false,
+    showChannelPicker: false,
     packages: [],
     packageLoading: false,
     purchasingPackageId: '',
@@ -117,6 +122,7 @@ Page({
       wx.removeStorageSync('aiImageSelectedTemplate');
       this.applyTemplate(selectedTemplate);
     }
+    this.loadChannels();
     this.loadSummary();
     this.loadPackages();
   },
@@ -201,6 +207,72 @@ Page({
     } finally {
       this.setData({ templateLoading: false });
     }
+  },
+
+  loadChannels: async function () {
+    this.setData({ channelLoading: true });
+    try {
+      const res = await api.aiImageChannels();
+      const channels = Array.isArray(res.channels) ? res.channels : [];
+      const savedChannelId = wx.getStorageSync('aiImageSelectedChannelId');
+      const defaultChannelId = String(res.defaultChannelId || '').trim();
+      const currentChannelId = String(this.data.selectedChannelId || '').trim();
+      const preferredChannelId = savedChannelId || currentChannelId || defaultChannelId;
+      const selectedChannel = channels.find(item => item.channelId === preferredChannelId) || channels[0] || null;
+      const selectedChannelId = selectedChannel ? selectedChannel.channelId : '';
+
+      this.setData({
+        channels,
+        selectedChannelId,
+        selectedChannel
+      });
+
+      if (selectedChannelId) {
+        wx.setStorageSync('aiImageSelectedChannelId', selectedChannelId);
+      } else {
+        wx.removeStorageSync('aiImageSelectedChannelId');
+      }
+    } catch (err) {
+      console.warn('加载 AI 渠道失败', err);
+      if (!this.data.selectedChannelId) {
+        this.setData({
+          channels: [],
+          selectedChannelId: '',
+          selectedChannel: null
+        });
+      }
+    } finally {
+      this.setData({ channelLoading: false });
+    }
+  },
+
+  onOpenChannelPicker: function () {
+    if (this.data.channelLoading) return;
+    if (!this.data.channels.length) {
+      wx.showToast({
+        title: '暂无可用渠道',
+        icon: 'none'
+      });
+      return;
+    }
+
+    this.setData({ showChannelPicker: true });
+  },
+
+  closeChannelPicker: function () {
+    this.setData({ showChannelPicker: false });
+  },
+
+  onSelectChannel: function (event) {
+    const channelId = String(event.currentTarget.dataset.id || '').trim();
+    if (!channelId) return;
+    const channel = this.data.channels.find(item => item.channelId === channelId) || null;
+    this.setData({
+      selectedChannelId: channelId,
+      selectedChannel: channel,
+      showChannelPicker: false
+    });
+    wx.setStorageSync('aiImageSelectedChannelId', channelId);
   },
 
   onOpenTemplateLibrary: function () {
@@ -428,13 +500,15 @@ Page({
 
     try {
       const referenceFileID = this.data.mode === 'image' ? await this.uploadReferenceImage() : '';
-      const res = await api.aiImageGenerate({
+      const payload = {
         mode: this.data.mode,
         prompt: this.data.prompt,
         referenceFileID,
         ratio: this.data.ratio,
-        style: this.data.style || ''
-      });
+        style: this.data.style || '',
+        channelId: this.data.selectedChannelId || ''
+      };
+      const res = await api.aiImageGenerate(payload);
 
       this.setData({ taskId: res.taskId, generationStatus: '' });
       if (res.quota) {
@@ -473,6 +547,9 @@ Page({
     if (!message) return fallback;
     const lower = String(message).toLowerCase();
 
+    if (message.includes('渠道不存在') || message.includes('渠道未配置') || message.includes('渠道已停用')) {
+      return '所选渠道不可用，请重新选择';
+    }
     if (message.includes('次数已用完')) return 'AI 生图次数已用完';
     if (message.includes('创作描述不能为空')) return '请先填写创作描述';
     if (message.includes('参考图片不能为空')) return '请先上传参考图';

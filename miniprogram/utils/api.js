@@ -15,7 +15,9 @@ function callApi(action, data = {}) {
       if (res.result.success) {
         resolve(res.result);
       } else {
-        reject(new Error(res.result.error || '操作失败'));
+        const error = new Error(res.result.error || '操作失败');
+        error.result = res.result;
+        reject(error);
       }
     }).catch(err => {
       reject(err);
@@ -350,8 +352,15 @@ function aiImageGenerate(data) {
 /**
  * 查询 AI 图片生成状态
  */
-function aiImageStatus(taskId) {
-  return callApi('aiImage/status', { taskId });
+function aiImageStatus(taskId, channelId = '') {
+  return callApi('aiImage/status', { taskId, channelId });
+}
+
+/**
+ * 获取 AI 生图渠道
+ */
+function aiImageChannels(includeDisabled = false) {
+  return callApi('aiImage/channels', { includeDisabled });
 }
 
 /**
@@ -489,6 +498,7 @@ module.exports = {
   // AI 生图
   aiImageGenerate,
   aiImageStatus,
+  aiImageChannels,
   aiImageSummary,
   aiImageList,
   aiImageDelete,
