@@ -6,6 +6,79 @@ function toSafeNumber(value, fallback = 0) {
   return Number.isFinite(number) && number >= 0 ? number : fallback;
 }
 
+function hasValue(value) {
+  return value !== null && value !== undefined && value !== '';
+}
+
+function formatMoney(value) {
+  const price = toSafeNumber(value, 0);
+  if (Number.isInteger(price)) {
+    return String(price);
+  }
+
+  return price.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+}
+
+function normalizeDiscount(value) {
+  if (!hasValue(value)) return 1;
+
+  const number = Number(value);
+  if (!Number.isFinite(number) || number < 0) return 1;
+
+  let rate = number;
+  if (rate > 1 && rate <= 10) {
+    rate = rate / 10;
+  } else if (rate > 10 && rate <= 100) {
+    rate = rate / 100;
+  }
+
+  if (rate <= 0 || rate > 1) return 1;
+
+  return Math.round(rate * 10000) / 10000;
+}
+
+function formatDiscountText(discount) {
+  if (!(discount >= 0 && discount < 1)) return '';
+
+  const zhe = Math.round(discount * 100) / 10;
+  const text = Number.isInteger(zhe) ? String(zhe) : String(zhe).replace(/0+$/, '').replace(/\.$/, '');
+  return `${text}折`;
+}
+
+function normalizePackage(item = {}) {
+  const discount = normalizeDiscount(item.discount);
+  const hasDiscountedPrice = hasValue(item.afterPrice) || hasValue(item.discountedPrice) || hasValue(item.salePrice) || hasValue(item.finalPrice);
+  const basePrice = toSafeNumber(
+    hasValue(item.beforePrice)
+      ? item.beforePrice
+      : (hasValue(item.originalPrice) ? item.originalPrice : item.price),
+    0
+  );
+  const computedDiscountedPrice = toSafeNumber(basePrice * discount, 0);
+  const explicitDiscountedPrice = hasValue(item.discountedPrice)
+    ? item.discountedPrice
+    : (hasValue(item.afterPrice)
+      ? item.afterPrice
+      : (hasValue(item.salePrice) ? item.salePrice : item.finalPrice));
+  const discountedPrice = toSafeNumber(hasDiscountedPrice ? explicitDiscountedPrice : computedDiscountedPrice, 0);
+  const hasDiscount = discount < 1 && discountedPrice < basePrice;
+  const originalPrice = hasDiscount ? basePrice : discountedPrice;
+
+  return {
+    ...item,
+    discount,
+    hasDiscount,
+    originalPrice,
+    discountedPrice,
+    beforePrice: originalPrice,
+    afterPrice: discountedPrice,
+    price: discountedPrice,
+    originalPriceText: formatMoney(originalPrice),
+    priceText: formatMoney(discountedPrice),
+    discountText: hasDiscount ? formatDiscountText(discount) : ''
+  };
+}
+
 Page({
   data: {
     mode: 'text',
@@ -197,7 +270,8 @@ Page({
     this.setData({ packageLoading: true });
     try {
       const res = await api.aiImagePackages();
-      this.setData({ packages: Array.isArray(res.packages) ? res.packages : [] });
+      const packages = Array.isArray(res.packages) ? res.packages.map(item => normalizePackage(item)) : [];
+      this.setData({ packages });
     } catch (err) {
       console.warn('加载 AI 套餐失败', err);
       this.setData({ packages: [] });

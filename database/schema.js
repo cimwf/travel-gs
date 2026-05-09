@@ -245,7 +245,9 @@ const aiImagePackageSchema = {
   title: "AI 生图 50 张",
   desc: "适合集中测试和日常创作，支付后立即到账。",
   badge: "推荐",
-  price: 19.9,
+  price: 25,                         // 折前价
+  discount: 0.8,                     // 折扣系数，0.8 表示 8 折
+  discountedPrice: 20,               // 折后价，接口按 price * discount 计算
   imageCount: 50,
   sort: 10,
   enabled: true,
@@ -266,7 +268,12 @@ const aiImageOrderSchema = {
   packageId: "package_xxx",
   packageKey: "standard-50",
   title: "AI 生图 50 张",
-  price: 19.9,
+  price: 20,                         // 折后实付价
+  originalPrice: 25,                 // 折前价
+  discount: 0.8,
+  discountedPrice: 20,
+  beforePrice: 25,
+  afterPrice: 20,
   imageCount: 50,
   beforeTotal: 3,
   beforeUsed: 3,

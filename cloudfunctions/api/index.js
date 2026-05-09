@@ -58,6 +58,98 @@ function createAiImageOrderNo(now = Date.now()) {
   return `AI${now}${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 }
 
+function normalizeAiImagePackagePrice(value, fallback = 0) {
+  if (value === null || value === undefined || value === '') {
+    return fallback;
+  }
+
+  const number = Number(value);
+  if (!Number.isFinite(number) || number < 0) {
+    return fallback;
+  }
+
+  return Math.round(number * 100) / 100;
+}
+
+function normalizeAiImagePackageDiscount(value) {
+  if (value === null || value === undefined || value === '') {
+    return 1;
+  }
+
+  const number = Number(value);
+  if (!Number.isFinite(number) || number < 0) {
+    return 1;
+  }
+
+  let rate = number;
+  if (rate > 1 && rate <= 10) {
+    rate = rate / 10;
+  } else if (rate > 10 && rate <= 100) {
+    rate = rate / 100;
+  }
+
+  if (rate <= 0 || rate > 1) {
+    return 1;
+  }
+
+  return Math.round(rate * 10000) / 10000;
+}
+
+function hasAiImagePackageValue(value) {
+  return value !== null && value !== undefined && value !== '';
+}
+
+function formatAiImageMoney(value) {
+  const price = normalizeAiImagePackagePrice(value);
+  if (Number.isInteger(price)) {
+    return String(price);
+  }
+
+  return price.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+}
+
+function formatAiImageDiscountText(discount) {
+  if (!(discount >= 0 && discount < 1)) {
+    return '';
+  }
+
+  const zhe = Math.round(discount * 100) / 10;
+  const text = Number.isInteger(zhe) ? String(zhe) : String(zhe).replace(/0+$/, '').replace(/\.$/, '');
+  return `${text}折`;
+}
+
+function getAiImagePackagePricing(item = {}) {
+  const discount = normalizeAiImagePackageDiscount(item.discount);
+  const hasDiscountedPrice = hasAiImagePackageValue(item.afterPrice) ||
+    hasAiImagePackageValue(item.discountedPrice) ||
+    hasAiImagePackageValue(item.salePrice) ||
+    hasAiImagePackageValue(item.finalPrice);
+  const basePrice = normalizeAiImagePackagePrice(
+    hasAiImagePackageValue(item.beforePrice)
+      ? item.beforePrice
+      : (hasAiImagePackageValue(item.originalPrice) ? item.originalPrice : item.price)
+  );
+  const computedDiscountedPrice = normalizeAiImagePackagePrice(basePrice * discount);
+  const explicitDiscountedPrice = hasAiImagePackageValue(item.discountedPrice)
+    ? item.discountedPrice
+    : (hasAiImagePackageValue(item.afterPrice)
+      ? item.afterPrice
+      : (hasAiImagePackageValue(item.salePrice) ? item.salePrice : item.finalPrice));
+  const discountedPrice = normalizeAiImagePackagePrice(hasDiscountedPrice ? explicitDiscountedPrice : computedDiscountedPrice);
+  const hasDiscount = discount < 1 && discountedPrice < basePrice;
+  const originalPrice = hasDiscount ? basePrice : discountedPrice;
+
+  return {
+    originalPrice,
+    discountedPrice,
+    discount,
+    hasDiscount,
+    originalPriceText: formatAiImageMoney(originalPrice),
+    priceText: formatAiImageMoney(discountedPrice),
+    discountText: hasDiscount ? formatAiImageDiscountText(discount) : ''
+  };
+}
+
 exports.main = async (event, context) => {
   const { action, data } = event;
   const wxContext = cloud.getWXContext();
@@ -3300,13 +3392,23 @@ async function aiImageSummary(openid) {
 }
 
 function normalizeAiImagePackage(item = {}) {
+  const pricing = getAiImagePackagePricing(item);
   return {
     id: item.packageId || item._id || '',
     _id: item._id || '',
     packageId: item.packageId || '',
     title: item.title || '',
     desc: item.desc || '',
-    price: typeof item.price === 'number' ? item.price : 0,
+    price: pricing.discountedPrice,
+    originalPrice: pricing.originalPrice,
+    discountedPrice: pricing.discountedPrice,
+    beforePrice: pricing.originalPrice,
+    afterPrice: pricing.discountedPrice,
+    discount: pricing.discount,
+    hasDiscount: pricing.hasDiscount,
+    priceText: pricing.priceText,
+    originalPriceText: pricing.originalPriceText,
+    discountText: pricing.discountText,
     imageCount: typeof item.imageCount === 'number' ? item.imageCount : 0,
     badge: item.badge || '',
     sort: typeof item.sort === 'number' ? item.sort : 0,
@@ -3387,6 +3489,7 @@ async function aiImagePurchasePackage(openid, data = {}) {
     phoneMask: quota.phoneMask || '',
     avatar: quota.avatar || ''
   };
+  const pricing = getAiImagePackagePricing(pack);
 
   await db.collection('ai_image_quotas').doc(quota._id).update({
     data: {
@@ -3404,7 +3507,12 @@ async function aiImagePurchasePackage(openid, data = {}) {
       packageId: pack._id,
       packageKey: pack.packageId || '',
       title: pack.title || '',
-      price: typeof pack.price === 'number' ? pack.price : 0,
+      price: pricing.discountedPrice,
+      originalPrice: pricing.originalPrice,
+      discount: pricing.discount,
+      discountedPrice: pricing.discountedPrice,
+      beforePrice: pricing.originalPrice,
+      afterPrice: pricing.discountedPrice,
       imageCount,
       beforeTotal,
       beforeUsed,

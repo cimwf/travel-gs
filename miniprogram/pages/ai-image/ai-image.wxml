@@ -107,14 +107,19 @@
       <view class="package-desc" wx:else>正在读取账户额度，选择套餐后会立即充值到账户。</view>
       <view class="package-list" wx:if="{{packages.length}}">
         <view class="package-card" wx:for="{{packages}}" wx:key="_id">
-          <view>
+          <view class="package-info">
             <view class="package-card-title">{{item.title}}</view>
             <view class="package-card-desc">{{item.desc}}</view>
             <view class="package-card-desc">可生成 {{item.imageCount}} 张图</view>
-            <view class="package-badge" wx:if="{{item.badge}}">{{item.badge}}</view>
+            <view class="package-meta">
+              <view class="package-badge" wx:if="{{item.badge}}">{{item.badge}}</view>
+              <view class="package-discount" wx:if="{{item.discountText}}">{{item.discountText}}</view>
+            </view>
           </view>
           <view class="package-buy">
-            <view class="package-price">¥{{item.price}}</view>
+            <view class="package-price-label" wx:if="{{item.hasDiscount}}">折后价</view>
+            <view class="package-price">¥{{item.priceText}}</view>
+            <view class="package-original-price" wx:if="{{item.hasDiscount}}">折前价 ¥{{item.originalPriceText}}</view>
             <view class="package-button" data-id="{{item._id || item.id}}" bindtap="onPurchasePackage">
               {{purchasingPackageId === (item._id || item.id) ? '充值中' : '支付'}}
             </view>

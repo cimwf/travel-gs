@@ -460,6 +460,11 @@ page {
   border: 1rpx solid rgba(39, 67, 94, 0.08);
 }
 
+.package-info {
+  min-width: 0;
+  flex: 1;
+}
+
 .package-card-title {
   color: #182033;
   font-size: 29rpx;
@@ -473,9 +478,16 @@ page {
   line-height: 1.45;
 }
 
+.package-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 12rpx;
+}
+
 .package-badge {
   display: inline-flex;
-  margin-top: 12rpx;
   padding: 6rpx 12rpx;
   border-radius: 999rpx;
   background: #FFF2E2;
@@ -484,15 +496,38 @@ page {
   font-weight: 800;
 }
 
+.package-discount {
+  display: inline-flex;
+  padding: 6rpx 12rpx;
+  border-radius: 999rpx;
+  background: #FFECEE;
+  color: #D14B4B;
+  font-size: 21rpx;
+  font-weight: 900;
+}
+
 .package-buy {
   flex-shrink: 0;
   text-align: right;
+}
+
+.package-price-label {
+  color: #98A2B3;
+  font-size: 21rpx;
+  font-weight: 700;
 }
 
 .package-price {
   color: #D77D7D;
   font-size: 34rpx;
   font-weight: 900;
+}
+
+.package-original-price {
+  margin-top: 4rpx;
+  color: #98A2B3;
+  font-size: 21rpx;
+  text-decoration: line-through;
 }
 
 .package-button {
