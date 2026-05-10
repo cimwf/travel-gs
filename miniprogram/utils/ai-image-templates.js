@@ -1,5 +1,5 @@
 const styleOptions = [
-  { label: '无 / 不要', value: '' },
+  { label: '默认风格', value: '' },
   { label: '旅行海报', value: '旅行海报' },
   { label: '写实摄影', value: '写实摄影' },
   { label: '韩系写真', value: '韩系写真' },

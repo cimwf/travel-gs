@@ -281,7 +281,7 @@ function mapToapisImageSize(ratio) {
 
 function buildPrompt(data) {
   const rawStyle = String(data.style || '').trim();
-  const style = ['none', '无', '不要', '不加风格', '无风格'].includes(rawStyle) ? '' : rawStyle;
+  const style = ['none', '无', '不要', '不加风格', '无风格', '默认风格'].includes(rawStyle) ? '' : rawStyle;
   const parts = [
     String(data.prompt || '').trim() || (data.mode === 'image' ? '请基于参考图生成一张高质量图片' : ''),
     style ? `视觉风格：${style}` : '',
@@ -442,11 +442,11 @@ function formatUserFacingError(err, fallback = '这次没有生成成功，请�
     lower.includes('502') ||
     lower.includes('500')
   ) {
-    return '生成服务暂时不稳定，请稍后重试';
+    return '当前渠道已满，请换个渠道后再试';
   }
 
   if (lower.includes('429') || lower.includes('rate limit') || lower.includes('too many requests')) {
-    return '生成服务有点忙，请稍后再试';
+    return '当前渠道已满，请换个渠道后再试';
   }
 
   if (

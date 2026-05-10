@@ -45,7 +45,8 @@
       <view class="card-body">
         <view class="meta-row">
           <text>{{item.mode === 'image' ? '图生图' : '文生图'}}</text>
-          <text>{{item.style}}</text>
+          <text wx:if="{{item.channelName}}">{{item.channelName}}</text>
+          <text>{{item.styleText}}</text>
           <text>{{item.ratio}}</text>
           <text>{{item.statusText}}</text>
         </view>

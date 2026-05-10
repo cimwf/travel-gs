@@ -506,7 +506,8 @@ Page({
         referenceFileID,
         ratio: this.data.ratio,
         style: this.data.style || '',
-        channelId: this.data.selectedChannelId || ''
+        channelId: this.data.selectedChannelId || '',
+        channelName: this.data.selectedChannel ? (this.data.selectedChannel.name || '') : ''
       };
       const res = await api.aiImageGenerate(payload);
 
@@ -554,7 +555,7 @@ Page({
     if (message.includes('创作描述不能为空')) return '请先填写创作描述';
     if (message.includes('参考图片不能为空')) return '请先上传参考图';
     if (lower.includes('429') || lower.includes('rate limit') || lower.includes('too many requests')) {
-      return '生成服务有点忙，请稍后再试';
+      return '当前渠道已满，请换个渠道后再试';
     }
     if (
       lower.includes('timeout') ||
@@ -567,7 +568,7 @@ Page({
       message.includes('服务连接失败') ||
       message.includes('服务请求失败')
     ) {
-      return '生成服务暂时不稳定，请稍后重试';
+      return '当前渠道已满，请换个渠道后再试';
     }
     if (
       lower.includes('400') ||

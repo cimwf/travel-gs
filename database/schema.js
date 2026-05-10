@@ -310,6 +310,7 @@ const aiImageGenerationSchema = {
   userId: "openid_xxx",
   responseId: "resp_xxx",           // 任务 ID / OpenAI responseId / 服务 taskId
   channelId: "channel_xxx",         // 渠道 ID
+  channelName: "渠道一",             // 渠道名称
   channelCountedAt: 1711123200000,   // 渠道成功/失败统计时间
   channelCountedStatus: "completed", // completed / failed
   external: true,
