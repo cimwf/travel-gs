@@ -93,6 +93,11 @@ function buildChannelEnvNames(keys, channelId) {
   return uniq(names);
 }
 
+function getDefaultChannelProvider(baseProvider, suffix) {
+  // 渠道 2 使用 toapis 的 image_urls 协议；默认渠道、渠道 1、渠道 3+ 共用 OpenAI Images 兼容协议。
+  return suffix === '2' ? 'toapis' : baseProvider;
+}
+
 function getChannelConfig(channelId) {
   const base = getConfig();
   const id = String(channelId || env('AI_IMAGE_DEFAULT_CHANNEL_ID')).trim();
@@ -114,12 +119,12 @@ function getChannelConfig(channelId) {
     chatImageInputMode: envFirst(buildChannelEnvNames(['CHAT_IMAGE_INPUT_MODE'], id), base.chatImageInputMode),
     openaiSubmitTimeoutMs: Number(envFirst(buildChannelEnvNames(['SUBMIT_TIMEOUT_MS', 'OPENAI_SUBMIT_TIMEOUT_MS'], id), String(base.openaiSubmitTimeoutMs))),
     openaiPollTimeoutMs: Number(envFirst(buildChannelEnvNames(['POLL_TIMEOUT_MS', 'OPENAI_POLL_TIMEOUT_MS'], id), String(base.openaiPollTimeoutMs))),
-    imageModel: base.imageModel,
-    imageResolution: base.imageResolution,
+    imageModel: envFirst(buildChannelEnvNames(['MODEL', 'MODAL', 'IMAGE_MODEL', 'OPENAI_IMAGE_MODEL'], id), base.imageModel),
+    imageResolution: envFirst(buildChannelEnvNames(['RESOLUTION', 'IMAGE_RESOLUTION', 'OPENAI_IMAGE_RESOLUTION'], id), base.imageResolution),
     responsesModel: envFirst(buildChannelEnvNames(['RESPONSES_MODEL', 'OPENAI_RESPONSES_MODEL'], id), base.responsesModel),
     channelProvider: envFirst(
       buildChannelEnvNames(['PROVIDER', 'CHANNEL_PROVIDER', 'AI_IMAGE_PROVIDER'], id),
-      suffix === '2' ? 'toapis' : base.channelProvider
+      getDefaultChannelProvider(base.channelProvider, suffix)
     )
   };
 }
