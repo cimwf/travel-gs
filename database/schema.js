@@ -350,6 +350,7 @@ const aiImageChannelSchema = {
   name: "主渠道",
   remark: "默认高稳定渠道",
   enabled: true,
+  isDefault: true,
   callCount: 0,
   successCount: 0,
   failCount: 0,

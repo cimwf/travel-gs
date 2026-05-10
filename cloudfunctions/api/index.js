@@ -2805,6 +2805,7 @@ function normalizeAiImageChannel(item = {}) {
     name: String(item.name || '').trim(),
     remark: String(item.remark || '').trim(),
     enabled: item.enabled !== false,
+    isDefault: item.isDefault === true,
     callCount: normalizeAiImageChannelNumber(item.callCount, 0),
     successCount: normalizeAiImageChannelNumber(item.successCount, 0),
     failCount: normalizeAiImageChannelNumber(item.failCount, 0),
@@ -2844,6 +2845,18 @@ async function getAiImageChannelByChannelId(channelId) {
 
 async function getDefaultAiImageChannel() {
   try {
+    const defaultRes = await db.collection('ai_image_channels')
+      .where({
+        enabled: true,
+        isDefault: true
+      })
+      .limit(1)
+      .get();
+    const defaultDoc = defaultRes.data && defaultRes.data[0] ? defaultRes.data[0] : null;
+    if (defaultDoc) {
+      return normalizeAiImageChannel(defaultDoc);
+    }
+
     const res = await db.collection('ai_image_channels')
       .where({ enabled: true })
       .orderBy('createdAt', 'asc')
