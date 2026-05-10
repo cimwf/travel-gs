@@ -13,7 +13,7 @@
 
   <!-- 第一步：手机号登录 -->
   <view class="auth-content" wx:if="{{step === 'phone'}}">
-    <view class="auth-logo">行</view>
+    <image class="auth-logo" src="/images/xing-logo.png" mode="aspectFit"></image>
     <view class="auth-title">欢迎使用</view>
     <view class="auth-desc">
       一键登录后即可查看完整内容
