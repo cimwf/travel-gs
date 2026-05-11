@@ -11,6 +11,7 @@ const _ = db.command;
 const crypto = require('./utils/crypto');
 const AI_IMAGE_FREE_QUOTA = 3;
 const AI_IMAGE_PROMPT_MAX_LENGTH = 2000;
+const AI_IMAGE_TASK_EXPIRE_MS_DEFAULT = 15 * 60 * 1000;
 const MODERATION_ERROR_PATTERN = /content[_\s-]*(policy|filter|moderation|violation)|safety|moderation/i;
 const INVALID_REQUEST_PATTERN = /(^|\b)(400|bad request|invalid)(\b|$)/i;
 
@@ -2641,12 +2642,18 @@ function requestJsonUrl(method, url, payload, headers = {}, timeoutMs = 25000) {
         try {
           parsed = JSON.parse(text);
         } catch (err) {
-          reject(new Error(`AI 服务返回异常：${text.slice(0, 200)}`));
+          const error = new Error(`AI 服务返回异常(${res.statusCode}): ${text.slice(0, 200)}`);
+          error.statusCode = res.statusCode;
+          error.responseText = text;
+          reject(error);
           return;
         }
 
         if (res.statusCode >= 400) {
-          reject(new Error(`AI 服务请求失败(${res.statusCode}): ${parsed.error || parsed.message || text.slice(0, 120)}`));
+          const error = new Error(`AI 服务请求失败(${res.statusCode}): ${parsed.error || parsed.message || text.slice(0, 120)}`);
+          error.statusCode = res.statusCode;
+          error.response = parsed;
+          reject(error);
           return;
         }
 
@@ -2775,6 +2782,116 @@ function isAiImageLoadingStatus(status) {
   return ['queued', 'pending', 'in_progress', 'processing', 'running', 'submitted'].includes(status || '');
 }
 
+function getAiImageTaskExpireMs() {
+  const value = Number(process.env.AI_IMAGE_TASK_EXPIRE_MS || process.env.AI_IMAGE_TASK_TIMEOUT_MS);
+  return Number.isFinite(value) && value > 0 ? value : AI_IMAGE_TASK_EXPIRE_MS_DEFAULT;
+}
+
+function isAiImageRecordExpired(record = {}, now = Date.now()) {
+  if (!record || !isAiImageLoadingStatus(record.status)) {
+    return false;
+  }
+
+  const baseTime = Number(record.createdAt || record.updatedAt || 0);
+  return baseTime > 0 && now - baseTime >= getAiImageTaskExpireMs();
+}
+
+function isExternalAiImageTaskMissingError(err) {
+  const message = String(err && (err.message || err.errMsg || err.error || err.Message || err) || '');
+  return (err && err.statusCode === 404) || message.includes('任务不存在') || message.includes('任务已失效');
+}
+
+function getAiImageRecordAgeMs(record = {}, now = Date.now()) {
+  const baseTime = Number(record.createdAt || record.updatedAt || 0);
+  return baseTime > 0 ? Math.max(0, now - baseTime) : 0;
+}
+
+function formatAiImageLogError(err) {
+  if (!err) return null;
+  const response = err.response && typeof err.response === 'object'
+    ? {
+        success: err.response.success,
+        status: err.response.status,
+        error: err.response.error,
+        message: err.response.message
+      }
+    : undefined;
+
+  return {
+    message: String(err.message || err.errMsg || err.error || err.Message || err),
+    statusCode: err.statusCode || err.status || '',
+    code: err.code || '',
+    response,
+    responseText: err.responseText ? String(err.responseText).slice(0, 300) : '',
+    stack: err.stack ? String(err.stack).split('\n').slice(0, 5).join('\n') : ''
+  };
+}
+
+function logAiImageError(event, details = {}, err = null) {
+  const payload = {
+    event,
+    ...details
+  };
+  if (err) {
+    payload.error = formatAiImageLogError(err);
+  }
+  console.error('[ai-image]', payload);
+}
+
+function logAiImageWarn(event, details = {}, err = null) {
+  const payload = {
+    event,
+    ...details
+  };
+  if (err) {
+    payload.error = formatAiImageLogError(err);
+  }
+  console.warn('[ai-image]', payload);
+}
+
+async function markAiImageRecordFailed(record, errorText, now = Date.now()) {
+  if (!record || !record._id) {
+    return record;
+  }
+
+  const error = getAiImageErrorText(errorText);
+  const rawError = String(errorText && (errorText.message || errorText.errMsg || errorText.error || errorText.Message || errorText) || '');
+  const updates = {
+    status: 'failed',
+    error,
+    errorDetail: rawError.slice(0, 500),
+    images: syncImagesStatus(record.images, 'failed', error),
+    updatedAt: now,
+    failedAt: now
+  };
+
+  try {
+    await db.collection('ai_image_generations').doc(record._id).update({ data: updates });
+  } catch (err) {
+    logAiImageWarn('mark-record-failed-update-error', {
+      recordId: record._id,
+      taskId: record.responseId || '',
+      channelId: record.channelId || '',
+      statusBefore: record.status || '',
+      reason: error,
+      ageMs: getAiImageRecordAgeMs(record, now)
+    }, err);
+  }
+
+  await incrementAiImageChannelOutcome(record, 'failed');
+  logAiImageError('record-marked-failed', {
+    recordId: record._id,
+    taskId: record.responseId || '',
+    channelId: record.channelId || '',
+    statusBefore: record.status || '',
+    reason: error,
+    errorDetail: rawError.slice(0, 500),
+    ageMs: getAiImageRecordAgeMs(record, now),
+    expireMs: getAiImageTaskExpireMs()
+  });
+  return { ...record, ...updates };
+}
+
 function getAiImageErrorText(error, fallback = '这次没有生成成功，请稍后重试，或换个描述/参考图再试') {
   const message = String(
     error && (error.message || error.errMsg || error.error || error.Message || error) || ''
@@ -2789,6 +2906,8 @@ function getAiImageErrorText(error, fallback = '这次没有生成成功，请�
   if (message.includes('未配置 OPENAI_API_KEY')) return 'AI 生图服务暂未配置，请稍后再试';
   if (message.includes('任务ID不能为空')) return '生成任务异常，请重新提交';
   if (message.includes('任务不存在')) return '生成任务已失效，请重新提交';
+  if (message.includes('任务已失效')) return '生成任务已失效，请重新提交';
+  if (message.includes('生成任务超时')) return '生成任务超时，请重新提交';
 
   if (
     lower.includes('timeout') ||
@@ -3214,17 +3333,39 @@ async function aiImageGenerate(openid, data = {}) {
     try {
       serviceRes = await createExternalAiImageTask(data, config, channelId);
     } catch (err) {
-      console.error('创建外部 AI 生图任务失败:', err);
+      logAiImageError('external-create-failed', {
+        userId: openid || 'anonymous',
+        channelId,
+        channelName,
+        mode: data.mode,
+        ratio: data.ratio || '',
+        style: getEffectiveAiImageStyle(data),
+        promptLength: getEffectiveAiImagePrompt(data).length,
+        hasReference: Boolean(data.referenceFileID),
+        serviceUrl: config.serviceUrl ? config.serviceUrl.replace(/\/$/, '') : ''
+      }, err);
       return { success: false, error: getAiImageErrorText(err, '当前渠道已满，请换个渠道后再试') };
     }
 
-    await recordAiImageTask(openid, data, {
+    const record = await recordAiImageTask(openid, data, {
       taskId: serviceRes.taskId,
       status: serviceRes.status || 'queued',
       model: imageModel,
       external: true,
       channelId,
       channelName
+    });
+    console.info('[ai-image]', {
+      event: 'external-task-created',
+      userId: openid || 'anonymous',
+      recordId: record._id || '',
+      taskId: serviceRes.taskId,
+      status: serviceRes.status || 'queued',
+      channelId,
+      channelName,
+      mode: data.mode,
+      ratio: data.ratio || '',
+      serviceChannelId: serviceRes.channelId || ''
     });
 
     if (channelId) {
@@ -3301,13 +3442,56 @@ async function aiImageStatus(openid, data = {}) {
     try {
       serviceRes = await getExternalAiImageTask(responseId, config, recordChannelId);
     } catch (err) {
-      console.error('查询外部 AI 生图任务失败:', err);
+      logAiImageError('external-status-query-failed', {
+        taskId: responseId,
+        recordId: record && record._id ? record._id : '',
+        userId: openid || 'anonymous',
+        channelId: recordChannelId,
+        recordStatus: record && record.status ? record.status : '',
+        ageMs: record ? getAiImageRecordAgeMs(record) : 0,
+        expireMs: getAiImageTaskExpireMs(),
+        missingTask: isExternalAiImageTaskMissingError(err),
+        expired: recordForOutcome ? isAiImageRecordExpired(recordForOutcome) : false
+      }, err);
+      if (isExternalAiImageTaskMissingError(err)) {
+        const failedRecord = recordForOutcome
+          ? await markAiImageRecordFailed(recordForOutcome, '生成任务已失效，请重新提交')
+          : { error: getAiImageErrorText('生成任务已失效，请重新提交') };
+        return {
+          success: false,
+          status: 'failed',
+          channelId: recordChannelId,
+          error: failedRecord.error
+        };
+      }
+      if (recordForOutcome && isAiImageRecordExpired(recordForOutcome)) {
+        const failedRecord = await markAiImageRecordFailed(recordForOutcome, '生成任务超时，请重新提交');
+        return {
+          success: false,
+          status: 'failed',
+          channelId: recordChannelId,
+          error: failedRecord.error
+        };
+      }
       return { success: false, error: getAiImageErrorText(err, '当前渠道已满，请换个渠道后再试') };
     }
 
     if (serviceRes.status === 'failed') {
+      logAiImageError('external-task-returned-failed', {
+        taskId: responseId,
+        providerTaskId: serviceRes.providerTaskId || serviceRes.responseId || '',
+        recordId: record && record._id ? record._id : '',
+        userId: openid || 'anonymous',
+        channelId: recordChannelId,
+        recordStatus: record && record.status ? record.status : '',
+        serviceStatus: serviceRes.status,
+        serviceStage: serviceRes.stage || '',
+        ageMs: record ? getAiImageRecordAgeMs(record) : 0,
+        serviceError: serviceRes.error || '',
+        serviceErrorDetail: serviceRes.errorDetail || ''
+      });
       if (recordForOutcome) {
-        await incrementAiImageChannelOutcome(recordForOutcome, 'failed');
+        await markAiImageRecordFailed(recordForOutcome, serviceRes.error || '生成失败');
       }
       return {
         success: false,
@@ -3360,6 +3544,27 @@ async function aiImageStatus(openid, data = {}) {
         model: imageModel,
         channelId: recordChannelId,
         charged
+      };
+    }
+
+    if (recordForOutcome && isAiImageRecordExpired(recordForOutcome)) {
+      logAiImageError('external-task-expired', {
+        taskId: responseId,
+        recordId: recordForOutcome._id,
+        userId: openid || 'anonymous',
+        channelId: recordChannelId,
+        recordStatus: recordForOutcome.status || '',
+        serviceStatus: serviceRes.status || '',
+        serviceStage: serviceRes.stage || '',
+        ageMs: getAiImageRecordAgeMs(recordForOutcome),
+        expireMs: getAiImageTaskExpireMs()
+      });
+      const failedRecord = await markAiImageRecordFailed(recordForOutcome, '生成任务超时，请重新提交');
+      return {
+        success: false,
+        status: 'failed',
+        channelId: recordChannelId,
+        error: failedRecord.error
       };
     }
 

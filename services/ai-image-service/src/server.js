@@ -424,6 +424,23 @@ function formatError(err, fallback = '生成失败') {
   }
 }
 
+function logAiImageEvent(level, event, details = {}, err = null) {
+  const payload = {
+    event,
+    ...details
+  };
+  if (err) {
+    payload.error = {
+      message: formatError(err),
+      code: err.code || '',
+      statusCode: err.statusCode || err.status || '',
+      stack: err.stack ? String(err.stack).split('\n').slice(0, 5).join('\n') : ''
+    };
+  }
+  const logger = level === 'error' ? console.error : (level === 'warn' ? console.warn : console.info);
+  logger('[ai-image-service]', payload);
+}
+
 function formatUserFacingError(err, fallback = '这次没有生成成功，请稍后重试，或换个描述/参考图再试') {
   const message = formatError(err, '');
   const lower = message.toLowerCase();
@@ -581,6 +598,16 @@ async function runGeneration(taskId, payload, channelConfig = null) {
   const task = tasks.get(taskId);
 
   try {
+    logAiImageEvent('info', 'generation-started', {
+      taskId,
+      channelId: config.channelId || '',
+      provider: config.channelProvider,
+      apiMode: config.openaiApiMode,
+      mode: payload.mode || '',
+      ratio: payload.ratio || '',
+      style: payload.style || '',
+      hasReference: Boolean(payload.referenceImageBase64)
+    });
     task.status = 'in_progress';
     task.stage = 'openai_submitting';
     task.channelId = config.channelId || '';
@@ -653,16 +680,25 @@ async function runGeneration(taskId, payload, channelConfig = null) {
     task.image = uploaded;
     task.responseId = response.id;
     task.updatedAt = Date.now();
+    logAiImageEvent('info', 'generation-completed', {
+      taskId,
+      channelId: config.channelId || '',
+      provider: config.channelProvider,
+      responseId: response.id || '',
+      imageKey: uploaded && uploaded.key ? uploaded.key : '',
+      width: uploaded && uploaded.width ? uploaded.width : 0,
+      height: uploaded && uploaded.height ? uploaded.height : 0
+    });
   } catch (err) {
-    console.error('AI image generation failed', {
+    logAiImageEvent('error', 'generation-failed', {
       taskId,
       channelId: config.channelId || '',
       provider: config.channelProvider,
       baseUrl: config.openaiBaseUrl,
       stage: task.stage,
-      error: formatError(err),
-      rawError: err
-    });
+      responseId: task.responseId || '',
+      providerTaskId: task.providerTaskId || ''
+    }, err);
     task.status = 'failed';
     task.error = formatUserFacingError(err);
     task.errorDetail = formatError(err);
@@ -971,6 +1007,12 @@ app.get('/health', (req, res) => {
 app.post('/v1/ai-image/tasks', requireSecret, (req, res) => {
   const config = getChannelConfig(req.body.channelId);
   if (!config.apiKey) {
+    logAiImageEvent('error', 'task-create-config-missing', {
+      channelId: config.channelId || '',
+      requestedChannelId: req.body.channelId || '',
+      provider: config.channelProvider,
+      apiMode: config.openaiApiMode
+    });
     res.status(500).json({
       success: false,
       error: config.channelId ? `渠道 ${config.channelId} 未配置 APIKEY` : '未配置 OPENAI_API_KEY'
@@ -989,6 +1031,18 @@ app.post('/v1/ai-image/tasks', requireSecret, (req, res) => {
   }
 
   const taskId = crypto.randomUUID();
+  logAiImageEvent('info', 'task-created', {
+    taskId,
+    channelId: config.channelId || '',
+    requestedChannelId: req.body.channelId || '',
+    provider: config.channelProvider,
+    apiMode: config.openaiApiMode,
+    mode: req.body.mode || '',
+    ratio: req.body.ratio || '',
+    style: req.body.style || '',
+    promptLength: req.body.prompt ? String(req.body.prompt).length : 0,
+    hasReference: Boolean(req.body.referenceImageBase64)
+  });
   tasks.set(taskId, {
     taskId,
     channelId: config.channelId || '',
@@ -1007,12 +1061,24 @@ app.post('/v1/ai-image/tasks', requireSecret, (req, res) => {
 app.get('/v1/ai-image/tasks/:taskId', requireSecret, (req, res) => {
   const task = tasks.get(req.params.taskId);
   if (!task) {
+    logAiImageEvent('warn', 'task-query-missing', {
+      taskId: req.params.taskId,
+      requestedChannelId: String(req.query.channelId || req.headers['x-ai-channel-id'] || '').trim(),
+      activeTaskCount: tasks.size
+    });
     res.status(404).json({ success: false, error: '任务不存在' });
     return;
   }
 
   const requestChannelId = String(req.query.channelId || req.headers['x-ai-channel-id'] || '').trim();
   if (requestChannelId && task.channelId && requestChannelId !== task.channelId) {
+    logAiImageEvent('warn', 'task-query-channel-mismatch', {
+      taskId: req.params.taskId,
+      requestedChannelId: requestChannelId,
+      taskChannelId: task.channelId,
+      status: task.status,
+      stage: task.stage || ''
+    });
     res.status(404).json({ success: false, error: '任务不存在' });
     return;
   }
