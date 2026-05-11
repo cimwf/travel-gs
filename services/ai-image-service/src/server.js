@@ -912,9 +912,7 @@ async function runImagesGeneration(taskId, payload, config = getConfig()) {
       form.append('prompt', buildPrompt(payload));
       form.append('size', mapImageSize(payload.ratio));
       form.append('n', '1');
-      if (supportsImageResponseFormat(config.imageModel)) {
-        form.append('response_format', 'url');
-      }
+      form.append('response_format', 'url');
       if (payload.referenceImageUrl) {
         const downloadedReference = await downloadBinary(payload.referenceImageUrl, 120000, { source: 'reference-image' });
         const contentType = normalizeImageContentType(downloadedReference.contentType);
