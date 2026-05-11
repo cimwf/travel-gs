@@ -1,82 +1,10 @@
 const api = require('../../utils/api.js');
 const { styleOptions } = require('../../utils/ai-image-templates.js');
+const { formatAiImageErrorMessage } = require('../../utils/ai-image-error.js');
 
 function toSafeNumber(value, fallback = 0) {
   const number = Number(value);
   return Number.isFinite(number) && number >= 0 ? number : fallback;
-}
-
-function hasValue(value) {
-  return value !== null && value !== undefined && value !== '';
-}
-
-function formatMoney(value) {
-  const price = toSafeNumber(value, 0);
-  if (Number.isInteger(price)) {
-    return String(price);
-  }
-
-  return price.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
-}
-
-function normalizeDiscount(value) {
-  if (!hasValue(value)) return 1;
-
-  const number = Number(value);
-  if (!Number.isFinite(number) || number < 0) return 1;
-
-  let rate = number;
-  if (rate > 1 && rate <= 10) {
-    rate = rate / 10;
-  } else if (rate > 10 && rate <= 100) {
-    rate = rate / 100;
-  }
-
-  if (rate <= 0 || rate > 1) return 1;
-
-  return Math.round(rate * 10000) / 10000;
-}
-
-function formatDiscountText(discount) {
-  if (!(discount >= 0 && discount < 1)) return '';
-
-  const zhe = Math.round(discount * 100) / 10;
-  const text = Number.isInteger(zhe) ? String(zhe) : String(zhe).replace(/0+$/, '').replace(/\.$/, '');
-  return `${text}折`;
-}
-
-function normalizePackage(item = {}) {
-  const discount = normalizeDiscount(item.discount);
-  const hasDiscountedPrice = hasValue(item.afterPrice) || hasValue(item.discountedPrice) || hasValue(item.salePrice) || hasValue(item.finalPrice);
-  const basePrice = toSafeNumber(
-    hasValue(item.beforePrice)
-      ? item.beforePrice
-      : (hasValue(item.originalPrice) ? item.originalPrice : item.price),
-    0
-  );
-  const computedDiscountedPrice = toSafeNumber(basePrice * discount, 0);
-  const explicitDiscountedPrice = hasValue(item.discountedPrice)
-    ? item.discountedPrice
-    : (hasValue(item.afterPrice)
-      ? item.afterPrice
-      : (hasValue(item.salePrice) ? item.salePrice : item.finalPrice));
-  const discountedPrice = toSafeNumber(hasDiscountedPrice ? explicitDiscountedPrice : computedDiscountedPrice, 0);
-  const hasDiscount = discount < 1 && discountedPrice < basePrice;
-  const originalPrice = hasDiscount ? basePrice : discountedPrice;
-
-  return {
-    ...item,
-    discount,
-    hasDiscount,
-    originalPrice,
-    discountedPrice,
-    beforePrice: originalPrice,
-    afterPrice: discountedPrice,
-    price: discountedPrice,
-    originalPriceText: formatMoney(originalPrice),
-    priceText: formatMoney(discountedPrice),
-    discountText: hasDiscount ? formatDiscountText(discount) : ''
-  };
 }
 
 Page({
@@ -122,22 +50,43 @@ Page({
       wx.removeStorageSync('aiImageSelectedTemplate');
       this.applyTemplate(selectedTemplate);
     }
-    this.loadChannels();
-    this.loadSummary();
-    this.loadPackages();
+
+    const now = Date.now();
+    const staleMs = 30 * 1000;
+    if (!this._lastAiImagePageLoadedAt || now - this._lastAiImagePageLoadedAt > staleMs) {
+      this._lastAiImagePageLoadedAt = now;
+      this.loadChannels();
+      this.loadSummary();
+      this.loadPackages();
+      return;
+    }
+
+    if (!this.data.summaryReady) {
+      this.loadSummary();
+    }
   },
 
   onLoad: function (options) {
-    if (options && options.mode === 'image') {
+    const initialMode = options && options.mode === 'image' ? 'image' : 'text';
+    if (initialMode !== this.data.mode) {
       this.setData({
-        mode: 'image'
-      }, this.updateCanGenerate);
+        mode: initialMode
+      }, () => {
+        this.updateCanGenerate();
+        this.loadTemplates(initialMode);
+      });
+      return;
     }
-    this.loadTemplates();
+    this.loadTemplates(initialMode);
   },
 
   onPullDownRefresh: function () {
-    Promise.resolve(this.loadSummary()).finally(() => wx.stopPullDownRefresh());
+    Promise.all([
+      this.loadSummary(),
+      this.loadChannels(),
+      this.loadTemplates(this.data.mode),
+      this.loadPackages()
+    ]).finally(() => wx.stopPullDownRefresh());
   },
 
   onSwitchMode: function (event) {
@@ -159,6 +108,7 @@ Page({
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
+      sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
       success: (res) => {
         const file = res.tempFiles && res.tempFiles[0];
@@ -190,21 +140,26 @@ Page({
   noop: function () {},
 
   loadTemplates: async function (mode = this.data.mode) {
+    const requestId = (this._loadTemplatesRequestId || 0) + 1;
+    this._loadTemplatesRequestId = requestId;
     this.setData({ templateLoading: true });
     try {
       const res = await api.aiImageTemplates(mode);
+      if (this._loadTemplatesRequestId !== requestId || mode !== this.data.mode) return;
       const templates = Array.isArray(res.templates) ? res.templates : [];
       this.setData({
         quickTemplates: templates.slice(0, 4),
         currentTemplates: templates
       });
     } catch (err) {
+      if (this._loadTemplatesRequestId !== requestId) return;
       console.warn('加载 AI 模板失败', err);
       this.setData({
         quickTemplates: [],
         currentTemplates: []
       });
     } finally {
+      if (this._loadTemplatesRequestId !== requestId) return;
       this.setData({ templateLoading: false });
     }
   },
@@ -342,7 +297,7 @@ Page({
     this.setData({ packageLoading: true });
     try {
       const res = await api.aiImagePackages();
-      const packages = Array.isArray(res.packages) ? res.packages.map(item => normalizePackage(item)) : [];
+      const packages = Array.isArray(res.packages) ? res.packages : [];
       this.setData({ packages });
     } catch (err) {
       console.warn('加载 AI 套餐失败', err);
@@ -451,7 +406,10 @@ Page({
 
     const tempFilePath = this.data.referenceImage;
     const suffix = await this.getReferenceImageSuffix(tempFilePath);
-    const cloudPath = `ai-references/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${suffix}`;
+    const rawOpenid = wx.getStorageSync('openid') || 'anonymous';
+    const openid = String(rawOpenid).replace(/[^a-zA-Z0-9_-]/g, '') || 'anonymous';
+    const rand = `${Math.random().toString(36).slice(2, 10)}${Math.random().toString(36).slice(2, 10)}`;
+    const cloudPath = `ai-references/${openid}/${Date.now()}_${rand}.${suffix}`;
     const uploadRes = await wx.cloud.uploadFile({
       cloudPath,
       filePath: tempFilePath
@@ -511,10 +469,12 @@ Page({
       };
       const res = await api.aiImageGenerate(payload);
 
-      this.setData({ taskId: res.taskId, generationStatus: '' });
+      const nextData = { taskId: res.taskId, generationStatus: '' };
       if (res.quota) {
-        this.setData({ summary: this.normalizeSummary(res.quota), summaryReady: true });
+        nextData.summary = this.normalizeSummary(res.quota);
+        nextData.summaryReady = true;
       }
+      this.setData(nextData);
 
       wx.showModal({
         title: '已提交生成',
@@ -544,49 +504,7 @@ Page({
   },
 
   formatErrorMessage: function (err, fallback) {
-    const message = err && (err.message || err.errMsg || err.error || String(err));
-    if (!message) return fallback;
-    const lower = String(message).toLowerCase();
-
-    if (message.includes('渠道不存在') || message.includes('渠道未配置') || message.includes('渠道已停用')) {
-      return '所选渠道不可用，请重新选择';
-    }
-    if (message.includes('次数已用完')) return 'AI 生图次数已用完';
-    if (message.includes('创作描述不能为空')) return '请先填写创作描述';
-    if (message.includes('参考图片不能为空')) return '请先上传参考图';
-    if (lower.includes('429') || lower.includes('rate limit') || lower.includes('too many requests')) {
-      return '当前渠道已满，请换个渠道后再试';
-    }
-    if (
-      lower.includes('timeout') ||
-      message.includes('超时') ||
-      lower.includes('503') ||
-      lower.includes('502') ||
-      lower.includes('500') ||
-      lower.includes('econnreset') ||
-      lower.includes('socket hang up') ||
-      message.includes('服务连接失败') ||
-      message.includes('服务请求失败')
-    ) {
-      return '当前渠道已满，请换个渠道后再试';
-    }
-    if (
-      lower.includes('400') ||
-      lower.includes('bad request') ||
-      lower.includes('invalid') ||
-      lower.includes('policy') ||
-      lower.includes('safety') ||
-      lower.includes('content') ||
-      lower.includes('moderation') ||
-      message.includes('不支持') ||
-      message.includes('违规') ||
-      message.includes('敏感')
-    ) {
-      return '这次没有生成成功，可以换个描述或换张参考图再试';
-    }
-
-    const text = message.length > 60 ? message.slice(0, 60) : message;
-    return text || fallback;
+    return formatAiImageErrorMessage(err, fallback, { includeChannel: true });
   },
 
   normalizeSummary: function (summary = {}) {

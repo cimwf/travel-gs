@@ -9,6 +9,8 @@ const app = express();
 app.use(express.json({ limit: '30mb' }));
 
 const tasks = new Map();
+const MODERATION_ERROR_PATTERN = /content[_\s-]*(policy|filter|moderation|violation)|safety|moderation/i;
+const INVALID_REQUEST_PATTERN = /(^|\b)(400|bad request|invalid)(\b|$)/i;
 
 function env(name, fallback = '') {
   return process.env[name] || fallback;
@@ -450,13 +452,8 @@ function formatUserFacingError(err, fallback = '这次没有生成成功，请�
   }
 
   if (
-    lower.includes('400') ||
-    lower.includes('bad request') ||
-    lower.includes('invalid') ||
-    lower.includes('policy') ||
-    lower.includes('safety') ||
-    lower.includes('content') ||
-    lower.includes('moderation') ||
+    INVALID_REQUEST_PATTERN.test(message) ||
+    MODERATION_ERROR_PATTERN.test(message) ||
     message.includes('不支持') ||
     message.includes('违规') ||
     message.includes('敏感')

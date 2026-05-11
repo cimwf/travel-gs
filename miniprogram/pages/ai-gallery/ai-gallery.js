@@ -1,4 +1,5 @@
 const api = require('../../utils/api.js');
+const { formatAiImageErrorMessage } = require('../../utils/ai-image-error.js');
 
 function toSafeNumber(value, fallback = 0) {
   const number = Number(value);
@@ -42,7 +43,7 @@ Page({
     } catch (err) {
       console.error('加载 AI 作品失败', err);
       wx.showToast({
-        title: this.formatErrorMessage(err, '加载失败'),
+        title: this.formatAiImageErrorText(err, '加载失败'),
         icon: 'none'
       });
     } finally {
@@ -305,7 +306,7 @@ Page({
         } catch (err) {
           console.error('删除 AI 作品失败', err);
           wx.showToast({
-            title: this.formatErrorMessage(err, '删除失败'),
+            title: this.formatAiImageErrorText(err, '删除失败'),
             icon: 'none'
           });
         } finally {
@@ -316,55 +317,8 @@ Page({
     });
   },
 
-  formatErrorMessage: function (err, fallback) {
-    const message = err && (err.message || err.errMsg || err.error || String(err));
-    if (!message) return fallback;
-    return this.formatAiImageErrorText(message, fallback);
-  },
-
   formatAiImageErrorText: function (message, fallback = '这次没有生成成功，可以换个描述或换张参考图再试') {
-    if (!message) return fallback;
-    const text = String(message);
-    const lower = text.toLowerCase();
-
-    if (text.includes('次数已用完')) return 'AI 生图次数已用完';
-    if (text.includes('创作描述不能为空')) return '请先填写创作描述';
-    if (text.includes('参考图片不能为空')) return '请先上传参考图';
-    if (lower.includes('429') || lower.includes('rate limit') || lower.includes('too many requests')) {
-      return '当前渠道已满，请换个渠道后再试';
-    }
-    if (
-      lower.includes('timeout') ||
-      text.includes('超时') ||
-      lower.includes('503') ||
-      lower.includes('502') ||
-      lower.includes('500') ||
-      lower.includes('econnreset') ||
-      lower.includes('socket hang up') ||
-      text.includes('服务连接失败') ||
-      text.includes('服务请求失败')
-    ) {
-      return '当前渠道已满，请换个渠道后再试';
-    }
-    if (
-      lower.includes('400') ||
-      lower.includes('bad request') ||
-      lower.includes('invalid') ||
-      lower.includes('policy') ||
-      lower.includes('safety') ||
-      lower.includes('content') ||
-      lower.includes('moderation') ||
-      text.includes('不支持') ||
-      text.includes('违规') ||
-      text.includes('敏感')
-    ) {
-      return '这次没有生成成功，可以换个描述或换张参考图再试';
-    }
-    if (text.includes('图片下载失败') || text.includes('图片获取失败') || text.includes('COS 上传失败') || text.includes('云存储')) {
-      return '图片保存失败，请稍后重试';
-    }
-
-    return text.length > 60 ? text.slice(0, 60) : text;
+    return formatAiImageErrorMessage(message, fallback);
   },
 
   formatDownloadError: function (err) {

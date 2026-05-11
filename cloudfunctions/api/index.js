@@ -10,8 +10,9 @@ const db = cloud.database();
 const _ = db.command;
 const crypto = require('./utils/crypto');
 const AI_IMAGE_FREE_QUOTA = 3;
-const DEFAULT_CLOUD_ENV_ID = 'prod-d2gkmbquec074b1df';
-const DEFAULT_CLOUD_STORAGE_BUCKET = '7072-prod-d2gkmbquec074b1df-1427058553';
+const AI_IMAGE_PROMPT_MAX_LENGTH = 2000;
+const MODERATION_ERROR_PATTERN = /content[_\s-]*(policy|filter|moderation|violation)|safety|moderation/i;
+const INVALID_REQUEST_PATTERN = /(^|\b)(400|bad request|invalid)(\b|$)/i;
 
 function normalizeAiImageQuotaNumber(value, fallback = AI_IMAGE_FREE_QUOTA) {
   if (value === null || value === undefined || value === '') {
@@ -56,6 +57,41 @@ function getAiImageQuotaUserInfoPatch(quota = {}, userInfo = {}) {
 
 function createAiImageOrderNo(now = Date.now()) {
   return `AI${now}${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+}
+
+function getCurrentCloudEnvId() {
+  const wxContext = cloud.getWXContext ? cloud.getWXContext() : {};
+  return wxContext.ENV || wxContext.env || wxContext.envId || process.env.TCB_ENV || process.env.SCF_NAMESPACE || '';
+}
+
+function getAiImageStorageBucket(value = '') {
+  const configured = process.env.AI_IMAGE_STORAGE_BUCKET || process.env.COS_BUCKET || '';
+  if (configured) return configured;
+
+  const text = String(value || '');
+  const cloudMatch = text.match(/^cloud:\/\/[^.]+\.(.+?)\//);
+  if (cloudMatch) return cloudMatch[1];
+
+  try {
+    const parsed = new URL(text.startsWith('//') ? `https:${text}` : text);
+    const hostMatch = parsed.hostname.match(/^(.+)\.tcb\.qcloud\.la$/);
+    return hostMatch ? hostMatch[1] : '';
+  } catch (err) {
+    return '';
+  }
+}
+
+function buildAiImagePublicUrl(cloudPath, fileID = '') {
+  const bucket = getAiImageStorageBucket(fileID);
+  return cloudPath && bucket ? `https://${bucket}.tcb.qcloud.la/${cloudPath}` : '';
+}
+
+function buildAiImageCloudFileID(cloudPath, bucketSource = '') {
+  const path = String(cloudPath || '').trim().replace(/^\/+/, '');
+  if (!path) return '';
+  const envId = getCurrentCloudEnvId();
+  const bucket = getAiImageStorageBucket(bucketSource);
+  return envId && bucket ? `cloud://${envId}.${bucket}/${path}` : '';
 }
 
 function normalizeAiImagePackagePrice(value, fallback = 0) {
@@ -2720,6 +2756,14 @@ function getEffectiveAiImagePrompt(data = {}) {
   return data.mode === 'image' ? '请基于参考图生成一张高质量图片' : '';
 }
 
+function validateAiImagePromptLength(data = {}) {
+  const prompt = String(data.prompt || '').trim();
+  if (prompt.length > AI_IMAGE_PROMPT_MAX_LENGTH) {
+    return `创作描述不能超过 ${AI_IMAGE_PROMPT_MAX_LENGTH} 字`;
+  }
+  return '';
+}
+
 function getEffectiveAiImageStyle(data = {}) {
   const style = String(data.style || '').trim();
   if (!style) return '';
@@ -2766,13 +2810,8 @@ function getAiImageErrorText(error, fallback = '这次没有生成成功，请�
   }
 
   if (
-    lower.includes('400') ||
-    lower.includes('bad request') ||
-    lower.includes('invalid') ||
-    lower.includes('policy') ||
-    lower.includes('safety') ||
-    lower.includes('content') ||
-    lower.includes('moderation') ||
+    INVALID_REQUEST_PATTERN.test(message) ||
+    MODERATION_ERROR_PATTERN.test(message) ||
     message.includes('不支持') ||
     message.includes('违规') ||
     message.includes('敏感')
@@ -2962,7 +3001,7 @@ function normalizeAiImageUrl(url) {
 function normalizeAiImageItem(image = {}, fallback = {}) {
   const key = image.key || image.fileID || '';
   const cloudPath = image.cloudPath || (key.startsWith('cloud://') ? key.replace(/^cloud:\/\/[^/]+\//, '') : '');
-  const derivedPublicUrl = cloudPath ? `https://${DEFAULT_CLOUD_STORAGE_BUCKET}.tcb.qcloud.la/${cloudPath}` : '';
+  const derivedPublicUrl = cloudPath ? buildAiImagePublicUrl(cloudPath, key) : '';
   const publicUrl = normalizeAiImageUrl(image.publicUrl || image.publicURL || derivedPublicUrl || '');
   const status = image.status || fallback.status || (publicUrl ? 'completed' : 'queued');
 
@@ -3124,7 +3163,7 @@ async function uploadGeneratedImage(openid, imageBase64, responseId = '') {
   return {
     fileID: uploadRes.fileID,
     cloudPath,
-    publicUrl: `https://${DEFAULT_CLOUD_STORAGE_BUCKET}.tcb.qcloud.la/${cloudPath}`,
+    publicUrl: buildAiImagePublicUrl(cloudPath, uploadRes.fileID),
     width: meta.width,
     height: meta.height,
     format: meta.format,
@@ -3150,6 +3189,11 @@ async function aiImageGenerate(openid, data = {}) {
 
   if (data.mode === 'text' && !getEffectiveAiImagePrompt(data)) {
     return { success: false, error: '创作描述不能为空' };
+  }
+
+  const promptError = validateAiImagePromptLength(data);
+  if (promptError) {
+    return { success: false, error: promptError };
   }
 
   if (!['text', 'image'].includes(data.mode)) {
@@ -3286,22 +3330,22 @@ async function aiImageStatus(openid, data = {}) {
       };
       let charged = false;
 
-      if (record && record._id && !record.chargedAt) {
+      if (record && record._id) {
         const now = Date.now();
-        await chargeAiImageUsageIfNeeded(openid, record);
-        charged = true;
-        try {
-          await db.collection('ai_image_generations').doc(record._id).update({
-            data: {
-              status: 'completed',
-              images: buildCompletedAiImages(image, responseId),
-              completedAt: now,
-              chargedAt: now,
-              updatedAt: now
-            }
-          });
-        } catch (err) {
-          console.warn('更新外部 AI 生图记录失败:', err);
+        const completedUpdates = {
+          status: 'completed',
+          images: buildCompletedAiImages(image, responseId),
+          completedAt: now,
+          updatedAt: now
+        };
+        if (record.chargedAt) {
+          try {
+            await db.collection('ai_image_generations').doc(record._id).update({ data: completedUpdates });
+          } catch (err) {
+            console.warn('更新外部 AI 生图记录失败:', err);
+          }
+        } else {
+          charged = await chargeAiImageRecordOnce(openid, record, completedUpdates);
         }
       }
 
@@ -3333,18 +3377,7 @@ async function aiImageStatus(openid, data = {}) {
       const file = urlRes.fileList && urlRes.fileList[0];
       let charged = false;
       if (!record.chargedAt) {
-        await chargeAiImageUsageIfNeeded(openid, record);
-        charged = true;
-        try {
-          await db.collection('ai_image_generations').doc(record._id).update({
-            data: {
-              chargedAt: Date.now(),
-              updatedAt: Date.now()
-            }
-          });
-        } catch (err) {
-          console.warn('标记 AI 生图扣次失败:', err);
-        }
+        charged = await chargeAiImageRecordOnce(openid, record);
       }
       if (recordForOutcome) {
         await incrementAiImageChannelOutcome(recordForOutcome, 'completed');
@@ -3415,22 +3448,21 @@ async function aiImageStatus(openid, data = {}) {
 
   try {
     if (record && record._id) {
-      let charged = false;
       const now = Date.now();
-      if (!record.chargedAt) {
-        await chargeAiImageUsageIfNeeded(openid, record);
-        charged = true;
-      }
+      const completedUpdates = {
+        status: 'completed',
+        images: buildCompletedAiImages(image, responseId),
+        usage: response.usage || null,
+        completedAt: now,
+        updatedAt: now
+      };
+      let charged = false;
 
-      await db.collection('ai_image_generations').doc(record._id).update({
-        data: {
-          status: 'completed',
-          images: buildCompletedAiImages(image, responseId),
-          usage: response.usage || null,
-          completedAt: now,
-          chargedAt: record.chargedAt || now
-        }
-      });
+      if (record.chargedAt) {
+        await db.collection('ai_image_generations').doc(record._id).update({ data: completedUpdates });
+      } else {
+        charged = await chargeAiImageRecordOnce(openid, record, completedUpdates);
+      }
       image.charged = charged;
     }
   } catch (err) {
@@ -3542,22 +3574,50 @@ async function syncAiImageQuotaUserInfo(userId, user) {
 
 async function incrementAiImageUsage(openid) {
   const quota = await ensureAiImageQuota(openid);
-  const used = normalizeAiImageQuotaNumber(quota.used, 0) + 1;
   await db.collection('ai_image_quotas').doc(quota._id).update({
     data: {
-      used,
+      used: _.inc(1),
       updatedAt: Date.now()
     }
   });
-  return { ...quota, used };
+  return { ...quota, used: normalizeAiImageQuotaNumber(quota.used, 0) + 1 };
 }
 
-async function chargeAiImageUsageIfNeeded(openid, record) {
-  if (!record || record.chargedAt) {
-    return;
+async function markAiImageRecordCharged(record, updates = {}) {
+  if (!record || !record._id || record.chargedAt) {
+    return false;
+  }
+
+  const now = updates.chargedAt || Date.now();
+  const data = {
+    ...updates,
+    chargedAt: now,
+    updatedAt: updates.updatedAt || now
+  };
+
+  try {
+    const updateRes = await db.collection('ai_image_generations')
+      .where(_.or(
+        { _id: record._id, chargedAt: _.exists(false) },
+        { _id: record._id, chargedAt: null },
+        { _id: record._id, chargedAt: '' }
+      ))
+      .update({ data });
+    return Boolean(updateRes.stats && updateRes.stats.updated > 0);
+  } catch (err) {
+    console.warn('标记 AI 生图扣次失败:', err);
+    return false;
+  }
+}
+
+async function chargeAiImageRecordOnce(openid, record, updates = {}) {
+  const marked = await markAiImageRecordCharged(record, updates);
+  if (!marked) {
+    return false;
   }
 
   await incrementAiImageUsage(openid);
+  return true;
 }
 
 async function getAiImageSummaryData(openid) {
@@ -3703,13 +3763,23 @@ async function aiImagePurchasePackage(openid, data = {}) {
   };
   const pricing = getAiImagePackagePricing(pack);
 
-  await db.collection('ai_image_quotas').doc(quota._id).update({
-    data: {
-      total: afterTotal,
-      used: afterUsed,
-      updatedAt: now
-    }
-  });
+  const quotaUpdateRes = await db.collection('ai_image_quotas')
+    .where({
+      _id: quota._id,
+      total: beforeTotal,
+      used: beforeUsed
+    })
+    .update({
+      data: {
+        total: afterTotal,
+        used: afterUsed,
+        updatedAt: now
+      }
+    });
+
+  if (!quotaUpdateRes.stats || quotaUpdateRes.stats.updated <= 0) {
+    return { success: false, error: '当前仍有剩余次数，无需充值' };
+  }
 
   await db.collection('ai_image_orders').add({
     data: {
@@ -4042,9 +4112,10 @@ async function syncAiImageRecord(openid, record) {
     updates.status = 'completed';
     updates.images = buildCompletedAiImages(statusRes.image, record.responseId);
     updates.completedAt = Date.now();
-    updates.chargedAt = record.chargedAt || Date.now();
-    if (!record.chargedAt && !statusRes.charged) {
-      await chargeAiImageUsageIfNeeded(openid, record);
+    if (record.chargedAt) {
+      updates.chargedAt = record.chargedAt;
+    } else if (statusRes.charged) {
+      updates.chargedAt = Date.now();
     }
   }
 
@@ -4074,9 +4145,14 @@ async function aiImageList(openid) {
     return map;
   }, {});
 
-  for (const record of res.data || []) {
-    const synced = await syncAiImageRecord(openid, record);
-    items.push(formatAiImageRecord(synced, channelNameById));
+  const records = res.data || [];
+  const concurrency = 5;
+  for (let i = 0; i < records.length; i += concurrency) {
+    const batch = records.slice(i, i + concurrency);
+    const syncedBatch = await Promise.all(batch.map(record => syncAiImageRecord(openid, record)));
+    syncedBatch.forEach(synced => {
+      items.push(formatAiImageRecord(synced, channelNameById));
+    });
   }
 
   return {
@@ -4112,7 +4188,7 @@ function normalizeAiImageCloudFileID(value) {
       const parsed = new URL(fileID);
       const pathname = decodeURIComponent(parsed.pathname || '').replace(/^\/+/, '');
       if (pathname.startsWith('ai-images/') || pathname.startsWith('ai-references/')) {
-        return `cloud://${DEFAULT_CLOUD_ENV_ID}.${DEFAULT_CLOUD_STORAGE_BUCKET}/${pathname}`;
+        return buildAiImageCloudFileID(pathname, fileID);
       }
     } catch (err) {
       return '';
@@ -4129,7 +4205,7 @@ function normalizeAiImageCloudFileID(value) {
   }
 
   if (fileID.startsWith('ai-images/') || fileID.startsWith('ai-references/')) {
-    return `cloud://${DEFAULT_CLOUD_ENV_ID}.${DEFAULT_CLOUD_STORAGE_BUCKET}/${fileID}`;
+    return buildAiImageCloudFileID(fileID);
   }
 
   return '';

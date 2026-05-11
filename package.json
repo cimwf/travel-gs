@@ -11,7 +11,10 @@
     "test": "node tests/mvp-ui-flow.test.js",
     "test:metrics": "node tests/conversion-metrics.test.js",
     "test:e2e": "node tests/e2e-click-flow.test.js",
-    "test:core": "node tests/e2e-core-flow.test.js"
+    "test:core": "node tests/e2e-core-flow.test.js",
+    "test:ai": "node tests/e2e-ai-image-flow.test.js",
+    "test:ai:full": "RUN_REAL_GENERATE=1 node tests/e2e-ai-image-flow.test.js",
+    "test:ai:unit": "node tests/ai-image-unit.test.js"
   },
   "repository": {
     "type": "git",
