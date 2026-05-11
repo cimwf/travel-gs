@@ -1,0 +1,117 @@
+{
+  "patterns": {
+    "moderation": {
+      "source": "content[_\\s-]*(policy|filter|moderation|violation)|safety|moderation",
+      "flags": "i"
+    },
+    "invalidRequest": {
+      "source": "HTTP[\\/ ]?400|status[\\s:]*400|bad[ _]request|invalid[ _](request|parameter|argument)",
+      "flags": "i"
+    }
+  },
+  "rules": [
+    {
+      "id": "channel-unavailable",
+      "scopes": ["miniprogram"],
+      "requiredOptions": { "includeChannel": true },
+      "includesAny": ["渠道不存在", "渠道未配置", "渠道已停用"],
+      "result": "所选渠道不可用，请重新选择"
+    },
+    {
+      "id": "quota-exhausted",
+      "scopes": ["miniprogram", "cloud"],
+      "includesAny": ["次数已用完"],
+      "result": "AI 生图次数已用完"
+    },
+    {
+      "id": "prompt-empty",
+      "includesAny": ["创作描述不能为空"],
+      "result": "请先填写创作描述"
+    },
+    {
+      "id": "reference-empty",
+      "includesAny": ["参考图片不能为空"],
+      "result": "请先上传参考图"
+    },
+    {
+      "id": "invalid-mode",
+      "scopes": ["cloud"],
+      "includesAny": ["生成模式不正确"],
+      "result": "生成模式不正确，请返回后重试"
+    },
+    {
+      "id": "service-unconfigured",
+      "scopes": ["cloud", "service"],
+      "includesAny": ["未配置 OPENAI_API_KEY"],
+      "result": "AI 生图服务暂未配置，请稍后再试"
+    },
+    {
+      "id": "task-id-empty",
+      "scopes": ["cloud"],
+      "includesAny": ["任务ID不能为空"],
+      "result": "生成任务异常，请重新提交"
+    },
+    {
+      "id": "task-expired",
+      "scopes": ["cloud", "service"],
+      "includesAny": ["任务不存在", "任务已失效", "生成任务超时"],
+      "result": "生成任务已失效，请重新提交"
+    },
+    {
+      "id": "reference-read-failed",
+      "scopes": ["miniprogram", "cloud"],
+      "includesAny": ["参考图读取失败", "云存储文件不存在", "cloud.downloadFile"],
+      "result": "参考图读取失败，请重新上传后再试"
+    },
+    {
+      "id": "reference-too-large",
+      "includesAny": ["参考图过大"],
+      "lowerIncludesAny": ["payload too large", "request entity too large", "413"],
+      "result": "参考图过大，请换一张较小的图片再试"
+    },
+    {
+      "id": "auth-failed",
+      "lowerIncludesAny": ["401", "403", "unauthorized", "forbidden"],
+      "result": "AI 生图服务鉴权失败，请检查服务密钥配置"
+    },
+    {
+      "id": "route-not-found",
+      "lowerIncludesAny": ["404", "not found"],
+      "result": "AI 生图服务地址或接口路径不正确"
+    },
+    {
+      "id": "service-500",
+      "lowerIncludesAny": ["500"],
+      "result": "AI 生图服务内部错误，请查看后台日志"
+    },
+    {
+      "id": "rate-limit",
+      "lowerIncludesAny": ["429", "rate limit", "too many requests"],
+      "result": "当前渠道已满，请换个渠道后再试"
+    },
+    {
+      "id": "temporary-unavailable",
+      "includesAny": ["超时", "服务连接失败", "服务请求失败"],
+      "lowerIncludesAny": ["timeout", "timed out", "503", "502", "econnrefused", "econnreset", "enotfound", "eai_again", "socket hang up"],
+      "result": "AI 生图服务暂时不可用，请稍后重试"
+    },
+    {
+      "id": "generation-rejected",
+      "includesAny": ["不支持", "违规", "敏感"],
+      "patternNames": ["invalidRequest", "moderation"],
+      "result": "这次没有生成成功，可以换个描述或换张参考图再试"
+    },
+    {
+      "id": "save-failed-cloud",
+      "scopes": ["cloud"],
+      "includesAny": ["图片下载失败", "图片获取失败", "COS 上传失败", "云存储", "未返回图片"],
+      "result": "图片生成后保存失败，请稍后重试"
+    },
+    {
+      "id": "save-failed-client-service",
+      "scopes": ["miniprogram", "service"],
+      "includesAny": ["图片下载失败", "图片获取失败", "图片下载地址", "COS 上传失败", "云存储", "未返回图片"],
+      "result": "图片保存失败，请稍后重试"
+    }
+  ]
+}

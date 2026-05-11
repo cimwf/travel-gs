@@ -2,6 +2,10 @@
 
 独立高清生图服务，用于绕开微信云函数 60 秒限制。
 
+## 运行环境
+
+Node.js 需使用 14.17.0 或更高版本；仓库内 Dockerfile 当前使用 `node:20-alpine`。
+
 ## 环境变量
 
 必填：
@@ -16,7 +20,7 @@ OPENAI_POLL_TIMEOUT_MS=30000
 OPENAI_IMAGE_MODEL=gpt-image-2
 TENCENT_SECRET_ID=腾讯云 API SecretId
 TENCENT_SECRET_KEY=腾讯云 API SecretKey
-COS_BUCKET=例如 example-1250000000
+COS_BUCKET=example-1250000000
 COS_REGION=例如 ap-shanghai
 ```
 
@@ -25,8 +29,13 @@ COS_REGION=例如 ap-shanghai
 ```text
 AI_IMAGE_SERVICE_SECRET=一段随机密钥
 OPENAI_RESPONSES_MODEL=gpt-4.1-mini
-COS_PUBLIC_BASE_URL=https://你的自定义域名或 COS 公网域名
+AI_IMAGE_HTTP_MAX_SOCKETS=10
+COS_PUBLIC_BASE_URL=https://example-1250000000.cos.ap-shanghai.myqcloud.com
 ```
+
+`COS_BUCKET` 必须填写完整 Bucket 名称，包含腾讯云 appid 后缀，例如 `example-1250000000`。`COS_PUBLIC_BASE_URL` 可使用自定义域名，也可使用 COS 公网域名，需与 `COS_BUCKET` 和 `COS_REGION` 对应。
+
+`AI_IMAGE_HTTP_MAX_SOCKETS` 用于控制 AI 服务对外 HTTP/HTTPS 请求的 keepAlive 连接池上限，默认值为 `10`。
 
 如果部署环境无法直连 OpenAI，可以把 `OPENAI_BASE_URL` 配置为你自己的可访问中转地址。地址可以是根地址，例如 `https://api.openai.com`，也可以是带 `/v1` 的地址。
 

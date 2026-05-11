@@ -51,7 +51,34 @@ globalData: {
 3. 等待部署完成
 4. 对 `cloudfunctions/login` 和 `cloudfunctions/init-data` 重复以上步骤
 
-## 四、导入初始数据
+## 四、部署 AI 生图服务
+
+AI 生图服务位于 `services/ai-image-service`，Node.js 需使用 14.17.0 或更高版本；使用仓库内 Dockerfile 部署时默认是 Node 20。
+
+关键环境变量：
+
+```text
+OPENAI_API_KEY=你的 OpenAI Key
+OPENAI_BASE_URL=https://api.openai.com
+OPENAI_API_MODE=images
+AI_IMAGE_SERVICE_SECRET=一段随机密钥
+TENCENT_SECRET_ID=腾讯云 API SecretId
+TENCENT_SECRET_KEY=腾讯云 API SecretKey
+COS_BUCKET=example-1250000000
+COS_REGION=ap-shanghai
+COS_PUBLIC_BASE_URL=https://example-1250000000.cos.ap-shanghai.myqcloud.com
+```
+
+`COS_BUCKET` 必须是完整 Bucket 名称，包含 appid 后缀，例如 `example-1250000000`；`COS_PUBLIC_BASE_URL` 需要与 Bucket 和地域匹配。
+
+云函数侧需要配置：
+
+```text
+AI_IMAGE_SERVICE_URL=https://你的 AI 生图服务域名
+AI_IMAGE_SERVICE_SECRET=与 AI 生图服务一致的密钥
+```
+
+## 五、导入初始数据
 
 ### 方式一：调用云函数（推荐）
 1. 在云开发控制台 → 云函数
@@ -64,7 +91,7 @@ globalData: {
 2. 点击「导入」→ 选择JSON文件
 3. 使用 `database/places.json` 文件导入
 
-## 五、数据权限配置
+## 六、数据权限配置
 
 在云开发控制台 → 数据库，对每个集合设置权限规则：
 
@@ -84,7 +111,7 @@ comments: 所有用户可读，仅创建者可写
 2. 选择「简易权限配置」
 3. 根据上表选择对应权限
 
-## 六、验证部署
+## 七、验证部署
 
 ### 1. 检查云函数
 在云开发控制台 → 云函数，确认3个云函数状态为「正常」
@@ -95,7 +122,7 @@ comments: 所有用户可读，仅创建者可写
 ### 3. 测试运行
 在模拟器中刷新小程序，首页应显示地点列表
 
-## 七、常见问题
+## 八、常见问题
 
 ### Q: 首页显示空白或报错
 A: 检查以下几点：
@@ -115,7 +142,7 @@ A: 检查以下几点：
 1. login 云函数是否已部署
 2. 是否在正式环境中测试（体验版可能有限制）
 
-## 八、数据结构参考
+## 九、数据结构参考
 
 详细的数据库结构请参考 `database/schema.js`
 

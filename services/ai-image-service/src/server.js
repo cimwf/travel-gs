@@ -1,16 +1,27 @@
 const crypto = require('crypto');
 const https = require('https');
 const http = require('http');
+const dns = require('dns').promises;
+const net = require('net');
 const express = require('express');
 const COS = require('cos-nodejs-sdk-v5');
 const FormData = require('form-data');
+const { formatAiImageSharedErrorMessage } = require('./ai-image-error-rules');
 
 const app = express();
 app.use(express.json({ limit: '30mb' }));
 
 const tasks = new Map();
-const MODERATION_ERROR_PATTERN = /content[_\s-]*(policy|filter|moderation|violation)|safety|moderation/i;
-const INVALID_REQUEST_PATTERN = /(^|\b)(400|bad request|invalid)(\b|$)/i;
+const DEFAULT_IMAGE_DOWNLOAD_ALLOWLIST = [
+  'openai.com',
+  'oaiusercontent.com',
+  'blob.core.windows.net',
+  'toapis.com',
+  'toapis.cn',
+  'myqcloud.com',
+  'tencentcos.cn',
+  'qcloud.la'
+];
 
 function env(name, fallback = '') {
   return process.env[name] || fallback;
@@ -25,6 +36,44 @@ function envFirst(names, fallback = '') {
   return fallback;
 }
 
+function positiveNumberEnv(name, fallback) {
+  const value = Number(process.env[name]);
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
+const TASK_TTL_MS = positiveNumberEnv('AI_IMAGE_TASK_TTL_MS', 60 * 60 * 1000);
+const TASK_CLEANUP_INTERVAL_MS = positiveNumberEnv('AI_IMAGE_TASK_CLEANUP_INTERVAL_MS', 5 * 60 * 1000);
+const HTTP_AGENT_MAX_SOCKETS = positiveNumberEnv('AI_IMAGE_HTTP_MAX_SOCKETS', 10);
+const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: HTTP_AGENT_MAX_SOCKETS });
+const httpAgent = new http.Agent({ keepAlive: true, maxSockets: HTTP_AGENT_MAX_SOCKETS });
+
+function getKeepAliveAgent(protocol) {
+  return protocol === 'http:' ? httpAgent : httpsAgent;
+}
+
+function cleanupExpiredTasks(now = Date.now()) {
+  let deleted = 0;
+  for (const [id, task] of tasks.entries()) {
+    if (task.status !== 'completed' && task.status !== 'failed') continue;
+    if (now - (task.updatedAt || task.createdAt || 0) <= TASK_TTL_MS) continue;
+    tasks.delete(id);
+    deleted += 1;
+  }
+
+  if (deleted) {
+    logAiImageEvent('info', 'task-cleanup', {
+      deleted,
+      activeTaskCount: tasks.size,
+      ttlMs: TASK_TTL_MS
+    });
+  }
+}
+
+const taskCleanupTimer = setInterval(cleanupExpiredTasks, TASK_CLEANUP_INTERVAL_MS);
+if (taskCleanupTimer.unref) {
+  taskCleanupTimer.unref();
+}
+
 function normalizeEnvKey(value) {
   return String(value || '').trim().replace(/[^a-zA-Z0-9]/g, '_').replace(/^_+|_+$/g, '').toUpperCase();
 }
@@ -32,6 +81,20 @@ function normalizeEnvKey(value) {
 function uniq(list) {
   return list.filter((item, index) => item && list.indexOf(item) === index);
 }
+
+function buildChannelSuffixById(envSource = process.env) {
+  const suffixById = new Map();
+  for (const [key, envValue] of Object.entries(envSource)) {
+    const match = key.match(/^(?:AI_IMAGE_)?CHANNEL_?ID(.+)$/i);
+    const channelId = String(envValue || '').trim();
+    if (match && channelId && !suffixById.has(channelId)) {
+      suffixById.set(channelId, match[1]);
+    }
+  }
+  return suffixById;
+}
+
+const CHANNEL_SUFFIX_BY_ID = buildChannelSuffixById();
 
 function getConfig() {
   return {
@@ -58,15 +121,7 @@ function getConfig() {
 function getChannelSuffixFromEnv(channelId) {
   const value = String(channelId || '').trim();
   if (!value) return '';
-
-  for (const [key, envValue] of Object.entries(process.env)) {
-    const match = key.match(/^(?:AI_IMAGE_)?CHANNEL_?ID(.+)$/i);
-    if (match && String(envValue || '').trim() === value) {
-      return match[1];
-    }
-  }
-
-  return '';
+  return CHANNEL_SUFFIX_BY_ID.get(value) || '';
 }
 
 function buildChannelEnvNames(keys, channelId) {
@@ -162,6 +217,7 @@ function requestOpenAI(method, path, payload, timeoutMs = 180000, channelConfig 
       port: baseUrl.port || (baseUrl.protocol === 'http:' ? 80 : 443),
       path: requestPath,
       method,
+      agent: getKeepAliveAgent(baseUrl.protocol),
       headers: {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
@@ -218,6 +274,7 @@ function getOpenAIRequestOptions(method, path, headers = {}, channelConfig = nul
       port: baseUrl.port || (baseUrl.protocol === 'http:' ? 80 : 443),
       path: requestPath,
       method,
+      agent: getKeepAliveAgent(baseUrl.protocol),
       headers: {
         Authorization: `Bearer ${apiKey}`,
         ...headers
@@ -265,6 +322,7 @@ function mapImageSize(ratio) {
     '1:1': '1024x1024',
     '3:4': '1024x1536',
     '4:3': '1536x1024',
+    '16:9': '1536x1024',
     '9:16': '1024x1536'
   };
   return sizeMap[ratio] || '1024x1024';
@@ -281,36 +339,54 @@ function mapToapisImageSize(ratio) {
   return sizeMap[ratio] || '1:1';
 }
 
+function hasReferenceImage(payload = {}) {
+  return Boolean(payload.referenceImageUrl);
+}
+
 function buildPrompt(data) {
   const rawStyle = String(data.style || '').trim();
   const style = ['none', '无', '不要', '不加风格', '无风格', '默认风格'].includes(rawStyle) ? '' : rawStyle;
+  const prompt = String(data.prompt || '').trim();
   const parts = [
-    String(data.prompt || '').trim() || (data.mode === 'image' ? '请基于参考图生成一张高质量图片' : ''),
-    style ? `视觉风格：${style}` : '',
-    '请生成适合在旅行社交小程序中展示的高质量图片。'
+    prompt || (data.mode === 'image' ? '请基于参考图生成一张高质量图片' : ''),
+    style ? `视觉风格：${style}` : ''
   ].filter(Boolean);
 
-  if (data.mode === 'image' && data.referenceImageBase64) {
+  if (!prompt && !style) {
+    parts.push('请生成适合在旅行社交小程序中展示的高质量图片。');
+  }
+
+  if (data.mode === 'image' && hasReferenceImage(data)) {
     parts.push('请以我上传的参考图为基础进行图生图：尽量保留参考图中的主体、构图、姿态和关键视觉元素，只按我的描述调整风格与画面。');
   }
 
   return parts.join('\n');
 }
 
-function extractImageBase64(response) {
-  for (const item of response.output || []) {
-    if (item.type === 'image_generation_call' && item.result) {
-      return item.result;
-    }
-
-    for (const contentItem of item.content || []) {
-      if (contentItem.type === 'image_generation_call' && contentItem.result) {
-        return contentItem.result;
-      }
-    }
+function findGeneratedImageUrl(value) {
+  if (!value) return '';
+  if (typeof value === 'string') {
+    const text = value.trim();
+    return /^https?:\/\//i.test(text) ? text : '';
   }
-
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const imageUrl = findGeneratedImageUrl(item);
+      if (imageUrl) return imageUrl;
+    }
+    return '';
+  }
+  if (typeof value === 'object') {
+    const direct = value.url || value.image_url || value.imageUrl || value.public_url || value.publicUrl;
+    const directUrl = findGeneratedImageUrl(direct);
+    if (directUrl) return directUrl;
+    return findGeneratedImageUrl(value.result || value.content || value.output || value.data);
+  }
   return '';
+}
+
+function extractImageUrlFromResponse(response) {
+  return findGeneratedImageUrl(response && response.output ? response.output : []);
 }
 
 function extractImageUrlFromImagesResponse(response) {
@@ -319,10 +395,21 @@ function extractImageUrlFromImagesResponse(response) {
     : '';
 }
 
-function extractImageBase64FromImagesResponse(response) {
-  return response && response.data && response.data[0] && response.data[0].b64_json
-    ? response.data[0].b64_json
-    : '';
+function buildImageUrlResult(url, extra = {}) {
+  return {
+    url,
+    signedUrl: url,
+    key: '',
+    width: 0,
+    height: 0,
+    format: '',
+    bytes: 0,
+    ...extra
+  };
+}
+
+function supportsImageResponseFormat(model = '') {
+  return !String(model || '').toLowerCase().startsWith('gpt-image');
 }
 
 function extractToapisTaskId(response) {
@@ -367,8 +454,112 @@ function getChatCompletionContent(response) {
     : '';
 }
 
-function downloadBinary(url, timeoutMs = 120000) {
-  const parsedUrl = new URL(url);
+function normalizeDownloadHostname(hostname = '') {
+  const trimmed = String(hostname || '').trim().toLowerCase().replace(/\.$/, '');
+  return trimmed.startsWith('[') && trimmed.endsWith(']') ? trimmed.slice(1, -1) : trimmed;
+}
+
+function getImageDownloadAllowlist() {
+  const configured = env('AI_IMAGE_DOWNLOAD_ALLOWLIST', '')
+    .split(',')
+    .map(item => normalizeDownloadHostname(item).replace(/^\./, ''))
+    .filter(Boolean);
+  return uniq([...DEFAULT_IMAGE_DOWNLOAD_ALLOWLIST, ...configured]);
+}
+
+function isAllowedImageDownloadHost(hostname) {
+  const host = normalizeDownloadHostname(hostname);
+  return getImageDownloadAllowlist().some(domain => host === domain || host.endsWith(`.${domain}`));
+}
+
+function isBlockedIpAddress(address) {
+  const value = normalizeDownloadHostname(address);
+  const ipVersion = net.isIP(value);
+  if (!ipVersion) return false;
+
+  if (ipVersion === 4) {
+    const parts = value.split('.').map(part => Number(part));
+    const [a, b] = parts;
+    return (
+      a === 0 ||
+      a === 10 ||
+      a === 127 ||
+      (a === 100 && b >= 64 && b <= 127) ||
+      (a === 169 && b === 254) ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168) ||
+      (a === 198 && (b === 18 || b === 19)) ||
+      a >= 224
+    );
+  }
+
+  return (
+    value === '::' ||
+    value === '::1' ||
+    value.startsWith('fc') ||
+    value.startsWith('fd') ||
+    value.startsWith('fe80') ||
+    value.startsWith('::ffff:127.') ||
+    value.startsWith('::ffff:10.') ||
+    value.startsWith('::ffff:192.168.') ||
+    value.startsWith('::ffff:169.254.')
+  );
+}
+
+function isBlockedDownloadHostname(hostname) {
+  const host = normalizeDownloadHostname(hostname);
+  return (
+    host === 'localhost' ||
+    host.endsWith('.localhost') ||
+    host.endsWith('.local') ||
+    host === 'metadata.google.internal' ||
+    isBlockedIpAddress(host)
+  );
+}
+
+async function assertSafeDownloadUrl(url, options = {}) {
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(url);
+  } catch (err) {
+    throw new Error('图片下载地址格式不正确');
+  }
+
+  const allowHttp = options.allowHttp || env('AI_IMAGE_ALLOW_HTTP_DOWNLOADS', '').toLowerCase() === 'true';
+  if (parsedUrl.protocol !== 'https:' && !(allowHttp && parsedUrl.protocol === 'http:')) {
+    throw new Error('图片下载地址必须使用 HTTPS');
+  }
+
+  if (isBlockedDownloadHostname(parsedUrl.hostname)) {
+    throw new Error('图片下载地址被安全策略拒绝');
+  }
+
+  if (options.requireAllowedHost && !isAllowedImageDownloadHost(parsedUrl.hostname)) {
+    throw new Error('图片下载地址不在允许的域名列表中');
+  }
+
+  let addresses;
+  try {
+    addresses = net.isIP(normalizeDownloadHostname(parsedUrl.hostname))
+      ? [{ address: normalizeDownloadHostname(parsedUrl.hostname) }]
+      : await dns.lookup(parsedUrl.hostname, { all: true, verbatim: true });
+  } catch (err) {
+    throw new Error(`图片下载地址解析失败：${formatError(err)}`);
+  }
+
+  if ((addresses || []).some(item => isBlockedIpAddress(item.address))) {
+    throw new Error('图片下载地址解析到内网地址，已拒绝下载');
+  }
+
+  return parsedUrl;
+}
+
+async function downloadBinary(url, timeoutMs = 120000, options = {}, redirectCount = 0) {
+  if (redirectCount > 5) {
+    throw new Error('图片下载重定向次数过多');
+  }
+
+  const parsedUrl = await assertSafeDownloadUrl(url, options);
   const transport = parsedUrl.protocol === 'http:' ? http : https;
 
   return new Promise((resolve, reject) => {
@@ -376,10 +567,11 @@ function downloadBinary(url, timeoutMs = 120000) {
       hostname: parsedUrl.hostname,
       port: parsedUrl.port || (parsedUrl.protocol === 'http:' ? 80 : 443),
       path: `${parsedUrl.pathname}${parsedUrl.search}`,
-      method: 'GET'
+      method: 'GET',
+      agent: getKeepAliveAgent(parsedUrl.protocol)
     }, (res) => {
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        resolve(downloadBinary(new URL(res.headers.location, url).toString(), timeoutMs));
+        resolve(downloadBinary(new URL(res.headers.location, url).toString(), timeoutMs, options, redirectCount + 1));
         return;
       }
 
@@ -443,46 +635,7 @@ function logAiImageEvent(level, event, details = {}, err = null) {
 
 function formatUserFacingError(err, fallback = '这次没有生成成功，请稍后重试，或换个描述/参考图再试') {
   const message = formatError(err, '');
-  const lower = message.toLowerCase();
-
-  if (!message) return fallback;
-  if (message.includes('创作描述不能为空')) return '请先填写创作描述';
-  if (message.includes('参考图片不能为空')) return '请先上传参考图';
-  if (message.includes('未配置 OPENAI_API_KEY')) return 'AI 生图服务暂未配置，请稍后再试';
-  if (message.includes('任务不存在')) return '生成任务已失效，请重新提交';
-
-  if (
-    lower.includes('timeout') ||
-    message.includes('超时') ||
-    lower.includes('timed out') ||
-    lower.includes('econnreset') ||
-    lower.includes('socket hang up') ||
-    lower.includes('503') ||
-    lower.includes('502') ||
-    lower.includes('500')
-  ) {
-    return '当前渠道已满，请换个渠道后再试';
-  }
-
-  if (lower.includes('429') || lower.includes('rate limit') || lower.includes('too many requests')) {
-    return '当前渠道已满，请换个渠道后再试';
-  }
-
-  if (
-    INVALID_REQUEST_PATTERN.test(message) ||
-    MODERATION_ERROR_PATTERN.test(message) ||
-    message.includes('不支持') ||
-    message.includes('违规') ||
-    message.includes('敏感')
-  ) {
-    return '这次没有生成成功，可以换个描述或换张参考图再试';
-  }
-
-  if (message.includes('图片获取失败') || message.includes('图片下载失败') || message.includes('COS 上传失败') || message.includes('未返回图片')) {
-    return '图片保存失败，请稍后重试';
-  }
-
-  return fallback;
+  return formatAiImageSharedErrorMessage(message, fallback, { scope: 'service' });
 }
 
 function getCosClient() {
@@ -540,10 +693,6 @@ function getImageMeta(buffer, contentType = '') {
   }
 
   return meta;
-}
-
-async function uploadToCos(taskId, imageBase64) {
-  return await uploadBufferToCos(taskId, Buffer.from(imageBase64, 'base64'), 'image/png', 'png');
 }
 
 function normalizePublicBaseUrl(url) {
@@ -606,7 +755,7 @@ async function runGeneration(taskId, payload, channelConfig = null) {
       mode: payload.mode || '',
       ratio: payload.ratio || '',
       style: payload.style || '',
-      hasReference: Boolean(payload.referenceImageBase64)
+      hasReference: hasReferenceImage(payload)
     });
     task.status = 'in_progress';
     task.stage = 'openai_submitting';
@@ -619,10 +768,10 @@ async function runGeneration(taskId, payload, channelConfig = null) {
     }
 
     const content = [{ type: 'input_text', text: buildPrompt(payload) }];
-    if (payload.referenceImageBase64) {
+    if (payload.referenceImageUrl) {
       content.push({
         type: 'input_image',
-        image_url: `data:${payload.referenceMimeType || 'image/jpeg'};base64,${payload.referenceImageBase64}`
+        image_url: payload.referenceImageUrl
       });
     }
 
@@ -660,24 +809,15 @@ async function runGeneration(taskId, payload, channelConfig = null) {
 
     response = await waitForOpenAIResponse(response.id, config);
 
-    const imageBase64 = extractImageBase64(response);
-    if (!imageBase64) {
-      throw new Error(`OpenAI 未返回图片数据，responseId=${response.id || ''}, status=${response.status || ''}`);
-    }
-
-    task.stage = 'cos_uploading';
-    task.updatedAt = Date.now();
-
-    let uploaded;
-    try {
-      uploaded = await uploadToCos(taskId, imageBase64);
-    } catch (err) {
-      throw new Error(`COS 上传失败：${formatError(err)}`);
+    const imageUrl = extractImageUrlFromResponse(response);
+    if (!imageUrl) {
+      throw new Error(`OpenAI 未返回图片 URL，responseId=${response.id || ''}, status=${response.status || ''}`);
     }
 
     task.status = 'completed';
     task.stage = 'completed';
-    task.image = uploaded;
+    task.sourceImageUrl = imageUrl;
+    task.image = buildImageUrlResult(imageUrl);
     task.responseId = response.id;
     task.updatedAt = Date.now();
     logAiImageEvent('info', 'generation-completed', {
@@ -685,9 +825,8 @@ async function runGeneration(taskId, payload, channelConfig = null) {
       channelId: config.channelId || '',
       provider: config.channelProvider,
       responseId: response.id || '',
-      imageKey: uploaded && uploaded.key ? uploaded.key : '',
-      width: uploaded && uploaded.width ? uploaded.width : 0,
-      height: uploaded && uploaded.height ? uploaded.height : 0
+      imageUrlHost: new URL(imageUrl).hostname,
+      imageKey: ''
     });
   } catch (err) {
     logAiImageEvent('error', 'generation-failed', {
@@ -721,15 +860,11 @@ async function runToapisGeneration(taskId, payload, config = getConfig()) {
     response_format: 'url'
   };
 
-  if (payload.mode === 'image' && payload.referenceImageBase64) {
-    const uploadedReference = await uploadBufferToCos(
-      `${taskId}_reference`,
-      Buffer.from(payload.referenceImageBase64, 'base64'),
-      normalizeImageContentType(payload.referenceMimeType || 'image/jpeg'),
-      getExtFromMime(payload.referenceMimeType || 'image/jpeg')
-    );
-    requestPayload.image_urls = [uploadedReference.signedUrl || uploadedReference.url];
-    task.referenceImageUrl = uploadedReference.url;
+  if (payload.mode === 'image') {
+    if (payload.referenceImageUrl) {
+      requestPayload.image_urls = [payload.referenceImageUrl];
+      task.referenceImageUrl = payload.referenceImageUrl;
+    }
   }
 
   let submitResponse;
@@ -755,33 +890,10 @@ async function runToapisGeneration(taskId, payload, config = getConfig()) {
     throw new Error(`Toapis 未返回图片 URL，taskId=${providerTaskId}`);
   }
 
-  task.stage = 'image_downloading';
   task.sourceImageUrl = imageUrl;
-  task.updatedAt = Date.now();
-
-  let downloaded;
-  try {
-    downloaded = await downloadBinary(imageUrl);
-  } catch (err) {
-    throw new Error(`图片下载失败：${formatError(err)}`);
-  }
-
-  task.stage = 'cos_uploading';
-  task.updatedAt = Date.now();
-
-  const contentType = normalizeImageContentType(downloaded.contentType);
-  const ext = getExtFromMime(contentType);
-
-  let uploaded;
-  try {
-    uploaded = await uploadBufferToCos(taskId, downloaded.buffer, contentType, ext);
-  } catch (err) {
-    throw new Error(`COS 上传失败：${formatError(err)}`);
-  }
-
   task.status = 'completed';
   task.stage = 'completed';
-  task.image = uploaded;
+  task.image = buildImageUrlResult(imageUrl);
   task.responseId = providerTaskId;
   task.updatedAt = Date.now();
 }
@@ -794,18 +906,24 @@ async function runImagesGeneration(taskId, payload, config = getConfig()) {
 
   let response;
   try {
-    if (payload.mode === 'image' && payload.referenceImageBase64) {
-      const ext = getExtFromMime(payload.referenceMimeType || 'image/jpeg');
+    if (payload.mode === 'image' && hasReferenceImage(payload)) {
       const form = new FormData();
       form.append('model', config.imageModel);
       form.append('prompt', buildPrompt(payload));
       form.append('size', mapImageSize(payload.ratio));
       form.append('n', '1');
-      form.append('response_format', 'url');
-      form.append('image', Buffer.from(payload.referenceImageBase64, 'base64'), {
-        filename: `reference.${ext}`,
-        contentType: payload.referenceMimeType || 'image/jpeg'
-      });
+      if (supportsImageResponseFormat(config.imageModel)) {
+        form.append('response_format', 'url');
+      }
+      if (payload.referenceImageUrl) {
+        const downloadedReference = await downloadBinary(payload.referenceImageUrl, 120000, { source: 'reference-image' });
+        const contentType = normalizeImageContentType(downloadedReference.contentType);
+        const ext = getExtFromMime(contentType);
+        form.append('image', downloadedReference.buffer, {
+          filename: `reference.${ext}`,
+          contentType
+        });
+      }
 
       response = await requestOpenAIMultipart('/v1/images/edits', form, config.openaiSubmitTimeoutMs, config);
     } else {
@@ -814,52 +932,22 @@ async function runImagesGeneration(taskId, payload, config = getConfig()) {
         prompt: buildPrompt(payload),
         size: mapImageSize(payload.ratio),
         n: 1,
-        response_format: 'url'
+        ...(supportsImageResponseFormat(config.imageModel) ? { response_format: 'url' } : {})
       }, config.openaiSubmitTimeoutMs, config);
     }
   } catch (err) {
     throw new Error(`Images API 调用失败：${formatError(err)}`);
   }
 
-  let downloaded;
   const imageUrl = extractImageUrlFromImagesResponse(response);
-  const imageBase64 = extractImageBase64FromImagesResponse(response);
-
-  task.stage = 'image_downloading';
-  task.sourceImageUrl = imageUrl || '';
-  task.updatedAt = Date.now();
-
-  try {
-    if (imageUrl) {
-      downloaded = await downloadBinary(imageUrl);
-    } else if (imageBase64) {
-      downloaded = {
-        buffer: Buffer.from(imageBase64, 'base64'),
-        contentType: 'image/png'
-      };
-    } else {
-      throw new Error('Images API 未返回图片 URL 或 base64');
-    }
-  } catch (err) {
-    throw new Error(`图片获取失败：${formatError(err)}`);
-  }
-
-  task.stage = 'cos_uploading';
-  task.updatedAt = Date.now();
-
-  const contentType = normalizeImageContentType(downloaded.contentType);
-  const ext = getExtFromMime(contentType);
-
-  let uploaded;
-  try {
-    uploaded = await uploadBufferToCos(taskId, downloaded.buffer, contentType, ext);
-  } catch (err) {
-    throw new Error(`COS 上传失败：${formatError(err)}`);
+  if (!imageUrl) {
+    throw new Error('Images API 未返回图片 URL');
   }
 
   task.status = 'completed';
   task.stage = 'completed';
-  task.image = uploaded;
+  task.sourceImageUrl = imageUrl;
+  task.image = buildImageUrlResult(imageUrl);
   task.responseId = response.created ? String(response.created) : '';
   task.updatedAt = Date.now();
 }
@@ -884,13 +972,13 @@ async function runChatCompletionGeneration(taskId, payload, config = getConfig()
   task.updatedAt = Date.now();
 
   const promptText = `${buildPrompt(payload)}\n\n请直接返回生成图片的 URL，不要返回解释文字。`;
-  const messageContent = payload.referenceImageBase64 && config.chatImageInputMode === 'multimodal'
+  const messageContent = hasReferenceImage(payload) && config.chatImageInputMode === 'multimodal'
     ? [
         { type: 'text', text: promptText },
         {
           type: 'image_url',
           image_url: {
-            url: `data:${payload.referenceMimeType || 'image/jpeg'};base64,${payload.referenceImageBase64}`
+            url: payload.referenceImageUrl
           }
         }
       ]
@@ -920,33 +1008,10 @@ async function runChatCompletionGeneration(taskId, payload, config = getConfig()
     throw new Error(`Chat Completions 未返回图片 URL：${typeof content === 'string' ? content.slice(0, 120) : ''}`);
   }
 
-  task.stage = 'image_downloading';
   task.sourceImageUrl = imageUrl;
-  task.updatedAt = Date.now();
-
-  let downloaded;
-  try {
-    downloaded = await downloadBinary(imageUrl);
-  } catch (err) {
-    throw new Error(`图片下载失败：${formatError(err)}`);
-  }
-
-  task.stage = 'cos_uploading';
-  task.updatedAt = Date.now();
-
-  const contentType = downloaded.contentType.includes('jpeg') ? 'image/jpeg' : downloaded.contentType.includes('webp') ? 'image/webp' : 'image/png';
-  const ext = contentType.includes('jpeg') ? 'jpg' : contentType.includes('webp') ? 'webp' : 'png';
-
-  let uploaded;
-  try {
-    uploaded = await uploadBufferToCos(taskId, downloaded.buffer, contentType, ext);
-  } catch (err) {
-    throw new Error(`COS 上传失败：${formatError(err)}`);
-  }
-
   task.status = 'completed';
   task.stage = 'completed';
-  task.image = uploaded;
+  task.image = buildImageUrlResult(imageUrl);
   task.responseId = response.id;
   task.updatedAt = Date.now();
 }
@@ -1025,7 +1090,7 @@ app.post('/v1/ai-image/tasks', requireSecret, (req, res) => {
     return;
   }
 
-  if (req.body.mode === 'image' && !req.body.referenceImageBase64) {
+  if (req.body.mode === 'image' && !hasReferenceImage(req.body)) {
     res.status(400).json({ success: false, error: '参考图片不能为空' });
     return;
   }
@@ -1041,7 +1106,7 @@ app.post('/v1/ai-image/tasks', requireSecret, (req, res) => {
     ratio: req.body.ratio || '',
     style: req.body.style || '',
     promptLength: req.body.prompt ? String(req.body.prompt).length : 0,
-    hasReference: Boolean(req.body.referenceImageBase64)
+    hasReference: hasReferenceImage(req.body)
   });
   tasks.set(taskId, {
     taskId,

@@ -12,6 +12,9 @@
 
 const assert = require('assert');
 const { formatAiImageErrorMessage } = require('../miniprogram/utils/ai-image-error.js');
+const cloudErrorRules = require('../cloudfunctions/api/utils/ai-image-error-rules.js');
+const serviceErrorRules = require('../services/ai-image-service/src/ai-image-error-rules.js');
+const miniprogramErrorRules = require('../miniprogram/utils/ai-image-error-rules.js');
 
 // ============ 从 ai-image.js 复制的规格实现（保持一致才通过） ============
 function toSafeNumber(value, fallback = 0) {
@@ -90,10 +93,31 @@ describe('formatErrorMessage', () => {
     assert.strictEqual(formatErrorMessage({ message: 'HTTP 429 Too Many Requests' }), '当前渠道已满，请换个渠道后再试');
   });
   it('502 网络错', () => {
-    assert.strictEqual(formatErrorMessage({ message: 'Bad Gateway 502' }), '当前渠道已满，请换个渠道后再试');
+    assert.strictEqual(formatErrorMessage({ message: 'Bad Gateway 502' }), 'AI 生图服务暂时不可用，请稍后重试');
+  });
+  it('429 才提示渠道满', () => {
+    assert.strictEqual(formatErrorMessage({ message: 'HTTP 429 Too Many Requests' }), '当前渠道已满，请换个渠道后再试');
+  });
+  it('413 参考图过大', () => {
+    assert.strictEqual(formatErrorMessage({ message: 'Payload Too Large 413' }), '参考图过大，请换一张较小的图片再试');
+  });
+  it('401 服务鉴权失败', () => {
+    assert.strictEqual(formatErrorMessage({ message: 'AI 服务请求失败(401): Unauthorized' }), 'AI 生图服务鉴权失败，请检查服务密钥配置');
+  });
+  it('404 服务地址错误', () => {
+    assert.strictEqual(formatErrorMessage({ message: 'AI 服务请求失败(404): Not Found' }), 'AI 生图服务地址或接口路径不正确');
+  });
+  it('500 服务内部错误', () => {
+    assert.strictEqual(formatErrorMessage({ message: 'AI 服务请求失败(500): internal error' }), 'AI 生图服务内部错误，请查看后台日志');
   });
   it('400 敏感内容', () => {
     assert.strictEqual(formatErrorMessage({ message: '内容违规' }), '这次没有生成成功，可以换个描述或换张参考图再试');
+  });
+  it('invalid_request 错误归入生成失败', () => {
+    assert.strictEqual(formatErrorMessage({ message: 'invalid_request: unsupported image format' }), '这次没有生成成功，可以换个描述或换张参考图再试');
+  });
+  it('普通 Invalid 文案不误判成内容违规', () => {
+    assert.strictEqual(formatErrorMessage({ message: 'Invalid Weapon prompt variant' }, 'fallback'), 'Invalid Weapon prompt variant');
   });
   it('content-type 错误不误判成内容违规', () => {
     assert.strictEqual(formatErrorMessage({ message: 'Unsupported content-type: text/html' }, 'fallback'), 'Unsupported content-type: text/html');
@@ -108,6 +132,13 @@ describe('formatErrorMessage', () => {
   });
   it('空错误用 fallback', () => {
     assert.strictEqual(formatErrorMessage(null, 'default'), 'default');
+  });
+});
+
+describe('aiImageErrorRulesSync', () => {
+  it('三端错误规则来自同一份生成源', () => {
+    assert.deepStrictEqual(cloudErrorRules.AI_IMAGE_ERROR_RULE_SOURCE, serviceErrorRules.AI_IMAGE_ERROR_RULE_SOURCE);
+    assert.deepStrictEqual(cloudErrorRules.AI_IMAGE_ERROR_RULE_SOURCE, miniprogramErrorRules.AI_IMAGE_ERROR_RULE_SOURCE);
   });
 });
 

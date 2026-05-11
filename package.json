@@ -14,7 +14,8 @@
     "test:core": "node tests/e2e-core-flow.test.js",
     "test:ai": "node tests/e2e-ai-image-flow.test.js",
     "test:ai:full": "RUN_REAL_GENERATE=1 node tests/e2e-ai-image-flow.test.js",
-    "test:ai:unit": "node tests/ai-image-unit.test.js"
+    "test:ai:unit": "node scripts/sync-ai-image-error-rules.js --check && node tests/ai-image-unit.test.js",
+    "sync:ai-error-rules": "node scripts/sync-ai-image-error-rules.js"
   },
   "repository": {
     "type": "git",
