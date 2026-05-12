@@ -258,11 +258,20 @@ page {
   padding: 32rpx;
 }
 
+.profile-trip-list {
+  padding: 0;
+}
+
 .trip-card {
   background: #f8f9fa;
   border-radius: 24rpx;
   padding: 24rpx;
   margin-bottom: 24rpx;
+}
+
+.profile-trip-list .trip-card {
+  background: #FFFFFF;
+  box-shadow: var(--shadow-sm);
 }
 
 .trip-card:last-child {

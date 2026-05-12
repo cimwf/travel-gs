@@ -49,53 +49,40 @@
       </view>
 
       <!-- 发布的行程 -->
-      <view class="section-card trips-card">
-        <view class="trips-header">
-          <view class="section-title">📍 发布的行程</view>
-          <text class="trips-count">{{trips.length}}个</text>
-        </view>
-
-        <view class="trip-list" wx:if="{{trips.length > 0}}">
-          <view class="trip-card" wx:for="{{trips}}" wx:key="_id" bindtap="onTripTap" data-id="{{item._id}}">
-            <view class="trip-header">
-              <image class="trip-img" src="{{item.placeCoverImage}}" mode="aspectFill" wx:if="{{item.placeCoverImage}}"></image>
-              <view class="trip-img" style="background: {{item.imgBg}};" wx:else>
-                <text class="trip-emoji">{{item.emoji}}</text>
-              </view>
-              <view class="trip-info">
-                <view class="trip-title-row">
-                  <view class="trip-title">{{item.displayTitle || item.placeName}}</view>
-                  <view class="trip-status {{item.statusClass}}">{{item.statusText}}</view>
-                </view>
-                <view class="trip-meta">
-                  <text>📅 {{item.dateText}}</text>
-                  <text class="meta-dot">·</text>
-                  <text>📍 {{item.departure || '待定'}}</text>
-                </view>
-                <view class="trip-meta trip-meta-second">
-                  <text>{{item.carText}}</text>
-                  <text class="meta-dot" wx:if="{{item.priceText}}">·</text>
-                  <text wx:if="{{item.priceText}}">{{item.priceText}}</text>
-                </view>
-              </view>
+      <view class="trip-list profile-trip-list" wx:if="{{trips.length > 0}}">
+        <view class="trip-card" wx:for="{{trips}}" wx:key="_id" bindtap="onTripTap" data-id="{{item._id}}">
+          <view class="trip-header">
+            <image class="trip-img" src="{{item.placeCoverImage}}" mode="aspectFill" wx:if="{{item.placeCoverImage}}"></image>
+            <view class="trip-img" style="background: {{item.imgBg}};" wx:else>
+              <text class="trip-emoji">{{item.emoji}}</text>
             </view>
-
-            <view class="trip-footer">
-              <view class="trip-footer-left">
-                <view class="participants">
-                  <image class="participant-avatar" wx:for="{{item.participants}}" wx:for-item="p" wx:for-index="pIndex" wx:key="userId" src="{{p.avatar}}" mode="aspectFill"></image>
-                </view>
-                <text class="trip-need" wx:if="{{item.needCount > 0}}">还差{{item.needCount}}人</text>
+            <view class="trip-info">
+              <view class="trip-title-row">
+                <view class="trip-title">{{item.displayTitle || item.placeName}}</view>
+                <view class="trip-status {{item.statusClass}}">{{item.statusText}}</view>
               </view>
-              <text class="publish-time">{{item.publishTime}}</text>
+              <view class="trip-meta">
+                <text>📅 {{item.dateText}}</text>
+                <text class="meta-dot">·</text>
+                <text>📍 {{item.departure || '待定'}}</text>
+              </view>
+              <view class="trip-meta trip-meta-second">
+                <text>{{item.carText}}</text>
+                <text class="meta-dot" wx:if="{{item.priceText}}">·</text>
+                <text wx:if="{{item.priceText}}">{{item.priceText}}</text>
+              </view>
             </view>
           </view>
-        </view>
 
-        <!-- 空状态 -->
-        <view class="empty-state" wx:else>
-          <text class="empty-icon">📭</text>
-          <text class="empty-text">暂无发布的行程</text>
+          <view class="trip-footer">
+            <view class="trip-footer-left">
+              <view class="participants">
+                <image class="participant-avatar" wx:for="{{item.participants}}" wx:for-item="p" wx:for-index="pIndex" wx:key="userId" src="{{p.avatar}}" mode="aspectFill"></image>
+              </view>
+              <text class="trip-need" wx:if="{{item.needCount > 0}}">还差{{item.needCount}}人</text>
+            </view>
+            <text class="publish-time">{{item.publishTime}}</text>
+          </view>
         </view>
       </view>
     </view>
