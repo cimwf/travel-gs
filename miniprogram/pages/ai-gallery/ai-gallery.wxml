@@ -9,8 +9,16 @@
       <view class="summary-title">我的 AI 作品</view>
       <view class="summary-desc" wx:if="{{summaryReady}}">已生成 {{summary.generatedCount}} 张 · 剩余 {{summary.remaining}} / {{summary.total}} 次</view>
       <view class="summary-desc" wx:else>额度读取中...</view>
+      <view class="edit-tip" wx:if="{{editMode}}">已选择 {{selectedCount}} 张，可批量删除</view>
     </view>
-    <view class="refresh-btn" bindtap="loadWorks">{{loading ? '刷新中' : '刷新'}}</view>
+    <view class="summary-actions">
+      <view class="summary-action {{editMode ? 'danger' : 'edit'}}" wx:if="{{!isEmpty}}" bindtap="onPrimaryAction">
+        {{editMode ? (deletingId ? '删除中' : '删除') : '编辑'}}
+      </view>
+      <view class="summary-action {{editMode ? 'ghost' : 'refresh'}}" bindtap="onSecondaryAction">
+        {{editMode ? '取消' : (loading ? '刷新中' : '刷新')}}
+      </view>
+    </view>
   </view>
 
   <view class="empty" wx:if="{{isEmpty && !loading}}">
@@ -21,9 +29,14 @@
 
   <view class="image-list" wx:else>
     <view class="image-card" wx:for="{{works}}" wx:key="_id">
-      <view class="image-wrap {{item.status !== 'completed' ? 'pending' : ''}}">
+      <view
+        class="image-wrap {{item.status !== 'completed' ? 'pending' : ''}} {{editMode ? 'editable' : ''}} {{item.selected ? 'selected' : ''}} {{!item.deletable && editMode ? 'disabled' : ''}}"
+        data-id="{{item._id || item.taskId}}"
+        data-url="{{item.imageUrl}}"
+        bindtap="onCardTap"
+      >
         <block wx:if="{{item.status === 'completed' && item.imageUrl}}">
-          <image class="work-image" src="{{item.imageUrl}}" mode="aspectFill" data-url="{{item.imageUrl}}" bindtap="onPreviewImage"></image>
+          <image class="work-image" src="{{item.imageUrl}}" mode="aspectFill"></image>
         </block>
         <block wx:elif="{{item.status === 'failed' || item.status === 'cancelled'}}">
           <view class="failed-box">
@@ -41,6 +54,14 @@
             <view class="status-desc">高清图片正在生成，请3-5分钟后刷新</view>
           </view>
         </block>
+        <view
+          class="select-badge {{item.selected ? 'checked' : ''}} {{!item.deletable ? 'disabled' : ''}}"
+          wx:if="{{editMode}}"
+          data-id="{{item._id || item.taskId}}"
+          catchtap="onToggleSelect"
+        >
+          <view class="select-check" wx:if="{{item.selected}}"></view>
+        </view>
       </view>
       <view class="card-body">
         <view class="meta-row">
@@ -53,17 +74,14 @@
         <view class="prompt">{{item.prompt || '基于参考图生成'}}</view>
         <view class="image-meta" wx:if="{{item.metaText}}">{{item.metaText}}</view>
         <view class="time-text" wx:if="{{item.createdText}}">{{item.createdText}}</view>
-        <view class="actions">
-          <view class="action danger" wx:if="{{item.status === 'completed' || item.status === 'failed' || item.status === 'cancelled'}}" data-id="{{item._id || item.taskId}}" bindtap="onDeleteWork">
-            {{deletingId === (item._id || item.taskId) ? '删除中' : '删除'}}
-          </view>
-          <block wx:if="{{item.status === 'completed' && item.imageUrl}}">
-            <view class="action" data-url="{{item.imageUrl}}" bindtap="onPreviewImage">放大</view>
-            <view class="action" data-url="{{item.copyUrl}}" bindtap="onCopyLink">复制链接</view>
-            <view class="action primary" data-url="{{item.saveUrl}}" data-fallback-url="{{item.imageUrl}}" bindtap="onSaveImage">保存</view>
-          </block>
-        </view>
       </view>
+    </view>
+  </view>
+
+  <view class="batch-bar" wx:if="{{editMode && !isEmpty}}">
+    <view class="batch-info">已选 {{selectedCount}} 张</view>
+    <view class="batch-actions">
+      <view class="batch-btn secondary" bindtap="onToggleSelectAll">{{allSelectableSelected ? '取消全选' : '全选'}}</view>
     </view>
   </view>
 </view>

@@ -10,6 +10,10 @@ Page({
   data: {
     loading: false,
     deletingId: '',
+    editMode: false,
+    selectedIds: [],
+    selectedCount: 0,
+    allSelectableSelected: false,
     summaryReady: false,
     summary: {
       total: 3,
@@ -33,12 +37,16 @@ Page({
     this.setData({ loading: true });
     try {
       const res = await api.aiImageList();
-      const works = (res.images || []).map(item => this.formatWork(item));
+      const works = this.decorateWorks((res.images || []).map(item => this.formatWork(item)), this.data.selectedIds);
       this.setData({
         summary: res.summary ? this.normalizeSummary(res.summary) : this.data.summary,
         summaryReady: Boolean(res.summary),
         works,
-        isEmpty: works.length === 0
+        isEmpty: works.length === 0,
+        selectedIds: works.filter(item => item.selected).map(item => this.getWorkId(item)),
+        selectedCount: works.filter(item => item.selected).length,
+        allSelectableSelected: this.areAllSelectableSelected(works),
+        editMode: works.length === 0 ? false : this.data.editMode
       });
     } catch (err) {
       console.error('加载 AI 作品失败', err);
@@ -71,6 +79,7 @@ Page({
     return {
       ...item,
       status,
+      deletable: this.isDeletableStatus(status),
       statusText: this.getStatusText(status),
       statusDesc: this.getStatusDesc(status),
       imageUrl: firstImage.imageUrl || this.normalizeImageUrl(item.publicUrl) || this.normalizeImageUrl(item.imageUrl) || '',
@@ -83,6 +92,29 @@ Page({
       metaText: firstImage.metaText || '',
       errorText: this.formatAiImageErrorText(item.error || firstImage.errorText)
     };
+  },
+
+  decorateWorks: function (works = [], selectedIds = []) {
+    return works.map((work) => {
+      const id = this.getWorkId(work);
+      return {
+        ...work,
+        selected: Boolean(id) && selectedIds.includes(id)
+      };
+    });
+  },
+
+  getWorkId: function (work = {}) {
+    return work._id || work.taskId || '';
+  },
+
+  isDeletableStatus: function (status) {
+    return status === 'completed' || status === 'failed' || status === 'cancelled';
+  },
+
+  areAllSelectableSelected: function (works = []) {
+    const selectable = works.filter(item => item.deletable);
+    return selectable.length > 0 && selectable.every(item => item.selected);
   },
 
   normalizeSummary: function (summary = {}) {
@@ -161,87 +193,84 @@ Page({
     wx.previewImage({ current: url, urls });
   },
 
-  onSaveImage: function (event) {
-    const url = event.currentTarget.dataset.url;
-    const fallbackUrl = event.currentTarget.dataset.fallbackUrl;
-    if (!url) return;
+  onPrimaryAction: function () {
+    if (this.data.editMode) {
+      this.onDeleteSelected();
+      return;
+    }
+    this.onToggleEditMode();
+  },
 
-    wx.getSetting({
-      success: (settingRes) => {
-        if (settingRes.authSetting['scope.writePhotosAlbum'] === false) {
-          wx.showModal({
-            title: '需要相册权限',
-            content: '请允许保存图片到相册。',
-            confirmText: '去设置',
-            success: (modalRes) => {
-              if (modalRes.confirm) wx.openSetting();
-            }
-          });
-          return;
-        }
+  onSecondaryAction: function () {
+    if (this.data.editMode) {
+      this.onToggleEditMode();
+      return;
+    }
+    if (this.data.loading) return;
+    this.loadWorks();
+  },
 
-        this.downloadAndSaveImage(url, fallbackUrl);
-      },
-      fail: () => this.downloadAndSaveImage(url, fallbackUrl)
+  onToggleEditMode: function () {
+    const nextEditMode = !this.data.editMode;
+    this.setData({
+      editMode: nextEditMode,
+      selectedIds: nextEditMode ? this.data.selectedIds : [],
+      selectedCount: nextEditMode ? this.data.selectedCount : 0,
+      allSelectableSelected: nextEditMode ? this.data.allSelectableSelected : false,
+      works: nextEditMode ? this.data.works : this.decorateWorks(this.data.works, [])
     });
   },
 
-  downloadAndSaveImage: function (url, fallbackUrl) {
-    wx.showLoading({ title: '保存中' });
-    wx.downloadFile({
-      url,
-      success: (downloadRes) => {
-        if (downloadRes.statusCode !== 200) {
-          if (fallbackUrl && fallbackUrl !== url) {
-            wx.hideLoading();
-            this.downloadAndSaveImage(fallbackUrl, '');
-            return;
-          }
-          wx.showToast({
-            title: downloadRes.statusCode === 401 || downloadRes.statusCode === 403 ? '图片链接已过期，请刷新后重试' : `图片下载失败(${downloadRes.statusCode})`,
-            icon: 'none',
-            duration: 3000
-          });
-          return;
-        }
+  onCardTap: function (event) {
+    const id = event.currentTarget.dataset.id;
+    const url = event.currentTarget.dataset.url;
 
-        wx.saveImageToPhotosAlbum({
-          filePath: downloadRes.tempFilePath,
-          success: () => wx.showToast({ title: '已保存到相册', icon: 'success' }),
-          fail: (err) => {
-            console.error('保存图片到相册失败', err);
-            wx.showToast({
-              title: this.formatSaveError(err, '保存失败，请检查相册权限'),
-              icon: 'none',
-              duration: 3000
-            });
-          }
-        });
-      },
-      fail: (err) => {
-        console.error('下载图片失败', err);
-        if (fallbackUrl && fallbackUrl !== url) {
-          wx.hideLoading();
-          this.downloadAndSaveImage(fallbackUrl, '');
-          return;
-        }
-        wx.showToast({
-          title: this.formatDownloadError(err),
-          icon: 'none',
-          duration: 3000
-        });
-      },
-      complete: () => wx.hideLoading()
+    if (this.data.editMode) {
+      this.toggleSelectById(id);
+      return;
+    }
+
+    if (!url) return;
+    this.onPreviewImage({ currentTarget: { dataset: { url } } });
+  },
+
+  onToggleSelect: function (event) {
+    const id = event.currentTarget.dataset.id;
+    this.toggleSelectById(id);
+  },
+
+  toggleSelectById: function (id) {
+    if (!id || this.data.deletingId) return;
+    const work = this.data.works.find(item => this.getWorkId(item) === id);
+    if (!work || !work.deletable) return;
+
+    const selectedIds = this.data.selectedIds.includes(id)
+      ? this.data.selectedIds.filter(item => item !== id)
+      : this.data.selectedIds.concat(id);
+
+    const works = this.decorateWorks(this.data.works, selectedIds);
+    this.setData({
+      selectedIds,
+      works,
+      selectedCount: selectedIds.length,
+      allSelectableSelected: this.areAllSelectableSelected(works)
     });
   },
 
-  onCopyLink: function (event) {
-    const url = event.currentTarget.dataset.url;
-    if (!url) return;
+  onToggleSelectAll: function () {
+    if (this.data.deletingId) return;
+    const selectableIds = this.data.works
+      .filter(item => item.deletable)
+      .map(item => this.getWorkId(item))
+      .filter(Boolean);
 
-    wx.setClipboardData({
-      data: url,
-      success: () => wx.showToast({ title: '链接已复制', icon: 'success' })
+    const selectedIds = this.data.allSelectableSelected ? [] : selectableIds;
+    const works = this.decorateWorks(this.data.works, selectedIds);
+    this.setData({
+      selectedIds,
+      works,
+      selectedCount: selectedIds.length,
+      allSelectableSelected: this.areAllSelectableSelected(works)
     });
   },
 
@@ -274,37 +303,39 @@ Page({
     return fileIDs;
   },
 
-  onDeleteWork: function (event) {
-    const id = event.currentTarget.dataset.id;
-    if (!id || this.data.deletingId) return;
-    const work = this.data.works.find(item => item._id === id || item.taskId === id) || {};
-    const fileIDs = this.collectWorkFileIDs(work);
+  onDeleteSelected: function () {
+    if (this.data.deletingId || this.data.selectedCount === 0) return;
+
+    const selectedWorks = this.data.works.filter(item => item.selected && item.deletable);
+    if (!selectedWorks.length) return;
 
     wx.showModal({
-      title: '删除作品',
-      content: '删除后不可恢复，确认是否删除。',
+      title: '删除所选作品',
+      content: `已选择 ${selectedWorks.length} 张作品，删除后不可恢复，确认继续吗？`,
       confirmText: '删除',
       confirmColor: '#D92D20',
       success: async (modalRes) => {
         if (!modalRes.confirm) return;
 
-        this.setData({ deletingId: id });
+        this.setData({ deletingId: 'batch' });
         wx.showLoading({ title: '删除中' });
         try {
-          const res = await api.aiImageDelete(id, fileIDs);
-          const works = this.data.works.filter(item => item._id !== id && item.taskId !== id);
-          const nextData = {
-            works,
-            isEmpty: works.length === 0
-          };
-          if (res.summary) {
-            nextData.summary = this.normalizeSummary(res.summary);
-            nextData.summaryReady = true;
+          for (const work of selectedWorks) {
+            // 串行删除，避免并发请求导致状态提示混乱。
+            await api.aiImageDelete(this.getWorkId(work), this.collectWorkFileIDs(work));
           }
-          this.setData(nextData);
+
+          await this.loadWorks();
+          this.setData({
+            editMode: false,
+            selectedIds: [],
+            selectedCount: 0,
+            allSelectableSelected: false,
+            works: this.decorateWorks(this.data.works, [])
+          });
           wx.showToast({ title: '已删除', icon: 'success' });
         } catch (err) {
-          console.error('删除 AI 作品失败', err);
+          console.error('批量删除 AI 作品失败', err);
           wx.showToast({
             title: this.formatAiImageErrorText(err, '删除失败'),
             icon: 'none'
@@ -319,27 +350,5 @@ Page({
 
   formatAiImageErrorText: function (message, fallback = '这次没有生成成功，可以换个描述或换张参考图再试') {
     return formatAiImageErrorMessage(message, fallback);
-  },
-
-  formatDownloadError: function (err) {
-    const message = err && (err.errMsg || err.message || String(err));
-    if (message && (message.includes('domain') || message.includes('合法域名'))) {
-      return '请配置 downloadFile 合法域名';
-    }
-    if (message && message.includes('url not in domain list')) {
-      return '请配置下载合法域名';
-    }
-    if (message && message.includes('timeout')) {
-      return '图片下载超时';
-    }
-    return '图片下载失败';
-  },
-
-  formatSaveError: function (err, fallback) {
-    const message = err && (err.errMsg || err.message || String(err));
-    if (message && (message.includes('auth deny') || message.includes('authorize'))) {
-      return '请允许保存到相册';
-    }
-    return fallback;
   }
 });
