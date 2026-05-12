@@ -62,6 +62,7 @@ Page({
         }
         return {
           ...item,
+          fromUserId: item.fromUserId,
           placeCoverImage: coverImage,
           avatarBg: this.getAvatarBg(item.userName),
           placeBg: this.getPlaceBg(item.placeName),
@@ -323,6 +324,27 @@ Page({
       manageApplyId: '',
       manageTripId: ''
     });
+  },
+
+  onTapNotificationCard: function (e) {
+    const { type, userid } = e.currentTarget.dataset;
+    if (type !== 'received' || !userid) {
+      return;
+    }
+
+    wx.navigateTo({
+      url: `/pages/user-profile/user-profile?id=${userid}`
+    });
+  },
+
+  // 点击头像跳转用户主页
+  onTapUserAvatar: function (e) {
+    const userId = e.currentTarget.dataset.userid;
+    if (userId) {
+      wx.navigateTo({
+        url: `/pages/user-profile/user-profile?id=${userId}`
+      });
+    }
   },
 
   // 删除通知记录

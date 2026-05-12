@@ -37,7 +37,7 @@
     >
       <view class="list-content">
         <block wx:if="{{notifications.length > 0}}">
-          <view class="notification-card" wx:for="{{notifications}}" wx:key="_id">
+          <view class="notification-card" wx:for="{{notifications}}" wx:key="_id" bindtap="onTapNotificationCard" data-type="{{item.type}}" data-userid="{{item.fromUserId}}">
 
             <!-- 我收到的申请：别人申请加入我的行程 -->
             <block wx:if="{{item.type === 'received'}}">

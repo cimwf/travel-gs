@@ -168,6 +168,8 @@ async function installCoreMock(miniProgram, reset = false) {
           result.push({
             _id: apply._id,
             type: 'received',
+            fromUserId: apply.fromUserId,
+            profileUserId: apply.fromUserId,
             userName: apply.fromUserName,
             fromUserAvatar: '',
             headerTitle: `${apply.fromUserName} 申请加入您的行程`,
@@ -196,6 +198,8 @@ async function installCoreMock(miniProgram, reset = false) {
           result.push({
             _id: event._id,
             type: 'received',
+            fromUserId: event.fromUserId,
+            profileUserId: event.fromUserId,
             userName: event.fromUserName || '发起人',
             headerTitle: '您已被移出行程',
             headerMeta: trip.placeName || event.placeName,
@@ -215,6 +219,8 @@ async function installCoreMock(miniProgram, reset = false) {
           result.push({
             _id: event._id,
             type: 'received',
+            fromUserId: event.fromUserId,
+            profileUserId: event.fromUserId,
             userName: event.fromUserName || '申请人',
             headerTitle: `${event.fromUserName || '申请人'} 退出了您的行程`,
             headerMeta: trip.placeName || event.placeName,

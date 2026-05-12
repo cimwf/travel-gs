@@ -2033,6 +2033,7 @@ async function applyNotifications(openid) {
       receivedList.push({
         _id: item._id,
         type: 'received',
+        fromUserId: item.fromUserId || '',
         userName: item.fromUserName || '旅行者',
         fromUserAvatar: avatar,
         headerTitle: (item.fromUserName || '旅行者') + ' 退出了您的行程',
@@ -2056,6 +2057,8 @@ async function applyNotifications(openid) {
       receivedList.push({
         _id: item._id,
         type: 'received',
+        fromUserId: item.fromUserId || '',
+        profileUserId: item.fromUserId || '',
         userName: item.fromUserName || '发起人',
         fromUserAvatar: avatar,
         headerTitle: '您已被移出行程',
@@ -2079,6 +2082,8 @@ async function applyNotifications(openid) {
       receivedList.push({
         _id: item._id,
         type: 'received',
+        fromUserId: item.fromUserId || '',
+        profileUserId: item.fromUserId || '',
         userName: item.fromUserName || '发起人',
         fromUserAvatar: avatar,
         headerTitle: '行程已取消',
@@ -2102,6 +2107,8 @@ async function applyNotifications(openid) {
       receivedList.push({
         _id: item._id,
         type: 'received',
+        fromUserId: item.fromUserId || '',
+        profileUserId: item.fromUserId || '',
         userName: item.fromUserName || '发起人',
         fromUserAvatar: avatar,
         headerTitle: '行程已删除',
@@ -2125,6 +2132,8 @@ async function applyNotifications(openid) {
       receivedList.push({
         _id: item._id,
         type: 'received',
+        fromUserId: item.fromUserId || '',
+        profileUserId: item.fromUserId || '',
         userName: item.fromUserName || '旅行者',
         fromUserAvatar: avatar,
         headerTitle: (item.fromUserName || '旅行者') + ' 申请加入您的行程',
