@@ -292,6 +292,23 @@ page {
   color: white;
 }
 
+.info-inline-input {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12rpx;
+  flex: 1;
+}
+
+.age-input {
+  width: 160rpx;
+}
+
+.info-suffix {
+  font-size: 28rpx;
+  color: var(--text-hint);
+}
+
 /* ========== 手机号行 ========== */
 .phone-row {
   flex-direction: column;

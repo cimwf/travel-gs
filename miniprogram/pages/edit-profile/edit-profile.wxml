@@ -47,6 +47,13 @@
               <view class="gender-tag {{userInfo.gender === 'secret' ? 'active' : ''}}" data-value="secret" bindtap="onGenderChange">保密</view>
             </view>
           </view>
+          <view class="info-row">
+            <text class="info-label">年龄</text>
+            <view class="info-inline-input">
+              <input class="info-input age-input" type="number" placeholder="请输入年龄" placeholder-class="input-placeholder" value="{{userInfo.age}}" maxlength="3" bindinput="onAgeInput" bindblur="onAgeBlur" />
+              <text class="info-suffix">岁</text>
+            </view>
+          </view>
           <view class="info-row phone-row">
             <text class="info-label">联系方式 <text class="required">*</text></text>
             <view class="info-input-view">

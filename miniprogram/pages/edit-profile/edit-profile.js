@@ -11,6 +11,7 @@ Page({
       backgroundFileID: '',
       nickname: '',
       gender: '',
+      age: '',
       contactPhone: '',  // 联系方式
       bio: '',
       birthday: '',
@@ -119,6 +120,7 @@ Page({
       nickname: userInfo.nickname,
       avatar: avatarForDb,
       gender: userInfo.gender,
+      age: userInfo.age,
       contactPhone: userInfo.contactPhone,
       bio: userInfo.bio,
       background: backgroundForDb,
@@ -336,6 +338,27 @@ Page({
   onGenderChange: function (e) {
     const value = e.currentTarget.dataset.value;
     this.setData({ 'userInfo.gender': value });
+    this.autoSave();
+  },
+
+  onAgeInput: function (e) {
+    const value = String(e.detail.value || '').replace(/\D/g, '').slice(0, 3);
+    this.setData({ 'userInfo.age': value });
+  },
+
+  onAgeBlur: function () {
+    const rawAge = this.data.userInfo.age;
+    if (rawAge === '' || rawAge === null || rawAge === undefined) {
+      this.autoSave();
+      return;
+    }
+
+    const ageNumber = Number(rawAge);
+    const normalizedAge = Number.isNaN(ageNumber)
+      ? ''
+      : String(Math.min(120, Math.max(1, ageNumber)));
+
+    this.setData({ 'userInfo.age': normalizedAge });
     this.autoSave();
   },
 

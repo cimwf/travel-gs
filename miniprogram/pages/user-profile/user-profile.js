@@ -13,7 +13,8 @@ Page({
       background: '',
       bio: '',
       userId: '',
-      gender: 0
+      gender: 0,
+      age: ''
     },
     defaultBackground: 'https://7072-prod-d2gkmbquec074b1df-1427058553.tcb.qcloud.la/attractions/1778050814136-42heznfom6q.JPG',
     stats: {
@@ -26,9 +27,11 @@ Page({
   },
 
   onLoad: function (options) {
+    this.skipNextShowRefresh = true;
+
     // 如果传入了 id 参数，查看该用户主页
     // 否则显示当前登录用户的主页
-    const userId = options.id || '';
+    const userId = options.id || options.userId || options.fromUserId || '';
 
     if (userId) {
       this.setData({ userId, isCurrentUser: false });
@@ -37,6 +40,24 @@ Page({
       // 没有传 id，显示当前登录用户
       this.loadCurrentUser();
     }
+  },
+
+  onShow: function () {
+    if (this.skipNextShowRefresh) {
+      this.skipNextShowRefresh = false;
+      return;
+    }
+
+    this.refreshProfile();
+  },
+
+  refreshProfile: function () {
+    if (this.data.isCurrentUser || !this.data.userId) {
+      this.loadCurrentUser();
+      return;
+    }
+
+    this.loadUserProfile(this.data.userId);
   },
 
   getTodayRange: function () {
@@ -88,7 +109,12 @@ Page({
       const res = await api.userGet(userId);
 
       if (res.success && res.user) {
-        const userData = res.user;
+        const localUserInfo = this.data.isCurrentUser
+          ? (app.globalData.userInfo || wx.getStorageSync('userInfo') || {})
+          : {};
+        const userData = this.data.isCurrentUser
+          ? { ...res.user, ...localUserInfo }
+          : res.user;
 
         // 处理头像URL
         let avatar = userData.avatar || '';
@@ -123,7 +149,8 @@ Page({
             background: background,
             bio: userData.bio || '',
             userId: userData.userId || '',
-            gender: userData.gender || 0
+            gender: userData.gender || 0,
+            age: userData.age === undefined || userData.age === null ? '' : userData.age
           },
           stats: {
             trips: userData.trips || 0,
