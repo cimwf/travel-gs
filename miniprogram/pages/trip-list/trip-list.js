@@ -14,12 +14,15 @@ Page({
 
     // 筛选相关
     activeFilter: '',
+    showStatusFilter: false,
     showDestinationFilter: false,
     showDepartureFilter: false,
     showDateFilter: false,
+    filterStatus: '',
     filterDestination: '',
     filterDeparture: '',
     filterDate: '',
+    statusFilterText: '',
     destinationText: '',
     departureText: '',
     dateText: '',
@@ -266,8 +269,10 @@ Page({
 
   // 筛选行程
   filterTrips: function (trips) {
-    const { filterDestination, filterDeparture, filterDate } = this.data;
+    const { filterStatus, filterDestination, filterDeparture, filterDate } = this.data;
     let result = trips;
+
+    result = result.filter(t => this.matchesStatusFilter(t.statusClass, filterStatus));
 
     if (filterDestination) {
       result = result.filter(t => t.placeName === filterDestination);
@@ -324,6 +329,20 @@ Page({
     return result;
   },
 
+  matchesStatusFilter: function (statusClass, filterStatus) {
+    const normalizedStatus = statusClass || 'recruiting';
+
+    if (!filterStatus) {
+      return ['recruiting', 'almost-full', 'full'].includes(normalizedStatus);
+    }
+
+    if (filterStatus === 'recruiting') {
+      return ['recruiting', 'almost-full'].includes(normalizedStatus);
+    }
+
+    return normalizedStatus === filterStatus;
+  },
+
   // 获取行程图片背景
   getImgBg: function (placeName) {
     const bgMap = {
@@ -356,9 +375,18 @@ Page({
   onFilterTap: function (e) {
     const filter = e.currentTarget.dataset.filter;
 
-    if (filter === 'destination') {
+    if (filter === 'status') {
+      this.setData({
+        showStatusFilter: true,
+        showDestinationFilter: false,
+        showDepartureFilter: false,
+        showDateFilter: false,
+        activeFilter: 'status'
+      });
+    } else if (filter === 'destination') {
       this.setData({
         showDestinationFilter: true,
+        showStatusFilter: false,
         showDepartureFilter: false,
         showDateFilter: false,
         activeFilter: 'destination'
@@ -366,6 +394,7 @@ Page({
     } else if (filter === 'departure') {
       this.setData({
         showDepartureFilter: true,
+        showStatusFilter: false,
         showDestinationFilter: false,
         showDateFilter: false,
         activeFilter: 'departure'
@@ -373,6 +402,7 @@ Page({
     } else if (filter === 'date') {
       this.setData({
         showDateFilter: true,
+        showStatusFilter: false,
         showDestinationFilter: false,
         showDepartureFilter: false,
         activeFilter: 'date'
@@ -383,10 +413,31 @@ Page({
   // 关闭筛选弹窗
   onCloseFilter: function () {
     this.setData({
+      showStatusFilter: false,
       showDestinationFilter: false,
       showDepartureFilter: false,
       showDateFilter: false,
       activeFilter: ''
+    });
+  },
+
+  // 选择状态
+  onSelectStatus: function (e) {
+    const value = e.currentTarget.dataset.value;
+    const textMap = {
+      '': '',
+      'recruiting': '招募中',
+      'almost-full': '即将满员',
+      'full': '已满员'
+    };
+    this.setData({
+      filterStatus: value,
+      statusFilterText: textMap[value] || '',
+      showStatusFilter: false,
+      activeFilter: ''
+    });
+    this.setData({
+      trips: this.filterTrips(this.data.allTrips)
     });
   },
 
