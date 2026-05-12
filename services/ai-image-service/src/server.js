@@ -74,27 +74,43 @@ if (taskCleanupTimer.unref) {
   taskCleanupTimer.unref();
 }
 
-function normalizeEnvKey(value) {
-  return String(value || '').trim().replace(/[^a-zA-Z0-9]/g, '_').replace(/^_+|_+$/g, '').toUpperCase();
-}
-
 function uniq(list) {
   return list.filter((item, index) => item && list.indexOf(item) === index);
 }
 
-function buildChannelSuffixById(envSource = process.env) {
-  const suffixById = new Map();
-  for (const [key, envValue] of Object.entries(envSource)) {
-    const match = key.match(/^(?:AI_IMAGE_)?CHANNEL_?ID(.+)$/i);
-    const channelId = String(envValue || '').trim();
-    if (match && channelId && !suffixById.has(channelId)) {
-      suffixById.set(channelId, match[1]);
-    }
+function resolveChannelEnvSuffix(channelId, envSource = process.env) {
+  const value = String(channelId || '').trim();
+  if (!value) {
+    return {
+      matched: true,
+      suffix: '',
+      envKey: ''
+    };
   }
-  return suffixById;
-}
 
-const CHANNEL_SUFFIX_BY_ID = buildChannelSuffixById();
+  for (const [key, envValue] of Object.entries(envSource)) {
+    const match = key.match(/^AI_IMAGE_CHANNEL_ID(\d+)$/i);
+    if (!match) {
+      continue;
+    }
+
+    if (String(envValue || '').trim() !== value) {
+      continue;
+    }
+
+    return {
+      matched: true,
+      suffix: match[1] === '1' ? '' : match[1],
+      envKey: key
+    };
+  }
+
+  return {
+    matched: false,
+    suffix: '',
+    envKey: ''
+  };
+}
 
 function getConfig() {
   return {
@@ -103,7 +119,7 @@ function getConfig() {
     openaiBaseUrl: env('OPENAI_BASE_URL', 'https://api.openai.com'),
     openaiApiMode: env('OPENAI_API_MODE', 'images'),
     chatImageInputMode: env('CHAT_IMAGE_INPUT_MODE', 'multimodal'),
-    openaiSubmitTimeoutMs: Number(env('OPENAI_SUBMIT_TIMEOUT_MS', '90000')),
+    openaiSubmitTimeoutMs: Number(env('OPENAI_SUBMIT_TIMEOUT_MS', '600000')),
     openaiPollTimeoutMs: Number(env('OPENAI_POLL_TIMEOUT_MS', '30000')),
     imageModel: env('OPENAI_IMAGE_MODEL', 'gpt-image-2'),
     imageResolution: env('OPENAI_IMAGE_RESOLUTION', ''),
@@ -118,36 +134,8 @@ function getConfig() {
   };
 }
 
-function getChannelSuffixFromEnv(channelId) {
-  const value = String(channelId || '').trim();
-  if (!value) return '';
-  return CHANNEL_SUFFIX_BY_ID.get(value) || '';
-}
-
-function buildChannelEnvNames(keys, channelId) {
-  const value = String(channelId || '').trim();
-  const normalized = normalizeEnvKey(value);
-  const envSuffix = getChannelSuffixFromEnv(value);
-  const trailingNumber = value.match(/(\d+)$/);
-  const suffixes = uniq([
-    envSuffix,
-    normalized,
-    value,
-    trailingNumber ? trailingNumber[1] : ''
-  ]);
-  const names = [];
-
-  for (const key of keys) {
-    names.push(`${normalized}_${key}`);
-    names.push(`${key}_${normalized}`);
-    for (const suffix of suffixes) {
-      names.push(`${key}${suffix}`);
-      names.push(`${key}_${suffix}`);
-      names.push(`CHANNEL_${suffix}_${key}`);
-    }
-  }
-
-  return uniq(names);
+function buildChannelEnvKey(key, suffix = '') {
+  return suffix ? `${key}${suffix}` : key;
 }
 
 function getDefaultChannelProvider(baseProvider, suffix) {
@@ -157,31 +145,37 @@ function getDefaultChannelProvider(baseProvider, suffix) {
 
 function getChannelConfig(channelId) {
   const base = getConfig();
-  const id = String(channelId || env('AI_IMAGE_DEFAULT_CHANNEL_ID')).trim();
-  const suffix = getChannelSuffixFromEnv(id);
+  const id = String(channelId || '').trim();
+  const channelEnv = resolveChannelEnvSuffix(id);
 
   if (!id) {
     return {
       ...base,
-      channelId: ''
+      channelId: '',
+      channelMatched: true,
+      channelEnvKey: '',
+      channelEnvSuffix: ''
     };
   }
 
   return {
     ...base,
     channelId: id,
-    apiKey: envFirst(buildChannelEnvNames(['APIKEY', 'API_KEY', 'OPENAI_API_KEY'], id), base.apiKey),
-    openaiBaseUrl: envFirst(buildChannelEnvNames(['BASEURL', 'BASE_URL', 'OPENAI_BASE_URL'], id), base.openaiBaseUrl),
-    openaiApiMode: envFirst(buildChannelEnvNames(['API_MODE', 'OPENAI_API_MODE'], id), base.openaiApiMode),
-    chatImageInputMode: envFirst(buildChannelEnvNames(['CHAT_IMAGE_INPUT_MODE'], id), base.chatImageInputMode),
-    openaiSubmitTimeoutMs: Number(envFirst(buildChannelEnvNames(['SUBMIT_TIMEOUT_MS', 'OPENAI_SUBMIT_TIMEOUT_MS'], id), String(base.openaiSubmitTimeoutMs))),
-    openaiPollTimeoutMs: Number(envFirst(buildChannelEnvNames(['POLL_TIMEOUT_MS', 'OPENAI_POLL_TIMEOUT_MS'], id), String(base.openaiPollTimeoutMs))),
-    imageModel: envFirst(buildChannelEnvNames(['MODEL', 'MODAL', 'IMAGE_MODEL', 'OPENAI_IMAGE_MODEL'], id), base.imageModel),
-    imageResolution: envFirst(buildChannelEnvNames(['RESOLUTION', 'IMAGE_RESOLUTION', 'OPENAI_IMAGE_RESOLUTION'], id), base.imageResolution),
-    responsesModel: envFirst(buildChannelEnvNames(['RESPONSES_MODEL', 'OPENAI_RESPONSES_MODEL'], id), base.responsesModel),
-    channelProvider: envFirst(
-      buildChannelEnvNames(['PROVIDER', 'CHANNEL_PROVIDER', 'AI_IMAGE_PROVIDER'], id),
-      getDefaultChannelProvider(base.channelProvider, suffix)
+    channelMatched: channelEnv.matched,
+    channelEnvKey: channelEnv.envKey,
+    channelEnvSuffix: channelEnv.suffix,
+    apiKey: channelEnv.matched ? env(buildChannelEnvKey('OPENAI_API_KEY', channelEnv.suffix), base.apiKey) : '',
+    openaiBaseUrl: channelEnv.matched ? env(buildChannelEnvKey('OPENAI_BASE_URL', channelEnv.suffix), base.openaiBaseUrl) : base.openaiBaseUrl,
+    openaiApiMode: channelEnv.matched ? env(buildChannelEnvKey('OPENAI_API_MODE', channelEnv.suffix), base.openaiApiMode) : base.openaiApiMode,
+    chatImageInputMode: channelEnv.matched ? env(buildChannelEnvKey('CHAT_IMAGE_INPUT_MODE', channelEnv.suffix), base.chatImageInputMode) : base.chatImageInputMode,
+    openaiSubmitTimeoutMs: Number(channelEnv.matched ? env(buildChannelEnvKey('OPENAI_SUBMIT_TIMEOUT_MS', channelEnv.suffix), String(base.openaiSubmitTimeoutMs)) : String(base.openaiSubmitTimeoutMs)),
+    openaiPollTimeoutMs: Number(channelEnv.matched ? env(buildChannelEnvKey('OPENAI_POLL_TIMEOUT_MS', channelEnv.suffix), String(base.openaiPollTimeoutMs)) : String(base.openaiPollTimeoutMs)),
+    imageModel: channelEnv.matched ? env(buildChannelEnvKey('OPENAI_IMAGE_MODEL', channelEnv.suffix), base.imageModel) : base.imageModel,
+    imageResolution: channelEnv.matched ? env(buildChannelEnvKey('OPENAI_IMAGE_RESOLUTION', channelEnv.suffix), base.imageResolution) : base.imageResolution,
+    responsesModel: channelEnv.matched ? env(buildChannelEnvKey('OPENAI_RESPONSES_MODEL', channelEnv.suffix), base.responsesModel) : base.responsesModel,
+    channelProvider: env(
+      buildChannelEnvKey('AI_IMAGE_PROVIDER', channelEnv.suffix),
+      getDefaultChannelProvider(base.channelProvider, channelEnv.suffix)
     )
   };
 }
@@ -930,7 +924,7 @@ async function runImagesGeneration(taskId, payload, config = getConfig()) {
         prompt: buildPrompt(payload),
         size: mapImageSize(payload.ratio),
         n: 1,
-        ...(supportsImageResponseFormat(config.imageModel) ? { response_format: 'url' } : {})
+        response_format: 'url'
       }, config.openaiSubmitTimeoutMs, config);
     }
   } catch (err) {
@@ -1069,10 +1063,24 @@ app.get('/health', (req, res) => {
 
 app.post('/v1/ai-image/tasks', requireSecret, (req, res) => {
   const config = getChannelConfig(req.body.channelId);
+  if (config.channelId && !config.channelMatched) {
+    logAiImageEvent('error', 'task-create-channel-unmatched', {
+      channelId: config.channelId || '',
+      requestedChannelId: req.body.channelId || ''
+    });
+    res.status(400).json({
+      success: false,
+      error: `渠道 ${config.channelId} 未匹配到 AI_IMAGE_CHANNEL_ID 配置`
+    });
+    return;
+  }
+
   if (!config.apiKey) {
     logAiImageEvent('error', 'task-create-config-missing', {
       channelId: config.channelId || '',
       requestedChannelId: req.body.channelId || '',
+      channelEnvKey: config.channelEnvKey || '',
+      channelEnvSuffix: config.channelEnvSuffix || '',
       provider: config.channelProvider,
       apiMode: config.openaiApiMode
     });
@@ -1098,6 +1106,8 @@ app.post('/v1/ai-image/tasks', requireSecret, (req, res) => {
     taskId,
     channelId: config.channelId || '',
     requestedChannelId: req.body.channelId || '',
+    channelEnvKey: config.channelEnvKey || '',
+    channelEnvSuffix: config.channelEnvSuffix || '',
     provider: config.channelProvider,
     apiMode: config.openaiApiMode,
     mode: req.body.mode || '',

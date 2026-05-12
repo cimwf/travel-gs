@@ -2929,7 +2929,7 @@ function normalizeAiImageChannelNumber(value, fallback = 0) {
 function normalizeAiImageChannel(item = {}) {
   return {
     _id: item._id || '',
-    channelId: String(item.channelId || item._id || '').trim(),
+    channelId: String(item.channelId || '').trim(),
     name: String(item.name || '').trim(),
     remark: String(item.remark || '').trim(),
     enabled: item.enabled !== false,
@@ -2951,7 +2951,7 @@ async function getAiImageChannelByChannelId(channelId) {
   try {
     const docRes = await db.collection('ai_image_channels').doc(value).get();
     const doc = Array.isArray(docRes.data) ? docRes.data[0] : docRes.data;
-    if (doc && (doc.channelId || doc._id)) {
+    if (doc && doc.channelId) {
       return normalizeAiImageChannel(doc);
     }
   } catch (err) {
