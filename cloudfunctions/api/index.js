@@ -2,6 +2,8 @@
 const cloud = require('wx-server-sdk');
 const https = require('https');
 const http = require('http');
+const dns = require('dns').promises;
+const net = require('net');
 const nodeCrypto = require('crypto');
 
 cloud.init({
@@ -16,6 +18,18 @@ const AI_IMAGE_FREE_QUOTA = 3;
 const AI_IMAGE_PROMPT_MAX_LENGTH = 2000;
 const AI_IMAGE_TASK_EXPIRE_MS_DEFAULT = 15 * 60 * 1000;
 const AI_IMAGE_HTTP_MAX_SOCKETS = 10;
+const AI_IMAGE_DOWNLOAD_MAX_BYTES_DEFAULT = 20 * 1024 * 1024;
+const DEFAULT_AI_IMAGE_DOWNLOAD_ALLOWLIST = [
+  'openai.com',
+  'oaiusercontent.com',
+  'blob.core.windows.net',
+  'toapis.com',
+  'toapis.cn',
+  'copilotbase.com',
+  'myqcloud.com',
+  'tencentcos.cn',
+  'qcloud.la'
+];
 const aiImageHttpsAgent = new https.Agent({ keepAlive: true, maxSockets: AI_IMAGE_HTTP_MAX_SOCKETS });
 const aiImageHttpAgent = new http.Agent({ keepAlive: true, maxSockets: AI_IMAGE_HTTP_MAX_SOCKETS });
 
@@ -2688,6 +2702,184 @@ function requestJsonUrl(method, url, payload, headers = {}, timeoutMs = 25000) {
   });
 }
 
+function getAiImageDownloadMaxBytes() {
+  const value = Number(process.env.AI_IMAGE_DOWNLOAD_MAX_BYTES);
+  return Number.isFinite(value) && value > 0 ? value : AI_IMAGE_DOWNLOAD_MAX_BYTES_DEFAULT;
+}
+
+function normalizeAiImageDownloadHostname(hostname = '') {
+  const trimmed = String(hostname || '').trim().toLowerCase().replace(/\.$/, '');
+  return trimmed.startsWith('[') && trimmed.endsWith(']') ? trimmed.slice(1, -1) : trimmed;
+}
+
+function getAiImageDownloadAllowlist() {
+  const configured = String(process.env.AI_IMAGE_DOWNLOAD_ALLOWLIST || '')
+    .split(',')
+    .map(item => normalizeAiImageDownloadHostname(item).replace(/^\./, ''))
+    .filter(Boolean);
+  return [...new Set([...DEFAULT_AI_IMAGE_DOWNLOAD_ALLOWLIST, ...configured])];
+}
+
+function isAllowedAiImageDownloadHost(hostname) {
+  const host = normalizeAiImageDownloadHostname(hostname);
+  return getAiImageDownloadAllowlist().some(domain => host === domain || host.endsWith(`.${domain}`));
+}
+
+function isBlockedAiImageIpAddress(address) {
+  const value = normalizeAiImageDownloadHostname(address);
+  const ipVersion = net.isIP(value);
+  if (!ipVersion) return false;
+
+  if (ipVersion === 4) {
+    const [a, b] = value.split('.').map(part => Number(part));
+    return (
+      a === 0 ||
+      a === 10 ||
+      a === 127 ||
+      (a === 100 && b >= 64 && b <= 127) ||
+      (a === 169 && b === 254) ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168) ||
+      (a === 198 && (b === 18 || b === 19)) ||
+      a >= 224
+    );
+  }
+
+  return (
+    value === '::' ||
+    value === '::1' ||
+    value.startsWith('fc') ||
+    value.startsWith('fd') ||
+    value.startsWith('fe80') ||
+    value.startsWith('::ffff:127.') ||
+    value.startsWith('::ffff:10.') ||
+    value.startsWith('::ffff:192.168.') ||
+    value.startsWith('::ffff:169.254.')
+  );
+}
+
+function isBlockedAiImageDownloadHostname(hostname) {
+  const host = normalizeAiImageDownloadHostname(hostname);
+  return (
+    host === 'localhost' ||
+    host.endsWith('.localhost') ||
+    host.endsWith('.local') ||
+    host === 'metadata.google.internal' ||
+    isBlockedAiImageIpAddress(host)
+  );
+}
+
+async function assertSafeAiImageDownloadUrl(url) {
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(url);
+  } catch (err) {
+    throw new Error('图片下载地址格式不正确');
+  }
+
+  const allowHttp = String(process.env.AI_IMAGE_ALLOW_HTTP_DOWNLOADS || '').toLowerCase() === 'true';
+  if (parsedUrl.protocol !== 'https:' && !(allowHttp && parsedUrl.protocol === 'http:')) {
+    throw new Error('图片下载地址必须使用 HTTPS');
+  }
+
+  if (isBlockedAiImageDownloadHostname(parsedUrl.hostname)) {
+    throw new Error('图片下载地址被安全策略拒绝');
+  }
+
+  const requireAllowlist = String(process.env.AI_IMAGE_DOWNLOAD_REQUIRE_ALLOWLIST || '').toLowerCase() === 'true';
+  if (requireAllowlist && !isAllowedAiImageDownloadHost(parsedUrl.hostname)) {
+    throw new Error('图片下载地址不在允许的域名列表中');
+  }
+
+  let addresses;
+  try {
+    const hostname = normalizeAiImageDownloadHostname(parsedUrl.hostname);
+    addresses = net.isIP(hostname)
+      ? [{ address: hostname }]
+      : await dns.lookup(parsedUrl.hostname, { all: true, verbatim: true });
+  } catch (err) {
+    throw new Error(`图片下载地址解析失败：${err.message || err}`);
+  }
+
+  if ((addresses || []).some(item => isBlockedAiImageIpAddress(item.address))) {
+    throw new Error('图片下载地址解析到内网地址，已拒绝下载');
+  }
+
+  return parsedUrl;
+}
+
+function downloadAiImageBinary(url, timeoutMs = 120000, redirectCount = 0) {
+  if (redirectCount > 5) {
+    return Promise.reject(new Error('图片下载重定向次数过多'));
+  }
+
+  return assertSafeAiImageDownloadUrl(url).then(parsedUrl => new Promise((resolve, reject) => {
+    const transport = parsedUrl.protocol === 'http:' ? http : https;
+    const maxBytes = getAiImageDownloadMaxBytes();
+    let settled = false;
+
+    const finish = (err, value) => {
+      if (settled) return;
+      settled = true;
+      if (err) reject(err);
+      else resolve(value);
+    };
+
+    const req = transport.request({
+      hostname: parsedUrl.hostname,
+      path: `${parsedUrl.pathname}${parsedUrl.search}`,
+      port: parsedUrl.port || (parsedUrl.protocol === 'http:' ? 80 : 443),
+      method: 'GET',
+      agent: getAiImageKeepAliveAgent(parsedUrl.protocol)
+    }, (res) => {
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        finish(null, downloadAiImageBinary(new URL(res.headers.location, parsedUrl).toString(), timeoutMs, redirectCount + 1));
+        return;
+      }
+
+      if (res.statusCode >= 400) {
+        finish(new Error(`图片下载失败(${res.statusCode})`));
+        return;
+      }
+
+      const contentType = String(res.headers['content-type'] || 'image/png').split(';')[0].trim().toLowerCase();
+      if (!contentType.startsWith('image/')) {
+        finish(new Error(`图片下载内容类型不是图片：${contentType || 'unknown'}`));
+        return;
+      }
+
+      const contentLength = Number(res.headers['content-length'] || 0);
+      if (Number.isFinite(contentLength) && contentLength > maxBytes) {
+        finish(new Error('图片文件过大，无法保存到云存储'));
+        return;
+      }
+
+      const chunks = [];
+      let totalBytes = 0;
+      res.on('data', chunk => {
+        totalBytes += chunk.length;
+        if (totalBytes > maxBytes) {
+          req.destroy(new Error('图片文件过大，无法保存到云存储'));
+          return;
+        }
+        chunks.push(chunk);
+      });
+      res.on('end', () => {
+        finish(null, {
+          buffer: Buffer.concat(chunks),
+          contentType
+        });
+      });
+    });
+
+    req.setTimeout(timeoutMs, () => {
+      req.destroy(new Error('图片下载超时'));
+    });
+    req.on('error', finish);
+    req.end();
+  }));
+}
+
 function getFileExt(fileID) {
   const clean = String(fileID || '').split('?')[0];
   const matched = clean.match(/\.([a-zA-Z0-9]+)$/);
@@ -2719,20 +2911,27 @@ function getMimeTypeFromImageBuffer(buffer, fallbackExt = 'jpg') {
   return getMimeType(fallbackExt);
 }
 
+function getImageExtFromMime(contentType = '') {
+  if (contentType.includes('jpeg') || contentType.includes('jpg')) return 'jpg';
+  if (contentType.includes('webp')) return 'webp';
+  return 'png';
+}
+
 function sanitizeAiImageFileName(value) {
   return String(value || '').trim().replace(/[^a-zA-Z0-9_-]/g, '');
 }
 
-function buildAiImageGeneratedCloudPath(responseId) {
+function buildAiImageGeneratedCloudPath(responseId, ext = 'png') {
   const fileName = sanitizeAiImageFileName(responseId);
-  return fileName ? `ai-images/${fileName}.png` : '';
+  const normalizedExt = ['jpg', 'png', 'webp'].includes(ext) ? ext : 'png';
+  return fileName ? `ai-images/${fileName}.${normalizedExt}` : '';
 }
 
 function getImageMeta(buffer, contentType = '') {
   const meta = {
     width: 0,
     height: 0,
-    format: contentType.includes('jpeg') || contentType.includes('jpg') ? 'jpg' : 'png',
+    format: getImageExtFromMime(contentType),
     bytes: buffer ? buffer.length : 0
   };
 
@@ -3141,6 +3340,29 @@ function buildCompletedAiImages(image, taskId) {
   }, { status: 'completed', taskId })];
 }
 
+function buildAiImageStatusImageFromRecord(record = {}) {
+  const first = normalizeAiImageItem((record.images && record.images[0]) || {}, {
+    taskId: record.responseId,
+    status: record.status || 'completed'
+  });
+  return {
+    fileID: first.fileID || first.key || '',
+    cloudPath: first.cloudPath || '',
+    tempFileURL: first.publicUrl || '',
+    publicURL: first.publicUrl || '',
+    signedURL: first.publicUrl || '',
+    width: first.width || 0,
+    height: first.height || 0,
+    format: first.format || '',
+    bytes: first.bytes || 0
+  };
+}
+
+function hasStoredAiImageFile(record = {}) {
+  const first = record.images && record.images[0] ? record.images[0] : {};
+  return Boolean(normalizeAiImageCloudFileID(first.fileID || first.key || first.cloudPath || ''));
+}
+
 function syncImagesStatus(images, status, error) {
   const list = images && images.length ? images : [normalizeAiImageItem({}, { status })];
   return list.map((image, index) => normalizeAiImageItem({
@@ -3301,6 +3523,125 @@ function buildGeneratedImageFromUrl(imageUrl) {
   };
 }
 
+function getAiImageSourceUrl(image = {}) {
+  return normalizeAiImageUrl(
+    image.publicUrl ||
+    image.publicURL ||
+    image.tempFileURL ||
+    image.signedURL ||
+    image.signedUrl ||
+    image.url ||
+    image.imageUrl ||
+    ''
+  );
+}
+
+async function getAiImageCloudPublicUrl(fileID, cloudPath) {
+  const publicUrl = buildAiImagePublicUrl(cloudPath, fileID);
+  if (publicUrl) return publicUrl;
+
+  try {
+    const urlRes = await cloud.getTempFileURL({ fileList: [fileID] });
+    const file = urlRes.fileList && urlRes.fileList[0] ? urlRes.fileList[0] : null;
+    return file && file.tempFileURL ? normalizeAiImageUrl(file.tempFileURL) : '';
+  } catch (err) {
+    return '';
+  }
+}
+
+async function storeGeneratedAiImageToCloud(responseId, image = {}) {
+  const sourceUrl = getAiImageSourceUrl(image);
+  if (!sourceUrl || sourceUrl.startsWith('cloud://')) {
+    throw new Error('生成图片 URL 为空，无法保存到云存储');
+  }
+
+  const downloaded = await downloadAiImageBinary(sourceUrl);
+  const fallbackExt = getFileExt(sourceUrl);
+  const contentType = getMimeTypeFromImageBuffer(downloaded.buffer, fallbackExt) || downloaded.contentType || 'image/png';
+  const ext = getImageExtFromMime(contentType);
+  const cloudPath = buildAiImageGeneratedCloudPath(responseId, ext);
+  if (!cloudPath) {
+    throw new Error('生成图片云存储路径为空');
+  }
+
+  const uploadRes = await cloud.uploadFile({
+    cloudPath,
+    fileContent: downloaded.buffer
+  });
+  const fileID = uploadRes.fileID || buildAiImageCloudFileID(cloudPath);
+  const publicUrl = await getAiImageCloudPublicUrl(fileID, cloudPath);
+
+  return {
+    ...image,
+    fileID,
+    key: fileID,
+    cloudPath,
+    publicUrl,
+    publicURL: publicUrl,
+    tempFileURL: publicUrl,
+    signedURL: publicUrl,
+    ...getImageMeta(downloaded.buffer, contentType)
+  };
+}
+
+async function completeAiImageRecord(openid, record, responseId, image, extraUpdates = {}) {
+  let completedImage = image;
+  let charged = false;
+
+  if (!record || !record._id) {
+    return { image: completedImage, charged };
+  }
+
+  const now = Date.now();
+  const sourceUpdates = {
+    status: 'completed',
+    images: buildCompletedAiImages(image, responseId),
+    ...extraUpdates,
+    completedAt: now,
+    updatedAt: now
+  };
+
+  if (record.chargedAt) {
+    try {
+      await db.collection('ai_image_generations').doc(record._id).update({ data: sourceUpdates });
+    } catch (err) {
+      logAiImageWarn('complete-record-source-update-failed', {
+        recordId: record._id,
+        taskId: responseId,
+        channelId: record.channelId || ''
+      }, err);
+    }
+  } else {
+    charged = await chargeAiImageRecordOnce(openid, record, sourceUpdates);
+  }
+
+  try {
+    completedImage = await storeGeneratedAiImageToCloud(responseId, image);
+    await db.collection('ai_image_generations').doc(record._id).update({
+      data: {
+        images: buildCompletedAiImages(completedImage, responseId),
+        updatedAt: Date.now()
+      }
+    });
+  } catch (err) {
+    logAiImageWarn('generated-image-store-failed', {
+      recordId: record._id,
+      taskId: responseId,
+      channelId: record.channelId || '',
+      sourceUrlHost: (() => {
+        try {
+          return new URL(getAiImageSourceUrl(image)).hostname;
+        } catch (e) {
+          return '';
+        }
+      })()
+    }, err);
+  }
+
+  completedImage.charged = charged;
+  return { image: completedImage, charged };
+}
+
 async function aiImageGenerate(openid, data = {}) {
   const config = getOpenAIConfig();
   const { apiKey, responsesModel, imageModel } = config;
@@ -3449,6 +3790,24 @@ async function aiImageStatus(openid, data = {}) {
   const recordChannelId = String((record && record.channelId) || data.channelId || '').trim();
   const recordForOutcome = record && record._id ? { ...record, channelId: recordChannelId } : null;
 
+  if (record && record.status === 'completed' && hasStoredAiImageFile(record)) {
+    let charged = false;
+    if (!record.chargedAt) {
+      charged = await chargeAiImageRecordOnce(openid, record);
+    }
+    if (recordForOutcome) {
+      await incrementAiImageChannelOutcome(recordForOutcome, 'completed');
+    }
+    return {
+      success: true,
+      status: 'completed',
+      image: buildAiImageStatusImageFromRecord(record),
+      model: record.model || imageModel,
+      channelId: recordChannelId,
+      charged
+    };
+  }
+
   if (config.serviceUrl) {
     let serviceRes;
     try {
@@ -3527,22 +3886,17 @@ async function aiImageStatus(openid, data = {}) {
       let charged = false;
 
       if (record && record._id) {
-        const now = Date.now();
-        const completedUpdates = {
-          status: 'completed',
-          images: buildCompletedAiImages(image, responseId),
-          completedAt: now,
-          updatedAt: now
-        };
-        if (record.chargedAt) {
-          try {
-            await db.collection('ai_image_generations').doc(record._id).update({ data: completedUpdates });
-          } catch (err) {
-            console.warn('更新外部 AI 生图记录失败:', err);
-          }
-        } else {
-          charged = await chargeAiImageRecordOnce(openid, record, completedUpdates);
-        }
+        const completeRes = await completeAiImageRecord(openid, record, responseId, image);
+        image.fileID = completeRes.image.fileID || completeRes.image.key || '';
+        image.cloudPath = completeRes.image.cloudPath || '';
+        image.tempFileURL = completeRes.image.tempFileURL || completeRes.image.publicUrl || completeRes.image.publicURL || image.tempFileURL;
+        image.publicURL = completeRes.image.publicUrl || completeRes.image.publicURL || image.publicURL;
+        image.signedURL = completeRes.image.signedURL || completeRes.image.signedUrl || image.signedURL;
+        image.width = completeRes.image.width || image.width;
+        image.height = completeRes.image.height || image.height;
+        image.format = completeRes.image.format || image.format;
+        image.bytes = completeRes.image.bytes || image.bytes;
+        charged = completeRes.charged;
       }
 
       if (recordForOutcome) {
@@ -3662,25 +4016,15 @@ async function aiImageStatus(openid, data = {}) {
   }
 
   const image = buildGeneratedImageFromUrl(imageUrl);
+  let charged = false;
 
   try {
     if (record && record._id) {
-      const now = Date.now();
-      const completedUpdates = {
-        status: 'completed',
-        images: buildCompletedAiImages(image, responseId),
-        usage: response.usage || null,
-        completedAt: now,
-        updatedAt: now
-      };
-      let charged = false;
-
-      if (record.chargedAt) {
-        await db.collection('ai_image_generations').doc(record._id).update({ data: completedUpdates });
-      } else {
-        charged = await chargeAiImageRecordOnce(openid, record, completedUpdates);
-      }
-      image.charged = charged;
+      const completeRes = await completeAiImageRecord(openid, record, responseId, image, {
+        usage: response.usage || null
+      });
+      Object.assign(image, completeRes.image);
+      charged = completeRes.charged;
     }
   } catch (err) {
     console.warn('更新 AI 生图记录失败:', err);
@@ -3696,7 +4040,7 @@ async function aiImageStatus(openid, data = {}) {
     image,
     model: record && record.model ? record.model : imageModel,
     usage: response.usage || null,
-    charged: Boolean(image.charged),
+    charged,
     channelId: recordChannelId
   };
 }
