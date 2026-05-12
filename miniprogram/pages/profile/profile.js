@@ -129,6 +129,11 @@ Page({
     auth.navigateIfLoggedIn('/pages/edit-profile/edit-profile');
   },
 
+  // 我的主页
+  onTapMyProfile: function () {
+    auth.navigateIfLoggedIn('/pages/user-profile/user-profile');
+  },
+
   // 我的行程
   onTapMyTrips: function () {
     auth.navigateIfLoggedIn('/pages/my-trips/my-trips');

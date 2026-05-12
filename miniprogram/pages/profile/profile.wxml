@@ -24,7 +24,7 @@
     </view>
 
     <!-- 已登录状态 -->
-    <view class="user-card" wx:else bindtap="onEditProfile">
+    <view class="user-card" wx:else bindtap="onTapMyProfile">
       <image class="avatar-img" src="{{userInfo.avatar || userInfo.avatarUrl}}" mode="aspectFill" wx:if="{{userInfo.avatar || userInfo.avatarUrl}}"></image>
       <view class="avatar" wx:else>
         <text class="avatar-icon">{{userInfo.nickname ? userInfo.nickname[0] : '旅'}}</text>

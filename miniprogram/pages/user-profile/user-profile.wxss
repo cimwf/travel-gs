@@ -120,6 +120,33 @@ page {
   height: 32rpx;
 }
 
+.profile-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 28rpx;
+}
+
+.edit-profile-btn {
+  min-width: 220rpx;
+  height: 72rpx;
+  padding: 0 32rpx;
+  border-radius: 999rpx;
+  background: rgba(255,255,255,0.18);
+  border: 2rpx solid rgba(255,255,255,0.38);
+  color: #FFFFFF;
+  font-size: 28rpx;
+  font-weight: 600;
+  line-height: 72rpx;
+  text-align: center;
+  box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.12);
+  backdrop-filter: blur(12rpx);
+}
+
+.edit-profile-btn:active {
+  opacity: 0.88;
+  transform: scale(0.98);
+}
+
 /* 统计数据 */
 .user-stats {
   display: flex;
@@ -279,18 +306,35 @@ page {
   padding: 6rpx 14rpx;
   border-radius: 18rpx;
   font-size: 22rpx;
-  color: #fff;
-  background: #52c41a;
+  font-weight: 500;
+  color: #52C41A;
+  background: rgba(82, 196, 26, 0.1);
+}
+
+.trip-status.ongoing {
+  background: rgba(74, 144, 226, 0.12);
+  color: #4A90E2;
 }
 
 .trip-status.almost-full {
-  background: #fa8c16;
+  background: rgba(250, 173, 20, 0.1);
+  color: #FAAD14;
 }
 
-.trip-status.full,
+.trip-status.full {
+  background: rgba(140, 140, 160, 0.1);
+  color: #8E8EA0;
+}
+
 .trip-status.stopped,
 .trip-status.cancelled {
-  background: #8c8c8c;
+  background: rgba(255, 77, 79, 0.1);
+  color: #FF4D4F;
+}
+
+.trip-status.ended {
+  background: rgba(140, 140, 160, 0.1);
+  color: #8E8EA0;
 }
 
 .trip-meta {

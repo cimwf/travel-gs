@@ -39,6 +39,18 @@ Page({
     }
   },
 
+  getTodayRange: function () {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const todayEnd = todayStart + 24 * 60 * 60 * 1000 - 1;
+    return { todayStart, todayEnd };
+  },
+
+  getTripTimestamp: function (dateValue) {
+    const tripTime = new Date(dateValue).getTime();
+    return Number.isNaN(tripTime) ? 0 : tripTime;
+  },
+
   // 加载当前登录用户信息
   loadCurrentUser: async function () {
     this.setData({ loading: true, isCurrentUser: true });
@@ -184,6 +196,9 @@ Page({
   },
 
   formatTrip: function (trip) {
+    const { todayStart, todayEnd } = this.getTodayRange();
+    const tripTime = this.getTripTimestamp(trip.date);
+
     let dateText = trip.date || '';
     if (trip.date) {
       const date = new Date(trip.date);
@@ -208,7 +223,14 @@ Page({
     const needCount = trip.needCount || 0;
     let statusClass = 'recruiting';
     let statusText = '招募中';
-    if (trip.status === 'stopped') {
+
+    if (tripTime && tripTime < todayStart) {
+      statusClass = 'ended';
+      statusText = '已结束';
+    } else if (tripTime >= todayStart && tripTime <= todayEnd) {
+      statusClass = 'ongoing';
+      statusText = '进行中';
+    } else if (trip.status === 'stopped') {
       statusClass = 'stopped';
       statusText = '停止招募';
     } else if (trip.status === 'cancelled') {
@@ -319,6 +341,16 @@ Page({
           }
         }
       }
+    });
+  },
+
+  onEditProfile: function () {
+    if (!this.data.isCurrentUser) {
+      return;
+    }
+
+    wx.navigateTo({
+      url: '/pages/edit-profile/edit-profile'
     });
   },
 
