@@ -23,6 +23,18 @@ Page({
     shareTrip: null
   },
 
+  getTodayRange: function () {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const todayEnd = todayStart + 24 * 60 * 60 * 1000 - 1;
+    return { todayStart, todayEnd };
+  },
+
+  getTripTimestamp: function (dateValue) {
+    const tripTime = new Date(dateValue).getTime();
+    return Number.isNaN(tripTime) ? 0 : tripTime;
+  },
+
   onLoad: function (options) {
     // 设置默认标签
     const tab = options.tab || 'all';
@@ -59,10 +71,10 @@ Page({
 
       if (res.success && res.trips) {
         const trips = [];
+        const { todayStart, todayEnd } = this.getTodayRange();
         for (const item of res.trips) {
           const isCreator = item.creatorId === openid;
-          const now = Date.now();
-          const tripDate = new Date(item.date).getTime();
+          const tripTime = this.getTripTimestamp(item.date);
 
           // 判断行程状态
           let status = item.status;
@@ -72,13 +84,16 @@ Page({
           if (status === 'cancelled') {
             statusText = '已取消';
             statusClass = 'cancelled';
-          } else if (status === 'stopped') {
-            statusText = '停止招募';
-            statusClass = 'stopped';
-          } else if (tripDate < now) {
+          } else if (tripTime && tripTime < todayStart) {
             // 出行日期已过，标记为已结束
             statusText = '已结束';
             statusClass = 'ended';
+          } else if (tripTime && tripTime >= todayStart && tripTime <= todayEnd) {
+            statusText = '进行中';
+            statusClass = 'ongoing';
+          } else if (status === 'stopped') {
+            statusText = '停止招募';
+            statusClass = 'stopped';
           } else if ((item.needCount || 0) <= 0) {
             // 还需人数为0，已满员
             statusText = '已满员';
@@ -256,7 +271,7 @@ Page({
     } else if (activeTab === 'created') {
       filteredTrips = allTrips.filter(trip => trip.isCreator);
     } else if (activeTab === 'joined') {
-      filteredTrips = allTrips.filter(trip => !trip.isCreator && trip.statusClass !== 'ended' && trip.statusClass !== 'cancelled');
+      filteredTrips = allTrips.filter(trip => !trip.isCreator);
     } else if (activeTab === 'ended') {
       filteredTrips = allTrips.filter(trip => trip.statusClass === 'ended' || trip.statusClass === 'cancelled');
     }

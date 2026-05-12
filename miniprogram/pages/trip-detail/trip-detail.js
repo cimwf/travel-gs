@@ -110,6 +110,11 @@ Page({
     // 计算剩余名额
     const remainCount = trip.needCount || 0;
     const totalCount = (trip.currentCount || 0) + (trip.needCount || 0);
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const todayEnd = todayStart + 24 * 60 * 60 * 1000 - 1;
+    const tripTime = new Date(trip.date).getTime();
+    const hasValidTripTime = !Number.isNaN(tripTime);
 
     // 动态判断状态
     let statusText = '招募中';
@@ -120,14 +125,18 @@ Page({
       statusText = '已取消';
       canJoin = false;
       joinBtnText = '已取消';
+    } else if (hasValidTripTime && tripTime < todayStart) {
+      statusText = '已结束';
+      canJoin = false;
+      joinBtnText = '已结束';
+    } else if (hasValidTripTime && tripTime >= todayStart && tripTime <= todayEnd) {
+      statusText = '进行中';
+      canJoin = false;
+      joinBtnText = '进行中';
     } else if (trip.status === 'stopped') {
       statusText = '停止招募';
       canJoin = false;
       joinBtnText = '停止招募';
-    } else if (trip.status === 'ended') {
-      statusText = '已结束';
-      canJoin = false;
-      joinBtnText = '已结束';
     } else if (remainCount <= 0) {
       statusText = '已满员';
       canJoin = false;

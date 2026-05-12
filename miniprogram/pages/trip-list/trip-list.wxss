@@ -152,6 +152,11 @@ page {
   color: #52C41A;
 }
 
+.trip-status.ongoing {
+  background: rgba(74, 144, 226, 0.12);
+  color: #4A90E2;
+}
+
 .trip-status.almost-full {
   background: rgba(250, 173, 20, 0.1);
   color: #FAAD14;

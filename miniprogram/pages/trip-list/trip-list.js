@@ -32,6 +32,18 @@ Page({
     customEndDate: ''
   },
 
+  getTodayRange: function () {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const todayEnd = todayStart + 24 * 60 * 60 * 1000 - 1;
+    return { todayStart, todayEnd };
+  },
+
+  getTripTimestamp: function (dateValue) {
+    const tripTime = new Date(dateValue).getTime();
+    return Number.isNaN(tripTime) ? 0 : tripTime;
+  },
+
   onLoad: async function () {
     // 先加载景点数据到全局缓存，再加载行程列表
     await this.loadAttractions();
@@ -93,7 +105,15 @@ Page({
 
       if (tripsData.length > 0) {
         const trips = [];
+        const { todayStart, todayEnd } = this.getTodayRange();
         for (const trip of tripsData) {
+          const tripTime = this.getTripTimestamp(trip.date);
+
+          // 过滤掉已过期的行程，避免历史行程继续在首页展示为“招募中”。
+          if (!tripTime || tripTime < todayStart) {
+            continue;
+          }
+
           // 格式化日期
           let dateText = trip.date || '';
           if (trip.date) {
@@ -135,7 +155,10 @@ Page({
           let statusClass = 'recruiting';
           let statusText = '招募中';
 
-          if (trip.status === 'stopped') {
+          if (tripTime >= todayStart && tripTime <= todayEnd) {
+            statusClass = 'ongoing';
+            statusText = '进行中';
+          } else if (trip.status === 'stopped') {
             statusClass = 'stopped';
             statusText = '停止招募';
           } else if (needCount === 0) {
