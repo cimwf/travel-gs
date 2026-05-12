@@ -392,6 +392,24 @@ Page({
     const member = e.currentTarget.dataset.member;
     if (!member) return;
 
+    this.openMemberModal(member);
+  },
+
+  // 点击发起人头像
+  onCreatorTap: function () {
+    const trip = this.data.trip;
+    if (!trip || !trip.creatorId) return;
+
+    this.openMemberModal({
+      userId: trip.creatorId,
+      nickname: trip.creatorName,
+      avatar: trip.creatorAvatar
+    });
+  },
+
+  openMemberModal: function (member) {
+    if (!member) return;
+
     // 格式化加入时间
     let joinTimeText = '刚刚';
     if (member.joinTime) {

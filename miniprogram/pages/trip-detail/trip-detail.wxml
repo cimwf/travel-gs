@@ -81,7 +81,7 @@
           <text class="card-icon">👤</text>
           <text class="card-title">发起人</text>
         </view>
-        <view class="creator-info">
+        <view class="creator-info" bindtap="onCreatorTap" hover-class="creator-info-hover">
           <image class="creator-avatar" src="{{trip.creatorAvatar}}" wx:if="{{trip.creatorAvatar}}" mode="aspectFill"></image>
           <view class="creator-avatar-text" style="background: linear-gradient(135deg, #4A90E2, #6BA3E8);" wx:else>
             <text>{{trip.creatorName ? trip.creatorName[0] : '旅'}}</text>

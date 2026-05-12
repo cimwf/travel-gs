@@ -288,6 +288,11 @@ page {
   display: flex;
   align-items: center;
   gap: 32rpx;
+  border-radius: 24rpx;
+}
+
+.creator-info-hover {
+  opacity: 0.88;
 }
 
 .creator-avatar {
