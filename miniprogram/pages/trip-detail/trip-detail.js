@@ -123,11 +123,10 @@ Page({
       if (res.success) {
         const groups = this.processLogGroups(res.groups || []);
         const showTabs = groups.length > 0 || tripStage === 'ongoing';
-        const activeTab = showTabs && groups.length > 0 ? 'log' : this.data.activeTab;
         this.setData({
           logGroups: groups,
           showTabs,
-          activeTab: groups.length > 0 ? activeTab : 'trip'
+          activeTab: this.data.activeTab || 'trip'
         });
       }
     } catch (err) {
@@ -243,8 +242,8 @@ Page({
     const logCount = trip.logCount || 0;
     const showTabs = tripStage === 'ongoing' || tripStage === 'ended' || logCount > 0;
 
-    // 已有日志则默认切到旅途记录 tab
-    const activeTab = logCount > 0 ? 'log' : 'trip';
+    // 默认展示行程 tab
+    const activeTab = 'trip';
 
     let maskedPhone = '';
     if (trip.contactPhone) {
@@ -492,9 +491,9 @@ Page({
       this.setData({ showPublishModal: false, publishSubmitting: false });
       wx.showToast({ title: '发布成功', icon: 'success' });
 
-      setTimeout(() => {
-        this.loadTripDetail(trip._id);
-      }, 500);
+      // 切到旅途记录 tab 并刷新日志
+      this.setData({ activeTab: 'log' });
+      this.loadLogs(trip._id, { ...trip, tripStage: trip.tripStage || 'ongoing', logCount: (trip.logCount || 0) + 1 });
     } catch (err) {
       console.error('[发布日志] 失败', err, err && err.message, err && err.result);
       this.setData({ publishSubmitting: false });
