@@ -1866,6 +1866,7 @@ async function tripListByUser(data) {
       needCount: trip.needCount || 0,
       participants: trip.participants || [],
       status: trip.status || 'open',
+      tripStage: trip.tripStage || 'not_started',
       category: trip.category || '',
       createdAt: trip.createdAt || 0,
       viewCount: trip.viewCount || 0,
