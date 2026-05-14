@@ -274,6 +274,22 @@ exports.main = async (event, context) => {
       case 'trip/listByUser':
         return await tripListByUser(data);
 
+      // ========== 行程日志相关 ==========
+      case 'tripLog/start':
+        return await tripLogStart(openid, data);
+      case 'tripLog/end':
+        return await tripLogEnd(openid, data);
+      case 'tripLog/list':
+        return await tripLogList(data);
+      case 'tripLog/create':
+        return await tripLogCreate(openid, data);
+      case 'tripLog/delete':
+        return await tripLogDelete(openid, data);
+      case 'tripLog/authorize':
+        return await tripLogAuthorize(openid, data);
+      case 'tripLog/unauthorize':
+        return await tripLogUnauthorize(openid, data);
+
       // ========== 申请相关 ==========
       case 'apply/create':
         return await applyCreate(openid, data);
@@ -1004,6 +1020,18 @@ async function tripCreate(openid, data) {
   const currentCount = data.currentCount || 1;
   const needCount = data.needCount || 3;
 
+  // 读取日志配置快照
+  let tripLogConfig = { logPublisherLimit: 2, logMaxCount: 15 };
+  try {
+    const configRes = await db.collection('system_config').doc('trip_log').get();
+    if (configRes.data) {
+      tripLogConfig.logPublisherLimit = configRes.data.logPublisherLimit || 2;
+      tripLogConfig.logMaxCount = configRes.data.logMaxCount || 15;
+    }
+  } catch (err) {
+    console.warn('读取日志配置失败，使用默认值', err);
+  }
+
   const newTrip = {
     tripTitle: data.tripTitle || '',
     placeId: data.placeId,
@@ -1031,6 +1059,14 @@ async function tripCreate(openid, data) {
       avatar: safeAvatar(user.avatar)
     }],
     status: data.status || 'open',
+    tripStage: 'not_started',
+    logStartedAt: 0,
+    logEndedAt: 0,
+    logPublisherLimit: tripLogConfig.logPublisherLimit,
+    logMaxCount: tripLogConfig.logMaxCount,
+    logAuthorizedPublisherIds: [],
+    logCount: 0,
+    lastLogAt: 0,
     createdAt: Date.now()
   };
 
@@ -1322,6 +1358,15 @@ async function tripJoin(openid, data) {
   if (trip.status !== 'open') {
     return { success: false, error: '行程已满或已取消' };
   }
+
+  const tripStage = trip.tripStage || 'not_started';
+  if (tripStage !== 'not_started') {
+    return { success: false, error: '行程已开始或已结束，不能加入' };
+  }
+
+  if ((trip.needCount || 0) <= 0) {
+    return { success: false, error: '行程名额已满' };
+  }
   
   // 检查是否已参与
   if (trip.participants.some(p => p.userId === openid)) {
@@ -1345,11 +1390,6 @@ async function tripJoin(openid, data) {
     needCount: _.inc(-1)
   };
 
-  // 检查是否满员（needCount <= 1 时，再加入1人就满员）
-  if ((trip.needCount || 0) <= 1) {
-    updateData.status = 'full';
-  }
-  
   await db.collection('trips').doc(tripId).update({ data: updateData });
 
   return { success: true };
@@ -1376,7 +1416,10 @@ async function tripQuit(openid, data) {
     return { success: false, error: '发起人不能退出行程' };
   }
 
-  // 检查是否已参与
+  // 行程进行中，不允许退出
+  if (trip.tripStage === 'ongoing') {
+    return { success: false, error: '行程已开始，暂不能退出或移除成员' };
+  }
   const participantIndex = trip.participants.findIndex(p => p.userId === openid);
   if (participantIndex === -1) {
     return { success: false, error: '您未参与该行程' };
@@ -1440,6 +1483,11 @@ async function tripRemoveMember(openid, data) {
     return { success: false, error: '无权移除成员' };
   }
 
+  // 行程进行中，不允许移除成员
+  if (trip.tripStage === 'ongoing') {
+    return { success: false, error: '行程已开始，暂不能退出或移除成员' };
+  }
+
   // 不能移除发起人自己
   if (memberId === trip.creatorId) {
     return { success: false, error: '不能移除发起人' };
@@ -1493,6 +1541,11 @@ async function tripUpdateStatus(openid, data) {
     return { success: false, error: '参数不完整' };
   }
 
+  const allowedStatus = ['open', 'stopped', 'cancelled'];
+  if (!allowedStatus.includes(status)) {
+    return { success: false, error: '不支持的状态值' };
+  }
+
   // 获取行程
   const tripRes = await db.collection('trips').doc(tripId).get();
   const trip = tripRes.data;
@@ -1506,12 +1559,13 @@ async function tripUpdateStatus(openid, data) {
     return { success: false, error: '无权操作' };
   }
 
-  await db.collection('trips').doc(tripId).update({
-    data: {
-      status,
-      updatedAt: Date.now()
-    }
-  });
+  const now = Date.now();
+  // 取消行程写入 tripStage，停止/恢复招募写入 status
+  const updateData = status === 'cancelled'
+    ? { tripStage: 'cancelled', updatedAt: now }
+    : { status, updatedAt: now };
+
+  await db.collection('trips').doc(tripId).update({ data: updateData });
 
   // 取消行程时通知所有参与者（除发起人）
   if (status === 'cancelled' && trip.participants) {
@@ -5120,4 +5174,268 @@ async function feedbackCreate(openid, data) {
   newFeedback._id = res._id;
 
   return { success: true, feedback: newFeedback };
+}
+
+// ========== 行程日志相关 ==========
+
+async function tripLogStart(openid, data) {
+  const { tripId } = data;
+  if (!tripId) return { success: false, error: '行程ID不能为空' };
+
+  const tripRes = await db.collection('trips').doc(tripId).get();
+  const trip = tripRes.data;
+  if (!trip) return { success: false, error: '行程不存在' };
+  if (trip.creatorId !== openid) return { success: false, error: '只有发起人可以开始行程' };
+
+  const tripStage = trip.tripStage || 'not_started';
+  if (tripStage !== 'not_started') {
+    return { success: false, error: '行程已经开始或已结束' };
+  }
+
+  const now = Date.now();
+  await db.collection('trips').doc(tripId).update({
+    data: { tripStage: 'ongoing', logStartedAt: now, updatedAt: now }
+  });
+
+  return { success: true, trip: { ...trip, tripStage: 'ongoing', logStartedAt: now } };
+}
+
+async function tripLogEnd(openid, data) {
+  const { tripId } = data;
+  if (!tripId) return { success: false, error: '行程ID不能为空' };
+
+  const tripRes = await db.collection('trips').doc(tripId).get();
+  const trip = tripRes.data;
+  if (!trip) return { success: false, error: '行程不存在' };
+  if (trip.creatorId !== openid) return { success: false, error: '只有发起人可以结束行程' };
+
+  const tripStage = trip.tripStage || 'not_started';
+  if (tripStage !== 'ongoing') return { success: false, error: '行程未在进行中' };
+
+  const now = Date.now();
+  await db.collection('trips').doc(tripId).update({
+    data: { tripStage: 'ended', logEndedAt: now, updatedAt: now }
+  });
+
+  return { success: true, trip: { ...trip, tripStage: 'ended', logEndedAt: now } };
+}
+
+async function tripLogList(data) {
+  const { tripId, page = 1, pageSize = 20 } = data;
+  if (!tripId) return { success: false, error: '行程ID不能为空' };
+
+  const tripRes = await db.collection('trips').doc(tripId).get();
+  const trip = tripRes.data;
+  if (!trip) return { success: false, error: '行程不存在' };
+
+  const skip = (page - 1) * pageSize;
+  const logsRes = await db.collection('trip_logs')
+    .where({ tripId, status: 'active' })
+    .orderBy('createdAt', 'asc')
+    .skip(skip)
+    .limit(pageSize)
+    .get();
+
+  const logs = logsRes.data || [];
+
+  // 收集图片 fileID 获取临时链接
+  const fileIDs = [];
+  logs.forEach(log => {
+    if (log.images && log.images.length > 0) {
+      log.images.forEach(img => {
+        if (img.fileID) fileIDs.push(img.fileID);
+      });
+    }
+  });
+
+  let fileUrlMap = {};
+  if (fileIDs.length > 0) {
+    try {
+      const urlRes = await cloud.getTempFileURL({ fileList: fileIDs });
+      if (urlRes.fileList) {
+        urlRes.fileList.forEach(item => {
+          if (item.tempFileURL) fileUrlMap[item.fileID] = item.tempFileURL;
+        });
+      }
+    } catch (err) {
+      console.warn('获取图片临时链接失败', err);
+    }
+  }
+
+  // 填充临时链接
+  logs.forEach(log => {
+    if (log.images && log.images.length > 0) {
+      log.images = log.images.map(img => ({
+        ...img,
+        tempFileURL: fileUrlMap[img.fileID] || ''
+      }));
+    }
+  });
+
+  // 按 dayLabel + tripDayIndex 分组
+  const groupMap = {};
+  const groupOrder = [];
+  logs.forEach(log => {
+    const key = log.dayLabel || '';
+    if (!groupMap[key]) {
+      groupMap[key] = {
+        dayLabel: log.dayLabel || '',
+        tripDayIndex: log.tripDayIndex || 0,
+        weatherLabel: log.weatherLabel || '',
+        logs: []
+      };
+      groupOrder.push(key);
+    }
+    groupMap[key].logs.push(log);
+  });
+
+  const groups = groupOrder.map(k => groupMap[k]);
+  return { success: true, logs, groups, logCount: logs.length };
+}
+
+async function tripLogCreate(openid, data) {
+  const { tripId, content, images = [], weatherLabel = '' } = data;
+  if (!tripId) return { success: false, error: '行程ID不能为空' };
+
+  const tripRes = await db.collection('trips').doc(tripId).get();
+  const trip = tripRes.data;
+  if (!trip) return { success: false, error: '行程不存在' };
+
+  const tripStage = trip.tripStage || 'not_started';
+  if (tripStage !== 'ongoing') return { success: false, error: '行程日志未开启或已结束' };
+
+  const authorizedIds = trip.logAuthorizedPublisherIds || [];
+  const isCreator = trip.creatorId === openid;
+  const isAuthorized = authorizedIds.includes(openid);
+  if (!isCreator && !isAuthorized) return { success: false, error: '您没有发布日志的权限' };
+
+  const logMaxCount = trip.logMaxCount || 15;
+  const logCount = trip.logCount || 0;
+  if (logCount >= logMaxCount) return { success: false, error: '本次行程的旅途记录已达到上限' };
+
+  const trimmedContent = (content || '').trim();
+  if (!trimmedContent && (!images || images.length === 0)) {
+    return { success: false, error: '内容和图片不能同时为空' };
+  }
+  if (trimmedContent.length > 200) return { success: false, error: '内容不能超过200字' };
+  if (images.length > 3) return { success: false, error: '最多上传3张图片' };
+
+  const userRes = await db.collection('users').where({ openid }).get();
+  const user = userRes.data[0] || {};
+
+  const now = Date.now();
+  let dayLabel = '';
+  let tripDayIndex = 1;
+  if (trip.date) {
+    const tripStart = new Date(trip.date);
+    tripStart.setHours(0, 0, 0, 0);
+    const todayD = new Date(now);
+    todayD.setHours(0, 0, 0, 0);
+    const diffDays = Math.floor((todayD.getTime() - tripStart.getTime()) / (24 * 60 * 60 * 1000));
+    tripDayIndex = diffDays + 1;
+    const month = todayD.getMonth() + 1;
+    const day = todayD.getDate();
+    dayLabel = `${month}月${day}日`;
+  }
+
+  const newLog = {
+    tripId,
+    placeId: trip.placeId || '',
+    placeName: trip.placeName || '',
+    publisherId: openid,
+    publisherName: user.nickname || '旅行者',
+    publisherAvatar: safeAvatar(user.avatar),
+    publisherRole: isCreator ? 'creator' : 'authorized_member',
+    content: trimmedContent,
+    images,
+    imageCount: images.length,
+    dayLabel,
+    tripDayIndex,
+    weatherLabel,
+    status: 'active',
+    createdAt: now,
+    updatedAt: now
+  };
+
+  const res = await db.collection('trip_logs').add({ data: newLog });
+  newLog._id = res._id;
+
+  await db.collection('trips').doc(tripId).update({
+    data: { logCount: logCount + 1, lastLogAt: now, updatedAt: now }
+  });
+
+  return { success: true, log: newLog };
+}
+
+async function tripLogDelete(openid, data) {
+  const { tripId, logId } = data;
+  if (!tripId || !logId) return { success: false, error: '参数不完整' };
+
+  const tripRes = await db.collection('trips').doc(tripId).get();
+  const trip = tripRes.data;
+  if (!trip) return { success: false, error: '行程不存在' };
+  if (trip.creatorId !== openid) return { success: false, error: '只有发起人可以删除日志' };
+
+  const logRes = await db.collection('trip_logs').doc(logId).get();
+  const log = logRes.data;
+  if (!log) return { success: false, error: '日志不存在' };
+  if (log.tripId !== tripId) return { success: false, error: '日志不属于该行程' };
+  if (log.status === 'deleted') return { success: true };
+
+  const now = Date.now();
+  await db.collection('trip_logs').doc(logId).update({
+    data: { status: 'deleted', deletedAt: now, deletedBy: openid, updatedAt: now }
+  });
+
+  const currentLogCount = trip.logCount || 0;
+  await db.collection('trips').doc(tripId).update({
+    data: { logCount: Math.max(currentLogCount - 1, 0), updatedAt: now }
+  });
+
+  return { success: true };
+}
+
+async function tripLogAuthorize(openid, data) {
+  const { tripId, memberId } = data;
+  if (!tripId || !memberId) return { success: false, error: '参数不完整' };
+
+  const tripRes = await db.collection('trips').doc(tripId).get();
+  const trip = tripRes.data;
+  if (!trip) return { success: false, error: '行程不存在' };
+  if (trip.creatorId !== openid) return { success: false, error: '只有发起人可以授权' };
+  if ((trip.tripStage || 'not_started') !== 'ongoing') return { success: false, error: '只有进行中的行程才能授权发布日志' };
+  if (memberId === openid) return { success: false, error: '不能授权发起人自己' };
+
+  const isParticipant = (trip.participants || []).some(p => p.userId === memberId);
+  if (!isParticipant) return { success: false, error: '只能授权已加入的成员' };
+
+  const authorizedIds = trip.logAuthorizedPublisherIds || [];
+  if (authorizedIds.includes(memberId)) return { success: false, error: '该成员已被授权' };
+  const publisherLimit = trip.logPublisherLimit || 2;
+  if (authorizedIds.length >= publisherLimit) return { success: false, error: `最多授权${publisherLimit}名成员` };
+
+  const newAuthorizedIds = [...authorizedIds, memberId];
+  await db.collection('trips').doc(tripId).update({
+    data: { logAuthorizedPublisherIds: newAuthorizedIds, updatedAt: Date.now() }
+  });
+
+  return { success: true, authorizedPublisherIds: newAuthorizedIds };
+}
+
+async function tripLogUnauthorize(openid, data) {
+  const { tripId, memberId } = data;
+  if (!tripId || !memberId) return { success: false, error: '参数不完整' };
+
+  const tripRes = await db.collection('trips').doc(tripId).get();
+  const trip = tripRes.data;
+  if (!trip) return { success: false, error: '行程不存在' };
+  if (trip.creatorId !== openid) return { success: false, error: '只有发起人可以取消授权' };
+  if ((trip.tripStage || 'not_started') !== 'ongoing') return { success: false, error: '只有进行中的行程才能修改授权' };
+
+  const authorizedIds = (trip.logAuthorizedPublisherIds || []).filter(id => id !== memberId);
+  await db.collection('trips').doc(tripId).update({
+    data: { logAuthorizedPublisherIds: authorizedIds, updatedAt: Date.now() }
+  });
+
+  return { success: true, authorizedPublisherIds: authorizedIds };
 }

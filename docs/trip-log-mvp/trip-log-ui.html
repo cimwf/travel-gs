@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trip Log MVP UI</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --blue: #2f82d8;
+      --blue-light: #5ea4eb;
+      --bg: #ffffff;
+      --card: #ffffff;
+      --text: #202437;
+      --subtext: #7f8799;
+      --border: #eceff3;
+      --green: #5fb266;
+      --green-soft: #edf7eb;
+      --green-line: #8dc98f;
+      --danger: #ff6a6a;
+      --shadow: 0 16px 36px rgba(27, 48, 87, 0.1);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #edf4fb 0%, #dfe7f0 100%);
+      min-height: 100vh;
+      padding: 28px;
+      color: var(--text);
+    }
+
+    .page-header {
+      max-width: 1500px;
+      margin: 0 auto 24px;
+    }
+
+    .page-header h1 {
+      font-size: 30px;
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      max-width: 920px;
+      color: #596274;
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    .grid {
+      max-width: 1500px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(410px, 1fr));
+      gap: 28px;
+    }
+
+    .screen-card {
+      background: rgba(255,255,255,0.76);
+      border-radius: 28px;
+      padding: 20px;
+      box-shadow: 0 20px 44px rgba(27, 48, 87, 0.12);
+      backdrop-filter: blur(18px);
+    }
+
+    .screen-title {
+      text-align: center;
+      color: #5f6878;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    .phone {
+      width: 375px;
+      height: 812px;
+      margin: 0 auto;
+      background: var(--bg);
+      border-radius: 40px;
+      overflow: hidden;
+      border: 10px solid #12151d;
+      box-shadow: 0 26px 60px rgba(17, 28, 46, 0.28);
+      position: relative;
+    }
+
+    .status-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      height: 44px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .scroll {
+      height: 100%;
+      overflow-y: auto;
+      padding-bottom: 100px;
+    }
+
+    .scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hero {
+      position: relative;
+      height: 236px;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.48)),
+        url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80") center/cover no-repeat;
+    }
+
+    .nav-btn {
+      position: absolute;
+      top: 52px;
+      left: 16px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.25);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-content {
+      position: absolute;
+      left: 72px;
+      right: 72px;
+      top: 54px;
+      color: #fff;
+      text-align: center;
+    }
+
+    .tags {
+      display: none;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.22);
+    }
+
+    .tag.green {
+      background: #59b85b;
+      color: #fff;
+    }
+
+    .tag.orange {
+      background: #ffb445;
+      color: #fff;
+    }
+
+    .tag.gray {
+      background: rgba(255,255,255,0.22);
+      color: #fff;
+    }
+
+    .trip-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .trip-subtitle {
+      font-size: 12px;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .content {
+      padding: 0 16px 16px;
+      background: #fff;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid #f1f3f6;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 6px 18px rgba(27, 48, 87, 0.05);
+      margin-bottom: 14px;
+    }
+
+    .card:has(.day-group) {
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      padding: 0;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .info-label {
+      font-size: 14px;
+      color: var(--subtext);
+    }
+
+    .info-value {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      text-align: right;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      align-items: stretch;
+      background: #fff;
+      border-radius: 18px 18px 0 0;
+      box-shadow: 0 8px 18px rgba(27, 48, 87, 0.08);
+      margin: -18px -16px 18px;
+      overflow: hidden;
+      position: relative;
+      z-index: 2;
+    }
+
+    .tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      height: 60px;
+      font-size: 12px;
+      color: #8f97a8;
+      position: relative;
+      background: #fff;
+    }
+
+    .tab .icon {
+      width: 19px;
+      height: 19px;
+      border-radius: 7px;
+      border: 1.5px solid #c3cad7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+
+    .tab.active {
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .tab.active .icon {
+      border-color: var(--green);
+      color: var(--green);
+      background: #f2f9ef;
+    }
+
+    .tab.active::after {
+      content: "";
+      position: absolute;
+      left: 22%;
+      right: 22%;
+      bottom: 0;
+      height: 3px;
+      border-radius: 999px;
+      background: var(--green);
+    }
+
+    .notice {
+      background: linear-gradient(135deg, rgba(95,178,102,0.1), rgba(95,178,102,0.16));
+      border: 1px solid rgba(95,178,102,0.16);
+      color: #4d8f55;
+      border-radius: 12px;
+      padding: 13px 14px;
+      font-size: 13px;
+      line-height: 1.65;
+      margin-bottom: 16px;
+    }
+
+    .empty-copy {
+      color: #97a0af;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .record-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 2px;
+    }
+
+    .record-sub {
+      color: #96a0af;
+      font-size: 12px;
+      margin-bottom: 0;
+    }
+
+    .record-section {
+      margin-bottom: 14px;
+    }
+
+    .record-btn {
+      height: 30px;
+      padding: 0 13px;
+      border-radius: 999px;
+      background: var(--green-soft);
+      color: var(--green);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid rgba(95,178,102,0.18);
+      white-space: nowrap;
+    }
+
+    .day-group {
+      margin-bottom: 14px;
+    }
+
+    .day-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      padding: 0 2px;
+    }
+
+    .day-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #8c95a3;
+    }
+
+    .weather {
+      background: #f1f7ef;
+      color: #6da56b;
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .entry {
+      background: #fff;
+      border: 1px solid #edf0f4;
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 6px 16px rgba(27, 48, 87, 0.045);
+      margin-bottom: 10px;
+    }
+
+    .entry:last-child {
+      margin-bottom: 0;
+    }
+
+    .entry-meta {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 8px;
+      color: #8e97a7;
+      font-size: 12px;
+    }
+
+    .avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #4A90E2, #6BA3E8);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .entry-name {
+      color: #7e8798;
+      font-weight: 600;
+    }
+
+    .entry-text {
+      font-size: 13px;
+      line-height: 1.65;
+      color: #2a3040;
+      margin-bottom: 9px;
+    }
+
+    .photo-grid {
+      display: grid;
+      gap: 6px;
+    }
+
+    .photo-grid.one {
+      grid-template-columns: 1fr;
+    }
+
+    .photo-grid.two {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .photo-grid.three {
+      grid-template-columns: 1.55fr 0.95fr;
+      grid-template-rows: repeat(2, 62px);
+    }
+
+    .photo-grid .photo {
+      border-radius: 8px;
+      overflow: hidden;
+      background: #dde8f4;
+    }
+
+    .photo-grid.one .photo {
+      height: 146px;
+    }
+
+    .photo-grid.two .photo {
+      height: 106px;
+    }
+
+    .photo-grid.three .photo:first-child {
+      grid-row: 1 / span 2;
+      height: 130px;
+    }
+
+    .photo-grid.three .photo:not(:first-child) {
+      height: 62px;
+    }
+
+    .photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .footer-bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255,255,255,0.97);
+      border-top: 1px solid var(--border);
+      padding: 14px 16px 22px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      height: 48px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .btn.secondary {
+      flex: 1;
+      background: #edf4fb;
+      color: var(--blue);
+    }
+
+    .btn.primary {
+      flex: 1.2;
+      background: linear-gradient(135deg, var(--blue), var(--blue-light));
+      color: #fff;
+    }
+
+    .btn.danger {
+      flex: 1.2;
+      background: linear-gradient(135deg, #ff8181, var(--danger));
+      color: #fff;
+    }
+
+    .btn.full {
+      width: 100%;
+    }
+
+    @media (max-width: 460px) {
+      body {
+        padding: 16px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .screen-card {
+        padding: 14px;
+      }
+
+      .phone {
+        width: 100%;
+        max-width: 375px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <h1>Trip Log MVP UI</h1>
+    <p>这一版按参考图 B 的旅途记录结构重做：顶部只保留 `行程` 和 `旅途记录` 两个 tab，旅途记录标题在列表外层，每条动态都是独立白色卡片，并覆盖 1 张 / 2 张 / 3 张图片三种排版。</p>
+  </div>
+
+  <div class="grid">
+    <section class="screen-card">
+      <div class="screen-title">状态一：未开始，默认停留在行程 Tab</div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span>5G 100%</span></div>
+        <div class="scroll">
+          <div class="hero">
+            <div class="nav-btn">‹</div>
+            <div class="hero-content">
+              <div class="tags">
+                <span class="tag green">招募中</span>
+                <span class="tag gray">还剩 2 个名额</span>
+              </div>
+              <div class="trip-title">川西小环线 · 7天6晚</div>
+              <div class="trip-subtitle">已出行 3 天 · 6月1日-6月7日</div>
+            </div>
+          </div>
+
+          <div class="content">
+            <div class="tabs">
+              <div class="tab active"><div class="icon">□</div><span>行程</span></div>
+              <div class="tab"><div class="icon">✦</div><span>旅途记录</span></div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">行程信息</div>
+              <div class="info-row"><span class="info-label">出发日期</span><span class="info-value">05-13 周六</span></div>
+              <div class="info-row"><span class="info-label">集合时间</span><span class="info-value">08:00</span></div>
+              <div class="info-row"><span class="info-label">集合地点</span><span class="info-value">海淀黄庄地铁站 B 口</span></div>
+              <div class="info-row"><span class="info-label">招募人数</span><span class="info-value">2 / 4 人</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bar">
+          <div class="btn secondary">编辑行程</div>
+          <div class="btn primary">开始出发</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen-card">
+      <div class="screen-title">状态二：已开始但暂无日志，进入旅途记录 Tab</div>
+      <div class="phone">
+        <div class="status-bar"><span>10:08</span><span>5G 100%</span></div>
+        <div class="scroll">
+          <div class="hero">
+            <div class="nav-btn">‹</div>
+            <div class="hero-content">
+              <div class="tags">
+                <span class="tag orange">进行中</span>
+                <span class="tag gray">已开启日志</span>
+              </div>
+              <div class="trip-title">川西小环线 · 7天6晚</div>
+              <div class="trip-subtitle">已出行 3 天 · 6月1日-6月7日</div>
+            </div>
+          </div>
+
+          <div class="content">
+            <div class="tabs">
+              <div class="tab"><div class="icon">□</div><span>行程</span></div>
+              <div class="tab active"><div class="icon">✦</div><span>旅途记录</span></div>
+            </div>
+
+            <div class="record-section">
+              <div class="record-head">
+                <div class="card-title" style="margin-bottom:0;">旅途记录</div>
+                <div class="record-btn">✎ 记录此刻</div>
+              </div>
+              <div class="record-sub">记录旅途中闪亮的美好瞬间</div>
+            </div>
+
+            <div class="card">
+              <div class="empty-copy">日志还未发布。开始后的动态会按照时间顺序展示在这里，支持文字和最多 3 张图片。</div>
+            </div>
+
+            <div class="notice">行程日志已开启，可发布文字和图片动态。若未手动结束，系统将于次日 23:59 自动结束本次行程日志。</div>
+          </div>
+        </div>
+
+        <div class="footer-bar">
+          <div class="btn.secondary btn" style="display:none;"></div>
+          <div class="btn secondary">发布日志</div>
+          <div class="btn danger">结束行程</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen-card">
+      <div class="screen-title">状态三：旅途记录，1 张图铺满</div>
+      <div class="phone">
+        <div class="status-bar"><span>14:26</span><span>5G 92%</span></div>
+        <div class="scroll">
+          <div class="hero">
+            <div class="nav-btn">‹</div>
+            <div class="hero-content">
+              <div class="tags">
+                <span class="tag orange">进行中</span>
+                <span class="tag gray">公开时间线</span>
+              </div>
+              <div class="trip-title">川西小环线 · 7天6晚</div>
+              <div class="trip-subtitle">已出行 3 天 · 6月1日-6月7日</div>
+            </div>
+          </div>
+
+          <div class="content">
+            <div class="tabs">
+              <div class="tab"><div class="icon">□</div><span>行程</span></div>
+              <div class="tab active"><div class="icon">✦</div><span>旅途记录</span></div>
+            </div>
+
+            <div class="record-section">
+              <div class="record-head">
+                <div class="card-title" style="margin-bottom:0;">旅途记录</div>
+                <div class="record-btn">✎ 记录此刻</div>
+              </div>
+              <div class="record-sub">记录旅途中闪亮的美好瞬间</div>
+            </div>
+
+            <div class="card">
+              <div class="day-group">
+                <div class="day-head">
+                  <div class="day-title">6月3日 · 第3天</div>
+                  <div class="weather">天气晴</div>
+                </div>
+
+                <div class="entry">
+                  <div class="entry-meta">
+                    <div class="avatar"><img src="https://i.pravatar.cc/100?img=12" alt=""></div>
+                    <span class="entry-name">小宇不是宇</span>
+                    <span>·</span>
+                    <span>08:30</span>
+                  </div>
+                  <div class="entry-text">清晨的四姑娘山，云雾缭绕，像仙境一样。</div>
+                  <div class="photo-grid one">
+                    <div class="photo"><img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80" alt=""></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bar">
+          <div class="btn secondary">发布日志</div>
+          <div class="btn danger">结束行程</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen-card">
+      <div class="screen-title">状态四：旅途记录，2 张图铺满</div>
+      <div class="phone">
+        <div class="status-bar"><span>14:26</span><span>5G 92%</span></div>
+        <div class="scroll">
+          <div class="hero">
+            <div class="nav-btn">‹</div>
+            <div class="hero-content">
+              <div class="tags">
+                <span class="tag orange">进行中</span>
+                <span class="tag gray">公开时间线</span>
+              </div>
+              <div class="trip-title">川西小环线 · 7天6晚</div>
+              <div class="trip-subtitle">已出行 3 天 · 6月1日-6月7日</div>
+            </div>
+          </div>
+
+          <div class="content">
+            <div class="tabs">
+              <div class="tab"><div class="icon">□</div><span>行程</span></div>
+              <div class="tab active"><div class="icon">✦</div><span>旅途记录</span></div>
+            </div>
+
+            <div class="record-section">
+              <div class="record-head">
+                <div class="card-title" style="margin-bottom:0;">旅途记录</div>
+                <div class="record-btn">✎ 记录此刻</div>
+              </div>
+              <div class="record-sub">记录旅途中闪亮的美好瞬间</div>
+            </div>
+
+            <div class="card">
+              <div class="day-group">
+                <div class="day-head">
+                  <div class="day-title">6月3日 · 第3天</div>
+                  <div class="weather">天气晴</div>
+                </div>
+
+                <div class="entry">
+                  <div class="entry-meta">
+                    <div class="avatar"><img src="https://i.pravatar.cc/100?img=12" alt=""></div>
+                    <span class="entry-name">小宇不是宇</span>
+                    <span>·</span>
+                    <span>12:45</span>
+                  </div>
+                  <div class="entry-text">在双桥沟景区，空气清新，景色绝美！</div>
+                  <div class="photo-grid two">
+                    <div class="photo"><img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80" alt=""></div>
+                    <div class="photo"><img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80" alt=""></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bar">
+          <div class="btn secondary">发布日志</div>
+          <div class="btn danger">结束行程</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen-card">
+      <div class="screen-title">状态五：旅途记录，3 张图铺满</div>
+      <div class="phone">
+        <div class="status-bar"><span>14:26</span><span>5G 92%</span></div>
+        <div class="scroll">
+          <div class="hero">
+            <div class="nav-btn">‹</div>
+            <div class="hero-content">
+              <div class="tags">
+                <span class="tag orange">进行中</span>
+                <span class="tag gray">公开时间线</span>
+              </div>
+              <div class="trip-title">川西小环线 · 7天6晚</div>
+              <div class="trip-subtitle">已出行 3 天 · 6月1日-6月7日</div>
+            </div>
+          </div>
+
+          <div class="content">
+            <div class="tabs">
+              <div class="tab"><div class="icon">□</div><span>行程</span></div>
+              <div class="tab active"><div class="icon">✦</div><span>旅途记录</span></div>
+            </div>
+
+            <div class="record-section">
+              <div class="record-head">
+                <div class="card-title" style="margin-bottom:0;">旅途记录</div>
+                <div class="record-btn">✎ 记录此刻</div>
+              </div>
+              <div class="record-sub">记录旅途中闪亮的美好瞬间</div>
+            </div>
+
+            <div class="card">
+              <div class="day-group">
+                <div class="day-head">
+                  <div class="day-title">6月3日 · 第3天</div>
+                  <div class="weather">天气晴</div>
+                </div>
+
+                <div class="entry">
+                  <div class="entry-meta">
+                    <div class="avatar"><img src="https://i.pravatar.cc/100?img=12" alt=""></div>
+                    <span class="entry-name">小宇不是宇</span>
+                    <span>·</span>
+                    <span>18:20</span>
+                  </div>
+                  <div class="entry-text">晚上到丹巴藏寨，炊烟袅袅，慢下来的感觉真好。</div>
+                  <div class="photo-grid three">
+                    <div class="photo"><img src="https://images.unsplash.com/photo-1521295121783-8a321d551ad2?auto=format&fit=crop&w=1200&q=80" alt=""></div>
+                    <div class="photo"><img src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1200&q=80" alt=""></div>
+                    <div class="photo"><img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80" alt=""></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bar">
+          <div class="btn secondary">发布日志</div>
+          <div class="btn danger">结束行程</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen-card">
+      <div class="screen-title">状态六：无权限成员，仅浏览旅途记录</div>
+      <div class="phone">
+        <div class="status-bar"><span>14:26</span><span>5G 92%</span></div>
+        <div class="scroll">
+          <div class="hero">
+            <div class="nav-btn">‹</div>
+            <div class="hero-content">
+              <div class="tags">
+                <span class="tag orange">进行中</span>
+                <span class="tag gray">日志已开启</span>
+              </div>
+              <div class="trip-title">川西小环线 · 7天6晚</div>
+              <div class="trip-subtitle">已出行 3 天 · 6月1日-6月7日</div>
+            </div>
+          </div>
+
+          <div class="content">
+            <div class="tabs">
+              <div class="tab"><div class="icon">□</div><span>行程</span></div>
+              <div class="tab active"><div class="icon">✦</div><span>旅途记录</span></div>
+            </div>
+
+            <div class="record-section">
+              <div class="record-head">
+                <div class="card-title" style="margin-bottom:0;">旅途记录</div>
+              </div>
+              <div class="record-sub">记录旅途中闪亮的美好瞬间</div>
+            </div>
+
+            <div class="card">
+              <div class="empty-copy">当前用户没有发布权限，因此这里仅可浏览已公开的旅途记录。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bar">
+          <div class="btn secondary full">进行中</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen-card">
+      <div class="screen-title">状态七：已结束，仅保留旅途记录</div>
+      <div class="phone">
+        <div class="status-bar"><span>05-14 23:59</span><span>5G 88%</span></div>
+        <div class="scroll">
+          <div class="hero">
+            <div class="nav-btn">‹</div>
+            <div class="hero-content">
+              <div class="tags">
+                <span class="tag gray">已结束</span>
+                <span class="tag gray">日志已保留</span>
+              </div>
+              <div class="trip-title">川西小环线 · 7天6晚</div>
+              <div class="trip-subtitle">已出行 3 天 · 6月1日-6月7日</div>
+            </div>
+          </div>
+
+          <div class="content">
+            <div class="tabs">
+              <div class="tab"><div class="icon">□</div><span>行程</span></div>
+              <div class="tab active"><div class="icon">✦</div><span>旅途记录</span></div>
+            </div>
+
+            <div class="record-section">
+              <div class="record-head">
+                <div class="card-title" style="margin-bottom:0;">旅途记录</div>
+              </div>
+              <div class="record-sub">记录旅途中闪亮的美好瞬间</div>
+            </div>
+
+            <div class="card">
+              <div class="day-group">
+                <div class="day-head">
+                  <div class="day-title">6月3日 · 第3天</div>
+                  <div class="weather">天气晴</div>
+                </div>
+
+                <div class="entry">
+                  <div class="entry-meta">
+                    <div class="avatar"><img src="https://i.pravatar.cc/100?img=12" alt=""></div>
+                    <span class="entry-name">小宇不是宇</span>
+                    <span>·</span>
+                    <span>08:30</span>
+                  </div>
+                  <div class="entry-text">清晨的四姑娘山，云雾缭绕，像仙境一样。</div>
+                </div>
+
+                <div class="entry">
+                  <div class="entry-meta">
+                    <div class="avatar"><img src="https://i.pravatar.cc/100?img=12" alt=""></div>
+                    <span class="entry-name">小宇不是宇</span>
+                    <span>·</span>
+                    <span>12:45</span>
+                  </div>
+                  <div class="entry-text">在双桥沟景区，空气清新，景色绝美！</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bar">
+          <div class="btn secondary full">已结束</div>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

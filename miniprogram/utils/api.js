@@ -435,7 +435,35 @@ function feedbackCreate(data) {
   return callApi('feedback/create', data);
 }
 
-// ========== 导出 ==========
+// ========== 行程日志 ==========
+
+function tripLogStart(tripId) {
+  return callApi('tripLog/start', { tripId });
+}
+
+function tripLogEnd(tripId) {
+  return callApi('tripLog/end', { tripId });
+}
+
+function tripLogList(tripId, page = 1, pageSize = 20) {
+  return callApi('tripLog/list', { tripId, page, pageSize });
+}
+
+function tripLogCreate(data) {
+  return callApi('tripLog/create', data);
+}
+
+function tripLogDelete(tripId, logId) {
+  return callApi('tripLog/delete', { tripId, logId });
+}
+
+function tripLogAuthorize(tripId, memberId) {
+  return callApi('tripLog/authorize', { tripId, memberId });
+}
+
+function tripLogUnauthorize(tripId, memberId) {
+  return callApi('tripLog/unauthorize', { tripId, memberId });
+}
 
 module.exports = {
   // 用户
@@ -514,5 +542,14 @@ module.exports = {
   feedbackCreate,
 
   // 统计
-  trackEvent
+  trackEvent,
+
+  // 行程日志
+  tripLogStart,
+  tripLogEnd,
+  tripLogList,
+  tripLogCreate,
+  tripLogDelete,
+  tripLogAuthorize,
+  tripLogUnauthorize
 };

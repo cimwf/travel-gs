@@ -154,17 +154,24 @@ Page({
 
           // 计算状态
           const needCount = trip.needCount || 0;
+          const tripStage = trip.tripStage || 'not_started';
 
           let statusClass = 'recruiting';
           let statusText = '招募中';
 
-          if (tripTime >= todayStart && tripTime <= todayEnd) {
+          if (tripStage === 'cancelled') {
+            statusClass = 'cancelled';
+            statusText = '已取消';
+          } else if (tripStage === 'ongoing') {
             statusClass = 'ongoing';
             statusText = '进行中';
+          } else if (tripStage === 'ended') {
+            statusClass = 'ended';
+            statusText = '已结束';
           } else if (trip.status === 'stopped') {
             statusClass = 'stopped';
             statusText = '停止招募';
-          } else if (needCount === 0) {
+          } else if (needCount <= 0) {
             statusClass = 'full';
             statusText = '已满员';
           } else if (needCount === 1) {
@@ -333,7 +340,7 @@ Page({
     const normalizedStatus = statusClass || 'recruiting';
 
     if (!filterStatus) {
-      return ['recruiting', 'almost-full', 'full'].includes(normalizedStatus);
+      return ['recruiting', 'almost-full', 'full', 'ongoing'].includes(normalizedStatus);
     }
 
     if (filterStatus === 'recruiting') {
@@ -428,7 +435,9 @@ Page({
       '': '',
       'recruiting': '招募中',
       'almost-full': '即将满员',
-      'full': '已满员'
+      'full': '已满员',
+      'ongoing': '进行中',
+      'ended': '已结束'
     };
     this.setData({
       filterStatus: value,

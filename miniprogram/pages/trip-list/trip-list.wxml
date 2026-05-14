@@ -15,7 +15,7 @@
       <text class="filter-arrow">▾</text>
     </view>
     <view class="filter-item {{activeFilter === 'status' ? 'active' : ''}}" bindtap="onFilterTap" data-filter="status">
-      <text>{{statusFilterText || '招募进度'}}</text>
+      <text>{{statusFilterText || '行程状态'}}</text>
       <text class="filter-arrow">▾</text>
     </view>
   </view>
@@ -103,13 +103,15 @@
 <view class="filter-modal" wx:if="{{showStatusFilter}}" bindtap="onCloseFilter">
   <view class="filter-panel" catchtap="">
     <view class="filter-panel-header">
-      <text class="filter-panel-title">选择招募进度</text>
+      <text class="filter-panel-title">行程状态</text>
     </view>
     <view class="filter-options">
       <view class="filter-option {{!filterStatus ? 'selected' : ''}}" bindtap="onSelectStatus" data-value="">全部</view>
       <view class="filter-option {{filterStatus === 'recruiting' ? 'selected' : ''}}" bindtap="onSelectStatus" data-value="recruiting">招募中</view>
       <view class="filter-option {{filterStatus === 'almost-full' ? 'selected' : ''}}" bindtap="onSelectStatus" data-value="almost-full">即将满员</view>
       <view class="filter-option {{filterStatus === 'full' ? 'selected' : ''}}" bindtap="onSelectStatus" data-value="full">已满员</view>
+      <view class="filter-option {{filterStatus === 'ongoing' ? 'selected' : ''}}" bindtap="onSelectStatus" data-value="ongoing">进行中</view>
+      <view class="filter-option {{filterStatus === 'ended' ? 'selected' : ''}}" bindtap="onSelectStatus" data-value="ended">已结束</view>
     </view>
   </view>
 </view>

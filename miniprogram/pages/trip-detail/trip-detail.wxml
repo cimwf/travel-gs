@@ -27,111 +27,185 @@
 
     <!-- 内容区域 -->
     <view class="content">
-      <!-- 行程信息卡片 -->
-      <view class="info-card">
-        <view class="card-header">
-          <view class="card-icon-svg">
-            <view class="icon-calendar"></view>
-          </view>
-          <text class="card-title">行程信息</text>
+      <!-- Tab 切换（有日志或行程已开始时显示） -->
+      <view class="log-tabs" wx:if="{{showTabs}}">
+        <view class="log-tab {{activeTab === 'trip' ? 'log-tab-active' : ''}}" bindtap="onSwitchTab" data-tab="trip">
+          <view class="log-tab-icon log-tab-icon-trip"></view>
+          <text>行程</text>
         </view>
-        <view class="info-list">
-          <view class="info-row">
-            <text class="info-label">出发日期</text>
-            <text class="info-value">{{trip.dateText || trip.date}}</text>
-          </view>
-          <view class="info-row">
-            <text class="info-label">出发地</text>
-            <text class="info-value">{{trip.departure || '待定'}}</text>
-          </view>
-          <view class="info-row" wx:if="{{trip.meetingPlace}}">
-            <text class="info-label">集合地点</text>
-            <text class="info-value">{{trip.meetingPlace}}</text>
-          </view>
-          <view class="info-row" wx:if="{{trip.meetingTime}}">
-            <text class="info-label">集合时间</text>
-            <text class="info-value">{{trip.meetingTime}}</text>
-          </view>
-          <view class="info-row">
-            <text class="info-label">出行方式</text>
-            <text class="info-value">{{trip.hasCar ? '有车' : '无车'}}</text>
-          </view>
-          <view class="info-row" wx:if="{{trip.hasCar && (trip.carSeats || trip.carModel)}}">
-            <text class="info-label">车辆信息</text>
-            <text class="info-value">{{trip.carSeats ? trip.carSeats + '座' : ''}}{{trip.carSeats && trip.carModel ? '·' : ''}}{{trip.carModel || ''}}</text>
-          </view>
-          <view class="info-row" wx:if="{{!trip.hasCar && trip.travelDesc}}">
-            <text class="info-label">出行描述</text>
-            <text class="info-value">{{trip.travelDesc}}</text>
-          </view>
-          <view class="info-row" wx:if="{{trip.price}}">
-            <text class="info-label">人均价格</text>
-            <text class="info-value">{{trip.price}}元/人</text>
-          </view>
-          <view class="info-row">
-            <text class="info-label">招募人数</text>
-            <text class="info-value">{{trip.currentCount}}/{{trip.totalCount || (trip.currentCount + trip.needCount)}}人</text>
-          </view>
+        <view class="log-tab {{activeTab === 'log' ? 'log-tab-active' : ''}}" bindtap="onSwitchTab" data-tab="log">
+          <view class="log-tab-icon log-tab-icon-log"></view>
+          <text>旅途记录</text>
         </view>
       </view>
 
-      <!-- 发起人信息 -->
-      <view class="creator-card">
-        <view class="card-header">
-          <text class="card-icon">👤</text>
-          <text class="card-title">发起人</text>
-        </view>
-        <view class="creator-info" bindtap="onCreatorTap" hover-class="creator-info-hover">
-          <image class="creator-avatar" src="{{trip.creatorAvatar}}" wx:if="{{trip.creatorAvatar}}" mode="aspectFill"></image>
-          <view class="creator-avatar-text" style="background: linear-gradient(135deg, #4A90E2, #6BA3E8);" wx:else>
-            <text>{{trip.creatorName ? trip.creatorName[0] : '旅'}}</text>
-          </view>
-          <view class="creator-text">
-            <view class="creator-name">{{trip.creatorName || '旅行者'}}</view>
-            <view class="creator-meta">行程发起人</view>
-          </view>
-        </view>
-        <!-- 联系方式 - 已加入可见 -->
-        <view class="contact-info" wx:if="{{hasJoined && trip.contactPhone}}">
-          <view class="contact-tip">🎉 您已加入，可联系发起人</view>
-          <view class="contact-row">
-            <text class="contact-icon">💬</text>
-            <text class="contact-value">微信号：{{maskedPhone}}</text>
-            <view class="copy-btn" bindtap="onCopyPhone">复制</view>
-          </view>
-        </view>
-      </view>
-
-      <!-- 行程说明 -->
-      <view class="note-card" wx:if="{{trip.remark}}">
-        <view class="card-header">
-          <text class="card-icon">📝</text>
-          <text class="card-title">行程说明</text>
-        </view>
-        <view class="note-text">{{trip.remark}}</view>
-      </view>
-
-      <!-- 已加入成员 -->
-      <view class="members-card">
-        <view class="members-header">
-          <text class="card-title">已加入成员</text>
-          <text class="members-count">{{trip.currentCount}}/{{trip.totalCount || (trip.currentCount + trip.needCount)}}人</text>
-        </view>
-        <view class="members-grid">
-          <view class="member-item" wx:for="{{participants}}" wx:key="userId" bindtap="onMemberTap" data-member="{{item}}">
-            <image class="member-avatar" src="{{item.avatar}}" wx:if="{{item.avatar}}" mode="aspectFill"></image>
-            <view class="member-avatar-text" style="background: linear-gradient(135deg, #56AB2F, #A8E6CF);" wx:else>
-              <text>{{item.nickname ? item.nickname[0] : '旅'}}</text>
+      <!-- 行程 Tab 内容 -->
+      <block wx:if="{{activeTab === 'trip'}}">
+        <!-- 行程信息卡片 -->
+        <view class="info-card">
+          <view class="card-header">
+            <view class="card-icon-svg">
+              <view class="icon-calendar"></view>
             </view>
-            <view class="member-name">{{item.nickname || '旅行者'}}</view>
+            <text class="card-title">行程信息</text>
           </view>
-          <!-- 待加入占位 -->
-          <view class="member-item placeholder" wx:for="{{remainCount}}" wx:key="index">
-            <view class="member-avatar placeholder-avatar">+</view>
-            <view class="member-name placeholder-name">待加入</view>
+          <view class="info-list">
+            <view class="info-row">
+              <text class="info-label">出发日期</text>
+              <text class="info-value">{{trip.dateText || trip.date}}</text>
+            </view>
+            <view class="info-row">
+              <text class="info-label">出发地</text>
+              <text class="info-value">{{trip.departure || '待定'}}</text>
+            </view>
+            <view class="info-row" wx:if="{{trip.meetingPlace}}">
+              <text class="info-label">集合地点</text>
+              <text class="info-value">{{trip.meetingPlace}}</text>
+            </view>
+            <view class="info-row" wx:if="{{trip.meetingTime}}">
+              <text class="info-label">集合时间</text>
+              <text class="info-value">{{trip.meetingTime}}</text>
+            </view>
+            <view class="info-row">
+              <text class="info-label">出行方式</text>
+              <text class="info-value">{{trip.hasCar ? '有车' : '无车'}}</text>
+            </view>
+            <view class="info-row" wx:if="{{trip.hasCar && (trip.carSeats || trip.carModel)}}">
+              <text class="info-label">车辆信息</text>
+              <text class="info-value">{{trip.carSeats ? trip.carSeats + '座' : ''}}{{trip.carSeats && trip.carModel ? '·' : ''}}{{trip.carModel || ''}}</text>
+            </view>
+            <view class="info-row" wx:if="{{!trip.hasCar && trip.travelDesc}}">
+              <text class="info-label">出行描述</text>
+              <text class="info-value">{{trip.travelDesc}}</text>
+            </view>
+            <view class="info-row" wx:if="{{trip.price}}">
+              <text class="info-label">人均价格</text>
+              <text class="info-value">{{trip.price}}元/人</text>
+            </view>
+            <view class="info-row">
+              <text class="info-label">招募人数</text>
+              <text class="info-value">{{trip.currentCount}}/{{trip.totalCount || (trip.currentCount + trip.needCount)}}人</text>
+            </view>
           </view>
         </view>
-      </view>
+
+        <!-- 发起人信息 -->
+        <view class="creator-card">
+          <view class="card-header">
+            <text class="card-icon">👤</text>
+            <text class="card-title">发起人</text>
+          </view>
+          <view class="creator-info" bindtap="onCreatorTap" hover-class="creator-info-hover">
+            <image class="creator-avatar" src="{{trip.creatorAvatar}}" wx:if="{{trip.creatorAvatar}}" mode="aspectFill"></image>
+            <view class="creator-avatar-text" style="background: linear-gradient(135deg, #4A90E2, #6BA3E8);" wx:else>
+              <text>{{trip.creatorName ? trip.creatorName[0] : '旅'}}</text>
+            </view>
+            <view class="creator-text">
+              <view class="creator-name">{{trip.creatorName || '旅行者'}}</view>
+              <view class="creator-meta">行程发起人</view>
+            </view>
+          </view>
+          <!-- 联系方式 - 已加入可见 -->
+          <view class="contact-info" wx:if="{{hasJoined && trip.contactPhone}}">
+            <view class="contact-tip">🎉 您已加入，可联系发起人</view>
+            <view class="contact-row">
+              <text class="contact-icon">💬</text>
+              <text class="contact-value">微信号：{{maskedPhone}}</text>
+              <view class="copy-btn" bindtap="onCopyPhone">复制</view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 行程说明 -->
+        <view class="note-card" wx:if="{{trip.remark}}">
+          <view class="card-header">
+            <text class="card-icon">📝</text>
+            <text class="card-title">行程说明</text>
+          </view>
+          <view class="note-text">{{trip.remark}}</view>
+        </view>
+
+        <!-- 已加入成员 -->
+        <view class="members-card">
+          <view class="members-header">
+            <text class="card-title">已加入成员</text>
+            <text class="members-count">{{trip.currentCount}}/{{trip.totalCount || (trip.currentCount + trip.needCount)}}人</text>
+          </view>
+          <view class="members-grid">
+            <view class="member-item" wx:for="{{participants}}" wx:key="userId" bindtap="onMemberTap" data-member="{{item}}">
+              <image class="member-avatar" src="{{item.avatar}}" wx:if="{{item.avatar}}" mode="aspectFill"></image>
+              <view class="member-avatar-text" style="background: linear-gradient(135deg, #56AB2F, #A8E6CF);" wx:else>
+                <text>{{item.nickname ? item.nickname[0] : '旅'}}</text>
+              </view>
+              <view class="member-name">{{item.nickname || '旅行者'}}</view>
+            </view>
+            <!-- 待加入占位 -->
+            <view class="member-item placeholder" wx:for="{{remainCount}}" wx:key="index">
+              <view class="member-avatar placeholder-avatar">+</view>
+              <view class="member-name placeholder-name">待加入</view>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <!-- 旅途记录 Tab 内容 -->
+      <block wx:if="{{activeTab === 'log'}}">
+        <!-- 标题区（在列表外层） -->
+        <view class="record-section">
+          <view class="record-head">
+            <view class="record-title">旅途记录</view>
+            <view class="record-btn" wx:if="{{canPublishLog}}" bindtap="onPublishLogTap">✎ 记录此刻</view>
+          </view>
+          <view class="record-sub">记录旅途中闪亮的美好瞬间</view>
+        </view>
+
+        <!-- 开始后提示 -->
+        <view class="log-notice" wx:if="{{tripStage === 'ongoing'}}">行程日志已开启，可发布文字和图片动态。发起人可随时点击「结束行程」关闭发布通道。</view>
+
+        <!-- 无日志状态 -->
+        <view class="log-empty-card" wx:if="{{logGroups.length === 0}}">
+          <view wx:if="{{canPublishLog}}">还没有日志，点击「记录此刻」发布第一条吧。</view>
+          <view wx:else>暂无旅途记录。</view>
+        </view>
+
+        <!-- 日志列表（按天分组） -->
+        <view wx:for="{{logGroups}}" wx:key="dayLabel" wx:for-item="group">
+          <view class="day-head">
+            <view class="day-title">{{group.dayLabel}} · 第{{group.tripDayIndex}}天</view>
+            <view class="weather-tag" wx:if="{{group.weatherLabel}}">{{group.weatherLabel}}</view>
+          </view>
+
+          <!-- 每条日志独立白色卡片 -->
+          <view class="log-entry" wx:for="{{group.logs}}" wx:key="_id" wx:for-item="log">
+            <view class="log-entry-meta">
+              <image class="log-avatar" src="{{log.publisherAvatar}}" wx:if="{{log.publisherAvatar}}" mode="aspectFill"></image>
+              <view class="log-avatar-text" wx:else>{{log.publisherName ? log.publisherName[0] : '旅'}}</view>
+              <view class="log-entry-name">{{log.publisherName || '旅行者'}}</view>
+              <view class="log-entry-dot">·</view>
+              <view class="log-entry-time">{{log.timeText}}</view>
+              <view class="log-delete-btn" wx:if="{{isCreator}}" bindtap="onDeleteLog" data-log-id="{{log._id}}" data-trip-id="{{trip._id}}">删除</view>
+            </view>
+            <view class="log-entry-text" wx:if="{{log.content}}">{{log.content}}</view>
+            <!-- 图片布局 -->
+            <view wx:if="{{log.images && log.images.length > 0}}">
+              <!-- 1张图 -->
+              <view class="photo-grid photo-grid-one" wx:if="{{log.imageCount === 1}}">
+                <image class="photo-item" src="{{log.images[0].tempFileURL || log.images[0].fileID}}" mode="widthFix" bindtap="onPreviewImage" data-urls="{{log.imageUrls}}" data-current="{{log.images[0].tempFileURL || log.images[0].fileID}}"></image>
+              </view>
+              <!-- 2张图 -->
+              <view class="photo-grid photo-grid-two" wx:if="{{log.imageCount === 2}}">
+                <image class="photo-item" wx:for="{{log.images}}" wx:key="sort" src="{{item.tempFileURL || item.fileID}}" mode="aspectFill" bindtap="onPreviewImage" data-urls="{{log.imageUrls}}" data-current="{{item.tempFileURL || item.fileID}}"></image>
+              </view>
+              <!-- 3张图 -->
+              <view class="photo-grid photo-grid-three" wx:if="{{log.imageCount === 3}}">
+                <image class="photo-item photo-item-main" src="{{log.images[0].tempFileURL || log.images[0].fileID}}" mode="aspectFill" bindtap="onPreviewImage" data-urls="{{log.imageUrls}}" data-current="{{log.images[0].tempFileURL || log.images[0].fileID}}"></image>
+                <image class="photo-item photo-item-sub" src="{{log.images[1].tempFileURL || log.images[1].fileID}}" mode="aspectFill" bindtap="onPreviewImage" data-urls="{{log.imageUrls}}" data-current="{{log.images[1].tempFileURL || log.images[1].fileID}}"></image>
+                <image class="photo-item photo-item-sub" src="{{log.images[2].tempFileURL || log.images[2].fileID}}" mode="aspectFill" bindtap="onPreviewImage" data-urls="{{log.imageUrls}}" data-current="{{log.images[2].tempFileURL || log.images[2].fileID}}"></image>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
     </view>
 
     <!-- 底部安全区 -->
@@ -141,16 +215,44 @@
 
 <!-- 底部按钮区域 -->
 <view class="footer-bar" wx:if="{{trip}}">
-  <!-- 发起人视角：编辑行程 + 分享招募 -->
+  <!-- 发起人视角 -->
   <block wx:if="{{isCreator}}">
-    <view class="footer-btn-secondary" bindtap="onEditTrip">编辑行程</view>
-    <button class="footer-btn-primary" open-type="share">分享招募</button>
+    <!-- 未开始：编辑行程 + 开始出发（仅行程当天显示） -->
+    <block wx:if="{{tripStage === 'not_started'}}">
+      <view class="footer-btn-secondary" bindtap="onEditTrip">编辑行程</view>
+      <view class="footer-btn-primary" wx:if="{{isTripDay}}" bindtap="onStartLog">开始出发</view>
+      <button class="footer-btn-primary" wx:else open-type="share">分享招募</button>
+    </block>
+    <!-- 进行中：发布日志 + 结束行程 -->
+    <block wx:elif="{{tripStage === 'ongoing'}}">
+      <view class="footer-btn-secondary" bindtap="onPublishLogTap">发布日志</view>
+      <view class="footer-btn-danger" bindtap="onEndLog">结束行程</view>
+    </block>
+    <!-- 已结束 -->
+    <block wx:else>
+      <view class="footer-btn-full footer-btn-ended">已结束</view>
+    </block>
   </block>
 
-    <!-- 已加入成员视角：退出行程 + 分享给朋友 -->
+  <!-- 已加入成员视角（非发起人） -->
   <block wx:elif="{{hasJoined}}">
-    <view class="footer-btn-danger" bindtap="onQuitTrip">退出行程</view>
-    <button class="footer-btn-primary" open-type="share">分享给朋友</button>
+    <!-- 进行中且有发布权限 -->
+    <block wx:if="{{tripStage === 'ongoing' && canPublishLog}}">
+      <view class="footer-btn-secondary" bindtap="onPublishLogTap">发布日志</view>
+    </block>
+    <!-- 进行中无权限 -->
+    <block wx:elif="{{tripStage === 'ongoing'}}">
+      <view class="footer-btn-full footer-btn-ongoing">进行中</view>
+    </block>
+    <!-- 未开始：退出行程 + 分享 -->
+    <block wx:elif="{{tripStage === 'not_started'}}">
+      <view class="footer-btn-danger" bindtap="onQuitTrip">退出行程</view>
+      <button class="footer-btn-primary" open-type="share">分享给朋友</button>
+    </block>
+    <!-- 已结束 -->
+    <block wx:else>
+      <view class="footer-btn-full footer-btn-ended">已结束</view>
+    </block>
   </block>
 
   <!-- 未加入视角：申请加入 -->
@@ -159,6 +261,32 @@
       <text>{{joinBtnText}}</text>
     </view>
   </block>
+</view>
+
+<!-- 发布日志弹窗 -->
+<view class="publish-modal-mask" wx:if="{{showPublishModal}}" bindtap="onClosePublishModal">
+  <view class="publish-modal" catchtap>
+    <view class="publish-modal-title">记录此刻</view>
+    <textarea class="publish-textarea" placeholder="分享旅途中的精彩瞬间（1-200字）" value="{{publishContent}}" bindinput="onPublishContentInput" maxlength="200" auto-height></textarea>
+    <view class="publish-char-count">{{publishContent.length}}/200</view>
+
+    <!-- 图片上传区 -->
+    <view class="publish-images">
+      <view class="publish-image-item" wx:for="{{publishImages}}" wx:key="index">
+        <image class="publish-image-preview" src="{{item.tempUrl}}" mode="aspectFill"></image>
+        <view class="publish-image-remove" bindtap="onRemovePublishImage" data-index="{{index}}">×</view>
+      </view>
+      <view class="publish-add-image" wx:if="{{publishImages.length < 3}}" bindtap="onChooseImage">
+        <text class="publish-add-icon">+</text>
+        <text class="publish-add-text">添加图片</text>
+      </view>
+    </view>
+
+    <view class="publish-modal-actions">
+      <view class="publish-btn-cancel" bindtap="onClosePublishModal">取消</view>
+      <view class="publish-btn-submit {{publishSubmitting ? 'publish-btn-disabled' : ''}}" bindtap="onSubmitLog">{{publishSubmitting ? '发布中...' : '发布'}}</view>
+    </view>
+  </view>
 </view>
 
 <!-- 申请加入弹窗组件 -->
@@ -189,13 +317,17 @@
         <text>{{selectedMember.nickname ? selectedMember.nickname[0] : '旅'}}</text>
       </view>
       <view class="modal-name">{{selectedMember.nickname || '旅行者'}}</view>
-      <!-- <view class="modal-join-time">已加入 · {{selectedMember.joinTimeText || '刚刚'}}</view> -->
     </view>
 
     <!-- 操作按钮 -->
     <view class="modal-actions">
       <view class="modal-btn modal-btn-primary" bindtap="onViewProfile">查看资料</view>
       <view class="modal-btn modal-btn-danger" wx:if="{{isCreator && selectedMember.userId !== trip.creatorId}}" bindtap="onRemoveMember">移除成员</view>
+      <!-- 授权/取消授权 -->
+      <block wx:if="{{isCreator && selectedMember.userId !== trip.creatorId && tripStage === 'ongoing'}}">
+        <view class="modal-btn modal-btn-green" wx:if="{{!selectedMemberAuthorized}}" bindtap="onAuthorizePublisher">授权发布日志</view>
+        <view class="modal-btn modal-btn-secondary" wx:else bindtap="onUnauthorizePublisher">取消发布授权</view>
+      </block>
     </view>
   </view>
 </view>

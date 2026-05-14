@@ -81,23 +81,25 @@ Page({
           let statusText = '招募中';
           let statusClass = 'open';
 
-          if (status === 'cancelled') {
+          const tripStage = item.tripStage || 'not_started';
+          if (tripStage === 'cancelled') {
             statusText = '已取消';
             statusClass = 'cancelled';
-          } else if (tripTime && tripTime < todayStart) {
-            // 出行日期已过，标记为已结束
-            statusText = '已结束';
-            statusClass = 'ended';
-          } else if (tripTime && tripTime >= todayStart && tripTime <= todayEnd) {
+          } else if (tripStage === 'ongoing') {
             statusText = '进行中';
             statusClass = 'ongoing';
+          } else if (tripStage === 'ended') {
+            statusText = '已结束';
+            statusClass = 'ended';
           } else if (status === 'stopped') {
             statusText = '停止招募';
             statusClass = 'stopped';
           } else if ((item.needCount || 0) <= 0) {
-            // 还需人数为0，已满员
             statusText = '已满员';
             statusClass = 'full';
+          } else if ((item.needCount || 0) === 1) {
+            statusText = '即将满员';
+            statusClass = 'almost-full';
           }
 
           // 格式化日期
