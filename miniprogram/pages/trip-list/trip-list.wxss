@@ -172,6 +172,16 @@ page {
   color: #FF4D4F;
 }
 
+.trip-status.ended {
+  background: #F5F5F5;
+  color: #8E8EA0;
+}
+
+.trip-status.cancelled {
+  background: #F5F5F5;
+  color: #8E8EA0;
+}
+
 .trip-meta {
   font-size: 24rpx;
   color: var(--text-hint);

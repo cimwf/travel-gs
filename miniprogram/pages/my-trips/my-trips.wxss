@@ -153,6 +153,11 @@ page {
   color: var(--primary-color);
 }
 
+.status-almost-full {
+  background: rgba(250, 173, 20, 0.1);
+  color: #FAAD14;
+}
+
 .status-full {
   background: #FFF3E0;
   color: var(--warning-color);
