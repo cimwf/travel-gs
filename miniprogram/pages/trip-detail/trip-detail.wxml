@@ -296,7 +296,7 @@
     <view class="modal-actions">
       <view class="modal-btn modal-btn-primary" bindtap="onViewProfile">查看资料</view>
       <view class="modal-btn modal-btn-secondary" wx:if="{{isCreator && selectedMember.userId !== trip.creatorId}}" bindtap="onCopyPhone">复制联系方式</view>
-      <view class="modal-btn modal-btn-danger" wx:if="{{isCreator && selectedMember.userId !== trip.creatorId}}" bindtap="onRemoveMember">移除成员</view>
+      <view class="modal-btn modal-btn-danger" wx:if="{{isCreator && selectedMember.userId !== trip.creatorId && tripStage === 'not_started'}}" bindtap="onRemoveMember">移除成员</view>
       <!-- 授权/取消授权 -->
       <block wx:if="{{isCreator && selectedMember.userId !== trip.creatorId && tripStage === 'ongoing'}}">
         <view class="modal-btn modal-btn-green" wx:if="{{!selectedMemberAuthorized}}" bindtap="onAuthorizePublisher">授权发布日志</view>
