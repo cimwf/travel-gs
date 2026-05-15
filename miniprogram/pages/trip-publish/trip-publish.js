@@ -382,6 +382,10 @@ Page({
 
       if (res.success) {
         wx.showToast({ title: '保存成功', icon: 'success' });
+        const eventChannel = this.getOpenerEventChannel && this.getOpenerEventChannel();
+        if (eventChannel && eventChannel.emit) {
+          eventChannel.emit('tripUpdated');
+        }
 
         setTimeout(() => {
           wx.navigateBack();

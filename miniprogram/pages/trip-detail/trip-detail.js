@@ -72,13 +72,6 @@ Page({
 
   onShow: function () {
     this.setData({ userInfo: app.globalData.userInfo });
-    if (this.data.tripId) {
-      if (this.data.trip) {
-        this.loadTripDetail(this.data.tripId);
-      } else if (app.globalData.userInfo) {
-        this.loadTripDetail(this.data.tripId);
-      }
-    }
   },
 
   recordView: async function (tripId) {
@@ -592,7 +585,12 @@ Page({
   onEditTrip: function () {
     const trip = this.data.trip;
     wx.navigateTo({
-      url: `/pages/trip-publish/trip-publish?id=${trip._id}`
+      url: `/pages/trip-publish/trip-publish?id=${trip._id}`,
+      events: {
+        tripUpdated: () => {
+          this.loadTripDetail(trip._id);
+        }
+      }
     });
   },
 
