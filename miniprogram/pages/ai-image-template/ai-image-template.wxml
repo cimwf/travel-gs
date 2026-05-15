@@ -25,6 +25,11 @@
     </view>
   </scroll-view>
 
+  <view class="loading-state" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <view class="loading-text">模板加载中...</view>
+  </view>
+
   <view class="template-list">
     <view class="empty-state" wx:if="{{!templates.length && !loading}}">
       <view class="empty-title">还没有模板</view>

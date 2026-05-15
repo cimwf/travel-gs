@@ -4518,6 +4518,7 @@ function sanitizeAiImageTemplatePayload(data = {}, existed = {}) {
 async function aiImageTemplates(openid, data = {}) {
   const mode = data.mode === 'image' ? 'image' : data.mode === 'text' ? 'text' : '';
   const scene = String(data.scene || '').trim();
+  const limit = Math.min(Math.max(parseInt(data.limit, 10) || 100, 1), 100);
   const where = { enabled: true };
   if (mode) where.mode = mode;
   if (scene) where.scene = scene;
@@ -4527,7 +4528,7 @@ async function aiImageTemplates(openid, data = {}) {
       .where(where)
       .orderBy('sort', 'asc')
       .orderBy('createdAt', 'desc')
-      .limit(100)
+      .limit(limit)
       .get();
 
     const templates = (res.data || []).map(normalizeAiImageTemplate);

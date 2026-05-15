@@ -401,8 +401,12 @@ function aiImagePurchasePackage(packageId) {
 /**
  * 获取 AI 生图模板
  */
-function aiImageTemplates(mode, scene = '') {
-  return callApi('aiImage/templates', { mode, scene });
+function aiImageTemplates(mode, scene = '', limit) {
+  const data = { mode, scene };
+  if (Number.isFinite(Number(limit)) && Number(limit) > 0) {
+    data.limit = Number(limit);
+  }
+  return callApi('aiImage/templates', data);
 }
 
 /**

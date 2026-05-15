@@ -11,6 +11,7 @@ Page({
   },
 
   onLoad: function (options) {
+    this.templateCacheByMode = {};
     const activeMode = options && options.mode === 'image' ? 'image' : 'text';
     this.setData({ activeMode, templates: [] });
     this.loadTemplates(activeMode);
@@ -18,6 +19,20 @@ Page({
 
   onSwitchMode: function (event) {
     const activeMode = event.currentTarget.dataset.mode;
+    if (!activeMode || activeMode === this.data.activeMode) return;
+
+    const cachedTemplates = this.templateCacheByMode && this.templateCacheByMode[activeMode];
+    if (cachedTemplates) {
+      this.setData({
+        activeMode,
+        activeScene: '',
+        allTemplates: cachedTemplates,
+        templates: cachedTemplates,
+        scenes: this.buildScenes(cachedTemplates)
+      });
+      return;
+    }
+
     this.setData({
       activeMode,
       activeScene: '',
@@ -37,10 +52,17 @@ Page({
   },
 
   loadTemplates: async function (mode) {
+    const requestId = (this._loadTemplatesRequestId || 0) + 1;
+    this._loadTemplatesRequestId = requestId;
     this.setData({ loading: true });
     try {
       const res = await api.aiImageTemplates(mode);
+      if (this._loadTemplatesRequestId !== requestId || mode !== this.data.activeMode) return;
       const templates = Array.isArray(res.templates) ? res.templates : [];
+      if (!this.templateCacheByMode) {
+        this.templateCacheByMode = {};
+      }
+      this.templateCacheByMode[mode] = templates;
       const scenes = this.buildScenes(templates);
       this.setData({
         allTemplates: templates,
@@ -48,6 +70,7 @@ Page({
         scenes
       });
     } catch (err) {
+      if (this._loadTemplatesRequestId !== requestId) return;
       console.warn('加载 AI 模板库失败', err);
       this.setData({
         templates: [],
@@ -59,6 +82,7 @@ Page({
         icon: 'none'
       });
     } finally {
+      if (this._loadTemplatesRequestId !== requestId) return;
       this.setData({ loading: false });
     }
   },

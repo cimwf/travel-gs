@@ -10,7 +10,9 @@ function toSafeNumber(value, fallback = 0) {
 Page({
   data: {
     mode: 'text',
-    prompt: '',
+    textPrompt: '',
+    imagePrompt: '',
+    currentPrompt: '',
     referenceImage: '',
     referenceFileID: '',
     referenceImageType: '',
@@ -67,16 +69,21 @@ Page({
   },
 
   onLoad: function (options) {
+    this.templateCacheByMode = {};
     const initialMode = options && options.mode === 'image' ? 'image' : 'text';
     if (initialMode !== this.data.mode) {
       this.setData({
-        mode: initialMode
+        mode: initialMode,
+        currentPrompt: initialMode === 'image' ? this.data.imagePrompt : this.data.textPrompt
       }, () => {
         this.updateCanGenerate();
         this.loadTemplates(initialMode);
       });
       return;
     }
+    this.setData({
+      currentPrompt: initialMode === 'image' ? this.data.imagePrompt : this.data.textPrompt
+    });
     this.loadTemplates(initialMode);
   },
 
@@ -91,17 +98,37 @@ Page({
 
   onSwitchMode: function (event) {
     const mode = event.currentTarget.dataset.mode;
+    if (!mode || mode === this.data.mode) return;
+
+    const cachedTemplates = this.templateCacheByMode && this.templateCacheByMode[mode];
     this.setData({
       mode,
-      quickTemplates: [],
-      currentTemplates: [],
+      currentPrompt: mode === 'image' ? this.data.imagePrompt : this.data.textPrompt,
+      quickTemplates: cachedTemplates ? cachedTemplates.slice(0, 4) : [],
+      currentTemplates: cachedTemplates || [],
       style: this.data.style
     }, this.updateCanGenerate);
+
+    if (cachedTemplates) {
+      return;
+    }
+
     this.loadTemplates(mode);
   },
 
   onPromptInput: function (event) {
-    this.setData({ prompt: event.detail.value }, this.updateCanGenerate);
+    const value = event.detail.value;
+    const nextData = {
+      currentPrompt: value
+    };
+
+    if (this.data.mode === 'image') {
+      nextData.imagePrompt = value;
+    } else {
+      nextData.textPrompt = value;
+    }
+
+    this.setData(nextData, this.updateCanGenerate);
   },
 
   onChooseImage: function () {
@@ -144,11 +171,15 @@ Page({
     this._loadTemplatesRequestId = requestId;
     this.setData({ templateLoading: true });
     try {
-      const res = await api.aiImageTemplates(mode);
+      const res = await api.aiImageTemplates(mode, '', 4);
       if (this._loadTemplatesRequestId !== requestId || mode !== this.data.mode) return;
       const templates = Array.isArray(res.templates) ? res.templates : [];
+      if (!this.templateCacheByMode) {
+        this.templateCacheByMode = {};
+      }
+      this.templateCacheByMode[mode] = templates;
       this.setData({
-        quickTemplates: templates.slice(0, 4),
+        quickTemplates: templates,
         currentTemplates: templates
       });
     } catch (err) {
@@ -232,6 +263,10 @@ Page({
 
   onOpenTemplateLibrary: function () {
     const mode = this.data.mode;
+    wx.showLoading({
+      title: '模板加载中...',
+      mask: true
+    });
     wx.navigateTo({
       url: `/pages/ai-image-template/ai-image-template?mode=${mode}`,
       success: (res) => {
@@ -241,6 +276,7 @@ Page({
         });
       },
       fail: (err) => {
+        wx.hideLoading();
         console.error('打开模板库失败', err);
         wx.showToast({
           title: '打开模板库失败',
@@ -253,11 +289,20 @@ Page({
   applyTemplate: function (template) {
     if (!template) return;
     const previousMode = this.data.mode;
+    const nextMode = template.mode || this.data.mode;
+    const currentPromptKey = nextMode === 'image' ? 'imagePrompt' : 'textPrompt';
     const nextData = {
-      prompt: template.prompt || this.data.prompt,
-      mode: template.mode || this.data.mode,
+      mode: nextMode,
       style: Object.prototype.hasOwnProperty.call(template, 'style') ? (template.style || '') : this.data.style
     };
+
+    if (template.prompt) {
+      nextData[currentPromptKey] = template.prompt;
+    }
+
+    nextData.currentPrompt = Object.prototype.hasOwnProperty.call(nextData, currentPromptKey)
+      ? nextData[currentPromptKey]
+      : (nextMode === 'image' ? this.data.imagePrompt : this.data.textPrompt);
 
     if (template.ratio) {
       nextData.ratio = template.ratio;
@@ -359,8 +404,8 @@ Page({
   },
 
   updateCanGenerate: function () {
-    const promptReady = this.data.prompt.trim().length > 0;
-    const textModeReady = this.data.mode === 'text' && promptReady;
+    const textPromptReady = this.data.textPrompt.trim().length > 0;
+    const textModeReady = this.data.mode === 'text' && textPromptReady;
     const imageModeReady = this.data.mode === 'image' && Boolean(this.data.referenceImage);
     this.setData({ canGenerate: textModeReady || imageModeReady });
   },
@@ -460,7 +505,7 @@ Page({
       const referenceFileID = this.data.mode === 'image' ? await this.uploadReferenceImage() : '';
       const payload = {
         mode: this.data.mode,
-        prompt: this.data.prompt,
+        prompt: this.data.mode === 'image' ? this.data.imagePrompt : this.data.textPrompt,
         referenceFileID,
         ratio: this.data.ratio,
         style: this.data.style || '',
