@@ -573,15 +573,20 @@ Page({
   },
 
   onCopyPhone: function () {
-    const phone = this.data.trip.contactPhone;
-    if (phone) {
-      wx.setClipboardData({
-        data: phone,
-        success: () => {
-          wx.showToast({ title: '已复制微信号', icon: 'success' });
-        }
-      });
+    const { selectedMember } = this.data;
+    const phone = selectedMember && selectedMember.contactPhone;
+
+    if (!phone) {
+      wx.showToast({ title: '暂无联系方式', icon: 'none' });
+      return;
     }
+
+    wx.setClipboardData({
+      data: phone,
+      success: () => {
+        wx.showToast({ title: '已复制联系方式', icon: 'success' });
+      }
+    });
   },
 
   onEditTrip: function () {

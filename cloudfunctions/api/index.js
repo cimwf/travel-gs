@@ -1349,7 +1349,7 @@ async function tripView(tripId) {
 }
 
 async function tripJoin(openid, data) {
-  const { tripId } = data;
+  const { tripId, contactValue } = data;
   
   // 获取行程
   const tripRes = await db.collection('trips').doc(tripId).get();
@@ -1383,6 +1383,11 @@ async function tripJoin(openid, data) {
     nickname: user.nickname,
     avatar: safeAvatar(user.avatar)
   };
+
+  const participantContactPhone = String(contactValue || '').trim();
+  if (participantContactPhone) {
+    newParticipant.contactPhone = participantContactPhone;
+  }
   
   const updateData = {
     participants: _.push(newParticipant),
@@ -1995,7 +2000,10 @@ async function applyHandle(openid, data) {
 
   // 如果接受，加入行程
   if (accept && apply.fromUserId && apply.tripId) {
-    await tripJoin(apply.fromUserId, { tripId: apply.tripId });
+    await tripJoin(apply.fromUserId, {
+      tripId: apply.tripId,
+      contactValue: apply.contactValue
+    });
   }
 
   return { success: true };

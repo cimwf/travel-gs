@@ -89,33 +89,6 @@
           </view>
         </view>
 
-        <!-- 发起人信息 -->
-        <view class="creator-card">
-          <view class="card-header">
-            <text class="card-icon">👤</text>
-            <text class="card-title">发起人</text>
-          </view>
-          <view class="creator-info" bindtap="onCreatorTap" hover-class="creator-info-hover">
-            <image class="creator-avatar" src="{{trip.creatorAvatar}}" wx:if="{{trip.creatorAvatar}}" mode="aspectFill"></image>
-            <view class="creator-avatar-text" style="background: linear-gradient(135deg, #4A90E2, #6BA3E8);" wx:else>
-              <text>{{trip.creatorName ? trip.creatorName[0] : '旅'}}</text>
-            </view>
-            <view class="creator-text">
-              <view class="creator-name">{{trip.creatorName || '旅行者'}}</view>
-              <view class="creator-meta">行程发起人</view>
-            </view>
-          </view>
-          <!-- 联系方式 - 已加入可见 -->
-          <view class="contact-info" wx:if="{{hasJoined && trip.contactPhone}}">
-            <view class="contact-tip">🎉 您已加入，可联系发起人</view>
-            <view class="contact-row">
-              <text class="contact-icon">💬</text>
-              <text class="contact-value">微信号：{{maskedPhone}}</text>
-              <view class="copy-btn" bindtap="onCopyPhone">复制</view>
-            </view>
-          </view>
-        </view>
-
         <!-- 行程说明 -->
         <view class="note-card" wx:if="{{trip.remark}}">
           <view class="card-header">
@@ -322,6 +295,7 @@
     <!-- 操作按钮 -->
     <view class="modal-actions">
       <view class="modal-btn modal-btn-primary" bindtap="onViewProfile">查看资料</view>
+      <view class="modal-btn modal-btn-secondary" wx:if="{{isCreator && selectedMember.userId !== trip.creatorId}}" bindtap="onCopyPhone">复制联系方式</view>
       <view class="modal-btn modal-btn-danger" wx:if="{{isCreator && selectedMember.userId !== trip.creatorId}}" bindtap="onRemoveMember">移除成员</view>
       <!-- 授权/取消授权 -->
       <block wx:if="{{isCreator && selectedMember.userId !== trip.creatorId && tripStage === 'ongoing'}}">

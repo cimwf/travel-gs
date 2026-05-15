@@ -328,7 +328,8 @@ async function installCoreMock(miniProgram, reset = false) {
               trip.participants.push({
                 userId: apply.fromUserId,
                 nickname: applicant.nickname || apply.fromUserName,
-                avatar: applicant.avatar || ''
+                avatar: applicant.avatar || '',
+                contactPhone: apply.contactValue
               });
               trip.currentCount += 1;
               trip.needCount = Math.max(0, trip.needCount - 1);
@@ -509,7 +510,9 @@ async function approveApplication(miniProgram) {
   const apply = db.applies.find((item) => item._id === pending._id);
   assert.strictEqual(apply.status, 'accepted');
   const trip = db.trips[apply.tripId];
-  assert(trip.participants.some((p) => p.userId === USERS.applicant.openid), 'applicant should join participants after approval');
+  const participant = trip.participants.find((p) => p.userId === USERS.applicant.openid);
+  assert(participant, 'applicant should join participants after approval');
+  assert.strictEqual(participant.contactPhone, USERS.applicant.contactPhone, 'approved participant should keep application contact phone');
 }
 
 async function removeApplicant(miniProgram, tripId) {

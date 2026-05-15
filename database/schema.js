@@ -105,7 +105,8 @@ const tripSchema = {
     {
       userId: "user_xxx",
       nickname: "旅行达人",
-      avatar: "https://..."
+      avatar: "https://...",
+      contactPhone: "13800138000"    // 申请加入时填写的本次行程联系方式
     }
   ],
   
