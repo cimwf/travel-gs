@@ -354,7 +354,7 @@ exports.main = async (event, context) => {
       case 'aiImage/summary':
         return await aiImageSummary(openid);
       case 'aiImage/list':
-        return await aiImageList(openid);
+        return await aiImageList(openid, data);
       case 'aiImage/delete':
         return await aiImageDelete(openid, data);
       case 'admin/aiReference/list':
@@ -4763,12 +4763,15 @@ async function syncAiImageRecord(openid, record) {
   return { ...record, ...updates };
 }
 
-async function aiImageList(openid) {
+async function aiImageList(openid, data = {}) {
   const userId = openid || 'anonymous';
+  const page = Math.max(parseInt(data.page, 10) || 1, 1);
+  const pageSize = Math.min(Math.max(parseInt(data.pageSize, 10) || 5, 1), 20);
   const res = await db.collection('ai_image_generations')
     .where({ userId })
     .orderBy('createdAt', 'desc')
-    .limit(50)
+    .skip((page - 1) * pageSize)
+    .limit(pageSize)
     .get();
 
   const items = [];
@@ -4793,7 +4796,10 @@ async function aiImageList(openid) {
   return {
     success: true,
     summary: await getAiImageSummaryData(openid),
-    images: items
+    images: items,
+    page,
+    pageSize,
+    hasMore: records.length === pageSize
   };
 }
 

@@ -76,6 +76,9 @@
         <view class="time-text" wx:if="{{item.createdText}}">{{item.createdText}}</view>
       </view>
     </view>
+
+    <view class="load-more-state" wx:if="{{loadingMore}}">加载更多中...</view>
+    <view class="load-more-state done" wx:elif="{{!hasMore && works.length > 0}}">没有更多作品了</view>
   </view>
 
   <view class="batch-bar" wx:if="{{editMode && !isEmpty}}">

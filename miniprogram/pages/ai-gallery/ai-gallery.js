@@ -21,26 +21,42 @@ Page({
       remaining: 3,
       generatedCount: 0
     },
+    page: 1,
+    pageSize: 5,
+    hasMore: true,
+    loadingMore: false,
     works: [],
     isEmpty: true
   },
 
   onLoad: function () {
-    this.loadWorks();
+    this.loadWorks(true);
   },
 
   onPullDownRefresh: function () {
-    this.loadWorks().finally(() => wx.stopPullDownRefresh());
+    this.loadWorks(true).finally(() => wx.stopPullDownRefresh());
   },
 
-  loadWorks: async function () {
-    this.setData({ loading: true });
+  onReachBottom: function () {
+    this.loadMoreWorks();
+  },
+
+  loadWorks: async function (reset = false) {
+    const page = reset ? 1 : this.data.page;
+    this.setData({
+      loading: reset,
+      loadingMore: !reset
+    });
     try {
-      const res = await api.aiImageList();
-      const works = this.decorateWorks((res.images || []).map(item => this.formatWork(item)), this.data.selectedIds);
+      const res = await api.aiImageList(page, this.data.pageSize);
+      const nextWorks = (res.images || []).map(item => this.formatWork(item));
+      const mergedWorks = reset ? nextWorks : this.data.works.concat(nextWorks);
+      const works = this.decorateWorks(mergedWorks, this.data.selectedIds);
       this.setData({
         summary: res.summary ? this.normalizeSummary(res.summary) : this.data.summary,
         summaryReady: Boolean(res.summary),
+        page,
+        hasMore: Boolean(res.hasMore),
         works,
         isEmpty: works.length === 0,
         selectedIds: works.filter(item => item.selected).map(item => this.getWorkId(item)),
@@ -49,14 +65,29 @@ Page({
         editMode: works.length === 0 ? false : this.data.editMode
       });
     } catch (err) {
+      if (!reset) {
+        this.setData({ page: Math.max(page - 1, 1) });
+      }
       console.error('加载 AI 作品失败', err);
       wx.showToast({
         title: this.formatAiImageErrorText(err, '加载失败'),
         icon: 'none'
       });
     } finally {
-      this.setData({ loading: false });
+      this.setData({
+        loading: false,
+        loadingMore: false
+      });
     }
+  },
+
+  loadMoreWorks: function () {
+    if (this.data.loading || this.data.loadingMore || !this.data.hasMore || this.data.editMode) return;
+    this.setData({
+      page: this.data.page + 1
+    }, () => {
+      this.loadWorks(false);
+    });
   },
 
   formatWork: function (item) {
@@ -206,8 +237,8 @@ Page({
       this.onToggleEditMode();
       return;
     }
-    if (this.data.loading) return;
-    this.loadWorks();
+    if (this.data.loading || this.data.loadingMore) return;
+    this.loadWorks(true);
   },
 
   onToggleEditMode: function () {
@@ -325,7 +356,7 @@ Page({
             await api.aiImageDelete(this.getWorkId(work), this.collectWorkFileIDs(work));
           }
 
-          await this.loadWorks();
+          await this.loadWorks(true);
           this.setData({
             editMode: false,
             selectedIds: [],

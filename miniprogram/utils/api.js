@@ -373,8 +373,8 @@ function aiImageSummary() {
 /**
  * 获取 AI 生图作品列表
  */
-function aiImageList() {
-  return callApi('aiImage/list', {});
+function aiImageList(page = 1, pageSize = 5) {
+  return callApi('aiImage/list', { page, pageSize });
 }
 
 /**
