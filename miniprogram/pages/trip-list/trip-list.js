@@ -53,9 +53,10 @@ Page({
     this.loadTrips();
   },
 
-  onShow: async function () {
+  onShow: function () {
     // 静默刷新（不显示 loading）
-    await this.loadAttractions();
+    // 景点数据有全局缓存，不需要 await，后台更新即可
+    app.getAttractions();
     this.loadTrips(true, true);
   },
 

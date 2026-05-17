@@ -1087,11 +1087,8 @@ async function tripList(openid, data) {
   // 记录行程列表访问人数。云函数上下文拿到的 openid 比前端传参更可信。
   // 只按天去重 openid，用于后台计算访问人数、登录人数和转化率。
   if (openid) {
-    try {
-      await recordUserStatEvent('tripListVisit', openid, { page, pageSize });
-    } catch (err) {
-      console.warn('记录行程访问统计失败', err);
-    }
+    // 统计异步执行，不阻塞主流程
+    recordUserStatEvent('tripListVisit', openid, { page, pageSize }).catch(() => {});
   }
 
   let query = db.collection('trips');
