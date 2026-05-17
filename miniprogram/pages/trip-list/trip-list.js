@@ -48,9 +48,11 @@ Page({
   },
 
   onLoad: async function () {
-    // 先加载景点数据到全局缓存，再加载行程列表
-    await this.loadAttractions();
-    this.loadTrips();
+    // 两个请求并行发出，互不依赖
+    await Promise.all([
+      app.getAttractions(),
+      this.loadTrips()
+    ]);
   },
 
   onShow: function () {
