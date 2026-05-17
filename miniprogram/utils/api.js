@@ -221,8 +221,8 @@ function applyHandle(applyId, accept) {
 /**
  * 获取行程通知列表
  */
-function applyNotifications() {
-  return callApi('apply/notifications', {});
+function applyNotifications(page = 1, pageSize = 5) {
+  return callApi('apply/notifications', { page, pageSize });
 }
 
 /**

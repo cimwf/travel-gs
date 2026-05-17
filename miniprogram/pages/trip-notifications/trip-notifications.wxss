@@ -726,3 +726,11 @@ page {
 .manage-actions {
   flex-direction: column;
 }
+
+.load-more-tip,
+.no-more-tip {
+  text-align: center;
+  padding: 24rpx 0;
+  font-size: 24rpx;
+  color: var(--text-tertiary, #999);
+}

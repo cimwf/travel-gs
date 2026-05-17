@@ -7,8 +7,12 @@ Page({
   data: {
     isLoggedIn: false,
     loading: true,
+    loadingMore: false,
     isRefreshing: false,
     notifications: [],
+    currentPage: 1,
+    hasMore: false,
+    pageSize: 5,
 
     // 取消弹窗
     showCancelModal: false,
@@ -21,38 +25,48 @@ Page({
   },
 
   onLoad: function () {
-    this.checkLogin();
-  },
-
-  onShow: function () {
-    this.checkLogin();
-  },
-
-  // 检查登录状态
-  checkLogin: function () {
     auth.syncToApp(app);
     const isLoggedIn = app.globalData.isLoggedIn;
     this.setData({ isLoggedIn });
+  },
 
+  onShow: function () {
+    auth.syncToApp(app);
+    const isLoggedIn = app.globalData.isLoggedIn;
+    this.setData({ isLoggedIn });
     if (isLoggedIn) {
-      this.loadNotifications();
+      this._showCacheThenRefresh();
     }
   },
 
-  // 加载所有通知
-  loadNotifications: async function () {
-    this.setData({ loading: true });
+  // 先展示缓存，同时后台拉第 1 页新数据替换
+  _showCacheThenRefresh: function () {
+    const cache = app.globalData.notificationsCache;
+    if (cache && cache.length > 0) {
+      this.setData({ notifications: cache, loading: false });
+    }
+    this.loadNotifications(1);
+  },
+
+  // 加载通知：page=1 替换列表并更新缓存，page>1 追加
+  loadNotifications: async function (page = 1) {
+    const { pageSize } = this.data;
+
+    if (page === 1) {
+      if (!app.globalData.notificationsCache) {
+        this.setData({ loading: true });
+      }
+    } else {
+      this.setData({ loadingMore: true });
+    }
 
     try {
-      // 并行请求通知和景点数据
       const [res, attractions] = await Promise.all([
-        api.applyNotifications(),
+        api.applyNotifications(page, pageSize),
         app.getAttractions()
       ]);
 
-      // 添加辅助字段，并从全局景点数据获取正确封面图
-      const notifications = (res.notifications || []).map(item => {
-        // 从全局景点数据获取正确封面图
+      const newItems = (res.notifications || []).map(item => {
         let coverImage = item.placeCoverImage || '';
         if (item.placeId) {
           const attraction = attractions.find(a => a._id === item.placeId);
@@ -70,20 +84,33 @@ Page({
         };
       });
 
-      this.setData({
-        loading: false,
-        notifications
-      });
-
-      // 标记为已读
-      this.markAsRead();
+      if (page === 1) {
+        app.globalData.notificationsCache = newItems;
+        this.setData({
+          loading: false,
+          notifications: newItems,
+          currentPage: 1,
+          hasMore: res.hasMore || false
+        });
+        this.markAsRead();
+      } else {
+        this.setData({
+          loadingMore: false,
+          notifications: [...this.data.notifications, ...newItems],
+          currentPage: page,
+          hasMore: res.hasMore || false
+        });
+      }
     } catch (err) {
       console.warn('加载通知失败', err);
-      this.setData({
-        loading: false,
-        notifications: []
-      });
+      this.setData({ loading: false, loadingMore: false });
     }
+  },
+
+  // 滚到底部加载下一页
+  onScrollToLower: function () {
+    if (this.data.loadingMore || !this.data.hasMore) return;
+    this.loadNotifications(this.data.currentPage + 1);
   },
 
   // 标记所有通知为已读
@@ -290,11 +317,12 @@ Page({
     });
   },
 
-  // 下拉刷新
+  // 下拉刷新（清缓存，强制重新拉第 1 页）
   onRefresh: async function () {
     this.setData({ isRefreshing: true });
     if (this.data.isLoggedIn) {
-      await this.loadNotifications();
+      app.globalData.notificationsCache = null;
+      await this.loadNotifications(1);
     }
     this.setData({ isRefreshing: false });
   },
@@ -373,7 +401,7 @@ Page({
             });
 
             // 重新加载列表
-            this.loadNotifications();
+            this.loadNotifications(1);
           } catch (err) {
             wx.hideLoading();
             console.error('删除通知失败', err);

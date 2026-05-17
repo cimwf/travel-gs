@@ -298,7 +298,7 @@ exports.main = async (event, context) => {
       case 'apply/handle':
         return await applyHandle(openid, data);
       case 'apply/notifications':
-        return await applyNotifications(openid);
+        return await applyNotifications(openid, data?.page || 1, data?.pageSize || 5);
       case 'apply/delete':
         return await applyDelete(openid, data);
       case 'apply/cancel':
@@ -2010,21 +2010,27 @@ async function applyHandle(openid, data) {
 }
 
 // 获取行程通知列表（包括收到和发出的申请）
-async function applyNotifications(openid) {
+async function applyNotifications(openid, page = 1, pageSize = 5) {
   const receivedList = [];
   const sentList = [];
 
-  // 根据 ownerId 查询（每人各拥有一条数据）
+  const skip = (page - 1) * pageSize;
+
+  // 多查一条用于判断是否还有更多
   const allRes = await db.collection('applies')
     .where({ ownerId: openid })
     .orderBy('createdAt', 'desc')
-    .limit(50)
+    .skip(skip)
+    .limit(pageSize + 1)
     .get();
+
+  const hasMore = (allRes.data || []).length > pageSize;
+  const pageItems = (allRes.data || []).slice(0, pageSize);
 
   // 按类型拆分：ownerId === toUserId 为我收到的，否则为我发出的
   const receivedItems = [];
   const sentItems = [];
-  for (const item of allRes.data || []) {
+  for (const item of pageItems) {
     if (item.ownerId === item.toUserId) {
       receivedItems.push(item);
     } else {
@@ -2287,7 +2293,7 @@ async function applyNotifications(openid) {
     return (b.createdAt || 0) - (a.createdAt || 0);
   });
 
-  return { success: true, notifications };
+  return { success: true, notifications, hasMore };
 }
 
 // 删除申请通知

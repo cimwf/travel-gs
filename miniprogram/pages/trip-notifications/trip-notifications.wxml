@@ -34,6 +34,8 @@
       refresher-enabled
       refresher-triggered="{{isRefreshing}}"
       bindrefresherrefresh="onRefresh"
+      bindscrolltolower="onScrollToLower"
+      lower-threshold="100"
     >
       <view class="list-content">
         <block wx:if="{{notifications.length > 0}}">
@@ -307,6 +309,10 @@
           <view class="empty-desc">别人申请加入您的行程、邀请您一起游玩、<br/>或您发出申请后，消息会显示在这里</view>
         </view>
       </view>
+
+      <!-- 加载更多 / 没有更多 -->
+      <view class="load-more-tip" wx:if="{{loadingMore}}">加载中...</view>
+      <view class="no-more-tip" wx:elif="{{!hasMore && notifications.length > 0}}">没有更多了</view>
 
       <!-- 底部安全区 -->
       <view class="safe-bottom"></view>

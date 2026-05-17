@@ -8,7 +8,8 @@ App({
     isLoggedIn: false,
     cloudEnv: 'prod-d2gkmbquec074b1df',
     attractions: [],
-    attractionsLoaded: false
+    attractionsLoaded: false,
+    notificationsCache: null
   },
 
   // 获取景点列表（缓存到全局）
