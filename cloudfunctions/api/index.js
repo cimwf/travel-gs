@@ -1082,7 +1082,7 @@ async function tripCreate(openid, data) {
 }
 
 async function tripList(openid, data) {
-  const { placeId, status, date, excludeStatus, page = 1, pageSize = 8 } = data;
+  const { placeId, status, date, excludeStatus, page = 1, pageSize = 8, cursor } = data;
 
   // 记录行程列表访问人数。云函数上下文拿到的 openid 比前端传参更可信。
   // 只按天去重 openid，用于后台计算访问人数、登录人数和转化率。
@@ -1098,6 +1098,8 @@ async function tripList(openid, data) {
   if (status) conditions.status = status;
   if (date) conditions.date = date;
   if (excludeStatus) conditions.status = _.neq(excludeStatus);
+  // 游标翻页：只拉比游标更旧的数据，避免新增数据插队导致重复
+  if (cursor) conditions.createdAt = _.lt(cursor);
 
   if (Object.keys(conditions).length > 0) {
     query = query.where(conditions);
@@ -1105,7 +1107,7 @@ async function tripList(openid, data) {
 
   const res = await query
     .orderBy('createdAt', 'desc')
-    .skip((page - 1) * pageSize)
+    .skip(cursor ? 0 : (page - 1) * pageSize)
     .limit(pageSize)
     .get();
 

@@ -11,6 +11,7 @@ Page({
     hasMore: true,
     page: 0,
     pageSize: 8,
+    cursor: 0,
 
     // 筛选相关
     activeFilter: '',
@@ -79,25 +80,28 @@ Page({
     const openid = await this.ensureOpenid();
 
     if (reset && !silent) {
-      this.setData({ loading: true, page: 0 });
+      this.setData({ loading: true, page: 0, cursor: 0 });
     } else if (reset) {
-      this.setData({ page: 0 });
+      this.setData({ page: 0, cursor: 0 });
     }
 
     try {
-      const { page, pageSize } = this.data;
+      const { page, pageSize, cursor } = this.data;
+
+      const reqData = { openid, pageSize, excludeStatus: 'cancelled' };
+      // 翻页时用游标，首次加载和刷新始终拿第 1 页
+      if (!reset && cursor) {
+        reqData.cursor = cursor;
+      } else {
+        reqData.page = 1;
+      }
 
       // 从云函数获取行程列表
       const res = await wx.cloud.callFunction({
         name: 'api',
         data: {
           action: 'trip/list',
-          data: {
-            openid,
-            page: page + 1, // 云函数使用1-based分页
-            pageSize,
-            excludeStatus: 'cancelled'
-          }
+          data: reqData
         }
       });
 
@@ -232,6 +236,9 @@ Page({
         const destinations = [...new Set(allTrips.map(t => t.placeName).filter(Boolean))];
         const departures = [...new Set(allTrips.map(t => t.departure).filter(Boolean))];
 
+        // 用最后一条原始数据的 createdAt 作为下次翻页游标
+        const lastItem = tripsData[tripsData.length - 1];
+
         this.setData({
           allTrips,
           trips: this.filterTrips(allTrips),
@@ -239,7 +246,8 @@ Page({
           departureOptions: departures,
           hasMore: tripsData.length >= pageSize,
           loading: false,
-          page: page + 1
+          page: page + 1,
+          cursor: lastItem.createdAt || 0
         });
       } else {
         this.setData({
