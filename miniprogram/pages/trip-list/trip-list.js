@@ -11,7 +11,6 @@ Page({
     hasMore: true,
     page: 0,
     pageSize: 8,
-    cursor: 0,
 
     // 筛选相关
     activeFilter: '',
@@ -79,19 +78,22 @@ Page({
   loadTrips: async function (reset = true, silent = false) {
     const openid = await this.ensureOpenid();
 
+    if (reset) {
+      this._cursor = 0;
+    }
     if (reset && !silent) {
-      this.setData({ loading: true, page: 0, cursor: 0 });
+      this.setData({ loading: true, page: 0 });
     } else if (reset) {
-      this.setData({ page: 0, cursor: 0 });
+      this.setData({ page: 0 });
     }
 
     try {
-      const { page, pageSize, cursor } = this.data;
+      const { page, pageSize } = this.data;
 
       const reqData = { openid, pageSize, excludeStatus: 'cancelled' };
       // 翻页时用游标，首次加载和刷新始终拿第 1 页
-      if (!reset && cursor) {
-        reqData.cursor = cursor;
+      if (!reset && this._cursor) {
+        reqData.cursor = this._cursor;
       } else {
         reqData.page = 1;
       }
@@ -236,8 +238,8 @@ Page({
         const destinations = [...new Set(allTrips.map(t => t.placeName).filter(Boolean))];
         const departures = [...new Set(allTrips.map(t => t.departure).filter(Boolean))];
 
-        // 用最后一条原始数据的 createdAt 作为下次翻页游标
-        const lastItem = tripsData[tripsData.length - 1];
+        // 用最后一条原始数据的 createdAt 更新游标，供下次翻页使用
+        this._cursor = tripsData[tripsData.length - 1].createdAt || 0;
 
         this.setData({
           allTrips,
@@ -246,8 +248,7 @@ Page({
           departureOptions: departures,
           hasMore: tripsData.length >= pageSize,
           loading: false,
-          page: page + 1,
-          cursor: lastItem.createdAt || 0
+          page: page + 1
         });
       } else {
         this.setData({
