@@ -1,6 +1,8 @@
 const api = require('../../utils/api.js');
 const { formatAiImageErrorMessage } = require('../../utils/ai-image-error.js');
 
+const AI_IMAGE_PAGE = '/pages/ai-image/ai-image';
+
 function toSafeNumber(value, fallback = 0) {
   const number = Number(value);
   return Number.isFinite(number) && number >= 0 ? number : fallback;
@@ -239,6 +241,21 @@ Page({
     }
     if (this.data.loading || this.data.loadingMore) return;
     this.loadWorks(true);
+  },
+
+  onEmptyBackTap: function () {
+    const pages = getCurrentPages();
+    if (pages.length > 1) {
+      wx.navigateBack();
+      return;
+    }
+
+    wx.redirectTo({
+      url: AI_IMAGE_PAGE,
+      fail: () => {
+        wx.reLaunch({ url: AI_IMAGE_PAGE });
+      }
+    });
   },
 
   onToggleEditMode: function () {
