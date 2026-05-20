@@ -102,29 +102,42 @@ async function ensureLoggedIn(miniProgram) {
   }
 }
 
-async function cleanupTestState(miniProgram) {
-  await miniProgram.evaluate(async () => {
-    const db = wx.cloud.database();
-    const _ = db.command;
-    const openid = wx.getStorageSync('openid') || '';
-    if (!openid) return;
-
-    try { await db.collection('ai_image_quotas').where({ userId: openid }).remove(); } catch (err) {}
-    try { await db.collection('ai_image_generations').where({ userId: openid }).remove(); } catch (err) {}
-    try { await db.collection('ai_image_orders').where({ userId: openid }).remove(); } catch (err) {}
-    try { await db.collection('ai_image_template_votes').where({ userId: openid }).remove(); } catch (err) {}
-    try { wx.removeStorageSync('aiImageSelectedChannelId'); } catch (err) {}
-    try { wx.removeStorageSync('aiImageSelectedTemplate'); } catch (err) {}
+async function getRuntimeOpenid(miniProgram) {
+  return await miniProgram.evaluate(async () => {
+    try {
+      const res = await wx.cloud.callFunction({ name: 'login' });
+      return (res.result && res.result.openid) || '';
+    } catch (err) {
+      // fallback: 尝试从 storage 读取
+      return wx.getStorageSync('openid') || '';
+    }
   });
 }
 
-async function setQuotaUsedUp(miniProgram) {
-  return await miniProgram.evaluate(async () => {
-    const db = wx.cloud.database();
-    const openid = wx.getStorageSync('openid') || '';
-    if (!openid) return null;
+async function cleanupTestState(miniProgram) {
+  const openid = await getRuntimeOpenid(miniProgram);
+  if (!openid) return;
 
-    const existing = await db.collection('ai_image_quotas').where({ userId: openid }).limit(1).get();
+  await miniProgram.evaluate(async (uid) => {
+    const db = wx.cloud.database();
+
+    try { await db.collection('ai_image_quotas').where({ userId: uid }).remove(); } catch (err) {}
+    try { await db.collection('ai_image_generations').where({ userId: uid }).remove(); } catch (err) {}
+    try { await db.collection('ai_image_orders').where({ userId: uid }).remove(); } catch (err) {}
+    try { await db.collection('ai_image_template_votes').where({ userId: uid }).remove(); } catch (err) {}
+    try { wx.removeStorageSync('aiImageSelectedChannelId'); } catch (err) {}
+    try { wx.removeStorageSync('aiImageSelectedTemplate'); } catch (err) {}
+  }, openid);
+}
+
+async function setQuotaUsedUp(miniProgram) {
+  const openid = await getRuntimeOpenid(miniProgram);
+  if (!openid) return null;
+
+  return await miniProgram.evaluate(async (uid) => {
+    const db = wx.cloud.database();
+
+    const existing = await db.collection('ai_image_quotas').where({ userId: uid }).limit(1).get();
     const now = Date.now();
     if (existing.data && existing.data[0]) {
       await db.collection('ai_image_quotas').doc(existing.data[0]._id).update({
@@ -133,10 +146,10 @@ async function setQuotaUsedUp(miniProgram) {
       return existing.data[0]._id;
     }
     const add = await db.collection('ai_image_quotas').add({
-      data: { userId: openid, total: 3, used: 3, createdAt: now, updatedAt: now }
+      data: { userId: uid, total: 3, used: 3, createdAt: now, updatedAt: now }
     });
     return add._id;
-  });
+  }, openid);
 }
 
 // ============ Group A：入口导航 ============
@@ -209,7 +222,8 @@ async function groupC(miniProgram) {
     await card.tap();
     await page.waitFor(300);
     const data = await page.data();
-    assert(data.prompt && data.prompt.length > 0, 'prompt 未回填');
+    const appliedPrompt = data.currentPrompt || (data.mode === 'image' ? data.imagePrompt : data.textPrompt);
+    assert(appliedPrompt && appliedPrompt.length > 0, 'prompt 未回填');
   });
 
   await runCase('C', 'C2 更多模板跳转 ai-image-template', async () => {
@@ -237,7 +251,9 @@ async function groupC(miniProgram) {
     await aiPage.waitFor(1200);
     const back = await miniProgram.currentPage();
     assert.strictEqual(back.path, 'pages/ai-image/ai-image');
-    assert(await back.data('prompt'), 'prompt 未被模板库回填');
+    const backData = await back.data();
+    const backPrompt = backData.currentPrompt || (backData.mode === 'image' ? backData.imagePrompt : backData.textPrompt);
+    assert(backPrompt, 'prompt 未被模板库回填');
   });
 }
 

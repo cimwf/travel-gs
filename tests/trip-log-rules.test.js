@@ -15,6 +15,16 @@ function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8');
 }
 
+function readApiSource() {
+  const apiFiles = [
+    'cloudfunctions/api/index.js',
+    'cloudfunctions/api/handlers/trip.js',
+    'cloudfunctions/api/handlers/tripLog.js'
+  ];
+
+  return apiFiles.map(read).join('\n');
+}
+
 function resetRuntime() {
   storage = {};
   app = {
@@ -115,7 +125,7 @@ test('test cases keep my-trips identity tabs but require status display consiste
 });
 
 test('cloud function has no auto-end or independent logStatus business logic', () => {
-  const api = read('cloudfunctions/api/index.js');
+  const api = readApiSource();
 
   ['logStatus', 'logAutoEndDays', 'logAutoEndAt', 'autoEnd', 'checkAutoEnd'].forEach((needle) => {
     assertNotIncludes(api, needle);
@@ -123,7 +133,7 @@ test('cloud function has no auto-end or independent logStatus business logic', (
 });
 
 test('trip create reads log limits from system_config snapshot', () => {
-  const api = read('cloudfunctions/api/index.js');
+  const api = readApiSource();
 
   assertIncludes(api, "db.collection('system_config').doc('trip_log').get()");
   assertIncludes(api, 'tripLogConfig.logPublisherLimit');
@@ -133,7 +143,7 @@ test('trip create reads log limits from system_config snapshot', () => {
 });
 
 test('trip status update keeps cancelled in tripStage and validates status whitelist', () => {
-  const api = read('cloudfunctions/api/index.js');
+  const api = readApiSource();
 
   assertIncludes(api, "const allowedStatus = ['open', 'stopped', 'cancelled'];");
   assertIncludes(api, '!allowedStatus.includes(status)');
@@ -143,7 +153,7 @@ test('trip status update keeps cancelled in tripStage and validates status white
 });
 
 test('trip join blocks non-not_started and full trips', () => {
-  const api = read('cloudfunctions/api/index.js');
+  const api = readApiSource();
 
   assertIncludes(api, "const tripStage = trip.tripStage || 'not_started';");
   assertIncludes(api, "if (tripStage !== 'not_started')");
@@ -153,7 +163,7 @@ test('trip join blocks non-not_started and full trips', () => {
 });
 
 test('trip log lifecycle and permissions are guarded by tripStage ongoing', () => {
-  const api = read('cloudfunctions/api/index.js');
+  const api = readApiSource();
 
   assertIncludes(api, "data: { tripStage: 'ongoing', logStartedAt: now, updatedAt: now }");
   assertIncludes(api, "data: { tripStage: 'ended', logEndedAt: now, updatedAt: now }");
@@ -163,7 +173,7 @@ test('trip log lifecycle and permissions are guarded by tripStage ongoing', () =
 });
 
 test('trip log create/delete enforce max count and idempotent decrement', () => {
-  const api = read('cloudfunctions/api/index.js');
+  const api = readApiSource();
 
   assertIncludes(api, 'const logMaxCount = trip.logMaxCount || 15;');
   assertIncludes(api, 'if (logCount >= logMaxCount)');
