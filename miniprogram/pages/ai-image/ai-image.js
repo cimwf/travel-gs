@@ -22,9 +22,6 @@ Page({
     style: '',
     ratios: ['1:1', '3:4', '4:3', '16:9', '9:16'],
     styles: styleOptions,
-    quickTemplates: [],
-    currentTemplates: [],
-    templateLoading: false,
     channels: [],
     selectedChannelId: '',
     selectedChannel: null,
@@ -47,12 +44,6 @@ Page({
   },
 
   onShow: function () {
-    const selectedTemplate = wx.getStorageSync('aiImageSelectedTemplate');
-    if (selectedTemplate) {
-      wx.removeStorageSync('aiImageSelectedTemplate');
-      this.applyTemplate(selectedTemplate);
-    }
-
     const now = Date.now();
     const staleMs = 30 * 1000;
     if (!this._lastAiImagePageLoadedAt || now - this._lastAiImagePageLoadedAt > staleMs) {
@@ -69,7 +60,6 @@ Page({
   },
 
   onLoad: function (options) {
-    this.templateCacheByMode = {};
     const initialMode = options && options.mode === 'image' ? 'image' : 'text';
     if (initialMode !== this.data.mode) {
       this.setData({
@@ -77,21 +67,18 @@ Page({
         currentPrompt: initialMode === 'image' ? this.data.imagePrompt : this.data.textPrompt
       }, () => {
         this.updateCanGenerate();
-        this.loadTemplates(initialMode);
       });
       return;
     }
     this.setData({
       currentPrompt: initialMode === 'image' ? this.data.imagePrompt : this.data.textPrompt
     });
-    this.loadTemplates(initialMode);
   },
 
   onPullDownRefresh: function () {
     Promise.all([
       this.loadSummary(),
       this.loadChannels(),
-      this.loadTemplates(this.data.mode),
       this.loadPackages()
     ]).finally(() => wx.stopPullDownRefresh());
   },
@@ -100,20 +87,11 @@ Page({
     const mode = event.currentTarget.dataset.mode;
     if (!mode || mode === this.data.mode) return;
 
-    const cachedTemplates = this.templateCacheByMode && this.templateCacheByMode[mode];
     this.setData({
       mode,
       currentPrompt: mode === 'image' ? this.data.imagePrompt : this.data.textPrompt,
-      quickTemplates: cachedTemplates ? cachedTemplates.slice(0, 4) : [],
-      currentTemplates: cachedTemplates || [],
       style: this.data.style
     }, this.updateCanGenerate);
-
-    if (cachedTemplates) {
-      return;
-    }
-
-    this.loadTemplates(mode);
   },
 
   onPromptInput: function (event) {
@@ -158,42 +136,7 @@ Page({
     this.setData({ style: event.currentTarget.dataset.value });
   },
 
-  onUseTemplate: function (event) {
-    const template = event.currentTarget.dataset.template;
-    if (!template) return;
-    this.applyTemplate(template);
-  },
-
   noop: function () {},
-
-  loadTemplates: async function (mode = this.data.mode) {
-    const requestId = (this._loadTemplatesRequestId || 0) + 1;
-    this._loadTemplatesRequestId = requestId;
-    this.setData({ templateLoading: true });
-    try {
-      const res = await api.aiImageTemplates(mode, '', 4);
-      if (this._loadTemplatesRequestId !== requestId || mode !== this.data.mode) return;
-      const templates = Array.isArray(res.templates) ? res.templates : [];
-      if (!this.templateCacheByMode) {
-        this.templateCacheByMode = {};
-      }
-      this.templateCacheByMode[mode] = templates;
-      this.setData({
-        quickTemplates: templates,
-        currentTemplates: templates
-      });
-    } catch (err) {
-      if (this._loadTemplatesRequestId !== requestId) return;
-      console.warn('加载 AI 模板失败', err);
-      this.setData({
-        quickTemplates: [],
-        currentTemplates: []
-      });
-    } finally {
-      if (this._loadTemplatesRequestId !== requestId) return;
-      this.setData({ templateLoading: false });
-    }
-  },
 
   loadChannels: async function () {
     this.setData({ channelLoading: true });
@@ -259,64 +202,6 @@ Page({
       showChannelPicker: false
     });
     wx.setStorageSync('aiImageSelectedChannelId', channelId);
-  },
-
-  onOpenTemplateLibrary: function () {
-    const mode = this.data.mode;
-    wx.showLoading({
-      title: '模板加载中...',
-      mask: true
-    });
-    wx.navigateTo({
-      url: `/pages/ai-image-template/ai-image-template?mode=${mode}`,
-      success: (res) => {
-        if (!res.eventChannel) return;
-        res.eventChannel.on('selectTemplate', (template) => {
-          this.applyTemplate(template);
-        });
-      },
-      fail: (err) => {
-        wx.hideLoading();
-        console.error('打开模板库失败', err);
-        wx.showToast({
-          title: '打开模板库失败',
-          icon: 'none'
-        });
-      }
-    });
-  },
-
-  applyTemplate: function (template) {
-    if (!template) return;
-    const previousMode = this.data.mode;
-    const nextMode = template.mode || this.data.mode;
-    const currentPromptKey = nextMode === 'image' ? 'imagePrompt' : 'textPrompt';
-    const nextData = {
-      mode: nextMode,
-      style: Object.prototype.hasOwnProperty.call(template, 'style') ? (template.style || '') : this.data.style
-    };
-
-    if (template.prompt) {
-      nextData[currentPromptKey] = template.prompt;
-    }
-
-    nextData.currentPrompt = Object.prototype.hasOwnProperty.call(nextData, currentPromptKey)
-      ? nextData[currentPromptKey]
-      : (nextMode === 'image' ? this.data.imagePrompt : this.data.textPrompt);
-
-    if (template.ratio) {
-      nextData.ratio = template.ratio;
-    }
-
-    this.setData({
-      ...nextData,
-      quickTemplates: nextData.mode === previousMode ? this.data.currentTemplates.slice(0, 4) : [],
-      currentTemplates: nextData.mode === previousMode ? this.data.currentTemplates : []
-    }, this.updateCanGenerate);
-
-    if (nextData.mode !== previousMode) {
-      this.loadTemplates(nextData.mode);
-    }
   },
 
   loadSummary: async function () {

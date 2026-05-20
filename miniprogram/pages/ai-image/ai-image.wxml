@@ -34,7 +34,6 @@
       <view>
         <view class="section-title">创作描述</view>
       </view>
-      <view class="section-action" bindtap="onOpenTemplateLibrary">更多模板</view>
     </view>
     <textarea
       class="prompt-input"
@@ -45,22 +44,6 @@
       bindinput="onPromptInput"
     ></textarea>
     <view class="input-meta">{{currentPrompt.length}}/500</view>
-    <view class="template-block" wx:if="{{quickTemplates.length}}">
-      <view class="template-head">
-        <view class="template-title">{{mode === 'image' ? '图生图快捷模板' : '热门创作模板'}}</view>
-        <view class="template-more" bindtap="onOpenTemplateLibrary">更多</view>
-      </view>
-      <view class="template-grid">
-        <view class="template-card" wx:for="{{quickTemplates}}" wx:key="_id" data-template="{{item}}" bindtap="onUseTemplate">
-          <view class="template-card-top">
-            <text class="template-badge">{{item.badge}}</text>
-            <text class="template-ratio">{{item.ratio}}</text>
-          </view>
-          <view class="template-name">{{item.title}}</view>
-          <view class="template-desc">{{item.desc}}</view>
-        </view>
-      </view>
-    </view>
   </view>
 
   <view class="panel" wx:if="{{mode === 'image'}}">
