@@ -3753,8 +3753,20 @@ async function aiImageGenerate(openid, data = {}) {
     return { success: false, error: '参考图片不能为空' };
   }
 
-  const summary = await getAiImageSummaryData(openid);
-  if (summary.remaining <= 0) {
+  const aiImageUserId = openid || 'anonymous';
+  const [summary, pendingRes] = await Promise.all([
+    getAiImageSummaryData(openid),
+    db.collection('ai_image_generations')
+      .where({
+        userId: aiImageUserId,
+        status: _.in(['queued', 'pending', 'in_progress', 'processing', 'running', 'submitted']),
+        createdAt: _.gte(Date.now() - 15 * 60 * 1000)
+      })
+      .count()
+  ]);
+  const pendingCount = pendingRes.total || 0;
+  const effectiveRemaining = summary.remaining - pendingCount;
+  if (effectiveRemaining <= 0) {
     return { success: false, error: 'AI 生图次数已用完' };
   }
 
