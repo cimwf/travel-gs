@@ -383,6 +383,13 @@ page {
   color: #FFFFFF;
 }
 
+.more-chip {
+  padding-left: 28rpx;
+  padding-right: 28rpx;
+  background: #EEF6FF;
+  color: #27435E;
+}
+
 .bottom-bar {
   position: relative;
   z-index: 1;
@@ -448,6 +455,80 @@ page {
   padding: 32rpx;
   box-sizing: border-box;
   background: rgba(17, 24, 39, 0.42);
+}
+
+.style-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 32rpx;
+  box-sizing: border-box;
+  background: rgba(17, 24, 39, 0.42);
+}
+
+.style-modal {
+  width: 100%;
+  max-height: 76vh;
+  padding: 34rpx;
+  border-radius: 28rpx;
+  background: #FFFFFF;
+  box-sizing: border-box;
+  box-shadow: 0 24rpx 70rpx rgba(17, 24, 39, 0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+.style-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.style-modal-title {
+  color: #182033;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.style-modal-desc {
+  margin-top: 10rpx;
+  color: #8A8A8A;
+  font-size: 24rpx;
+  line-height: 1.45;
+}
+
+.style-modal-close {
+  flex-shrink: 0;
+  padding: 10rpx 20rpx;
+  border-radius: 999rpx;
+  background: #F5F7FA;
+  color: #27435E;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.style-modal-body {
+  margin-top: 24rpx;
+  max-height: 56vh;
+}
+
+.style-group + .style-group {
+  margin-top: 26rpx;
+}
+
+.style-group-title {
+  margin-bottom: 16rpx;
+  color: #182033;
+  font-size: 26rpx;
+  font-weight: 800;
+}
+
+.style-picker-chip {
+  min-width: 144rpx;
 }
 
 .channel-modal {

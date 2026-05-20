@@ -1,5 +1,5 @@
 const api = require('../../utils/api.js');
-const { styleOptions } = require('../../utils/ai-image-templates.js');
+const { styleOptions, featuredStyleOptions, styleGroups } = require('../../utils/ai-image-templates.js');
 const { formatAiImageErrorMessage } = require('../../utils/ai-image-error.js');
 
 function toSafeNumber(value, fallback = 0) {
@@ -22,6 +22,11 @@ Page({
     style: '',
     ratios: ['1:1', '3:4', '4:3', '16:9', '9:16'],
     styles: styleOptions,
+    featuredStyles: featuredStyleOptions,
+    styleGroups,
+    isMoreStyleSelected: false,
+    moreStyleLabel: '更多',
+    showStylePicker: false,
     channels: [],
     selectedChannelId: '',
     selectedChannel: null,
@@ -44,6 +49,12 @@ Page({
   },
 
   onShow: function () {
+    const selectedTemplate = wx.getStorageSync('aiImageSelectedTemplate');
+    if (selectedTemplate) {
+      wx.removeStorageSync('aiImageSelectedTemplate');
+      this.applyTemplate(selectedTemplate);
+    }
+
     const now = Date.now();
     const staleMs = 30 * 1000;
     if (!this._lastAiImagePageLoadedAt || now - this._lastAiImagePageLoadedAt > staleMs) {
@@ -67,12 +78,13 @@ Page({
         currentPrompt: initialMode === 'image' ? this.data.imagePrompt : this.data.textPrompt
       }, () => {
         this.updateCanGenerate();
+        this.refreshStyleDisplay();
       });
       return;
     }
     this.setData({
       currentPrompt: initialMode === 'image' ? this.data.imagePrompt : this.data.textPrompt
-    });
+    }, this.refreshStyleDisplay);
   },
 
   onPullDownRefresh: function () {
@@ -133,10 +145,95 @@ Page({
   },
 
   onSelectStyle: function (event) {
-    this.setData({ style: event.currentTarget.dataset.value });
+    this.setData({ style: event.currentTarget.dataset.value }, this.refreshStyleDisplay);
+  },
+
+  onOpenStylePicker: function () {
+    this.setData({ showStylePicker: true });
+  },
+
+  closeStylePicker: function () {
+    this.setData({ showStylePicker: false });
+  },
+
+  onSelectStyleFromPicker: function (event) {
+    this.setData({
+      style: event.currentTarget.dataset.value,
+      showStylePicker: false
+    }, this.refreshStyleDisplay);
+  },
+
+  onOpenTemplateLibrary: function () {
+    const mode = this.data.mode;
+    wx.showLoading({
+      title: '模板加载中...',
+      mask: true
+    });
+    wx.navigateTo({
+      url: `/pages/ai-image-template/ai-image-template?mode=${mode}`,
+      success: (res) => {
+        wx.hideLoading();
+        if (!res.eventChannel) return;
+        res.eventChannel.on('selectTemplate', (template) => {
+          this.applyTemplate(template);
+        });
+      },
+      fail: (err) => {
+        wx.hideLoading();
+        console.error('打开模板库失败', err);
+        wx.showToast({
+          title: '打开模板库失败',
+          icon: 'none'
+        });
+      }
+    });
   },
 
   noop: function () {},
+
+  applyTemplate: function (template) {
+    if (!template) return;
+    const nextMode = template.mode || this.data.mode;
+    const currentPromptKey = nextMode === 'image' ? 'imagePrompt' : 'textPrompt';
+    const nextData = {
+      mode: nextMode,
+      style: Object.prototype.hasOwnProperty.call(template, 'style') ? (template.style || '') : this.data.style
+    };
+
+    if (template.prompt) {
+      nextData[currentPromptKey] = template.prompt;
+    }
+
+    nextData.currentPrompt = Object.prototype.hasOwnProperty.call(nextData, currentPromptKey)
+      ? nextData[currentPromptKey]
+      : (nextMode === 'image' ? this.data.imagePrompt : this.data.textPrompt);
+
+    if (template.ratio) {
+      nextData.ratio = template.ratio;
+    }
+
+    this.setData(nextData, () => {
+      this.updateCanGenerate();
+      this.refreshStyleDisplay();
+    });
+  },
+
+  refreshStyleDisplay: function () {
+    const isMoreStyleSelected = Boolean(this.data.style) && !this.isFeaturedStyleSelected();
+    this.setData({
+      isMoreStyleSelected,
+      moreStyleLabel: this.getMoreStyleLabel()
+    });
+  },
+
+  getSelectedStyleLabel: function () {
+    const current = this.data.styles.find(item => item.value === this.data.style);
+    return current ? current.label : '更多';
+  },
+
+  isFeaturedStyleSelected: function () {
+    return this.data.featuredStyles.some(item => item.value === this.data.style);
+  },
 
   loadChannels: async function () {
     this.setData({ channelLoading: true });
@@ -447,5 +544,9 @@ Page({
       remaining: typeof summary.remaining === 'number' ? toSafeNumber(summary.remaining) : Math.max(0, total - used),
       generatedCount: toSafeNumber(summary.generatedCount, used)
     };
+  },
+
+  getMoreStyleLabel: function () {
+    return this.isFeaturedStyleSelected() ? '更多' : this.getSelectedStyleLabel();
   }
 });

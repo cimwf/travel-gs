@@ -34,6 +34,7 @@
       <view>
         <view class="section-title">创作描述</view>
       </view>
+      <view class="section-action" bindtap="onOpenTemplateLibrary">更多模板</view>
     </view>
     <textarea
       class="prompt-input"
@@ -71,7 +72,8 @@
     <view class="option-group">
       <view class="option-label">视觉风格</view>
       <view class="chips">
-        <view class="chip {{style === item.value ? 'selected' : ''}}" wx:for="{{styles}}" wx:key="value" data-value="{{item.value}}" bindtap="onSelectStyle">{{item.label}}</view>
+        <view class="chip {{style === item.value ? 'selected' : ''}}" wx:for="{{featuredStyles}}" wx:key="value" data-value="{{item.value}}" bindtap="onSelectStyle">{{item.label}}</view>
+        <view class="chip more-chip {{showStylePicker || isMoreStyleSelected ? 'selected' : ''}}" bindtap="onOpenStylePicker">{{moreStyleLabel}}</view>
       </view>
     </view>
   </view>
@@ -105,6 +107,35 @@
       </view>
       <view class="channel-empty" wx:else>暂无可用渠道</view>
       <view class="channel-cancel" bindtap="closeChannelPicker">取消</view>
+    </view>
+  </view>
+
+  <view class="style-mask" wx:if="{{showStylePicker}}" catchtap="closeStylePicker">
+    <view class="style-modal" catchtap="noop">
+      <view class="style-modal-head">
+        <view>
+          <view class="style-modal-title">选择视觉风格</view>
+          <view class="style-modal-desc">首页展示 10 个常用风格，更多风格都在这里。</view>
+        </view>
+        <view class="style-modal-close" bindtap="closeStylePicker">关闭</view>
+      </view>
+      <scroll-view class="style-modal-body" scroll-y="true">
+        <view class="style-group" wx:for="{{styleGroups}}" wx:key="title">
+          <view class="style-group-title">{{item.title}}</view>
+          <view class="chips">
+            <view
+              class="chip style-picker-chip {{style === styleItem.value ? 'selected' : ''}}"
+              wx:for="{{item.items}}"
+              wx:for-item="styleItem"
+              wx:key="value"
+              data-value="{{styleItem.value}}"
+              bindtap="onSelectStyleFromPicker"
+            >
+              {{styleItem.label}}
+            </view>
+          </view>
+        </view>
+      </scroll-view>
     </view>
   </view>
 
