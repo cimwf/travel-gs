@@ -235,8 +235,8 @@ Page({
     const logCount = trip.logCount || 0;
     const showTabs = tripStage === 'ongoing' || tripStage === 'ended' || logCount > 0;
 
-    // 默认展示行程 tab
-    const activeTab = 'trip';
+    // 刷新后尽量保持当前 tab，避免在旅途记录里下拉后跳回行程
+    const activeTab = this.data.activeTab === 'log' && showTabs ? 'log' : 'trip';
 
     let maskedPhone = '';
     if (trip.contactPhone) {
@@ -345,6 +345,22 @@ Page({
   onSwitchTab: function (e) {
     const tab = e.currentTarget.dataset.tab;
     this.setData({ activeTab: tab });
+  },
+
+  onPullDownRefresh: async function () {
+    const { tripId, activeTab } = this.data;
+    if (!tripId) {
+      wx.stopPullDownRefresh();
+      return;
+    }
+
+    try {
+      if (activeTab === 'log') {
+        await this.loadTripDetail(tripId);
+      }
+    } finally {
+      wx.stopPullDownRefresh();
+    }
   },
 
   // ========== 日志相关操作 ==========

@@ -1,6 +1,7 @@
 {
   "navigationStyle": "custom",
   "navigationBarTitleText": "行程详情",
+  "enablePullDownRefresh": true,
   "usingComponents": {
     "apply-modal": "/components/apply-modal/apply-modal"
   }

@@ -208,6 +208,7 @@ test('trip-list status filter includes ongoing and ended with final filter seman
 test('trip-detail uses tripStage for log UI and authorization entry', () => {
   const js = read('miniprogram/pages/trip-detail/trip-detail.js');
   const wxml = read('miniprogram/pages/trip-detail/trip-detail.wxml');
+  const json = read('miniprogram/pages/trip-detail/trip-detail.json');
 
   assertNotIncludes(js, 'logStatus');
   assertNotIncludes(wxml, 'logStatus');
@@ -215,6 +216,10 @@ test('trip-detail uses tripStage for log UI and authorization entry', () => {
   assertIncludes(wxml, "tripStage === 'ongoing'");
   assertIncludes(wxml, "tripStage === 'not_started'");
   assertIncludes(wxml, "tripStage === 'ongoing'}}\">");
+  assertIncludes(js, 'onPullDownRefresh: async function () {');
+  assertIncludes(js, "if (activeTab === 'log')");
+  assertIncludes(js, "const activeTab = this.data.activeTab === 'log' && showTabs ? 'log' : 'trip';");
+  assertIncludes(json, '"enablePullDownRefresh": true');
 });
 
 test('my-trips keeps identity tabs and uses tripStage-first status display', () => {
