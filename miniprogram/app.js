@@ -1,12 +1,13 @@
 // app.js
 const auth = require('./utils/auth.js');
+const env = require('./utils/env.js');
 
 App({
   globalData: {
     userInfo: null,
     openid: null,
     isLoggedIn: false,
-    cloudEnv: 'prod-d2gkmbquec074b1df',
+    cloudEnv: env.cloudEnv,
     attractions: [],
     attractionsLoaded: false,
     notificationsCache: null

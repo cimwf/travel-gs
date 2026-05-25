@@ -1,5 +1,5 @@
 {
-  "envId": "prod-d2gkmbquec074b1df",
+  "envId": "cloud1-d2gel5jl093988c07",
   "version": "2.0",
   "$schema": "https://framework-1258016615.tcloudbaseapp.com/schema/latest.json",
   "functionRoot": "./cloudfunctions",

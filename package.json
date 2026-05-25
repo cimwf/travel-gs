@@ -8,6 +8,8 @@
     "test": "tests"
   },
   "scripts": {
+    "deploy:dev": "cloudbase deploy",
+    "deploy:prod": "cloudbase deploy --env prod-demo",
     "test": "node tests/mvp-ui-flow.test.js",
     "test:metrics": "node tests/conversion-metrics.test.js",
     "test:e2e": "node tests/e2e-click-flow.test.js",

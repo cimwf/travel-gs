@@ -1,6 +1,7 @@
 // pages/edit-profile/edit-profile.js
 const app = getApp();
 const api = require('../../utils/api.js');
+const env = require('../../utils/env.js');
 
 Page({
   data: {
@@ -26,7 +27,7 @@ Page({
       }
     },
     defaultAvatar: 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0',
-    defaultBackground: 'https://7072-prod-d2gkmbquec074b1df-1427058553.tcb.qcloud.la/attractions/1778050814136-42heznfom6q.JPG',
+    defaultBackground: env.defaultBackground,
     // 景点类型选项
     scenicTypes: [
       { id: 1, name: '山岳', icon: '🏔️', selected: false },

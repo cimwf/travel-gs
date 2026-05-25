@@ -2,6 +2,7 @@
 const app = getApp();
 const api = require('../../utils/api.js');
 const auth = require('../../utils/auth.js');
+const env = require('../../utils/env.js');
 
 Page({
   data: {
@@ -9,6 +10,7 @@ Page({
     isLoggedIn: false,
     statusBarHeight: 0,
     unreadCount: 0,
+    defaultBackground: env.defaultBackground,
     stats: {
       following: 0,
       followers: 0,
