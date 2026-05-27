@@ -125,6 +125,6 @@
 
   <!-- 版本信息 -->
   <view class="version-info">
-    北上周边行 v{{version}}
+    周末约行 v{{version}}
   </view>
 </view>

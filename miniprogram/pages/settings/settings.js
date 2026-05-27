@@ -135,7 +135,7 @@ Page({
   goToAbout: function () {
     wx.showModal({
       title: '关于我们',
-      content: '北上周边行\n版本：v' + this.data.version + '\n\n发现北京周边好去处，找旅行伙伴，一起出发！',
+      content: '周末约行\n版本：v' + this.data.version + '\n\n发现周末好去处，找旅行伙伴，一起出发！',
       showCancel: false
     });
   },
