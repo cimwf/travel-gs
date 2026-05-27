@@ -80,13 +80,13 @@ page {
   background: white;
   border-radius: 32rpx;
   overflow: hidden;
-  margin-bottom: 24rpx;
+  margin-bottom: 18rpx;
   box-shadow: var(--shadow-sm);
 }
 
 .trip-header {
   display: flex;
-  padding: 32rpx;
+  padding: 28rpx 32rpx 20rpx;
   gap: 24rpx;
 }
 
@@ -182,8 +182,7 @@ page {
 .trip-participants {
   display: flex;
   align-items: center;
-  padding: 24rpx 32rpx;
-  border-top: 2rpx solid #F0F0F5;
+  padding: 8rpx 32rpx;
   gap: 16rpx;
 }
 
@@ -207,6 +206,7 @@ page {
   height: 64rpx;
   border-radius: 50%;
   margin-left: -16rpx;
+  background: #EEF1F5;
   border: 4rpx solid white;
 }
 
@@ -223,12 +223,15 @@ page {
   border: 4rpx solid white;
 }
 
+.participant-avatar.participant-creator {
+  background: #EEF1F5;
+}
+
 /* ========== 操作按钮 ========== */
 .trip-actions {
   display: flex;
   gap: 24rpx;
-  padding: 24rpx 32rpx;
-  border-top: 2rpx solid #F0F0F5;
+  padding: 16rpx 32rpx 24rpx;
 }
 
 .action-btn {

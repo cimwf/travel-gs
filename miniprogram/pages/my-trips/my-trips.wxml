@@ -17,7 +17,7 @@
       <view class="trip-card" wx:for="{{trips}}" wx:key="_id" bindtap="onTripTap" data-id="{{item._id}}">
         <!-- 卡片头部 -->
         <view class="trip-header">
-          <view class="trip-img" style="background: {{item.imgBg}};">
+          <view class="trip-img" style="background: {{item.placeCoverImage ? '#EEF1F5' : item.imgBg}};">
             <image wx:if="{{item.placeCoverImage}}" class="trip-cover" src="{{item.placeCoverImage}}" mode="aspectFill"></image>
             <text wx:else class="trip-emoji">{{item.emoji}}</text>
           </view>
