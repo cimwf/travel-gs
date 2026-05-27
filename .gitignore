@@ -14,6 +14,7 @@ project.private.config.json
 # IDE
 .idea/
 .vscode/
+.claude/
 *.swp
 *.swo
 
