@@ -74,6 +74,13 @@ Page({
     return attraction ? (attraction.coverImage || '') : '';
   },
 
+  getTripCover: function (trip) {
+    return trip.customCoverImage ||
+      trip.placeCoverImage ||
+      trip.placeImage ||
+      (trip.placeId ? this.getPlaceCover(trip.placeId) : '');
+  },
+
   // 加载行程列表
   loadTrips: async function (reset = true, silent = false) {
     const openid = await this.ensureOpenid();
@@ -151,8 +158,8 @@ Page({
             }
           }
 
-          // 从全局缓存获取景点封面图
-          let placeCoverImage = trip.placeId ? this.getPlaceCover(trip.placeId) : '';
+          // 优先使用行程自定义封面，没有时再回退到景点封面。
+          const placeCoverImage = this.getTripCover(trip);
 
           // 参与者信息已由云函数处理
           const participants = trip.participants || [];

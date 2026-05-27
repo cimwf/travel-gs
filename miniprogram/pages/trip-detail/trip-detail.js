@@ -34,7 +34,12 @@ Page({
     showPublishModal: false,
     publishContent: '',
     publishImages: [],
-    publishSubmitting: false
+    publishSubmitting: false,
+    // 更换封面相关
+    showChangeCoverModal: false,
+    newCoverTempUrl: '',
+    newCoverTempFilePath: '',
+    changingCover: false
   },
 
   onLoad: async function (options) {
@@ -68,6 +73,13 @@ Page({
     const attractions = app.globalData.attractions || [];
     const attraction = attractions.find(a => a._id === placeId);
     return attraction ? (attraction.coverImage || '') : '';
+  },
+
+  getTripCover: function (trip) {
+    return trip.customCoverImage ||
+      trip.placeCoverImage ||
+      trip.placeImage ||
+      (trip.placeId ? this.getPlaceCover(trip.placeId) : '');
   },
 
   onShow: function () {
@@ -201,7 +213,7 @@ Page({
       dateText = `${trip.date} 周${weekDays[date.getDay()]}`;
     }
 
-    let placeCoverImage = trip.placeId ? this.getPlaceCover(trip.placeId) : '';
+    const placeCoverImage = this.getTripCover(trip);
 
     const creatorAvatar = trip.creatorAvatar || '';
     const participants = trip.participants || [];
@@ -766,13 +778,76 @@ Page({
     }
   },
 
+  // ========== 更换封面图 ==========
+
+  onChangeCoverTap: function () {
+    this.onChooseCoverImage();
+  },
+
+  onChooseCoverImage: function () {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        const file = res.tempFiles[0];
+        this.setData({
+          newCoverTempUrl: file.tempFilePath,
+          newCoverTempFilePath: file.tempFilePath,
+          showChangeCoverModal: true
+        });
+      }
+    });
+  },
+
+  onCloseChangeCoverModal: function () {
+    this.setData({
+      showChangeCoverModal: false,
+      newCoverTempUrl: '',
+      newCoverTempFilePath: ''
+    });
+  },
+
+  onConfirmChangeCover: async function () {
+    if (this.data.changingCover) return;
+    const trip = this.data.trip;
+    const filePath = this.data.newCoverTempFilePath;
+    if (!filePath || !trip) return;
+
+    this.setData({ changingCover: true });
+
+    try {
+      const ts = Date.now();
+      const extMatch = filePath.match(/\.([a-zA-Z0-9]+)$/);
+      const ext = extMatch ? extMatch[1].toLowerCase() : 'jpg';
+      const cloudPath = `trip-covers/${trip._id}/${app.globalData.openid}/${ts}.${ext}`;
+      const uploadRes = await wx.cloud.uploadFile({ cloudPath, filePath });
+
+      await api.tripUpdate({ tripId: trip._id, customCoverImage: uploadRes.fileID });
+
+      this.setData({
+        showChangeCoverModal: false,
+        changingCover: false,
+        newCoverTempUrl: '',
+        newCoverTempFilePath: '',
+        'trip.customCoverImage': uploadRes.fileID,
+        'trip.placeCoverImage': filePath
+      });
+
+      wx.showToast({ title: '图片已更换', icon: 'success' });
+    } catch (err) {
+      this.setData({ changingCover: false });
+      wx.showToast({ title: err.message || '更换失败，请重试', icon: 'none' });
+    }
+  },
+
   onShareAppMessage: function () {
     const trip = this.data.trip;
     const title = trip.tripTitle || `${trip.creatorName} 邀你一起去 ${trip.placeName}`;
     return {
       title: title,
       path: `/pages/trip-detail/trip-detail?id=${trip._id}`,
-      imageUrl: trip.placeImage
+      imageUrl: trip.placeCoverImage
     };
   }
 });

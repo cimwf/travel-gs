@@ -111,15 +111,7 @@ Page({
           const imgBg = this.getImgBg(item.placeName);
           const emoji = this.getEmoji(item.category);
 
-          // 从全局缓存获取景点封面图
-          let placeCoverImage = '';
-          if (item.placeId) {
-            const attractions = app.globalData.attractions || [];
-            const attraction = attractions.find(a => a._id === item.placeId || a.id === item.placeId);
-            if (attraction && attraction.coverImage) {
-              placeCoverImage = attraction.coverImage;
-            }
-          }
+          const placeCoverImage = this.getTripCover(item);
 
           // 参与者信息已由云函数处理
           const participants = item.participants || [];
@@ -164,6 +156,19 @@ Page({
       });
       this.updateEmptyState();
     }
+  },
+
+  // 获取行程封面图
+  getTripCover: function (trip) {
+    const attractions = app.globalData.attractions || [];
+    const attraction = trip.placeId
+      ? attractions.find(a => a._id === trip.placeId || a.id === trip.placeId)
+      : null;
+
+    return trip.customCoverImage ||
+      trip.placeCoverImage ||
+      trip.placeImage ||
+      (attraction ? (attraction.coverImage || '') : '');
   },
 
   // 获取行程图片背景

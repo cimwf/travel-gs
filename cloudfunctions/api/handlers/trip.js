@@ -1,6 +1,39 @@
 const { db, _, cloud, safeAvatar } = require('../utils/shared');
 const { recordUserStatEvent } = require('./auth');
 
+async function resolveTripCoverImages(trips = []) {
+  const coverFileIDs = [];
+  trips.forEach(trip => {
+    if (trip.customCoverImage && trip.customCoverImage.startsWith('cloud://')) {
+      coverFileIDs.push(trip.customCoverImage);
+    }
+  });
+
+  if (coverFileIDs.length === 0) {
+    return;
+  }
+
+  try {
+    const urlRes = await cloud.getTempFileURL({ fileList: [...new Set(coverFileIDs)] });
+    const coverUrlMap = {};
+    if (urlRes.fileList) {
+      urlRes.fileList.forEach(item => {
+        if (item.tempFileURL) {
+          coverUrlMap[item.fileID] = item.tempFileURL;
+        }
+      });
+    }
+
+    trips.forEach(trip => {
+      if (trip.customCoverImage && trip.customCoverImage.startsWith('cloud://') && coverUrlMap[trip.customCoverImage]) {
+        trip.customCoverImage = coverUrlMap[trip.customCoverImage];
+      }
+    });
+  } catch (err) {
+    console.warn('获取行程封面临时链接失败', err);
+  }
+}
+
 async function tripCreate(openid, data) {
   const userRes = await db.collection('users').where({ openid }).get();
   const user = userRes.data[0];
@@ -196,6 +229,8 @@ async function tripList(openid, data) {
     }
   });
 
+  await resolveTripCoverImages(trips);
+
   return { success: true, trips };
 }
 
@@ -304,6 +339,8 @@ async function tripGet(tripId) {
       }
     });
   }
+
+  await resolveTripCoverImages([trip]);
 
   return { success: true, trip };
 }
@@ -731,6 +768,8 @@ async function tripMy(openid) {
     }
   });
 
+  await resolveTripCoverImages(trips);
+
   return { success: true, trips };
 }
 
@@ -775,6 +814,8 @@ async function tripListByUser(data) {
     }
   }
 
+  await resolveTripCoverImages(trips);
+
   const formattedTrips = trips.map(trip => {
     const placeInfo = placeMap[trip.placeId] || {};
     let placeImage = placeInfo.images?.[0] || '';
@@ -789,6 +830,7 @@ async function tripListByUser(data) {
       tripTitle: trip.tripTitle || '',
       placeName: trip.placeName,
       placeId: trip.placeId || '',
+      customCoverImage: trip.customCoverImage || '',
       placeImage: placeImage,
       date: trip.date,
       duration: trip.duration || '1天',

@@ -15,13 +15,19 @@
 
       <!-- 底部标题信息 -->
       <view class="header-content">
-        <view class="status-tags">
-          <view class="status-tag status-joined" wx:if="{{hasJoined && !isCreator}}">✓ 已加入</view>
-          <view class="status-tag status-{{trip.status}}" wx:else>{{statusText}}</view>
-          <view class="status-tag remain-tag" wx:if="{{remainCount > 0 && !hasJoined}}">还剩{{remainCount}}个名额</view>
+        <view class="header-left">
+          <view class="status-tags">
+            <view class="status-tag status-joined" wx:if="{{hasJoined && !isCreator}}">✓ 已加入</view>
+            <view class="status-tag status-{{trip.status}}" wx:else>{{statusText}}</view>
+            <view class="status-tag remain-tag" wx:if="{{remainCount > 0 && !hasJoined}}">还剩{{remainCount}}个名额</view>
+          </view>
+          <view class="trip-title">{{trip.tripTitle || trip.placeName}}</view>
+          <view class="trip-location">🏔️ {{trip.placeName}} · {{trip.placeHighlight || '北京周边'}}</view>
         </view>
-        <view class="trip-title">{{trip.tripTitle || trip.placeName}}</view>
-        <view class="trip-location">🏔️ {{trip.placeName}} · {{trip.placeHighlight || '北京周边'}}</view>
+        <!-- 更换图片按钮（仅发起人可见） -->
+        <view class="change-cover-btn" wx:if="{{isCreator}}" bindtap="onChangeCoverTap">
+          <text class="change-cover-text">更换图片</text>
+        </view>
       </view>
     </view>
 
@@ -302,6 +308,23 @@
         <view class="modal-btn modal-btn-green" wx:if="{{!selectedMemberAuthorized}}" bindtap="onAuthorizePublisher">授权发布日志</view>
         <view class="modal-btn modal-btn-secondary" wx:else bindtap="onUnauthorizePublisher">取消发布授权</view>
       </block>
+    </view>
+  </view>
+</view>
+
+<!-- 更换封面图弹窗 -->
+<view class="member-modal-mask" wx:if="{{showChangeCoverModal}}" bindtap="onCloseChangeCoverModal">
+  <view class="change-cover-modal" catchtap>
+    <view class="modal-close-btn" bindtap="onCloseChangeCoverModal">
+      <text class="modal-close-icon">×</text>
+    </view>
+    <view class="change-cover-modal-title">更换封面图片</view>
+    <image class="change-cover-preview" src="{{newCoverTempUrl}}" mode="aspectFill"></image>
+    <view class="change-cover-modal-actions">
+      <view class="change-cover-reselect" bindtap="onChooseCoverImage">重新选择</view>
+      <view class="change-cover-confirm {{changingCover ? 'cover-btn-disabled' : ''}}" bindtap="onConfirmChangeCover">
+        {{changingCover ? '保存中...' : '确认更换'}}
+      </view>
     </view>
   </view>
 </view>

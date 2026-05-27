@@ -291,12 +291,7 @@ Page({
       priceText = `${trip.price}元/人`;
     }
 
-    let placeCoverImage = '';
-    if (trip.placeId) {
-      const attractions = app.globalData.attractions || [];
-      const attraction = attractions.find(item => item._id === trip.placeId || item.id === trip.placeId);
-      placeCoverImage = attraction ? (attraction.coverImage || '') : '';
-    }
+    const placeCoverImage = this.getTripCover(trip);
 
     return {
       _id: trip._id,
@@ -315,6 +310,18 @@ Page({
       statusClass,
       statusText
     };
+  },
+
+  getTripCover: function (trip) {
+    const attractions = app.globalData.attractions || [];
+    const attraction = trip.placeId
+      ? attractions.find(item => item._id === trip.placeId || item.id === trip.placeId)
+      : null;
+
+    return trip.customCoverImage ||
+      trip.placeCoverImage ||
+      trip.placeImage ||
+      (attraction ? (attraction.coverImage || '') : '');
   },
 
   getImgBg: function (placeName) {
