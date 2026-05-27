@@ -36,10 +36,10 @@ Page({
     publishImages: [],
     publishSubmitting: false,
     // 更换封面相关
-    showChangeCoverModal: false,
-    newCoverTempUrl: '',
-    newCoverTempFilePath: '',
-    changingCover: false
+    showCoverModal: false,
+    pendingAvatar: null,
+    pendingImages: [],
+    savingCover: false
   },
 
   onLoad: async function (options) {
@@ -76,10 +76,18 @@ Page({
   },
 
   getTripCover: function (trip) {
-    return trip.customCoverImage ||
+    return (trip.coverImageUrls && trip.coverImageUrls[0]) ||
       trip.placeCoverImage ||
       trip.placeImage ||
       (trip.placeId ? this.getPlaceCover(trip.placeId) : '');
+  },
+
+  getTripCoverImages: function (trip) {
+    const images = Array.isArray(trip.coverImageUrls)
+      ? trip.coverImageUrls.filter(Boolean)
+      : [];
+    const fallback = this.getTripCover(trip);
+    return images.length > 0 ? images : (fallback ? [fallback] : []);
   },
 
   onShow: function () {
@@ -214,6 +222,8 @@ Page({
     }
 
     const placeCoverImage = this.getTripCover(trip);
+    const fallbackCoverImage = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop';
+    const placeCoverImages = this.getTripCoverImages(trip);
 
     const creatorAvatar = trip.creatorAvatar || '';
     const participants = trip.participants || [];
@@ -224,7 +234,8 @@ Page({
       dateText,
       totalCount,
       status: trip.status,
-      placeCoverImage: placeCoverImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
+      placeCoverImage: placeCoverImage || fallbackCoverImage,
+      placeCoverImages: placeCoverImages.length > 0 ? placeCoverImages : [fallbackCoverImage],
       placeHighlight: this.getPlaceHighlight(trip.placeName)
     };
 
@@ -300,6 +311,7 @@ Page({
       placeName: '东灵山',
       placeHighlight: '北京最高峰',
       placeCoverImage: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
+      placeCoverImages: ['https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop'],
       date: '2026-04-12',
       dateText: '2026-04-12 周六',
       departure: '海淀区',
@@ -780,64 +792,136 @@ Page({
 
   // ========== 更换封面图 ==========
 
-  onChangeCoverTap: function () {
-    this.onChooseCoverImage();
+  onOpenCoverModal: function () {
+    const trip = this.data.trip;
+    if (!trip) return;
+
+    const pendingAvatar = trip.customCoverImage
+      ? {
+          url: trip.customCoverImageUrl || trip.customCoverImage || '',
+          fileID: trip.customCoverImage
+        }
+      : null;
+
+    const pendingImages = (trip.coverImages || []).map((fid, i) => ({
+      url: (trip.coverImageUrls || [])[i] || '',
+      fileID: fid
+    }));
+
+    this.setData({ showCoverModal: true, pendingAvatar, pendingImages, savingCover: false });
   },
 
-  onChooseCoverImage: function () {
+  onCloseCoverModal: function () {
+    this.setData({ showCoverModal: false });
+  },
+
+  onUploadAvatar: function () {
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
       sourceType: ['album', 'camera'],
       success: (res) => {
         const file = res.tempFiles[0];
-        this.setData({
-          newCoverTempUrl: file.tempFilePath,
-          newCoverTempFilePath: file.tempFilePath,
-          showChangeCoverModal: true
-        });
+        this.setData({ pendingAvatar: { url: file.tempFilePath, filePath: file.tempFilePath } });
       }
     });
   },
 
-  onCloseChangeCoverModal: function () {
-    this.setData({
-      showChangeCoverModal: false,
-      newCoverTempUrl: '',
-      newCoverTempFilePath: ''
+  onRemoveAvatar: function () {
+    this.setData({ pendingAvatar: null });
+  },
+
+  onAddCoverImages: function () {
+    const remaining = 9 - this.data.pendingImages.length;
+    if (remaining <= 0) return;
+    wx.chooseMedia({
+      count: remaining,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        const newImgs = res.tempFiles.map(f => ({ url: f.tempFilePath, filePath: f.tempFilePath }));
+        this.setData({ pendingImages: [...this.data.pendingImages, ...newImgs] });
+      }
     });
   },
 
-  onConfirmChangeCover: async function () {
-    if (this.data.changingCover) return;
-    const trip = this.data.trip;
-    const filePath = this.data.newCoverTempFilePath;
-    if (!filePath || !trip) return;
+  onRemoveCoverImage: function (e) {
+    const index = e.currentTarget.dataset.index;
+    const images = [...this.data.pendingImages];
+    images.splice(index, 1);
+    this.setData({ pendingImages: images });
+  },
 
-    this.setData({ changingCover: true });
+  onSaveCoverChanges: async function () {
+    if (this.data.savingCover) return;
+    const trip = this.data.trip;
+    if (!trip) return;
+
+    this.setData({ savingCover: true });
 
     try {
+      const openid = app.globalData.openid;
       const ts = Date.now();
-      const extMatch = filePath.match(/\.([a-zA-Z0-9]+)$/);
-      const ext = extMatch ? extMatch[1].toLowerCase() : 'jpg';
-      const cloudPath = `trip-covers/${trip._id}/${app.globalData.openid}/${ts}.${ext}`;
-      const uploadRes = await wx.cloud.uploadFile({ cloudPath, filePath });
+      const getExt = p => ((p.match(/\.([a-zA-Z0-9]+)$/) || [])[1] || 'jpg').toLowerCase();
 
-      await api.tripUpdate({ tripId: trip._id, customCoverImage: uploadRes.fileID });
+      // 上传头像（如果是本地新图）
+      let customCoverImageFileID = null;
+      const pa = this.data.pendingAvatar;
+      if (pa) {
+        if (pa.filePath) {
+          const cloudPath = `trip-avatars/${trip._id}/${openid}/${ts}.${getExt(pa.filePath)}`;
+          const res = await wx.cloud.uploadFile({ cloudPath, filePath: pa.filePath });
+          customCoverImageFileID = res.fileID;
+        } else if (pa.fileID) {
+          customCoverImageFileID = pa.fileID;
+        }
+      }
 
-      this.setData({
-        showChangeCoverModal: false,
-        changingCover: false,
-        newCoverTempUrl: '',
-        newCoverTempFilePath: '',
-        'trip.customCoverImage': uploadRes.fileID,
-        'trip.placeCoverImage': filePath
+      // 上传封面图（本地新图才上传，已有 fileID 的保留）
+      const finalImageFileIDs = [];
+      const pendingImages = this.data.pendingImages;
+      for (let i = 0; i < pendingImages.length; i++) {
+        const img = pendingImages[i];
+        if (img.filePath) {
+          const cloudPath = `trip-covers/${trip._id}/${openid}/${ts}_${i}.${getExt(img.filePath)}`;
+          const res = await wx.cloud.uploadFile({ cloudPath, filePath: img.filePath });
+          finalImageFileIDs.push(res.fileID);
+        } else if (img.fileID) {
+          finalImageFileIDs.push(img.fileID);
+        }
+      }
+
+      await api.tripUpdate({
+        tripId: trip._id,
+        customCoverImage: customCoverImageFileID,
+        tripAvatar: null,
+        coverImages: finalImageFileIDs
       });
 
-      wx.showToast({ title: '图片已更换', icon: 'success' });
+      // 详情头图只展示封面数组，回退到景点封面，不使用列表头像。
+      const avatarDisplayUrl = pa ? pa.url : '';
+      const imageDisplayUrls = pendingImages.map(img => img.url);
+      const attractionCover = this.getPlaceCover(trip.placeId) ||
+        'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop';
+      const newCoverUrl = imageDisplayUrls[0] || attractionCover;
+
+      this.setData({
+        showCoverModal: false,
+        savingCover: false,
+        'trip.customCoverImage': customCoverImageFileID,
+        'trip.customCoverImageUrl': avatarDisplayUrl,
+        'trip.tripAvatar': null,
+        'trip.tripAvatarUrl': '',
+        'trip.coverImages': finalImageFileIDs,
+        'trip.coverImageUrls': imageDisplayUrls,
+        'trip.placeCoverImage': newCoverUrl,
+        'trip.placeCoverImages': imageDisplayUrls.length > 0 ? imageDisplayUrls : [newCoverUrl]
+      });
+
+      wx.showToast({ title: '保存成功', icon: 'success' });
     } catch (err) {
-      this.setData({ changingCover: false });
-      wx.showToast({ title: err.message || '更换失败，请重试', icon: 'none' });
+      this.setData({ savingCover: false });
+      wx.showToast({ title: err.message || '保存失败，请重试', icon: 'none' });
     }
   },
 

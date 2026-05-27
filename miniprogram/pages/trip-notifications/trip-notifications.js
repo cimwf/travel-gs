@@ -68,10 +68,10 @@ Page({
 
       const newItems = (res.notifications || []).map(item => {
         let coverImage = item.placeCoverImage || '';
-        if (item.placeId) {
+        if (!coverImage && item.placeId) {
           const attraction = attractions.find(a => a._id === item.placeId);
           if (attraction) {
-            coverImage = attraction.coverImage || attraction.image || coverImage;
+            coverImage = attraction.coverImage || attraction.image || '';
           }
         }
         return {

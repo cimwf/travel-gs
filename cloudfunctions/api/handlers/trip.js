@@ -2,36 +2,57 @@ const { db, _, cloud, safeAvatar } = require('../utils/shared');
 const { recordUserStatEvent } = require('./auth');
 
 async function resolveTripCoverImages(trips = []) {
-  const coverFileIDs = [];
+  const fileIDs = new Set();
+
   trips.forEach(trip => {
+    // 旧字段兼容
     if (trip.customCoverImage && trip.customCoverImage.startsWith('cloud://')) {
-      coverFileIDs.push(trip.customCoverImage);
+      fileIDs.add(trip.customCoverImage);
+    }
+    // 行程头像
+    if (trip.tripAvatar && trip.tripAvatar.startsWith('cloud://')) {
+      fileIDs.add(trip.tripAvatar);
+    }
+    // 封面图数组
+    if (Array.isArray(trip.coverImages)) {
+      trip.coverImages.forEach(id => {
+        if (id && id.startsWith('cloud://')) fileIDs.add(id);
+      });
     }
   });
 
-  if (coverFileIDs.length === 0) {
-    return;
-  }
-
-  try {
-    const urlRes = await cloud.getTempFileURL({ fileList: [...new Set(coverFileIDs)] });
-    const coverUrlMap = {};
-    if (urlRes.fileList) {
-      urlRes.fileList.forEach(item => {
-        if (item.tempFileURL) {
-          coverUrlMap[item.fileID] = item.tempFileURL;
-        }
+  let urlMap = {};
+  if (fileIDs.size > 0) {
+    try {
+      const urlRes = await cloud.getTempFileURL({ fileList: [...fileIDs] });
+      (urlRes.fileList || []).forEach(item => {
+        if (item.tempFileURL) urlMap[item.fileID] = item.tempFileURL;
       });
+    } catch (err) {
+      console.warn('获取行程封面临时链接失败', err);
     }
-
-    trips.forEach(trip => {
-      if (trip.customCoverImage && trip.customCoverImage.startsWith('cloud://') && coverUrlMap[trip.customCoverImage]) {
-        trip.customCoverImage = coverUrlMap[trip.customCoverImage];
-      }
-    });
-  } catch (err) {
-    console.warn('获取行程封面临时链接失败', err);
   }
+
+  trips.forEach(trip => {
+    // 行程列表头像：保留 fileID 原值，另加 customCoverImageUrl 供前端展示
+    if (trip.customCoverImage && trip.customCoverImage.startsWith('cloud://')) {
+      trip.customCoverImageUrl = urlMap[trip.customCoverImage] || '';
+    } else {
+      trip.customCoverImageUrl = trip.customCoverImage || '';
+    }
+    // 行程头像：保留 fileID 原值，另加 tripAvatarUrl 供前端展示
+    if (trip.tripAvatar && trip.tripAvatar.startsWith('cloud://')) {
+      trip.tripAvatarUrl = urlMap[trip.tripAvatar] || '';
+    } else {
+      trip.tripAvatarUrl = trip.tripAvatar || '';
+    }
+    // 封面图数组：保留 fileIDs，另加 coverImageUrls 供前端展示
+    trip.coverImageUrls = Array.isArray(trip.coverImages)
+      ? trip.coverImages.map(id =>
+          id && id.startsWith('cloud://') ? (urlMap[id] || '') : (id || '')
+        )
+      : [];
+  });
 }
 
 async function tripCreate(openid, data) {
@@ -831,6 +852,11 @@ async function tripListByUser(data) {
       placeName: trip.placeName,
       placeId: trip.placeId || '',
       customCoverImage: trip.customCoverImage || '',
+      customCoverImageUrl: trip.customCoverImageUrl || '',
+      tripAvatar: trip.tripAvatar || '',
+      tripAvatarUrl: trip.tripAvatarUrl || '',
+      coverImages: trip.coverImages || [],
+      coverImageUrls: trip.coverImageUrls || [],
       placeImage: placeImage,
       date: trip.date,
       duration: trip.duration || '1天',

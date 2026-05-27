@@ -165,7 +165,9 @@ Page({
       ? attractions.find(a => a._id === trip.placeId || a.id === trip.placeId)
       : null;
 
-    return trip.customCoverImage ||
+    return trip.customCoverImageUrl ||
+      trip.customCoverImage ||
+      (trip.coverImageUrls && trip.coverImageUrls[0]) ||
       trip.placeCoverImage ||
       trip.placeImage ||
       (attraction ? (attraction.coverImage || '') : '');

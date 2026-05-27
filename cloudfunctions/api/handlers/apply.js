@@ -35,6 +35,26 @@ function formatTimeAgo(timestamp) {
   return new Date(timestamp).toLocaleDateString();
 }
 
+async function resolveCloudFileUrl(fileID = '') {
+  if (!fileID || !fileID.startsWith('cloud://')) {
+    return fileID || '';
+  }
+
+  try {
+    const urlRes = await cloud.getTempFileURL({ fileList: [fileID] });
+    const file = urlRes.fileList && urlRes.fileList[0];
+    return (file && file.tempFileURL) || '';
+  } catch (err) {
+    console.warn('获取行程头像临时链接失败', err);
+    return '';
+  }
+}
+
+async function getTripCardCover(tripData, fallbackCover = '') {
+  const customCover = await resolveCloudFileUrl((tripData && tripData.customCoverImage) || '');
+  return customCover || fallbackCover || '';
+}
+
 async function applyCreate(openid, data) {
   const { tripId, placeName, toUserId, toUserName, contactValue, message } = data;
 
@@ -228,6 +248,7 @@ async function applyNotifications(openid, page = 1, pageSize = 5) {
         console.warn('获取景点封面失败', err);
       }
     }
+    placeCoverImage = await getTripCardCover(tripData, placeCoverImage);
 
     if (item.status === 'quit') {
       receivedList.push({
@@ -392,6 +413,7 @@ async function applyNotifications(openid, page = 1, pageSize = 5) {
         console.warn('获取景点封面失败', err);
       }
     }
+    placeCoverImage = await getTripCardCover(tripData, placeCoverImage);
 
     const status = item.status || 'pending';
     const statusText = status === 'pending' ? '申请中' :

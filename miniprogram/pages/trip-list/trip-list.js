@@ -75,7 +75,9 @@ Page({
   },
 
   getTripCover: function (trip) {
-    return trip.customCoverImage ||
+    return trip.customCoverImageUrl ||
+      trip.customCoverImage ||
+      (trip.coverImageUrls && trip.coverImageUrls[0]) ||
       trip.placeCoverImage ||
       trip.placeImage ||
       (trip.placeId ? this.getPlaceCover(trip.placeId) : '');

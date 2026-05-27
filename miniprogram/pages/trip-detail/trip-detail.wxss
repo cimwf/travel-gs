@@ -65,9 +65,14 @@ page {
   background: linear-gradient(135deg, #667eea, #764ba2);
 }
 
+.header-swiper,
+.header-swiper swiper-item,
 .header-image {
   width: 100%;
   height: 100%;
+}
+
+.header-image {
   display: block;
 }
 
@@ -1193,40 +1198,207 @@ page {
   white-space: nowrap;
 }
 
-/* ========== 更换封面弹窗 ========== */
-.change-cover-modal {
-  width: calc(100% - 80rpx);
-  max-width: 640rpx;
-  background: white;
-  border-radius: 40rpx;
-  padding: 48rpx;
-  position: relative;
-  box-shadow: 0 40rpx 120rpx rgba(0, 0, 0, 0.3);
+/* ========== 更换图片底部弹窗 ========== */
+.cover-modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
 }
 
-.change-cover-modal-title {
+.cover-modal {
+  width: 100%;
+  background: white;
+  border-radius: 40rpx 40rpx 0 0;
+  padding: 32rpx 32rpx;
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+  max-height: 80vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.cover-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 36rpx;
+}
+
+.cover-modal-title {
   font-size: 34rpx;
   font-weight: 700;
   color: var(--text-primary);
-  text-align: center;
-  margin-bottom: 32rpx;
 }
 
-.change-cover-preview {
-  width: 100%;
-  height: 320rpx;
-  border-radius: 24rpx;
+.cover-modal-close {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
   background: var(--bg-color);
-  margin-bottom: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cover-modal-close-icon {
+  font-size: 36rpx;
+  color: var(--text-hint);
+  line-height: 1;
+}
+
+/* ---- 分区 ---- */
+.cover-section {
+  margin-bottom: 36rpx;
+}
+
+.cover-section-label {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--text-hint);
+  margin-bottom: 20rpx;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.cover-count {
+  font-weight: 400;
+  font-size: 24rpx;
+}
+
+/* ---- 行程头像 ---- */
+.cover-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 32rpx;
+}
+
+.cover-avatar-wrap {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 24rpx;
+  overflow: hidden;
+  background: var(--bg-color);
+  flex-shrink: 0;
+}
+
+.cover-avatar-img {
+  width: 140rpx;
+  height: 140rpx;
   display: block;
 }
 
-.change-cover-modal-actions {
+.cover-avatar-empty {
+  width: 140rpx;
+  height: 140rpx;
   display: flex;
-  gap: 24rpx;
+  align-items: center;
+  justify-content: center;
 }
 
-.change-cover-reselect {
+.cover-avatar-empty-icon {
+  font-size: 52rpx;
+}
+
+.cover-avatar-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.cover-avatar-btn-upload {
+  height: 72rpx;
+  padding: 0 36rpx;
+  border-radius: 20rpx;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.cover-avatar-btn-del {
+  height: 72rpx;
+  padding: 0 36rpx;
+  border-radius: 20rpx;
+  background: rgba(255, 77, 79, 0.08);
+  color: #FF4D4F;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+/* ---- 封面图网格 ---- */
+.cover-images-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.cover-img-item {
+  position: relative;
+  width: 180rpx;
+  height: 180rpx;
+}
+
+.cover-img-preview {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 16rpx;
+  display: block;
+  background: var(--bg-color);
+}
+
+.cover-img-delete {
+  position: absolute;
+  top: -12rpx;
+  right: -12rpx;
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.cover-img-add {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 16rpx;
+  background: var(--bg-color);
+  border: 3rpx dashed var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cover-img-add-icon {
+  font-size: 60rpx;
+  color: var(--text-hint);
+  line-height: 1;
+}
+
+/* ---- 底部操作按钮 ---- */
+.cover-modal-actions {
+  display: flex;
+  gap: 24rpx;
+  margin-top: 8rpx;
+}
+
+.cover-btn-cancel {
   flex: 1;
   height: 96rpx;
   display: flex;
@@ -1235,11 +1407,11 @@ page {
   background: var(--bg-color);
   color: var(--text-secondary);
   border-radius: 24rpx;
-  font-size: 30rpx;
+  font-size: 32rpx;
   font-weight: 600;
 }
 
-.change-cover-confirm {
+.cover-btn-save {
   flex: 1.4;
   height: 96rpx;
   display: flex;
@@ -1248,7 +1420,7 @@ page {
   background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
   color: white;
   border-radius: 24rpx;
-  font-size: 30rpx;
+  font-size: 32rpx;
   font-weight: 700;
   box-shadow: 0 8rpx 24rpx rgba(74, 144, 226, 0.3);
 }
@@ -1267,4 +1439,3 @@ page {
   background: var(--bg-color);
   color: var(--text-secondary);
 }
-

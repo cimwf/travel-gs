@@ -3,7 +3,11 @@
   <block wx:if="{{trip}}">
     <!-- 顶部图片区域 -->
     <view class="header">
-      <image class="header-image" src="{{trip.placeCoverImage || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop'}}" mode="aspectFill"></image>
+      <swiper class="header-swiper" indicator-dots="{{trip.placeCoverImages.length > 1}}" indicator-color="rgba(255, 255, 255, 0.45)" indicator-active-color="#ffffff" autoplay="{{trip.placeCoverImages.length > 1}}" interval="4500" circular="{{trip.placeCoverImages.length > 1}}">
+        <swiper-item wx:for="{{trip.placeCoverImages}}" wx:key="*this">
+          <image class="header-image" src="{{item}}" mode="aspectFill"></image>
+        </swiper-item>
+      </swiper>
       <view class="header-overlay"></view>
 
       <!-- 导航按钮 -->
@@ -25,7 +29,7 @@
           <view class="trip-location">🏔️ {{trip.placeName}} · {{trip.placeHighlight || '北京周边'}}</view>
         </view>
         <!-- 更换图片按钮（仅发起人可见） -->
-        <view class="change-cover-btn" wx:if="{{isCreator}}" bindtap="onChangeCoverTap">
+        <view class="change-cover-btn" wx:if="{{isCreator}}" bindtap="onOpenCoverModal">
           <text class="change-cover-text">更换图片</text>
         </view>
       </view>
@@ -312,18 +316,53 @@
   </view>
 </view>
 
-<!-- 更换封面图弹窗 -->
-<view class="member-modal-mask" wx:if="{{showChangeCoverModal}}" bindtap="onCloseChangeCoverModal">
-  <view class="change-cover-modal" catchtap>
-    <view class="modal-close-btn" bindtap="onCloseChangeCoverModal">
-      <text class="modal-close-icon">×</text>
+<!-- 更换图片底部弹窗 -->
+<view class="cover-modal-mask" wx:if="{{showCoverModal}}" bindtap="onCloseCoverModal">
+  <view class="cover-modal" catchtap>
+    <!-- 顶部标题栏 -->
+    <view class="cover-modal-header">
+      <text class="cover-modal-title">更换图片</text>
+      <view class="cover-modal-close" bindtap="onCloseCoverModal">
+        <text class="cover-modal-close-icon">×</text>
+      </view>
     </view>
-    <view class="change-cover-modal-title">更换封面图片</view>
-    <image class="change-cover-preview" src="{{newCoverTempUrl}}" mode="aspectFill"></image>
-    <view class="change-cover-modal-actions">
-      <view class="change-cover-reselect" bindtap="onChooseCoverImage">重新选择</view>
-      <view class="change-cover-confirm {{changingCover ? 'cover-btn-disabled' : ''}}" bindtap="onConfirmChangeCover">
-        {{changingCover ? '保存中...' : '确认更换'}}
+
+    <!-- 行程头像 -->
+    <view class="cover-section">
+      <view class="cover-section-label">行程头像</view>
+      <view class="cover-avatar-row">
+        <view class="cover-avatar-wrap">
+          <image wx:if="{{pendingAvatar}}" class="cover-avatar-img" src="{{pendingAvatar.url}}" mode="aspectFill"></image>
+          <view wx:else class="cover-avatar-empty">
+            <text class="cover-avatar-empty-icon">🏔️</text>
+          </view>
+        </view>
+        <view class="cover-avatar-btns">
+          <view class="cover-avatar-btn-upload" bindtap="onUploadAvatar">{{pendingAvatar ? '更换头像' : '上传头像'}}</view>
+          <view class="cover-avatar-btn-del" wx:if="{{pendingAvatar}}" bindtap="onRemoveAvatar">删除</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 封面图数组 -->
+    <view class="cover-section">
+      <view class="cover-section-label">封面图片 <text class="cover-count">{{pendingImages.length}}/9</text></view>
+      <view class="cover-images-grid">
+        <view class="cover-img-item" wx:for="{{pendingImages}}" wx:key="index" wx:for-index="idx">
+          <image class="cover-img-preview" src="{{item.url}}" mode="aspectFill"></image>
+          <view class="cover-img-delete" catchtap="onRemoveCoverImage" data-index="{{idx}}">×</view>
+        </view>
+        <view class="cover-img-add" wx:if="{{pendingImages.length < 9}}" bindtap="onAddCoverImages">
+          <text class="cover-img-add-icon">+</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部操作按钮 -->
+    <view class="cover-modal-actions">
+      <view class="cover-btn-cancel" bindtap="onCloseCoverModal">取消</view>
+      <view class="cover-btn-save {{savingCover ? 'cover-btn-disabled' : ''}}" bindtap="onSaveCoverChanges">
+        {{savingCover ? '保存中...' : '保存'}}
       </view>
     </view>
   </view>
