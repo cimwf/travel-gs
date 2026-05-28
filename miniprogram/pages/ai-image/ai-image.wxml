@@ -15,13 +15,16 @@
     </view>
   </view>
 
-  <view class="quota-panel" bindtap="onOpenGallery">
+  <view class="quota-panel">
     <view>
       <view class="quota-title">我的 AI 作品</view>
       <view class="quota-desc" wx:if="{{summaryReady}}">已生成 {{summary.generatedCount}} 张 · 剩余 {{summary.remaining}} / {{summary.total}} 次</view>
       <view class="quota-desc" wx:else>额度读取中...</view>
     </view>
-    <view class="quota-button">查看</view>
+    <view class="quota-actions">
+      <view class="quota-button recharge" bindtap="openPackageModal">充值</view>
+      <view class="quota-button" bindtap="onOpenGallery">查看</view>
+    </view>
   </view>
 
   <view class="mode-tabs">

@@ -252,13 +252,14 @@ const aiImagePackageSchema = {
   discount: 0.8,                     // 折扣系数，0.8 表示 8 折
   discountedPrice: 20,               // 折后价，接口按 price * discount 计算
   imageCount: 50,
+  productId: "image_credits_20",       // 微信虚拟支付后台配置的道具 ID，必填，不能缺省
   sort: 10,
   enabled: true,
   createdAt: 1711123200000,
   updatedAt: 1711123200000
 };
 
-// 12. ai_image_orders - AI 生图模拟订单表
+// 12. ai_image_orders - AI 生图订单表
 const aiImageOrderSchema = {
   _id: "order_xxx",
   orderNo: "AI1711123200000ABCDEF",
@@ -284,8 +285,11 @@ const aiImageOrderSchema = {
   afterTotal: 50,
   afterUsed: 0,
   afterRemaining: 50,
-  status: "paid",
-  payType: "mock",
+  productId: "image_credits_20",       // 套餐道具 ID，来自 ai_image_packages.productId
+  goodsPrice: 2000,                    // 实付金额（分），9.9元=990，与虚拟支付签名一致
+  payEnv: 0,                           // 0=现网，1=沙箱，下单时写入，确认时用于选 key
+  status: "paid",                      // pending_payment / paid
+  payType: "virtual_live",             // virtual_live / virtual_sandbox
   createdAt: 1711123200000,
   paidAt: 1711123200000
 };

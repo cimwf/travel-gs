@@ -392,10 +392,24 @@ function aiImagePackages() {
 }
 
 /**
- * 模拟购买 AI 生图套餐
+ * 模拟购买 AI 生图套餐（mock，仅供测试）
  */
 function aiImagePurchasePackage(packageId) {
   return callApi('aiImage/purchasePackage', { packageId });
+}
+
+/**
+ * 创建虚拟支付订单，loginCode 由 wx.login() 获取，云函数用它换 session_key
+ */
+function aiImageCreatePayOrder(packageId, loginCode) {
+  return callApi('aiImage/createPayOrder', { packageId, loginCode });
+}
+
+/**
+ * 支付完成后确认订单，查询微信支付结果并入账额度
+ */
+function aiImageConfirmPayment(orderNo) {
+  return callApi('aiImage/confirmPayment', { orderNo });
 }
 
 /**
@@ -536,6 +550,8 @@ module.exports = {
   aiImageDelete,
   aiImagePackages,
   aiImagePurchasePackage,
+  aiImageCreatePayOrder,
+  aiImageConfirmPayment,
   aiImageTemplates,
   aiImageTemplateVote,
   aiImageTemplateCreate,

@@ -351,20 +351,48 @@ Page({
     if (!packageId || this.data.purchasingPackageId) return;
 
     this.setData({ purchasingPackageId: packageId });
+    let orderNo = '';
     try {
-      const res = await api.aiImagePurchasePackage(packageId);
-      if (res.summary) {
-        this.setData({ summary: this.normalizeSummary(res.summary), summaryReady: true });
-      }
-      wx.showToast({
-        title: '充值成功',
-        icon: 'success'
+      // 获取 login code，云函数用它换 session_key 生成 signature
+      const loginRes = await new Promise((resolve, reject) => {
+        wx.login({ success: resolve, fail: reject });
       });
+      if (!loginRes.code) throw new Error('获取登录凭证失败，请重新进入小程序');
+
+      // 第一步：云函数创建订单，返回微信支付参数
+      const orderRes = await api.aiImageCreatePayOrder(packageId, loginRes.code);
+      orderNo = orderRes.orderNo;
+
+      // 第二步：拉起虚拟支付
+      // signData 必须是与后端签名时完全一致的 JSON 字符串
+      await new Promise((resolve, reject) => {
+        wx.requestVirtualPayment({
+          mode: 'short_series_goods',
+          signData: orderRes.signData,
+          paySig: orderRes.paySig,
+          signature: orderRes.signature,
+          success: resolve,
+          fail: (err) => {
+            if (err && err.errMsg && err.errMsg.includes('cancel')) {
+              reject(new Error('已取消支付'));
+            } else {
+              reject(new Error(err && err.errMsg ? err.errMsg : '支付失败'));
+            }
+          }
+        });
+      });
+
+      // 第三步：确认支付结果，入账额度
+      const confirmRes = await api.aiImageConfirmPayment(orderNo);
+      if (confirmRes.summary) {
+        this.setData({ summary: this.normalizeSummary(confirmRes.summary), summaryReady: true });
+      }
+      wx.showToast({ title: '充值成功', icon: 'success' });
       this.setData({ showPackageModal: false });
     } catch (err) {
-      console.error('模拟购买 AI 套餐失败', err);
+      console.error('AI 套餐支付失败', err);
       wx.showToast({
-        title: this.formatErrorMessage(err, '充值失败'),
+        title: this.formatErrorMessage(err, '支付失败'),
         icon: 'none'
       });
     } finally {

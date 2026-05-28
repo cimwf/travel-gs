@@ -1886,6 +1886,389 @@ function normalizeAiImagePackage(item = {}) {
   };
 }
 
+// ==================== WeChat Virtual Payment ====================
+
+const WXVPAY_APPID = process.env.WXVPAY_APPID || '';
+const WXVPAY_OFFER_ID = process.env.WXVPAY_OFFER_ID || '';
+const WXVPAY_ENV_SANDBOX = 1;
+const WXVPAY_ENV_PROD = 0;
+
+// 云函数环境变量 WXPAY_ENV=live 时走正式，否则走沙箱
+function getWxVPayEnv() {
+  return process.env.WXPAY_ENV === 'live' ? WXVPAY_ENV_PROD : WXVPAY_ENV_SANDBOX;
+}
+
+function getWxVPayAppKey() {
+  return getWxVPayEnv() === WXVPAY_ENV_PROD
+    ? (process.env.WXPAY_LIVE_KEY || '')
+    : (process.env.WXPAY_SANDBOX_KEY || '');
+}
+
+// 按订单创建时记录的 payEnv 选 key，避免环境变量切换后旧订单用错 key
+function getWxVPayAppKeyByEnv(payEnv) {
+  return payEnv === WXVPAY_ENV_PROD
+    ? (process.env.WXPAY_LIVE_KEY || '')
+    : (process.env.WXPAY_SANDBOX_KEY || '');
+}
+
+// 官方 env_type: 1=现网, 2=沙箱；本地 payEnv: 0=现网, 1=沙箱
+function getWxOrderEnvType(payEnv) {
+  return payEnv === WXVPAY_ENV_PROD ? 1 : 2;
+}
+
+function hmacSha256Hex(key, message) {
+  return nodeCrypto.createHmac('sha256', key).update(message, 'utf8').digest('hex');
+}
+
+// paySig    = HMAC-SHA256(appKey,    "requestVirtualPayment&" + signDataString)
+// signature = HMAC-SHA256(sessionKey, signDataString)
+function createVirtualPaymentSign({ signDataString, appKey, sessionKey }) {
+  const paySigSource = `requestVirtualPayment&${signDataString}`;
+  const paySig = hmacSha256Hex(appKey, paySigSource);
+  const signature = hmacSha256Hex(sessionKey, signDataString);
+  return { paySig, signature };
+}
+
+// 用 wx.login() 返回的 code 换取 session_key（一次性，不可复用）
+async function wxJsCode2Session(code) {
+  if (!WXVPAY_APPID) throw new Error('WXVPAY_APPID 未配置');
+  const appSecret = process.env.WX_APP_SECRET || '';
+  if (!appSecret) throw new Error('WX_APP_SECRET 未配置');
+  const res = await requestJsonUrl(
+    'GET',
+    `https://api.weixin.qq.com/sns/jscode2session?appid=${WXVPAY_APPID}&secret=${appSecret}&js_code=${encodeURIComponent(code)}&grant_type=authorization_code`,
+    null, {}, 10000
+  );
+  if (res.errcode) throw new Error(`jscode2session 失败(${res.errcode}): ${res.errmsg}`);
+  if (!res.session_key) throw new Error('jscode2session 未返回 session_key');
+  return res; // { openid, session_key, unionid? }
+}
+
+// 获取 access_token（需云函数环境变量 WX_APP_SECRET）
+async function getWxAccessToken() {
+  if (!WXVPAY_APPID) throw new Error('WXVPAY_APPID 未配置');
+  const appSecret = process.env.WX_APP_SECRET || '';
+  if (!appSecret) throw new Error('WX_APP_SECRET 未配置，无法验证支付');
+  const res = await requestJsonUrl(
+    'GET',
+    `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${WXVPAY_APPID}&secret=${appSecret}`,
+    null, {}, 10000
+  );
+  if (!res.access_token) throw new Error(`获取 access_token 失败: ${res.errmsg || JSON.stringify(res)}`);
+  return res.access_token;
+}
+
+// 服务端接口签名：HMAC-SHA256(appKey, "/xpay/{path}&" + JSON.stringify(body))
+// body 必须与实际发送的请求体完全一致
+function xpayServerSign(appKey, path, body) {
+  return hmacSha256Hex(appKey, `${path}&${JSON.stringify(body)}`);
+}
+
+// 查询虚拟支付订单
+// 官方文档: api_query_order —— body: { openid, env, order_id }
+// URL 附带 access_token 和 pay_sig
+async function queryXpayOrder({ accessToken, appKey, openid, env, orderNo }) {
+  const body = { openid, env, order_id: orderNo };
+  const paySig = xpayServerSign(appKey, '/xpay/query_order', body);
+  const res = await requestJsonUrl(
+    'POST',
+    `https://api.weixin.qq.com/xpay/query_order?access_token=${accessToken}&pay_sig=${paySig}`,
+    body, {}, 10000
+  );
+  return res;
+}
+
+// 通知微信道具已发货，完成订单闭环
+// 官方文档: api_notify_provide_goods —— body: { order_id, env }
+async function notifyProvideGoods({ accessToken, appKey, orderNo, env }) {
+  const body = { order_id: orderNo, env };
+  const paySig = xpayServerSign(appKey, '/xpay/notify_provide_goods', body);
+  const res = await requestJsonUrl(
+    'POST',
+    `https://api.weixin.qq.com/xpay/notify_provide_goods?access_token=${accessToken}&pay_sig=${paySig}`,
+    body, {}, 10000
+  );
+  return res;
+}
+
+async function aiImageCreatePayOrder(openid, data = {}) {
+  const userId = openid || 'anonymous';
+  if (!userId || userId === 'anonymous') {
+    return { success: false, error: '请先登录' };
+  }
+
+  const { loginCode } = data;
+  if (!loginCode) {
+    return { success: false, error: '登录凭证缺失，请重新进入小程序' };
+  }
+
+  // 用 code 换 session_key，每次 wx.login() 的 code 只能用一次
+  let sessionKey;
+  try {
+    const sessionRes = await wxJsCode2Session(loginCode);
+    // 校验 openid 一致性，防止 code 被盗用
+    if (sessionRes.openid && sessionRes.openid !== userId) {
+      console.error('[aiImageCreatePayOrder] openid mismatch:', sessionRes.openid, userId);
+      return { success: false, error: '用户身份验证失败' };
+    }
+    sessionKey = sessionRes.session_key;
+  } catch (err) {
+    console.error('[aiImageCreatePayOrder] jscode2session failed:', err.message);
+    return { success: false, error: `登录态获取失败: ${err.message}` };
+  }
+
+  const payEnv = getWxVPayEnv();
+  const appKey = getWxVPayAppKey();
+  if (!appKey) {
+    return { success: false, error: '支付配置缺失，请联系管理员' };
+  }
+
+  const pack = await getAiImagePackageById(data.packageId);
+  if (!pack || pack.enabled === false) {
+    return { success: false, error: '套餐不存在或已下架' };
+  }
+
+  const imageCount = Number(pack.imageCount || 0);
+  if (!imageCount || imageCount <= 0) {
+    return { success: false, error: '套餐图片数量配置不正确' };
+  }
+
+  if (!WXVPAY_OFFER_ID) {
+    return { success: false, error: '支付 OfferID 未配置，请联系管理员' };
+  }
+
+  // productId 必须来自数据库套餐配置，不允许 fallback
+  const productId = String(pack.productId || '').trim();
+  if (!productId) {
+    return { success: false, error: '套餐道具 ID 未配置，请联系管理员' };
+  }
+
+  const quota = await ensureAiImageQuota(userId);
+  const beforeTotal = normalizeAiImageQuotaNumber(quota.total);
+  const beforeUsed = normalizeAiImageQuotaNumber(quota.used, 0);
+  const beforeRemaining = Math.max(0, beforeTotal - beforeUsed);
+
+  // 预算充值后的目标值，写入订单供 confirmPayment 使用
+  // 剩余=0：重置（total=购买量, used=0）；剩余>0：叠加（total累加, used不变）
+  const afterTotal = beforeRemaining === 0 ? imageCount : beforeTotal + imageCount;
+  const afterUsed = beforeRemaining === 0 ? 0 : beforeUsed;
+
+  const pricing = getAiImagePackagePricing(pack);
+  const goodsPrice = Math.round(pricing.discountedPrice * 100); // 元 → 分
+  if (!goodsPrice || goodsPrice <= 0) {
+    return { success: false, error: '套餐价格配置不正确' };
+  }
+
+  const now = Date.now();
+  const orderNo = createAiImageOrderNo(now);
+  const userInfo = {
+    appUserId: quota.appUserId || '',
+    nickname: quota.nickname || '',
+    phone: quota.phone || '',
+    phoneMask: quota.phoneMask || '',
+    avatar: quota.avatar || ''
+  };
+
+  await db.collection('ai_image_orders').add({
+    data: {
+      orderNo,
+      userId,
+      ...userInfo,
+      packageId: pack._id,
+      packageKey: pack.packageId || '',
+      title: pack.title || '',
+      price: pricing.discountedPrice,
+      originalPrice: pricing.originalPrice,
+      discount: pricing.discount,
+      discountedPrice: pricing.discountedPrice,
+      beforePrice: pricing.originalPrice,
+      afterPrice: pricing.discountedPrice,
+      imageCount,
+      beforeTotal,
+      beforeUsed,
+      beforeRemaining,
+      afterTotal,
+      afterUsed,
+      afterRemaining: afterTotal - afterUsed,
+      productId,
+      goodsPrice,
+      payEnv,
+      status: 'pending_payment',
+      payType: payEnv === WXVPAY_ENV_PROD ? 'virtual_live' : 'virtual_sandbox',
+      createdAt: now,
+      paidAt: 0
+    }
+  });
+
+  // 字段顺序固定，保证后端签名用的字符串与传给前端的逐字一致
+  const signDataString = JSON.stringify({
+    offerId: WXVPAY_OFFER_ID,
+    buyQuantity: 1,
+    env: payEnv,
+    currencyType: 'CNY',
+    productId,
+    goodsPrice,
+    outTradeNo: orderNo,
+    attach: pack.title || 'AI生图套餐'
+  });
+
+  const { paySig, signature } = createVirtualPaymentSign({ signDataString, appKey, sessionKey });
+
+  return { success: true, orderNo, signData: signDataString, paySig, signature };
+}
+
+async function aiImageConfirmPayment(openid, data = {}) {
+  const userId = openid || 'anonymous';
+  const { orderNo } = data;
+
+  if (!orderNo) {
+    return { success: false, error: '订单号不能为空' };
+  }
+
+  const now = Date.now();
+
+  // ── Step 1: 原子抢占订单 ──────────────────────────────────────────────────
+  // 将 pending_payment → confirming_payment，同一订单只有第一个并发请求能成功。
+  // 后续重复调用（网络重试、用户多次点击）会因 status 不匹配而 updated=0，直接拒绝。
+  const claimRes = await db.collection('ai_image_orders')
+    .where({ orderNo, userId, status: 'pending_payment' })
+    .update({ data: { status: 'confirming_payment', confirmingAt: now } });
+
+  if (!claimRes.stats || claimRes.stats.updated <= 0) {
+    return { success: false, error: '订单不存在、已处理或处理中，请勿重复提交' };
+  }
+
+  // rollback helper：可重试的失败（微信查询报错、额度冲突）回滚为 pending_payment，
+  // 让用户稍后重试；不可逆错误（金额/环境不匹配）保持 confirming_payment 供人工核查。
+  const rollbackOrder = () =>
+    db.collection('ai_image_orders')
+      .where({ orderNo, userId, status: 'confirming_payment' })
+      .update({ data: { status: 'pending_payment', confirmingAt: 0 } })
+      .catch(e => console.warn('[confirmPayment] rollback failed:', e.message));
+
+  // ── Step 2: 读取完整订单数据 ──────────────────────────────────────────────
+  const orderRes = await db.collection('ai_image_orders')
+    .where({ orderNo, userId })
+    .limit(1)
+    .get();
+  const order = orderRes.data && orderRes.data[0];
+  if (!order) {
+    // 极小概率：claim 成功但读取失败，回滚让用户重试
+    await rollbackOrder();
+    return { success: false, error: '订单读取失败，请联系客服' };
+  }
+
+  // ── Step 3: 按订单创建时的环境选 appKey ───────────────────────────────────
+  const appKey = getWxVPayAppKeyByEnv(order.payEnv);
+  if (!appKey) {
+    await rollbackOrder();
+    return { success: false, error: '支付配置缺失，请联系管理员' };
+  }
+
+  // ── Step 4: 查询微信侧订单状态 ───────────────────────────────────────────
+  let accessToken;
+  try {
+    accessToken = await getWxAccessToken();
+  } catch (err) {
+    await rollbackOrder();
+    return { success: false, error: `获取支付凭证失败: ${err.message}` };
+  }
+
+  let queryRes;
+  try {
+    queryRes = await queryXpayOrder({
+      accessToken,
+      appKey,
+      openid: userId,
+      env: order.payEnv,
+      orderNo
+    });
+  } catch (err) {
+    await rollbackOrder();
+    return { success: false, error: `支付查询异常: ${err.message}` };
+  }
+
+  if (queryRes.errcode !== 0) {
+    console.error('[aiImageConfirmPayment] query_order failed:', queryRes);
+    await rollbackOrder();
+    return { success: false, error: `支付查询失败(${queryRes.errcode}): ${queryRes.errmsg || ''}` };
+  }
+
+  const wxOrder = queryRes.order;
+  if (!wxOrder) {
+    await rollbackOrder();
+    return { success: false, error: '微信侧订单不存在' };
+  }
+
+  // 官方状态: 1=创建成功(未付款) 2=已支付待发货 3=发货中 4=已发货
+  // 只有 2/3/4 才算已付款，1 不能入账
+  if (![2, 3, 4].includes(wxOrder.status)) {
+    await rollbackOrder();
+    return { success: false, error: `支付未完成，当前状态: ${wxOrder.status}` };
+  }
+
+  // 校验金额、类型、环境，防止错单入账（不回滚，留 confirming_payment 供人工核查）
+  if (wxOrder.order_fee !== order.goodsPrice) {
+    console.error('[aiImageConfirmPayment] fee mismatch:', { wx: wxOrder.order_fee, local: order.goodsPrice });
+    return { success: false, error: '订单金额不匹配，请联系客服' };
+  }
+  if (![0, 7].includes(wxOrder.order_type)) {
+    return { success: false, error: `订单类型异常: ${wxOrder.order_type}` };
+  }
+  const expectedEnvType = getWxOrderEnvType(order.payEnv);
+  if (wxOrder.env_type !== expectedEnvType) {
+    return { success: false, error: `订单环境不匹配: ${wxOrder.env_type} !== ${expectedEnvType}` };
+  }
+
+  // ── Step 5: 重新读取当前额度，计算充值后结果 ──────────────────────────────
+  // 确认时重新读而非用下单时快照，避免"钱扣了没到账"（生成任务扣减、多笔订单并发等）
+  const imageCount = order.imageCount || 0;
+  const quota = await ensureAiImageQuota(userId);
+  const currentTotal = normalizeAiImageQuotaNumber(quota.total);
+  const currentUsed = normalizeAiImageQuotaNumber(quota.used, 0);
+  const currentRemaining = Math.max(0, currentTotal - currentUsed);
+
+  // 剩余=0：重置（total=购买量, used=0）；剩余>0：叠加（total累加, used不变）
+  const newTotal = currentRemaining === 0 ? imageCount : currentTotal + imageCount;
+  const newUsed = currentRemaining === 0 ? 0 : currentUsed;
+  const newRemaining = newTotal - newUsed;
+
+  // 乐观锁：锁当前值，防止同一时刻另一笔并发写入
+  const quotaUpdateRes = await db.collection('ai_image_quotas')
+    .where({ _id: quota._id, total: currentTotal, used: currentUsed })
+    .update({ data: { total: newTotal, used: newUsed, updatedAt: now } });
+
+  if (!quotaUpdateRes.stats || quotaUpdateRes.stats.updated <= 0) {
+    await rollbackOrder();
+    return { success: false, error: '额度更新冲突，请稍后重试' };
+  }
+
+  // ── Step 6: 标记订单 paid，写入实际到账数据供后台查账 ─────────────────────
+  await db.collection('ai_image_orders')
+    .where({ orderNo, userId, status: 'confirming_payment' })
+    .update({
+      data: {
+        status: 'paid',
+        paidAt: now,
+        updatedAt: now,
+        afterTotal: newTotal,
+        afterUsed: newUsed,
+        afterRemaining: newRemaining,
+        orderType: wxOrder.order_type,
+        wxOrderStatus: wxOrder.status,
+        wxEnvType: wxOrder.env_type
+      }
+    });
+
+  // 通知微信道具已发货，完成订单闭环（失败仅记录日志，不阻塞用户）
+  notifyProvideGoods({ accessToken, appKey, orderNo, env: order.payEnv })
+    .catch(err => console.warn('[notifyProvideGoods] failed:', err.message));
+
+  return { success: true, summary: await getAiImageSummaryData(userId) };
+}
+
+// ==================== End WeChat Virtual Payment ====================
+
 async function aiImagePackages() {
   try {
     const res = await db.collection('ai_image_packages')
@@ -1944,12 +2327,8 @@ async function aiImagePurchasePackage(openid, data = {}) {
   const beforeUsed = normalizeAiImageQuotaNumber(quota.used, 0);
   const beforeRemaining = Math.max(0, beforeTotal - beforeUsed);
 
-  if (beforeRemaining > 0) {
-    return { success: false, error: '当前仍有剩余次数，无需充值' };
-  }
-
-  const afterTotal = imageCount;
-  const afterUsed = 0;
+  const afterTotal = beforeRemaining === 0 ? imageCount : beforeTotal + imageCount;
+  const afterUsed = beforeRemaining === 0 ? 0 : beforeUsed;
   const now = Date.now();
   const orderNo = createAiImageOrderNo(now);
   const userInfo = {
@@ -1962,21 +2341,11 @@ async function aiImagePurchasePackage(openid, data = {}) {
   const pricing = getAiImagePackagePricing(pack);
 
   const quotaUpdateRes = await db.collection('ai_image_quotas')
-    .where({
-      _id: quota._id,
-      total: beforeTotal,
-      used: beforeUsed
-    })
-    .update({
-      data: {
-        total: afterTotal,
-        used: afterUsed,
-        updatedAt: now
-      }
-    });
+    .where({ _id: quota._id, total: beforeTotal, used: beforeUsed })
+    .update({ data: { total: afterTotal, used: afterUsed, updatedAt: now } });
 
   if (!quotaUpdateRes.stats || quotaUpdateRes.stats.updated <= 0) {
-    return { success: false, error: '当前仍有剩余次数，无需充值' };
+    return { success: false, error: '额度更新冲突，请稍后重试' };
   }
 
   await db.collection('ai_image_orders').add({
@@ -2725,6 +3094,8 @@ module.exports = {
   aiImageChannels,
   aiImagePackages,
   aiImagePurchasePackage,
+  aiImageCreatePayOrder,
+  aiImageConfirmPayment,
   aiImageTemplates,
   aiImageTemplateVote,
   aiImageTemplateCreate,

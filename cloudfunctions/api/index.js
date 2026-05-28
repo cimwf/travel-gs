@@ -174,6 +174,10 @@ exports.main = async (event, context) => {
         return await aiImage.aiImagePackages();
       case 'aiImage/purchasePackage':
         return await aiImage.aiImagePurchasePackage(openid, data);
+      case 'aiImage/createPayOrder':
+        return await aiImage.aiImageCreatePayOrder(openid, data);
+      case 'aiImage/confirmPayment':
+        return await aiImage.aiImageConfirmPayment(openid, data);
       case 'aiImage/templates':
         return await aiImage.aiImageTemplates(openid, data);
       case 'aiImage/templateVote':

@@ -178,6 +178,18 @@ page {
   font-weight: 800;
 }
 
+.quota-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.quota-button.recharge {
+  background: linear-gradient(135deg, #178BFF, #63C7FF);
+  box-shadow: 0 10rpx 24rpx rgba(23, 139, 255, 0.22);
+}
+
 .section-head {
   display: flex;
   align-items: center;
