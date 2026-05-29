@@ -5,7 +5,7 @@
   </view>
 
   <view class="hero">
-    <view class="hero-kicker">GPT Image 2</view>
+    <view class="hero-kicker">AI 智能生图</view>
     <view class="hero-title">最强大的 AI 生图模型</view>
     <view class="hero-desc">支持文生图与图生图，把旅行灵感、头像、海报和路线封面快速变成可用图片。</view>
     <view class="hero-tags">
