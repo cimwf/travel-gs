@@ -122,7 +122,6 @@ function getConfig() {
     openaiSubmitTimeoutMs: Number(env('OPENAI_SUBMIT_TIMEOUT_MS', '600000')),
     openaiPollTimeoutMs: Number(env('OPENAI_POLL_TIMEOUT_MS', '30000')),
     imageModel: env('OPENAI_IMAGE_MODEL', 'gpt-image-2'),
-    imageResolution: env('OPENAI_IMAGE_RESOLUTION', ''),
     responsesModel: env('OPENAI_RESPONSES_MODEL', 'gpt-4.1-mini'),
     channelProvider: env('AI_IMAGE_PROVIDER', 'openai'),
     sharedSecret: env('AI_IMAGE_SERVICE_SECRET'),
@@ -171,7 +170,6 @@ function getChannelConfig(channelId) {
     openaiSubmitTimeoutMs: Number(channelEnv.matched ? env(buildChannelEnvKey('OPENAI_SUBMIT_TIMEOUT_MS', channelEnv.suffix), String(base.openaiSubmitTimeoutMs)) : String(base.openaiSubmitTimeoutMs)),
     openaiPollTimeoutMs: Number(channelEnv.matched ? env(buildChannelEnvKey('OPENAI_POLL_TIMEOUT_MS', channelEnv.suffix), String(base.openaiPollTimeoutMs)) : String(base.openaiPollTimeoutMs)),
     imageModel: channelEnv.matched ? env(buildChannelEnvKey('OPENAI_IMAGE_MODEL', channelEnv.suffix), base.imageModel) : base.imageModel,
-    imageResolution: channelEnv.matched ? env(buildChannelEnvKey('OPENAI_IMAGE_RESOLUTION', channelEnv.suffix), base.imageResolution) : base.imageResolution,
     responsesModel: channelEnv.matched ? env(buildChannelEnvKey('OPENAI_RESPONSES_MODEL', channelEnv.suffix), base.responsesModel) : base.responsesModel,
     channelProvider: env(
       buildChannelEnvKey('AI_IMAGE_PROVIDER', channelEnv.suffix),
@@ -311,7 +309,9 @@ function requestOpenAIMultipart(path, form, timeoutMs = 180000, channelConfig = 
   });
 }
 
-function mapImageSize(ratio) {
+
+function resolveImageSize(payload) {
+  if (payload.size && /^\d+x\d+$/.test(payload.size)) return payload.size;
   const sizeMap = {
     '1:1': '1024x1024',
     '3:4': '1024x1536',
@@ -319,7 +319,7 @@ function mapImageSize(ratio) {
     '16:9': '1536x1024',
     '9:16': '1024x1536'
   };
-  return sizeMap[ratio] || '1024x1024';
+  return sizeMap[payload.ratio] || '1024x1024';
 }
 
 function mapToapisImageSize(ratio) {
@@ -788,7 +788,7 @@ async function runGeneration(taskId, payload, channelConfig = null) {
         tools: [{
           type: 'image_generation',
           model: config.imageModel,
-          size: mapImageSize(payload.ratio),
+          size: resolveImageSize(payload),
           quality: 'high',
           output_format: 'png'
         }]
@@ -850,7 +850,7 @@ async function runToapisGeneration(taskId, payload, config = getConfig()) {
     prompt: buildPrompt(payload),
     n: 1,
     size: mapToapisImageSize(payload.ratio),
-    resolution: payload.resolution || payload.imageResolution || config.imageResolution || '1K',
+    resolution: '2K',
     response_format: 'url'
   };
 
@@ -904,7 +904,7 @@ async function runImagesGeneration(taskId, payload, config = getConfig()) {
       const form = new FormData();
       form.append('model', config.imageModel);
       form.append('prompt', buildPrompt(payload));
-      form.append('size', mapImageSize(payload.ratio));
+      form.append('size', resolveImageSize(payload));
       form.append('n', '1');
       form.append('response_format', 'url');
       if (payload.referenceImageUrl) {
@@ -922,7 +922,7 @@ async function runImagesGeneration(taskId, payload, config = getConfig()) {
       response = await requestOpenAI('POST', '/v1/images/generations', {
         model: config.imageModel,
         prompt: buildPrompt(payload),
-        size: mapImageSize(payload.ratio),
+        size: resolveImageSize(payload),
         n: 1,
         response_format: 'url'
       }, config.openaiSubmitTimeoutMs, config);

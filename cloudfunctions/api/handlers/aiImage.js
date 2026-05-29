@@ -205,70 +205,10 @@ function getAiImagePackagePricing(item = {}) {
 
 function getOpenAIConfig() {
   return {
-    apiKey: process.env.OPENAI_API_KEY,
     imageModel: process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2',
-    responsesModel: process.env.OPENAI_RESPONSES_MODEL || 'gpt-4.1-mini',
     serviceUrl: process.env.AI_IMAGE_SERVICE_URL || '',
     serviceSecret: process.env.AI_IMAGE_SERVICE_SECRET || ''
   };
-}
-
-function mapImageSize(ratio) {
-  const sizeMap = {
-    '1:1': '1024x1024',
-    '3:4': '1024x1536',
-    '4:3': '1536x1024',
-    '16:9': '1536x1024',
-    '9:16': '1024x1536'
-  };
-  return sizeMap[ratio] || '1024x1024';
-}
-
-function requestOpenAI(method, path, payload, apiKey, timeoutMs = 25000) {
-  const body = payload ? JSON.stringify(payload) : '';
-
-  return new Promise((resolve, reject) => {
-    const req = https.request({
-      hostname: 'api.openai.com',
-      path,
-      method,
-      agent: aiImageHttpsAgent,
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(body)
-      }
-    }, (res) => {
-      const chunks = [];
-      res.on('data', chunk => chunks.push(chunk));
-      res.on('end', () => {
-        const text = Buffer.concat(chunks).toString('utf8');
-        let parsed;
-        try {
-          parsed = JSON.parse(text);
-        } catch (err) {
-          reject(new Error(`OpenAI 返回异常：${text.slice(0, 200)}`));
-          return;
-        }
-
-        if (res.statusCode >= 400) {
-          reject(new Error(parsed.error && parsed.error.message ? parsed.error.message : 'OpenAI 请求失败'));
-          return;
-        }
-
-        resolve(parsed);
-      });
-    });
-
-    req.setTimeout(timeoutMs, () => {
-      req.destroy(new Error('OpenAI 请求超时，请稍后重试'));
-    });
-    req.on('error', reject);
-    if (body) {
-      req.write(body);
-    }
-    req.end();
-  });
 }
 
 function requestJsonUrl(method, url, payload, headers = {}, timeoutMs = 25000) {
@@ -998,16 +938,6 @@ function syncImagesStatus(images, status, error) {
   }, { status }));
 }
 
-function buildImagePrompt(data) {
-  const style = getEffectiveAiImageStyle(data);
-  const parts = [
-    getEffectiveAiImagePrompt(data),
-    style ? `视觉风格：${style}` : '',
-    '请生成适合在旅行社交小程序中展示的高质量图片。'
-  ].filter(Boolean);
-  return parts.join('\n');
-}
-
 async function getAiImageReferenceTempFileURL(referenceFileID) {
   const fileID = String(referenceFileID || '').trim();
   if (!fileID) {
@@ -1033,34 +963,6 @@ async function getAiImageReferenceTempFileURL(referenceFileID) {
   return tempUrl;
 }
 
-async function callOpenAIImage(data, apiKey, model, channelId = '') {
-  const prompt = buildImagePrompt(data);
-  const size = mapImageSize(data.ratio);
-  const input = [{ role: 'user', content: [{ type: 'input_text', text: prompt }] }];
-
-  if (data.mode === 'image') {
-    if (!data.referenceFileID) {
-      throw new Error('参考图片不能为空');
-    }
-
-    const imageUrl = await getAiImageReferenceTempFileURL(data.referenceFileID);
-    input[0].content.push({ type: 'input_image', image_url: imageUrl });
-  }
-
-  return await requestOpenAI('POST', '/v1/responses', {
-    model,
-    input,
-    background: true,
-    tools: [{
-      type: 'image_generation',
-      model: getOpenAIConfig().imageModel,
-      size,
-      quality: 'high',
-      output_format: 'png'
-    }]
-  }, apiKey);
-}
-
 async function createExternalAiImageTask(data, config, channelId = '') {
   const headers = {};
   if (config.serviceSecret) {
@@ -1073,7 +975,6 @@ async function createExternalAiImageTask(data, config, channelId = '') {
     ratio: data.ratio,
     style: getEffectiveAiImageStyle(data),
     channelId: String(channelId || '').trim(),
-    resolution: data.resolution || data.imageResolution || ''
   };
 
   if (data.mode === 'image') {
@@ -1103,49 +1004,6 @@ async function getExternalAiImageTask(taskId, config, channelId = '') {
 
   const query = String(channelId || '').trim() ? `?channelId=${encodeURIComponent(String(channelId).trim())}` : '';
   return await requestJsonUrl('GET', `${config.serviceUrl.replace(/\/$/, '')}/v1/ai-image/tasks/${encodeURIComponent(taskId)}${query}`, null, headers, 20000);
-}
-
-async function getOpenAIResponse(responseId, apiKey) {
-  return await requestOpenAI('GET', `/v1/responses/${encodeURIComponent(responseId)}`, null, apiKey, 20000);
-}
-
-function findAiImageUrl(value) {
-  if (!value) return '';
-  if (typeof value === 'string') {
-    const text = value.trim();
-    return /^https?:\/\//i.test(text) ? normalizeAiImageUrl(text) : '';
-  }
-  if (Array.isArray(value)) {
-    for (const item of value) {
-      const imageUrl = findAiImageUrl(item);
-      if (imageUrl) return imageUrl;
-    }
-    return '';
-  }
-  if (typeof value === 'object') {
-    const direct = value.url || value.image_url || value.imageUrl || value.public_url || value.publicUrl;
-    const directUrl = findAiImageUrl(direct);
-    if (directUrl) return directUrl;
-    return findAiImageUrl(value.result || value.content || value.output || value.data);
-  }
-  return '';
-}
-
-function extractImageUrlFromResponse(response) {
-  return findAiImageUrl(response && response.output ? response.output : []);
-}
-
-function buildGeneratedImageFromUrl(imageUrl) {
-  const publicUrl = normalizeAiImageUrl(imageUrl);
-  return {
-    fileID: '',
-    cloudPath: '',
-    publicUrl,
-    width: 0,
-    height: 0,
-    format: '',
-    bytes: 0
-  };
 }
 
 function getAiImageSourceUrl(image = {}) {
@@ -1269,14 +1127,14 @@ async function completeAiImageRecord(openid, record, responseId, image, extraUpd
 
 async function aiImageGenerate(openid, data = {}) {
   const config = getOpenAIConfig();
-  const { apiKey, responsesModel, imageModel } = config;
+  const { imageModel } = config;
   const requestedChannelId = String(data.channelId || '').trim();
   const channel = requestedChannelId ? await resolveAiImageChannel(requestedChannelId) : await getDefaultAiImageChannel();
   const channelId = channel && channel.channelId ? channel.channelId : requestedChannelId;
   const channelName = channel && channel.name ? channel.name : String(data.channelName || '').trim();
 
-  if (!apiKey && !config.serviceUrl) {
-    return { success: false, error: '未配置 OPENAI_API_KEY' };
+  if (!config.serviceUrl) {
+    return { success: false, error: '未配置 AI_IMAGE_SERVICE_URL' };
   }
 
   if (requestedChannelId && (!channel || channel.enabled === false)) {
@@ -1317,99 +1175,69 @@ async function aiImageGenerate(openid, data = {}) {
     return { success: false, error: 'AI 生图次数已用完' };
   }
 
-  if (config.serviceUrl) {
-    let serviceRes;
-    try {
-      serviceRes = await createExternalAiImageTask(data, config, channelId);
-    } catch (err) {
-      logAiImageError('external-create-failed', {
-        userId: openid || 'anonymous',
-        channelId,
-        channelName,
-        mode: data.mode,
-        ratio: data.ratio || '',
-        style: getEffectiveAiImageStyle(data),
-        promptLength: getEffectiveAiImagePrompt(data).length,
-        hasReference: Boolean(data.referenceFileID),
-        referenceFileIDHash: hashAiImageLogValue(data.referenceFileID),
-        serviceUrl: config.serviceUrl ? config.serviceUrl.replace(/\/$/, '') : ''
-      }, err);
-      return { success: false, error: getAiImageErrorText(err, '提交 AI 生图任务失败，请查看后台日志') };
-    }
-
-    const record = await recordAiImageTask(openid, data, {
-      taskId: serviceRes.taskId,
-      status: serviceRes.status || 'queued',
-      model: imageModel,
-      external: true,
-      channelId,
-      channelName
-    });
-    console.info('[ai-image]', {
-      event: 'external-task-created',
+  let serviceRes;
+  try {
+    serviceRes = await createExternalAiImageTask(data, config, channelId);
+  } catch (err) {
+    logAiImageError('external-create-failed', {
       userId: openid || 'anonymous',
-      recordId: record._id || '',
-      taskId: serviceRes.taskId,
-      status: serviceRes.status || 'queued',
       channelId,
       channelName,
       mode: data.mode,
       ratio: data.ratio || '',
-      serviceChannelId: serviceRes.channelId || ''
-    });
-
-    if (channelId) {
-      await incrementAiImageChannelCallCount(channelId);
-    }
-
-    return {
-      success: true,
-      taskId: serviceRes.taskId,
-      status: serviceRes.status || 'queued',
-      model: imageModel,
-      channelId,
-      channelName,
-      external: true,
-      quota: await getAiImageSummaryData(openid)
-    };
+      style: getEffectiveAiImageStyle(data),
+      promptLength: getEffectiveAiImagePrompt(data).length,
+      hasReference: Boolean(data.referenceFileID),
+      referenceFileIDHash: hashAiImageLogValue(data.referenceFileID),
+      serviceUrl: config.serviceUrl.replace(/\/$/, '')
+    }, err);
+    return { success: false, error: getAiImageErrorText(err, '提交 AI 生图任务失败，请查看后台日志') };
   }
 
-  const openaiRes = await callOpenAIImage(data, apiKey, responsesModel, channelId);
+  const record = await recordAiImageTask(openid, data, {
+    taskId: serviceRes.taskId,
+    status: serviceRes.status || 'queued',
+    model: imageModel,
+    external: true,
+    channelId,
+    channelName
+  });
+  console.info('[ai-image]', {
+    event: 'external-task-created',
+    userId: openid || 'anonymous',
+    recordId: record._id || '',
+    taskId: serviceRes.taskId,
+    status: serviceRes.status || 'queued',
+    channelId,
+    channelName,
+    mode: data.mode,
+    ratio: data.ratio || '',
+    serviceChannelId: serviceRes.channelId || ''
+  });
 
-  try {
-    await recordAiImageTask(openid, data, {
-      taskId: openaiRes.id,
-      status: openaiRes.status || 'queued',
-      model: imageModel,
-      external: false,
-      channelId,
-      channelName
-    });
-    if (channelId) {
-      await incrementAiImageChannelCallCount(channelId);
-    }
-  } catch (err) {
-    console.warn('保存 AI 生图记录失败:', err);
+  if (channelId) {
+    await incrementAiImageChannelCallCount(channelId);
   }
 
   return {
     success: true,
-    taskId: openaiRes.id,
-    status: openaiRes.status || 'queued',
+    taskId: serviceRes.taskId,
+    status: serviceRes.status || 'queued',
     model: imageModel,
     channelId,
     channelName,
+    external: true,
     quota: await getAiImageSummaryData(openid)
   };
 }
 
 async function aiImageStatus(openid, data = {}) {
   const config = getOpenAIConfig();
-  const { apiKey, imageModel } = config;
+  const { imageModel } = config;
   const responseId = data.taskId || data.responseId;
 
-  if (!apiKey && !config.serviceUrl) {
-    return { success: false, error: '未配置 OPENAI_API_KEY' };
+  if (!config.serviceUrl) {
+    return { success: false, error: '未配置 AI_IMAGE_SERVICE_URL' };
   }
 
   if (!responseId) {
@@ -1445,123 +1273,33 @@ async function aiImageStatus(openid, data = {}) {
     };
   }
 
-  if (config.serviceUrl) {
-    let serviceRes;
-    try {
-      serviceRes = await getExternalAiImageTask(responseId, config, recordChannelId);
-    } catch (err) {
-      logAiImageError('external-status-query-failed', {
-        taskId: responseId,
-        recordId: record && record._id ? record._id : '',
-        userId: openid || 'anonymous',
-        channelId: recordChannelId,
-        recordStatus: record && record.status ? record.status : '',
-        ageMs: record ? getAiImageRecordAgeMs(record) : 0,
-        expireMs: getAiImageTaskExpireMs(),
-        missingTask: isExternalAiImageTaskMissingError(err),
-        expired: recordForOutcome ? isAiImageRecordExpired(recordForOutcome) : false
-      }, err);
-      if (isExternalAiImageTaskMissingError(err)) {
-        const failedRecord = recordForOutcome
-          ? await markAiImageRecordFailed(recordForOutcome, '生成任务已失效，请重新提交')
-          : { error: getAiImageErrorText('生成任务已失效，请重新提交') };
-        return {
-          success: false,
-          status: 'failed',
-          channelId: recordChannelId,
-          error: failedRecord.error
-        };
-      }
-      if (recordForOutcome && isAiImageRecordExpired(recordForOutcome)) {
-        const failedRecord = await markAiImageRecordFailed(recordForOutcome, '生成任务超时，请重新提交');
-        return {
-          success: false,
-          status: 'failed',
-          channelId: recordChannelId,
-          error: failedRecord.error
-        };
-      }
-      return { success: false, error: getAiImageErrorText(err, '当前渠道已满，请换个渠道后再试') };
-    }
-
-    if (serviceRes.status === 'failed') {
-      logAiImageError('external-task-returned-failed', {
-        taskId: responseId,
-        providerTaskId: serviceRes.providerTaskId || serviceRes.responseId || '',
-        recordId: record && record._id ? record._id : '',
-        userId: openid || 'anonymous',
-        channelId: recordChannelId,
-        recordStatus: record && record.status ? record.status : '',
-        serviceStatus: serviceRes.status,
-        serviceStage: serviceRes.stage || '',
-        ageMs: record ? getAiImageRecordAgeMs(record) : 0,
-        serviceError: serviceRes.error || '',
-        serviceErrorDetail: serviceRes.errorDetail || ''
-      });
-      if (recordForOutcome) {
-        await markAiImageRecordFailed(recordForOutcome, serviceRes.error || '生成失败');
-      }
+  let serviceRes;
+  try {
+    serviceRes = await getExternalAiImageTask(responseId, config, recordChannelId);
+  } catch (err) {
+    logAiImageError('external-status-query-failed', {
+      taskId: responseId,
+      recordId: record && record._id ? record._id : '',
+      userId: openid || 'anonymous',
+      channelId: recordChannelId,
+      recordStatus: record && record.status ? record.status : '',
+      ageMs: record ? getAiImageRecordAgeMs(record) : 0,
+      expireMs: getAiImageTaskExpireMs(),
+      missingTask: isExternalAiImageTaskMissingError(err),
+      expired: recordForOutcome ? isAiImageRecordExpired(recordForOutcome) : false
+    }, err);
+    if (isExternalAiImageTaskMissingError(err)) {
+      const failedRecord = recordForOutcome
+        ? await markAiImageRecordFailed(recordForOutcome, '生成任务已失效，请重新提交')
+        : { error: getAiImageErrorText('生成任务已失效，请重新提交') };
       return {
         success: false,
         status: 'failed',
         channelId: recordChannelId,
-        error: getAiImageErrorText(serviceRes.error)
+        error: failedRecord.error
       };
     }
-
-    if (serviceRes.status === 'completed') {
-      const image = {
-        fileID: serviceRes.image && serviceRes.image.key ? serviceRes.image.key : '',
-        tempFileURL: serviceRes.image && (serviceRes.image.signedUrl || serviceRes.image.url) ? (serviceRes.image.signedUrl || serviceRes.image.url) : '',
-        publicURL: serviceRes.image && serviceRes.image.url ? serviceRes.image.url : '',
-        signedURL: serviceRes.image && serviceRes.image.signedUrl ? serviceRes.image.signedUrl : '',
-        width: serviceRes.image && serviceRes.image.width ? serviceRes.image.width : 0,
-        height: serviceRes.image && serviceRes.image.height ? serviceRes.image.height : 0,
-        format: serviceRes.image && serviceRes.image.format ? serviceRes.image.format : '',
-        bytes: serviceRes.image && serviceRes.image.bytes ? serviceRes.image.bytes : 0
-      };
-      let charged = false;
-
-      if (record && record._id) {
-        const completeRes = await completeAiImageRecord(openid, record, responseId, image);
-        image.fileID = completeRes.image.fileID || completeRes.image.key || '';
-        image.cloudPath = completeRes.image.cloudPath || '';
-        image.tempFileURL = completeRes.image.tempFileURL || completeRes.image.publicUrl || completeRes.image.publicURL || image.tempFileURL;
-        image.publicURL = completeRes.image.publicUrl || completeRes.image.publicURL || image.publicURL;
-        image.signedURL = completeRes.image.signedURL || completeRes.image.signedUrl || image.signedURL;
-        image.width = completeRes.image.width || image.width;
-        image.height = completeRes.image.height || image.height;
-        image.format = completeRes.image.format || image.format;
-        image.bytes = completeRes.image.bytes || image.bytes;
-        charged = completeRes.charged;
-      }
-
-      if (recordForOutcome) {
-        await incrementAiImageChannelOutcome(recordForOutcome, 'completed');
-      }
-
-      return {
-        success: true,
-        status: 'completed',
-        image,
-        model: imageModel,
-        channelId: recordChannelId,
-        charged
-      };
-    }
-
     if (recordForOutcome && isAiImageRecordExpired(recordForOutcome)) {
-      logAiImageError('external-task-expired', {
-        taskId: responseId,
-        recordId: recordForOutcome._id,
-        userId: openid || 'anonymous',
-        channelId: recordChannelId,
-        recordStatus: recordForOutcome.status || '',
-        serviceStatus: serviceRes.status || '',
-        serviceStage: serviceRes.stage || '',
-        ageMs: getAiImageRecordAgeMs(recordForOutcome),
-        expireMs: getAiImageTaskExpireMs()
-      });
       const failedRecord = await markAiImageRecordFailed(recordForOutcome, '生成任务超时，请重新提交');
       return {
         success: false,
@@ -1570,114 +1308,100 @@ async function aiImageStatus(openid, data = {}) {
         error: failedRecord.error
       };
     }
+    return { success: false, error: getAiImageErrorText(err, '当前渠道已满，请换个渠道后再试') };
+  }
 
-    return {
-      success: true,
-      status: serviceRes.status || 'queued',
+  if (serviceRes.status === 'failed') {
+    logAiImageError('external-task-returned-failed', {
       taskId: responseId,
-      channelId: recordChannelId
-    };
-  }
-
-  try {
-    if (record && record.images && record.images[0] && record.images[0].key) {
-      const urlRes = await cloud.getTempFileURL({ fileList: [record.images[0].key] });
-      const file = urlRes.fileList && urlRes.fileList[0];
-      let charged = false;
-      if (!record.chargedAt) {
-        charged = await chargeAiImageRecordOnce(openid, record);
-      }
-      if (recordForOutcome) {
-        await incrementAiImageChannelOutcome(recordForOutcome, 'completed');
-      }
-      return {
-        success: true,
-        status: 'completed',
-        image: {
-          fileID: record.images[0].key,
-          tempFileURL: file && file.tempFileURL ? file.tempFileURL : '',
-          width: record.images[0].width || 0,
-          height: record.images[0].height || 0,
-          format: record.images[0].format || '',
-          bytes: record.images[0].bytes || 0
-        },
-        model: record.model || imageModel,
-        channelId: recordChannelId,
-        charged
-      };
-    }
-  } catch (err) {
-    console.warn('读取 AI 生图记录失败:', err);
-  }
-
-  let response;
-  try {
-    response = await getOpenAIResponse(responseId, apiKey);
-  } catch (err) {
-    if (String(err.message || '').includes('超时')) {
-      return {
-        success: true,
-        status: 'in_progress',
-        taskId: responseId,
-        channelId: recordChannelId,
-        message: '结果还在处理中'
-      };
-    }
-    throw err;
-  }
-
-  if (response.status !== 'completed') {
-    if (response.status === 'failed' || response.status === 'cancelled') {
-      const message = response.error && response.error.message ? response.error.message : '生成任务失败';
-      if (recordForOutcome) {
-        await incrementAiImageChannelOutcome(recordForOutcome, 'failed');
-      }
-      return { success: false, status: response.status, channelId: recordChannelId, error: getAiImageErrorText(message) };
-    }
-
-    return {
-      success: true,
-      status: response.status || 'queued',
-      taskId: responseId,
-      channelId: recordChannelId
-    };
-  }
-
-  const imageUrl = extractImageUrlFromResponse(response);
-
-  if (!imageUrl) {
+      providerTaskId: serviceRes.providerTaskId || serviceRes.responseId || '',
+      recordId: record && record._id ? record._id : '',
+      userId: openid || 'anonymous',
+      channelId: recordChannelId,
+      recordStatus: record && record.status ? record.status : '',
+      serviceStatus: serviceRes.status,
+      serviceStage: serviceRes.stage || '',
+      ageMs: record ? getAiImageRecordAgeMs(record) : 0,
+      serviceError: serviceRes.error || '',
+      serviceErrorDetail: serviceRes.errorDetail || ''
+    });
     if (recordForOutcome) {
-      await incrementAiImageChannelOutcome(recordForOutcome, 'failed');
+      await markAiImageRecordFailed(recordForOutcome, serviceRes.error || '生成失败');
     }
-    return { success: false, status: response.status, channelId: recordChannelId, error: getAiImageErrorText('OpenAI 未返回图片 URL') };
+    return {
+      success: false,
+      status: 'failed',
+      channelId: recordChannelId,
+      error: getAiImageErrorText(serviceRes.error)
+    };
   }
 
-  const image = buildGeneratedImageFromUrl(imageUrl);
-  let charged = false;
+  if (serviceRes.status === 'completed') {
+    const image = {
+      fileID: serviceRes.image && serviceRes.image.key ? serviceRes.image.key : '',
+      tempFileURL: serviceRes.image && (serviceRes.image.signedUrl || serviceRes.image.url) ? (serviceRes.image.signedUrl || serviceRes.image.url) : '',
+      publicURL: serviceRes.image && serviceRes.image.url ? serviceRes.image.url : '',
+      signedURL: serviceRes.image && serviceRes.image.signedUrl ? serviceRes.image.signedUrl : '',
+      width: serviceRes.image && serviceRes.image.width ? serviceRes.image.width : 0,
+      height: serviceRes.image && serviceRes.image.height ? serviceRes.image.height : 0,
+      format: serviceRes.image && serviceRes.image.format ? serviceRes.image.format : '',
+      bytes: serviceRes.image && serviceRes.image.bytes ? serviceRes.image.bytes : 0
+    };
+    let charged = false;
 
-  try {
     if (record && record._id) {
-      const completeRes = await completeAiImageRecord(openid, record, responseId, image, {
-        usage: response.usage || null
-      });
-      Object.assign(image, completeRes.image);
+      const completeRes = await completeAiImageRecord(openid, record, responseId, image);
+      image.fileID = completeRes.image.fileID || completeRes.image.key || '';
+      image.cloudPath = completeRes.image.cloudPath || '';
+      image.tempFileURL = completeRes.image.tempFileURL || completeRes.image.publicUrl || completeRes.image.publicURL || image.tempFileURL;
+      image.publicURL = completeRes.image.publicUrl || completeRes.image.publicURL || image.publicURL;
+      image.signedURL = completeRes.image.signedURL || completeRes.image.signedUrl || image.signedURL;
+      image.width = completeRes.image.width || image.width;
+      image.height = completeRes.image.height || image.height;
+      image.format = completeRes.image.format || image.format;
+      image.bytes = completeRes.image.bytes || image.bytes;
       charged = completeRes.charged;
     }
-  } catch (err) {
-    console.warn('更新 AI 生图记录失败:', err);
+
+    if (recordForOutcome) {
+      await incrementAiImageChannelOutcome(recordForOutcome, 'completed');
+    }
+
+    return {
+      success: true,
+      status: 'completed',
+      image,
+      model: imageModel,
+      channelId: recordChannelId,
+      charged
+    };
   }
 
-  if (recordForOutcome) {
-    await incrementAiImageChannelOutcome(recordForOutcome, 'completed');
+  if (recordForOutcome && isAiImageRecordExpired(recordForOutcome)) {
+    logAiImageError('external-task-expired', {
+      taskId: responseId,
+      recordId: recordForOutcome._id,
+      userId: openid || 'anonymous',
+      channelId: recordChannelId,
+      recordStatus: recordForOutcome.status || '',
+      serviceStatus: serviceRes.status || '',
+      serviceStage: serviceRes.stage || '',
+      ageMs: getAiImageRecordAgeMs(recordForOutcome),
+      expireMs: getAiImageTaskExpireMs()
+    });
+    const failedRecord = await markAiImageRecordFailed(recordForOutcome, '生成任务超时，请重新提交');
+    return {
+      success: false,
+      status: 'failed',
+      channelId: recordChannelId,
+      error: failedRecord.error
+    };
   }
 
   return {
     success: true,
-    status: 'completed',
-    image,
-    model: record && record.model ? record.model : imageModel,
-    usage: response.usage || null,
-    charged,
+    status: serviceRes.status || 'queued',
+    taskId: responseId,
     channelId: recordChannelId
   };
 }
@@ -1848,10 +1572,6 @@ async function getAiImageSummaryData(openid) {
     remaining: Math.max(0, total - used),
     generatedCount
   };
-}
-
-async function syncAiImageQuotaUsage(openid) {
-  return await getAiImageSummaryData(openid);
 }
 
 async function aiImageSummary(openid) {
