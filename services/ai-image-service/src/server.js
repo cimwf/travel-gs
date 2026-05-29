@@ -313,11 +313,11 @@ function requestOpenAIMultipart(path, form, timeoutMs = 180000, channelConfig = 
 function resolveImageSize(payload) {
   if (payload.size && /^\d+x\d+$/.test(payload.size)) return payload.size;
   const sizeMap = {
-    '1:1': '1024x1024',
-    '3:4': '1024x1536',
-    '4:3': '1536x1024',
-    '16:9': '3840x2160',
-    '9:16': '2160x3840'
+    '1:1': '2048x2048',
+    '3:4': '1536x2048',
+    '4:3': '2048x1536',
+    '16:9': '2048x1152',
+    '9:16': '1152x2048'
   };
   return sizeMap[payload.ratio] || '1024x1024';
 }

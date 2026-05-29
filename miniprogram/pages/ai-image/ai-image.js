@@ -121,42 +121,6 @@ Page({
     this.setData(nextData, this.updateCanGenerate);
   },
 
-  is4kRatio: function () {
-    const ratio = String(this.data.ratio || '').trim();
-    return ratio === '16:9' || ratio === '9:16';
-  },
-
-  is4kChannel: function () {
-    const channel = this.data.selectedChannel || {};
-    const candidates = [
-      this.data.selectedChannelId,
-      channel.channelId,
-      channel.name,
-      channel.remark
-    ];
-
-    return candidates.some(value => {
-      const suffix = String(value || '').trim().slice(-1);
-      return suffix === '1' || suffix === '3';
-    });
-  },
-
-  shouldShow4kChannelConfirm: function () {
-    return this.is4kRatio() && !this.is4kChannel();
-  },
-
-  show4kChannelConfirm: function () {
-    return new Promise(resolve => {
-      wx.showModal({
-        title: '请选择支持 4K 的渠道',
-        content: '当前比例会按 4K 尺寸生成。请切换到 1 或 3 渠道后再提交，成图尺寸会更稳定。',
-        confirmText: '去切换',
-        showCancel: false,
-        success: () => resolve()
-      });
-    });
-  },
-
   onChooseImage: function () {
     wx.chooseMedia({
       count: 1,
@@ -538,12 +502,6 @@ Page({
 
     if (summary.remaining <= 0) {
       this.openPackageModal();
-      return;
-    }
-
-    if (this.shouldShow4kChannelConfirm()) {
-      await this.show4kChannelConfirm();
-      this.onOpenChannelPicker();
       return;
     }
 

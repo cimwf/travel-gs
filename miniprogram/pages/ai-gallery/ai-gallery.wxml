@@ -1,4 +1,4 @@
-<view class="gallery-page">
+<view class="gallery-page {{editMode ? 'editing' : ''}}">
   <view class="bg">
     <view class="circle c1"></view>
     <view class="circle c2"></view>
@@ -85,6 +85,9 @@
     <view class="batch-info">已选 {{selectedCount}} 张</view>
     <view class="batch-actions">
       <view class="batch-btn secondary" bindtap="onToggleSelectAll">{{allSelectableSelected ? '取消全选' : '全选'}}</view>
+      <view class="batch-btn danger {{selectedCount === 0 || deletingId ? 'disabled' : ''}}" bindtap="onDeleteSelected">
+        {{deletingId ? '删除中' : '删除'}}
+      </view>
     </view>
   </view>
 </view>

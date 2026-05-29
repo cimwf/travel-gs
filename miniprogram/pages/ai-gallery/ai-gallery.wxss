@@ -12,6 +12,10 @@ page {
   overflow: hidden;
 }
 
+.gallery-page.editing {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 180rpx);
+}
+
 .bg {
   position: absolute;
   inset: 0;
@@ -360,19 +364,20 @@ page {
 }
 
 .batch-bar {
-  position: sticky;
-  bottom: calc(env(safe-area-inset-bottom) + 12rpx);
-  z-index: 3;
-  margin-top: 12rpx;
-  border-radius: 28rpx;
-  background: rgba(24, 32, 51, 0.94);
+  position: fixed;
+  left: 24rpx;
+  right: 24rpx;
+  bottom: calc(env(safe-area-inset-bottom) + 24rpx);
+  z-index: 20;
+  border-radius: 24rpx;
+  background: #111827;
   color: #FFFFFF;
-  padding: 22rpx 24rpx;
+  padding: 20rpx 22rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18rpx;
-  box-shadow: 0 18rpx 40rpx rgba(24, 32, 51, 0.2);
+  gap: 20rpx;
+  box-shadow: 0 18rpx 42rpx rgba(17, 24, 39, 0.28);
 }
 
 .batch-info {
@@ -383,7 +388,8 @@ page {
 .batch-actions {
   display: flex;
   align-items: center;
-  gap: 14rpx;
+  gap: 16rpx;
+  flex-shrink: 0;
 }
 
 .batch-btn {
@@ -402,4 +408,13 @@ page {
 .batch-btn.secondary {
   background: rgba(255, 255, 255, 0.12);
   color: #FFFFFF;
+}
+
+.batch-btn.danger {
+  background: #D92D20;
+  color: #FFFFFF;
+}
+
+.batch-btn.disabled {
+  opacity: 0.45;
 }
