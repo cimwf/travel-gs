@@ -78,8 +78,6 @@ Page({
           ...item,
           fromUserId: item.fromUserId,
           placeCoverImage: coverImage,
-          avatarBg: this.getAvatarBg(item.userName),
-          placeBg: this.getPlaceBg(item.placeName),
           placeEmoji: this.getPlaceEmoji(item.placeName)
         };
       });
@@ -157,36 +155,6 @@ Page({
     if (hours < 24) return `${hours}小时前`;
     if (days < 7) return `${days}天前`;
     return new Date(timestamp).toLocaleDateString();
-  },
-
-  // 根据名字生成头像背景色
-  getAvatarBg: function (name) {
-    const colors = [
-      'linear-gradient(135deg, #FF6B6B, #FF8E53)',
-      'linear-gradient(135deg, #4A90E2, #6BA3E8)',
-      'linear-gradient(135deg, #56AB2F, #A8E6CF)',
-      'linear-gradient(135deg, #f093fb, #f5576c)',
-      'linear-gradient(135deg, #667eea, #764ba2)',
-      'linear-gradient(135deg, #11998e, #38ef7d)'
-    ];
-    if (!name) return colors[0];
-    const index = name.charCodeAt(0) % colors.length;
-    return colors[index];
-  },
-
-  // 根据地点名生成背景色
-  getPlaceBg: function (name) {
-    const colors = [
-      'linear-gradient(135deg, #667eea, #764ba2)',
-      'linear-gradient(135deg, #FF6B6B, #FF8E53)',
-      'linear-gradient(135deg, #4A90E2, #6BA3E8)',
-      'linear-gradient(135deg, #56AB2F, #A8E6CF)',
-      'linear-gradient(135deg, #f093fb, #f5576c)',
-      'linear-gradient(135deg, #11998e, #38ef7d)'
-    ];
-    if (!name) return colors[0];
-    const index = name.charCodeAt(0) % colors.length;
-    return colors[index];
   },
 
   // 根据地点名获取emoji

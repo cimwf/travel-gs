@@ -46,7 +46,7 @@
               <!-- 未处理 -->
               <block wx:if="{{!item.isHandled}}">
                 <view class="card-header">
-                  <view class="user-avatar" style="background: {{item.avatarBg}}">
+                  <view class="user-avatar">
                     <image wx:if="{{item.fromUserAvatar}}" class="avatar-image" src="{{item.fromUserAvatar}}" mode="aspectFill"></image>
                     <text wx:else>{{item.userName[0]}}</text>
                   </view>
@@ -76,7 +76,7 @@
               <!-- 已同意 -->
               <block wx:if="{{item.isHandled && item.status === 'agreed'}}">
                 <view class="sent-header">
-                  <view class="trip-icon" style="background: {{item.placeBg}}">
+                  <view class="trip-icon">
                     <image wx:if="{{item.placeCoverImage}}" class="trip-cover" src="{{item.placeCoverImage}}" mode="aspectFill"></image>
                     <text wx:else class="trip-emoji">{{item.placeEmoji}}</text>
                   </view>
@@ -105,7 +105,7 @@
               <!-- 已拒绝 -->
               <block wx:if="{{item.isHandled && item.status === 'rejected'}}">
                 <view class="sent-header">
-                  <view class="trip-icon" style="background: {{item.placeBg}}">
+                  <view class="trip-icon">
                     <image wx:if="{{item.placeCoverImage}}" class="trip-cover" src="{{item.placeCoverImage}}" mode="aspectFill"></image>
                     <text wx:else class="trip-emoji">{{item.placeEmoji}}</text>
                   </view>
@@ -129,7 +129,7 @@
               <!-- 已退出 -->
               <block wx:if="{{item.isHandled && item.status === 'quit'}}">
                 <view class="sent-header">
-                  <view class="trip-icon" style="background: {{item.placeBg}}">
+                  <view class="trip-icon">
                     <image wx:if="{{item.placeCoverImage}}" class="trip-cover" src="{{item.placeCoverImage}}" mode="aspectFill"></image>
                     <text wx:else class="trip-emoji">{{item.placeEmoji}}</text>
                   </view>
@@ -153,7 +153,7 @@
               <!-- 已移除 -->
               <block wx:if="{{item.isHandled && item.status === 'removed'}}">
                 <view class="sent-header">
-                  <view class="trip-icon" style="background: {{item.placeBg}}">
+                  <view class="trip-icon">
                     <image wx:if="{{item.placeCoverImage}}" class="trip-cover" src="{{item.placeCoverImage}}" mode="aspectFill"></image>
                     <text wx:else class="trip-emoji">{{item.placeEmoji}}</text>
                   </view>
@@ -177,7 +177,7 @@
               <!-- 行程已取消 -->
               <block wx:if="{{item.isHandled && item.status === 'cancelled'}}">
                 <view class="sent-header">
-                  <view class="trip-icon" style="background: {{item.placeBg}}">
+                  <view class="trip-icon">
                     <image wx:if="{{item.placeCoverImage}}" class="trip-cover" src="{{item.placeCoverImage}}" mode="aspectFill"></image>
                     <text wx:else class="trip-emoji">{{item.placeEmoji}}</text>
                   </view>
@@ -201,7 +201,7 @@
               <!-- 行程已删除 -->
               <block wx:if="{{item.isHandled && item.status === 'deleted'}}">
                 <view class="sent-header">
-                  <view class="trip-icon" style="background: {{item.placeBg}}">
+                  <view class="trip-icon">
                     <image wx:if="{{item.placeCoverImage}}" class="trip-cover" src="{{item.placeCoverImage}}" mode="aspectFill"></image>
                     <text wx:else class="trip-emoji">{{item.placeEmoji}}</text>
                   </view>
@@ -225,7 +225,7 @@
             <!-- 我发出的申请：我申请加入别人的行程 -->
             <block wx:if="{{item.type === 'sent'}}">
               <view class="sent-header">
-                <view class="trip-icon" style="background: {{item.placeBg}}">
+                <view class="trip-icon">
                   <image wx:if="{{item.placeCoverImage}}" class="trip-cover" src="{{item.placeCoverImage}}" mode="aspectFill"></image>
                   <text wx:else class="trip-emoji">{{item.placeEmoji}}</text>
                 </view>
