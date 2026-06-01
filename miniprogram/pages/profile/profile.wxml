@@ -5,12 +5,13 @@
 -->
 
 <view class="container">
-  <!-- 用户信息头部 -->
-  <view class="profile-header" style="padding-top: {{statusBarHeight + 20}}px;">
-    <!-- 背景图片 -->
+  <view class="profile-bg-layer">
     <image class="profile-bg-image" src="{{userInfo.background || defaultBackground}}" mode="aspectFill"></image>
     <view class="profile-bg-mask"></view>
+  </view>
 
+  <!-- 用户信息头部 -->
+  <view class="profile-header" style="padding-top: {{statusBarHeight + 20}}px;">
     <!-- 未登录状态 -->
     <view class="user-card" wx:if="{{!isLoggedIn}}" bindtap="onLogin">
       <view class="avatar">

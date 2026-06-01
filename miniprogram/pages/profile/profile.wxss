@@ -23,7 +23,7 @@ page {
   --text-hint: #A89E94;
   --border: #F0E8DC;
 
-  /* 禁止横向滚动 */
+  /* 禁止页面滚动 */
   overflow: hidden;
   background: var(--bg);
   height: 100vh;
@@ -39,15 +39,20 @@ page {
 
 /* ========================================
    用户信息头部
-   带背景图 + 渐变遮罩
    ======================================== */
-.profile-header {
+.profile-bg-layer {
   position: absolute;
   inset: 0;
-  width: 100%;
-  min-height: 100%;
-  padding: 120rpx 48rpx 240rpx;
+  z-index: 0;
   overflow: hidden;
+}
+
+.profile-header {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: 360rpx;
+  padding: 120rpx 48rpx 56rpx;
 }
 
 /* 背景图片 */
@@ -131,11 +136,9 @@ page {
 
 .info-list {
   width: 90%;
-  position: absolute;
-  left: 50%;
-  bottom: calc(env(safe-area-inset-bottom) + 132rpx);
-  transform: translateX(-50%);
-  z-index: 5;
+  position: relative;
+  z-index: 1;
+  margin: 56rpx auto 0;
   border-radius: 40rpx;
   display: flex;
   flex-direction: column;
