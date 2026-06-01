@@ -51,8 +51,8 @@ page {
   position: relative;
   z-index: 1;
   width: 100%;
-  min-height: 360rpx;
-  padding: 120rpx 48rpx 56rpx;
+  min-height: 300rpx;
+  padding: 120rpx 48rpx 32rpx;
 }
 
 /* 背景图片 */
@@ -138,7 +138,7 @@ page {
   width: 90%;
   position: relative;
   z-index: 1;
-  margin: 56rpx auto 0;
+  margin: 16rpx auto 0;
   border-radius: 40rpx;
   display: flex;
   flex-direction: column;
