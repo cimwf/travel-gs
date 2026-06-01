@@ -113,7 +113,7 @@ async function tripLogList(data) {
 }
 
 async function tripLogCreate(openid, data) {
-  const { tripId, content, images = [], weatherLabel = '' } = data;
+  const { tripId, content, images = [], weatherLabel = '', location = null } = data;
   if (!tripId) return { success: false, error: '行程ID不能为空' };
 
   const tripRes = await db.collection('trips').doc(tripId).get();
@@ -133,11 +133,24 @@ async function tripLogCreate(openid, data) {
   if (logCount >= logMaxCount) return { success: false, error: '本次行程的旅途记录已达到上限' };
 
   const trimmedContent = (content || '').trim();
-  if (!trimmedContent && (!images || images.length === 0)) {
-    return { success: false, error: '内容和图片不能同时为空' };
-  }
   if (trimmedContent.length > 200) return { success: false, error: '内容不能超过200字' };
-  if (images.length > 3) return { success: false, error: '最多上传3张图片' };
+  if (images.length > 9) return { success: false, error: '最多上传9张图片' };
+
+  const normalizedLocation = location
+    ? {
+        name: (location.name || '').trim(),
+        address: (location.address || '').trim(),
+        latitude: Number(location.latitude) || 0,
+        longitude: Number(location.longitude) || 0
+      }
+    : null;
+
+  const hasValidLocation = normalizedLocation !== null &&
+    normalizedLocation.latitude !== 0 && normalizedLocation.longitude !== 0;
+
+  if (!trimmedContent && (!images || images.length === 0) && !hasValidLocation) {
+    return { success: false, error: '内容、图片和定位不能同时为空' };
+  }
 
   const userRes = await db.collection('users').where({ openid }).get();
   const user = userRes.data[0] || {};
@@ -168,6 +181,7 @@ async function tripLogCreate(openid, data) {
     content: trimmedContent,
     images,
     imageCount: images.length,
+    location: hasValidLocation ? normalizedLocation : null,
     dayLabel,
     tripDayIndex,
     weatherLabel,

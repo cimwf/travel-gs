@@ -31,9 +31,11 @@ Page({
     showTabs: false,
     canPublishLog: false,
     logGroups: [],
+    windowWidth: 375,
     showPublishModal: false,
     publishContent: '',
     publishImages: [],
+    publishLocation: null,
     publishSubmitting: false,
     // 更换封面相关
     showCoverModal: false,
@@ -47,7 +49,8 @@ Page({
     const windowInfo = wx.getWindowInfo();
     this.setData({
       tripId,
-      statusBarHeight: windowInfo.statusBarHeight
+      statusBarHeight: windowInfo.statusBarHeight,
+      windowWidth: windowInfo.windowWidth || 375
     });
 
     auth.saveDeepLink(`/pages/trip-detail/trip-detail?id=${tripId}`);
@@ -152,10 +155,24 @@ Page({
       ...group,
       logs: (group.logs || []).map(log => ({
         ...log,
+        renderImages: (log.images || []).slice(0, 9),
+        imageGridClass: this.getLogImageGridClass(log.imageCount || ((log.images || []).length)),
         timeText: this.formatLogTime(log.createdAt),
-        imageUrls: (log.images || []).map(img => img.tempFileURL || img.fileID)
+        imageUrls: (log.images || []).map(img => img.tempFileURL || img.fileID),
+        locationText: this.getLogLocationText(log.location)
       }))
     }));
+  },
+
+  getLogLocationText: function (location) {
+    if (!location) return '';
+    return (location.name || location.address || '').trim();
+  },
+
+  getLogImageGridClass: function (imageCount) {
+    if (imageCount <= 1) return 'photo-grid-1';
+    if (imageCount === 2 || imageCount === 4) return 'photo-grid-2';
+    return 'photo-grid-3';
   },
 
   formatLogTime: function (ts) {
@@ -438,6 +455,7 @@ Page({
       showPublishModal: true,
       publishContent: '',
       publishImages: [],
+      publishLocation: null,
       publishSubmitting: false
     });
   },
@@ -450,8 +468,55 @@ Page({
     this.setData({ publishContent: e.detail.value });
   },
 
+  onChoosePublishLocation: function () {
+    wx.chooseLocation({
+      success: (res) => {
+        this.setData({
+          publishLocation: {
+            name: res.name || '',
+            address: res.address || '',
+            latitude: Number(res.latitude) || 0,
+            longitude: Number(res.longitude) || 0
+          }
+        });
+      },
+      fail: (err) => {
+        const msg = (err && err.errMsg) || '';
+        if (/cancel/i.test(msg)) return;
+        if (/auth deny/i.test(msg)) {
+          wx.showToast({ title: '请在设置中开启位置权限', icon: 'none' });
+          return;
+        }
+        wx.showToast({ title: '定位选择失败', icon: 'none' });
+      }
+    });
+  },
+
+  onRemovePublishLocation: function () {
+    this.setData({ publishLocation: null });
+  },
+
+  onOpenLogLocation: function (e) {
+    const { latitude, longitude, name, address } = e.currentTarget.dataset;
+    const lat = Number(latitude);
+    const lng = Number(longitude);
+
+    if (!lat || !lng) {
+      wx.showToast({ title: '暂无可用定位', icon: 'none' });
+      return;
+    }
+
+    wx.openLocation({
+      latitude: lat,
+      longitude: lng,
+      name: name || '',
+      address: address || '',
+      scale: 16
+    });
+  },
+
   onChooseImage: function () {
-    const remaining = 3 - this.data.publishImages.length;
+    const remaining = 9 - this.data.publishImages.length;
     wx.chooseMedia({
       count: remaining,
       mediaType: ['image'],
@@ -478,12 +543,13 @@ Page({
 
     const content = this.data.publishContent.trim();
     const images = this.data.publishImages;
+    const location = this.data.publishLocation;
     const trip = this.data.trip;
 
-    console.log('[发布日志] content:', content, 'images:', images.length, 'tripId:', trip && trip._id, 'tripStage:', trip && trip.tripStage);
+    console.log('[发布日志] content:', content, 'images:', images.length, 'location:', !!location, 'tripId:', trip && trip._id, 'tripStage:', trip && trip.tripStage);
 
-    if (!content && images.length === 0) {
-      wx.showToast({ title: '请输入内容或添加图片', icon: 'none' });
+    if (!content && images.length === 0 && !location) {
+      wx.showToast({ title: '请输入内容、添加图片或选择定位', icon: 'none' });
       return;
     }
     if (content.length > 200) {
@@ -513,15 +579,22 @@ Page({
         });
       }
 
-      console.log('[发布日志] 调用 tripLogCreate', { tripId: trip._id, content, images: uploadedImages });
+      console.log('[发布日志] 调用 tripLogCreate', { tripId: trip._id, content, images: uploadedImages, location });
       const res = await api.tripLogCreate({
         tripId: trip._id,
         content,
-        images: uploadedImages
+        images: uploadedImages,
+        location
       });
       console.log('[发布日志] 发布成功', res);
 
-      this.setData({ showPublishModal: false, publishSubmitting: false });
+      this.setData({
+        showPublishModal: false,
+        publishSubmitting: false,
+        publishContent: '',
+        publishImages: [],
+        publishLocation: null
+      });
       wx.showToast({ title: '发布成功', icon: 'success' });
 
       // 切到旅途记录 tab 并刷新日志

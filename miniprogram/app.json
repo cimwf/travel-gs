@@ -53,6 +53,12 @@
       }
     ]
   },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于记录旅途打卡位置"
+    }
+  },
+  "requiredPrivateInfos": ["chooseLocation"],
   "style": "v2",
   "sitemapLocation": "sitemap.json"
 }

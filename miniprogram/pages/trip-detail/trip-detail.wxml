@@ -152,14 +152,14 @@
         </view>
 
         <!-- 日志列表（按天分组） -->
-        <view wx:for="{{logGroups}}" wx:key="dayLabel" wx:for-item="group">
+        <view wx:for="{{logGroups}}" wx:key="dayLabel" wx:for-item="group" wx:for-index="groupIndex">
           <view class="day-head">
             <view class="day-title">{{group.dayLabel}} · 第{{group.tripDayIndex}}天</view>
             <view class="weather-tag" wx:if="{{group.weatherLabel}}">{{group.weatherLabel}}</view>
           </view>
 
           <!-- 每条日志独立白色卡片 -->
-          <view class="log-entry" wx:for="{{group.logs}}" wx:key="_id" wx:for-item="log">
+          <view class="log-entry" wx:for="{{group.logs}}" wx:key="_id" wx:for-item="log" wx:for-index="logIndex">
             <view class="log-entry-meta">
               <image class="log-avatar" src="{{log.publisherAvatar}}" wx:if="{{log.publisherAvatar}}" mode="aspectFill"></image>
               <view class="log-avatar-text" wx:else>{{log.publisherName ? log.publisherName[0] : '旅'}}</view>
@@ -171,20 +171,20 @@
             <view class="log-entry-text" wx:if="{{log.content}}">{{log.content}}</view>
             <!-- 图片布局 -->
             <view wx:if="{{log.images && log.images.length > 0}}">
-              <!-- 1张图 -->
-              <view class="photo-grid photo-grid-one" wx:if="{{log.imageCount === 1}}">
-                <image class="photo-item" src="{{log.images[0].tempFileURL || log.images[0].fileID}}" mode="widthFix" bindtap="onPreviewImage" data-urls="{{log.imageUrls}}" data-current="{{log.images[0].tempFileURL || log.images[0].fileID}}"></image>
+              <view class="photo-grid {{log.imageGridClass}}">
+                <block wx:if="{{log.imageCount === 1}}">
+                  <view class="photo-single-wrap" bindtap="onPreviewImage" data-urls="{{log.imageUrls}}" data-current="{{log.images[0].tempFileURL || log.images[0].fileID}}">
+                    <image class="photo-item-single" src="{{log.images[0].tempFileURL || log.images[0].fileID}}" mode="widthFix"></image>
+                  </view>
+                </block>
+                <block wx:else>
+                  <image class="photo-item" wx:for="{{log.renderImages}}" wx:key="sort" src="{{item.tempFileURL || item.fileID}}" mode="aspectFill" bindtap="onPreviewImage" data-urls="{{log.imageUrls}}" data-current="{{item.tempFileURL || item.fileID}}"></image>
+                </block>
               </view>
-              <!-- 2张图 -->
-              <view class="photo-grid photo-grid-two" wx:if="{{log.imageCount === 2}}">
-                <image class="photo-item" wx:for="{{log.images}}" wx:key="sort" src="{{item.tempFileURL || item.fileID}}" mode="aspectFill" bindtap="onPreviewImage" data-urls="{{log.imageUrls}}" data-current="{{item.tempFileURL || item.fileID}}"></image>
-              </view>
-              <!-- 3张图 -->
-              <view class="photo-grid photo-grid-three" wx:if="{{log.imageCount === 3}}">
-                <image class="photo-item photo-item-main" src="{{log.images[0].tempFileURL || log.images[0].fileID}}" mode="aspectFill" bindtap="onPreviewImage" data-urls="{{log.imageUrls}}" data-current="{{log.images[0].tempFileURL || log.images[0].fileID}}"></image>
-                <image class="photo-item photo-item-sub" src="{{log.images[1].tempFileURL || log.images[1].fileID}}" mode="aspectFill" bindtap="onPreviewImage" data-urls="{{log.imageUrls}}" data-current="{{log.images[1].tempFileURL || log.images[1].fileID}}"></image>
-                <image class="photo-item photo-item-sub" src="{{log.images[2].tempFileURL || log.images[2].fileID}}" mode="aspectFill" bindtap="onPreviewImage" data-urls="{{log.imageUrls}}" data-current="{{log.images[2].tempFileURL || log.images[2].fileID}}"></image>
-              </view>
+            </view>
+            <view class="log-location-chip" wx:if="{{log.locationText}}" bindtap="onOpenLogLocation" data-latitude="{{log.location.latitude}}" data-longitude="{{log.location.longitude}}" data-name="{{log.location.name}}" data-address="{{log.location.address}}">
+              <text class="log-location-icon">📍</text>
+              <text class="log-location-text">{{log.locationText}}</text>
             </view>
           </view>
         </view>
@@ -253,17 +253,31 @@
     <textarea class="publish-textarea" placeholder="分享旅途中的精彩瞬间（1-200字）" value="{{publishContent}}" bindinput="onPublishContentInput" maxlength="200" auto-height></textarea>
     <view class="publish-char-count">{{publishContent.length}}/200</view>
 
+    <view class="publish-location-row">
+      <view class="publish-location-trigger" bindtap="onChoosePublishLocation">
+        <text class="publish-location-icon">📍</text>
+        <text class="publish-location-label">{{publishLocation ? '更换定位' : '添加定位'}}</text>
+      </view>
+      <view class="publish-location-chip" wx:if="{{publishLocation}}">
+        <view class="publish-location-chip-main" bindtap="onChoosePublishLocation">
+          <text class="publish-location-chip-text">{{publishLocation.name || publishLocation.address}}</text>
+        </view>
+        <view class="publish-location-chip-remove" bindtap="onRemovePublishLocation">×</view>
+      </view>
+    </view>
+
     <!-- 图片上传区 -->
     <view class="publish-images">
       <view class="publish-image-item" wx:for="{{publishImages}}" wx:key="index">
         <image class="publish-image-preview" src="{{item.tempUrl}}" mode="aspectFill"></image>
         <view class="publish-image-remove" bindtap="onRemovePublishImage" data-index="{{index}}">×</view>
       </view>
-      <view class="publish-add-image" wx:if="{{publishImages.length < 3}}" bindtap="onChooseImage">
+      <view class="publish-add-image" wx:if="{{publishImages.length < 9}}" bindtap="onChooseImage">
         <text class="publish-add-icon">+</text>
         <text class="publish-add-text">添加图片</text>
       </view>
     </view>
+    <view class="publish-image-count">{{publishImages.length}}/9</view>
 
     <view class="publish-modal-actions">
       <view class="publish-btn-cancel" bindtap="onClosePublishModal">取消</view>
