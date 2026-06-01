@@ -166,7 +166,7 @@
               <view class="log-entry-name">{{log.publisherName || '旅行者'}}</view>
               <view class="log-entry-dot">·</view>
               <view class="log-entry-time">{{log.timeText}}</view>
-              <view class="log-delete-btn" wx:if="{{isCreator}}" bindtap="onDeleteLog" data-log-id="{{log._id}}" data-trip-id="{{trip._id}}">删除</view>
+              <view class="log-menu-btn" wx:if="{{isCreator}}" catchtap="onLogMenuTap" data-group-index="{{groupIndex}}" data-log-index="{{logIndex}}" data-log-id="{{log._id}}"><text class="log-menu-dots">···</text></view>
             </view>
             <view class="log-entry-text" wx:if="{{log.content}}">{{log.content}}</view>
             <!-- 图片布局 -->
@@ -394,5 +394,15 @@
       <view class="confirm-btn confirm-btn-cancel" bindtap="onCloseRemoveConfirm">取消</view>
       <view class="confirm-btn confirm-btn-danger" bindtap="onConfirmRemove">确认移除</view>
     </view>
+  </view>
+</view>
+
+<!-- 日志操作菜单 -->
+<view class="log-menu-mask" wx:if="{{showLogMenu}}" bindtap="onCloseLogMenu">
+  <view class="log-menu-sheet" catchtap>
+    <view class="log-menu-group">
+      <view class="log-menu-item log-menu-item-danger" bindtap="onLogMenuDelete">删除日志</view>
+    </view>
+    <view class="log-menu-item log-menu-cancel" bindtap="onCloseLogMenu">取消</view>
   </view>
 </view>

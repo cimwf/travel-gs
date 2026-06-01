@@ -952,10 +952,20 @@ page {
   flex: 1;
 }
 
-.log-delete-btn {
-  color: #ff6a6a;
-  font-size: 22rpx;
+.log-menu-btn {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+}
+
+.log-menu-dots {
+  font-size: 30rpx;
+  color: #b0b8c5;
+  letter-spacing: 2rpx;
+  line-height: 1;
 }
 
 .log-entry-text {
@@ -1022,11 +1032,13 @@ page {
 
 .photo-single-wrap {
   width: 100%;
-  max-height: 500rpx;
+  max-height: 600rpx;
   overflow: hidden;
   border-radius: 12rpx;
   background: #eef2f7;
   margin-top: 6rpx;
+  display: flex;
+  align-items: center;
 }
 
 .photo-item-single {
@@ -1542,4 +1554,55 @@ page {
 .modal-btn-secondary {
   background: var(--bg-color);
   color: var(--text-secondary);
+}
+
+/* ========== 日志操作菜单 ========== */
+.log-menu-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+}
+
+.log-menu-sheet {
+  width: 100%;
+  padding: 16rpx 24rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.log-menu-group {
+  background: white;
+  border-radius: 24rpx;
+  overflow: hidden;
+  margin-bottom: 16rpx;
+}
+
+.log-menu-item {
+  height: 110rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  color: var(--text-primary);
+  background: white;
+}
+
+.log-menu-group .log-menu-item + .log-menu-item {
+  border-top: 2rpx solid var(--bg-color);
+}
+
+.log-menu-item-danger {
+  color: #FF4D4F;
+}
+
+.log-menu-cancel {
+  border-radius: 24rpx;
+  color: var(--text-hint);
+  font-weight: 500;
 }

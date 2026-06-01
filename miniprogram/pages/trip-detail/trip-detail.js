@@ -37,6 +37,11 @@ Page({
     publishImages: [],
     publishLocation: null,
     publishSubmitting: false,
+    // 日志操作菜单
+    showLogMenu: false,
+    logMenuGroupIndex: -1,
+    logMenuLogIndex: -1,
+    logMenuLogId: '',
     // 更换封面相关
     showCoverModal: false,
     pendingAvatar: null,
@@ -607,8 +612,24 @@ Page({
     }
   },
 
-  onDeleteLog: function (e) {
-    const { logId, tripId } = e.currentTarget.dataset;
+  onLogMenuTap: function (e) {
+    const { groupIndex, logIndex, logId } = e.currentTarget.dataset;
+    this.setData({
+      showLogMenu: true,
+      logMenuGroupIndex: groupIndex,
+      logMenuLogIndex: logIndex,
+      logMenuLogId: logId
+    });
+  },
+
+  onCloseLogMenu: function () {
+    this.setData({ showLogMenu: false });
+  },
+
+  onLogMenuDelete: function () {
+    const logId = this.data.logMenuLogId;
+    const tripId = this.data.trip._id;
+    this.setData({ showLogMenu: false });
     wx.showModal({
       title: '删除日志',
       content: '确认删除这条日志吗？',
