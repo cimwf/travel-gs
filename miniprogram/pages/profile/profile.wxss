@@ -24,13 +24,16 @@ page {
   --border: #F0E8DC;
 
   /* 禁止横向滚动 */
-  overflow-x: hidden;
+  overflow: hidden;
   background: var(--bg);
+  height: 100vh;
 }
 
 .container {
+  position: relative;
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: var(--bg);
 }
 
@@ -39,10 +42,11 @@ page {
    带背景图 + 渐变遮罩
    ======================================== */
 .profile-header {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  min-height: 420rpx;
-  padding: 120rpx 48rpx 80rpx;
-  position: relative;
+  min-height: 100%;
+  padding: 120rpx 48rpx 240rpx;
   overflow: hidden;
 }
 
@@ -56,19 +60,13 @@ page {
   z-index: 0;
 }
 
-/* 渐变遮罩层 */
-.profile-bg-overlay {
+.profile-bg-mask {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.3) 0%,
-    rgba(0, 0, 0, 0.4) 50%,
-    rgba(0, 0, 0, 0.5) 100%
-  );
+  background: rgba(0, 0, 0, 0.22);
   z-index: 1;
 }
 
@@ -131,12 +129,14 @@ page {
   text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
 }
 
-/* ========================================
-   信息列表
-   ======================================== */
 .info-list {
-  width: 100%;
-  padding: 40rpx 32rpx;
+  width: 90%;
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 132rpx);
+  transform: translateX(-50%);
+  z-index: 5;
+  border-radius: 40rpx;
   display: flex;
   flex-direction: column;
   gap: 24rpx;
@@ -215,11 +215,4 @@ page {
   padding: 8rpx 20rpx;
   border-radius: 24rpx;
   margin-right: 8rpx;
-}
-
-/* ========================================
-   底部安全区
-   ======================================== */
-.safe-bottom {
-  height: calc(env(safe-area-inset-bottom) + 80rpx);
 }

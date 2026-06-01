@@ -9,8 +9,7 @@
   <view class="profile-header" style="padding-top: {{statusBarHeight + 20}}px;">
     <!-- 背景图片 -->
     <image class="profile-bg-image" src="{{userInfo.background || defaultBackground}}" mode="aspectFill"></image>
-    <!-- 渐变遮罩层 -->
-    <view class="profile-bg-overlay"></view>
+    <view class="profile-bg-mask"></view>
 
     <!-- 未登录状态 -->
     <view class="user-card" wx:if="{{!isLoggedIn}}" bindtap="onLogin">
@@ -89,7 +88,4 @@
       <text class="info-arrow">›</text>
     </view>
   </view>
-
-  <!-- 底部安全区 -->
-  <view class="safe-bottom"></view>
 </view>
