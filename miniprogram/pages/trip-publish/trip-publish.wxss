@@ -381,3 +381,33 @@ page {
 .modal-confirm:active {
   opacity: 0.9;
 }
+
+.dest-location-chip {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  max-width: 100%;
+}
+
+.dest-location-text {
+  flex: 1;
+  font-size: 28rpx;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.dest-location-edit {
+  font-size: 24rpx;
+  color: var(--primary-color);
+  flex-shrink: 0;
+}
+
+.dest-location-remove {
+  font-size: 32rpx;
+  color: var(--text-hint);
+  flex-shrink: 0;
+  line-height: 1;
+}

@@ -270,6 +270,27 @@ page {
   color: var(--text-primary);
 }
 
+.info-location-chip {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  color: var(--primary-color);
+}
+
+.info-location-icon {
+  font-size: 26rpx;
+}
+
+.info-location-text {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--primary-color);
+  max-width: 340rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ========== 卡片通用样式 ========== */
 .creator-card,
 .note-card,

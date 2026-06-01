@@ -501,6 +501,21 @@ Page({
     this.setData({ publishLocation: null });
   },
 
+  onOpenDestLocation: function () {
+    const loc = this.data.trip && this.data.trip.destLocation;
+    if (!loc || !loc.latitude || !loc.longitude) {
+      wx.showToast({ title: '暂无可用定位', icon: 'none' });
+      return;
+    }
+    wx.openLocation({
+      latitude: Number(loc.latitude),
+      longitude: Number(loc.longitude),
+      name: loc.name || '',
+      address: loc.address || '',
+      scale: 16
+    });
+  },
+
   onOpenLogLocation: function (e) {
     const { latitude, longitude, name, address } = e.currentTarget.dataset;
     const lat = Number(latitude);

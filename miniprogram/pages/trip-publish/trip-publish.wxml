@@ -130,6 +130,22 @@
             <text class="input-suffix" wx:if="{{price}}">元/人</text>
           </view>
         </view>
+        <view class="table-row" bindtap="{{destLocation ? '' : 'onChooseDestLocation'}}">
+          <view class="table-cell table-label">目的定位</view>
+          <view class="table-cell table-value {{destLocation ? '' : 'hint'}}">
+            <block wx:if="{{destLocation}}">
+              <view class="dest-location-chip">
+                <text class="dest-location-text">{{destLocation.name || destLocation.address}}</text>
+                <view class="dest-location-edit" catchtap="onChooseDestLocation">更换</view>
+                <view class="dest-location-remove" catchtap="onRemoveDestLocation">×</view>
+              </view>
+            </block>
+            <block wx:else>
+              <text>点击选择</text>
+              <text class="arrow">›</text>
+            </block>
+          </view>
+        </view>
       </view>
       <!-- 行程说明 -->
       <view class="textarea-row">

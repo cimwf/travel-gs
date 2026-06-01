@@ -105,6 +105,7 @@ async function tripCreate(openid, data) {
     travelDesc: data.travelDesc || '',
     price: data.price || '',
     remark: data.remark || '',
+    destLocation: data.destLocation || null,
     creatorId: openid,
     creatorName: user.nickname,
     creatorAvatar: safeAvatar(user.avatar),

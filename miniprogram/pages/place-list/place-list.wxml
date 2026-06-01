@@ -40,7 +40,7 @@
 
 <!-- 自定义景点弹窗 -->
 <view class="modal-mask" wx:if="{{showCustomModal}}" catchtap="onCloseCustomModal">
-  <view class="modal-content" catchtap="preventBubble">
+  <view class="modal-content" catchtap="preventBubble" style="margin-bottom: {{keyboardHeight}}px;">
     <view class="modal-header">
       <text class="modal-title">自定义景点</text>
       <view class="modal-close" catchtap="onCloseCustomModal">
@@ -48,7 +48,7 @@
       </view>
     </view>
     <view class="modal-body">
-      <input class="custom-input" placeholder="请输入景点名称" value="{{customPlaceName}}" bindinput="onCustomInput" maxlength="20" />
+      <input class="custom-input" placeholder="请输入景点名称" value="{{customPlaceName}}" bindinput="onCustomInput" maxlength="20" adjust-position="{{false}}" bindkeyboardheightchange="onKeyboardHeightChange" />
     </view>
     <view class="modal-footer">
       <view class="modal-btn modal-btn-cancel" catchtap="onCloseCustomModal">取消</view>

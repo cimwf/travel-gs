@@ -6,7 +6,8 @@ Page({
     places: [],
     loading: true,
     showCustomModal: false,
-    customPlaceName: ''
+    customPlaceName: '',
+    keyboardHeight: 0
   },
 
   onLoad: function (options) {
@@ -76,7 +77,11 @@ Page({
 
   // 关闭自定义弹窗
   onCloseCustomModal: function () {
-    this.setData({ showCustomModal: false });
+    this.setData({ showCustomModal: false, keyboardHeight: 0 });
+  },
+
+  onKeyboardHeightChange: function (e) {
+    this.setData({ keyboardHeight: e.detail.height });
   },
 
   // 输入自定义景点名称

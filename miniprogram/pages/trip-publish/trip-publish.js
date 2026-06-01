@@ -29,6 +29,7 @@ Page({
     travelDesc: '',       // 出行描述（无车时）
     price: '',            // 人均价格
     remark: '',           // 行程说明
+    destLocation: null,   // 目的地定位
 
     // 出发地选择
     showDepartureModal: false,
@@ -110,7 +111,8 @@ Page({
           carModel: trip.carModel || '',
           travelDesc: trip.travelDesc || '',
           price: trip.price || '',
-          remark: trip.remark || ''
+          remark: trip.remark || '',
+          destLocation: trip.destLocation || null
         });
       }
 
@@ -244,6 +246,27 @@ Page({
     this.setData({ remark: e.detail.value });
   },
 
+  // 选择目的地定位
+  onChooseDestLocation: function () {
+    wx.chooseLocation({
+      success: (res) => {
+        this.setData({
+          destLocation: {
+            name: res.name,
+            address: res.address,
+            latitude: res.latitude,
+            longitude: res.longitude
+          }
+        });
+      }
+    });
+  },
+
+  // 移除目的地定位
+  onRemoveDestLocation: function () {
+    this.setData({ destLocation: null });
+  },
+
   // 提交发布
   onSubmit: async function () {
     if (!auth.isLoggedIn()) {
@@ -311,6 +334,7 @@ Page({
       travelDesc: this.data.hasCar ? '' : this.data.travelDesc,
       price: this.data.price,
       remark: this.data.remark,
+      destLocation: this.data.destLocation || null,
       status: 'open'
     };
 
@@ -372,7 +396,8 @@ Page({
       carModel: this.data.hasCar ? this.data.carModel : '',
       travelDesc: this.data.hasCar ? '' : this.data.travelDesc,
       price: this.data.price,
-      remark: this.data.remark
+      remark: this.data.remark,
+      destLocation: this.data.destLocation || null
     };
 
     try {

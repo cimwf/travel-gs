@@ -92,6 +92,13 @@
               <text class="info-label">人均价格</text>
               <text class="info-value">{{trip.price}}元/人</text>
             </view>
+            <view class="info-row info-row-location" wx:if="{{trip.destLocation}}" bindtap="onOpenDestLocation">
+              <text class="info-label">目的定位</text>
+              <view class="info-value info-location-chip">
+                <text class="info-location-icon">📍</text>
+                <text class="info-location-text">{{trip.destLocation.name || trip.destLocation.address}}</text>
+              </view>
+            </view>
             <view class="info-row">
               <text class="info-label">招募人数</text>
               <text class="info-value">{{trip.currentCount}}/{{trip.totalCount || (trip.currentCount + trip.needCount)}}人</text>
