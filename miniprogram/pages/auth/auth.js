@@ -55,17 +55,21 @@ Page({
     });
   },
 
+  onTapPhoneLoginDisabled() {
+    wx.showToast({ title: '请先同意用户协议和隐私政策', icon: 'none' });
+  },
+
   // 第一步：获取手机号
   async onGetPhoneNumber(e) {
     const { code } = e.detail;
 
-    if (!code) {
-      wx.showToast({ title: '未获取到授权码', icon: 'none' });
+    if (!this.data.agreed) {
+      wx.showToast({ title: '请先同意用户协议和隐私政策', icon: 'none' });
       return;
     }
 
-    if (!this.data.agreed) {
-      wx.showToast({ title: '请先同意用户协议', icon: 'none' });
+    if (!code) {
+      wx.showToast({ title: '未完成手机号授权', icon: 'none' });
       return;
     }
 
@@ -78,7 +82,7 @@ Page({
       });
 
       if (!loginRes.result.success) {
-        throw new Error(loginRes.result.error || '获取手机号失败');
+        throw new Error(loginRes.result.error || '手机号授权失败');
       }
 
       this.setData({
@@ -93,8 +97,8 @@ Page({
         avatar: ''
       });
     } catch (err) {
-      console.error('获取手机号失败:', err);
-      wx.showToast({ title: err.message || '获取手机号失败，请重试', icon: 'none' });
+      console.error('手机号快捷登录失败:', err);
+      wx.showToast({ title: err.message || '手机号快捷登录失败，请重试', icon: 'none' });
       this.setData({ loading: false });
     }
   },

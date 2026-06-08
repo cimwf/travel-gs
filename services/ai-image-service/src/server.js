@@ -341,8 +341,9 @@ function buildPrompt(data) {
   const rawStyle = String(data.style || '').trim();
   const style = ['none', '无', '不要', '不加风格', '无风格', '默认风格'].includes(rawStyle) ? '' : rawStyle;
   const prompt = String(data.prompt || '').trim();
+  const promptText = prompt ? `帮我生成图片，提示词如下：\n${prompt}` : '';
   const parts = [
-    prompt || (data.mode === 'image' ? '请基于参考图生成一张高质量图片' : ''),
+    promptText || (data.mode === 'image' ? '请基于参考图生成一张高质量图片' : ''),
     style ? `视觉风格：${style}` : ''
   ].filter(Boolean);
 

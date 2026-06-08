@@ -16,17 +16,25 @@
     <image class="auth-logo" src="/images/xing-logo.png" mode="aspectFit"></image>
     <view class="auth-title">欢迎使用</view>
     <view class="auth-desc">
-      一键登录后即可查看完整内容
       开启你的专属行程体验
     </view>
 
     <button
+      wx:if="{{agreed}}"
       class="phone-login-btn"
       open-type="getPhoneNumber"
       bindgetphonenumber="onGetPhoneNumber"
       loading="{{loading}}"
     >
-      微信一键登录
+      手机号快捷登录
+    </button>
+    <button
+      wx:else
+      class="phone-login-btn"
+      bindtap="onTapPhoneLoginDisabled"
+      loading="{{loading}}"
+    >
+      手机号快捷登录
     </button>
 
     <view class="agreement-row" bindtap="onAgreeChange">
