@@ -1,9 +1,7 @@
 {
   "pages": [
     "pages/trip-list/trip-list",
-    "pages/index/index",
     "pages/auth/auth",
-    "pages/auth-password/auth-password",
     "pages/place-detail/place-detail",
     "pages/place-list/place-list",
     "pages/trip-publish/trip-publish",
@@ -11,18 +9,13 @@
     "pages/trip-detail/trip-detail",
     "pages/my-trips/my-trips",
     "pages/trip-notifications/trip-notifications",
-    "pages/messages/messages",
-    "pages/chat/chat",
-    "pages/comments/comments",
     "pages/profile/profile",
     "pages/ai-image/ai-image",
     "pages/ai-image-template/ai-image-template",
     "pages/ai-gallery/ai-gallery",
     "pages/edit-profile/edit-profile",
-    "pages/followers/followers",
     "pages/feedback/feedback",
     "pages/about/about",
-    "pages/search/search",
     "pages/agreement/agreement",
     "pages/user-profile/user-profile",
     "pages/upload-spot/upload-spot"
