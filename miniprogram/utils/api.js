@@ -340,110 +340,6 @@ function userSpotsCreate(data) {
   return callApi('userSpots/create', data);
 }
 
-// ========== AI 生图相关 ==========
-
-/**
- * 生成 AI 图片
- */
-function aiImageGenerate(data) {
-  return callApi('aiImage/generate', data);
-}
-
-/**
- * 查询 AI 图片生成状态
- */
-function aiImageStatus(taskId, channelId = '') {
-  return callApi('aiImage/status', { taskId, channelId });
-}
-
-/**
- * 获取 AI 生图渠道
- */
-function aiImageChannels(includeDisabled = false) {
-  return callApi('aiImage/channels', { includeDisabled });
-}
-
-/**
- * 获取 AI 生图额度与统计
- */
-function aiImageSummary() {
-  return callApi('aiImage/summary', {});
-}
-
-/**
- * 获取 AI 生图作品列表
- */
-function aiImageList(page = 1, pageSize = 5) {
-  return callApi('aiImage/list', { page, pageSize });
-}
-
-/**
- * 删除 AI 生图作品
- */
-function aiImageDelete(id, fileIDs = []) {
-  return callApi('aiImage/delete', { id, fileIDs });
-}
-
-/**
- * 获取 AI 生图套餐
- */
-function aiImagePackages() {
-  return callApi('aiImage/packages', {});
-}
-
-/**
- * 模拟购买 AI 生图套餐（mock，仅供测试）
- */
-function aiImagePurchasePackage(packageId) {
-  return callApi('aiImage/purchasePackage', { packageId });
-}
-
-/**
- * 创建虚拟支付订单，loginCode 由 wx.login() 获取，云函数用它换 session_key
- */
-function aiImageCreatePayOrder(packageId, loginCode) {
-  return callApi('aiImage/createPayOrder', { packageId, loginCode });
-}
-
-/**
- * 支付完成后确认订单，查询微信支付结果并入账额度
- */
-function aiImageConfirmPayment(orderNo) {
-  return callApi('aiImage/confirmPayment', { orderNo });
-}
-
-/**
- * 获取 AI 生图模板
- */
-function aiImageTemplates(mode, scene = '', limit) {
-  const data = { mode, scene };
-  if (Number.isFinite(Number(limit)) && Number(limit) > 0) {
-    data.limit = Number(limit);
-  }
-  return callApi('aiImage/templates', data);
-}
-
-/**
- * 提交 AI 生图模板赞/踩
- */
-function aiImageTemplateVote(templateId, vote) {
-  return callApi('aiImage/templateVote', { templateId, vote });
-}
-
-/**
- * 后台新增 AI 生图模板
- */
-function aiImageTemplateCreate(data) {
-  return callApi('aiImage/templateCreate', data);
-}
-
-/**
- * 后台更新 AI 生图模板
- */
-function aiImageTemplateUpdate(templateId, data) {
-  return callApi('aiImage/templateUpdate', { templateId, ...data });
-}
-
 // ========== 反馈相关 ==========
 
 /**
@@ -540,23 +436,6 @@ module.exports = {
   attractionsList,
   attractionsGet,
   userSpotsCreate,
-
-  // AI 生图
-  aiImageGenerate,
-  aiImageStatus,
-  aiImageChannels,
-  aiImageSummary,
-  aiImageList,
-  aiImageDelete,
-  aiImagePackages,
-  aiImagePurchasePackage,
-  aiImageCreatePayOrder,
-  aiImageConfirmPayment,
-  aiImageTemplates,
-  aiImageTemplateVote,
-  aiImageTemplateCreate,
-  aiImageTemplateUpdate,
-  ailmageStatus: aiImageStatus,
 
   // 反馈
   feedbackCreate,

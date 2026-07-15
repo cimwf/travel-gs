@@ -14,12 +14,7 @@
     "test:metrics": "node tests/conversion-metrics.test.js",
     "test:e2e": "node tests/e2e-click-flow.test.js",
     "test:core": "node tests/e2e-core-flow.test.js",
-    "test:ai": "node tests/e2e-ai-image-flow.test.js",
-    "test:ai:full": "RUN_REAL_GENERATE=1 node tests/e2e-ai-image-flow.test.js",
-    "test:ai:unit": "node scripts/sync-ai-image-error-rules.js --check && node tests/ai-image-unit.test.js",
-    "test:ai:payment": "node tests/ai-image-payment-rules.test.js",
-    "test:trip-log": "node tests/trip-log-rules.test.js",
-    "sync:ai-error-rules": "node scripts/sync-ai-image-error-rules.js"
+    "test:trip-log": "node tests/trip-log-rules.test.js"
   },
   "repository": {
     "type": "git",

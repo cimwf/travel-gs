@@ -1,5 +1,4 @@
 const { db, _, cloud, crypto, normalizeAvatarForDb, isLocalTempFilePath } = require('../utils/shared');
-const { syncAiImageQuotaUserInfo } = require('./aiImage');
 
 async function userCheck(phone) {
   if (!phone) {
@@ -89,7 +88,6 @@ async function userRegister(openid, data) {
 
   const res = await db.collection('users').add({ data: newUser });
   newUser._id = res._id;
-  await syncAiImageQuotaUserInfo(openid, newUser);
 
   const safeUser = { ...newUser };
   delete safeUser.password;
@@ -224,7 +222,6 @@ async function userLoginPassword(data) {
 
   const safeUser = { ...user, ...updateData, openid: user.openid || currentOpenid };
   delete safeUser.password;
-  await syncAiImageQuotaUserInfo(safeUser.openid, safeUser);
   return { success: true, user: safeUser };
 }
 
@@ -257,7 +254,6 @@ async function userLoginByPhone(openid, data) {
 
     const safeUser = { ...user, openid: openid, ...updateData };
     delete safeUser.password;
-    await syncAiImageQuotaUserInfo(openid, safeUser);
     return { success: true, user: safeUser, isNew: false };
   }
 
@@ -293,7 +289,6 @@ async function userLoginByPhone(openid, data) {
 
   const res = await db.collection('users').add({ data: newUser });
   newUser._id = res._id;
-  await syncAiImageQuotaUserInfo(openid, newUser);
 
   const safeUser = { ...newUser };
   delete safeUser.password;
@@ -340,7 +335,6 @@ async function userUpdate(openid, data) {
   await db.collection('users').doc(user._id).update({
     data: updateData
   });
-  await syncAiImageQuotaUserInfo(user.openid || openid, { ...user, ...updateData });
 
   return { success: true };
 }

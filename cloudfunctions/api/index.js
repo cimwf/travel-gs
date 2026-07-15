@@ -13,7 +13,6 @@ const comment = require('./handlers/comment');
 const banner = require('./handlers/banner');
 const attractions = require('./handlers/attractions');
 const userSpots = require('./handlers/userSpots');
-const aiImage = require('./handlers/aiImage');
 const feedback = require('./handlers/feedback');
 
 exports.main = async (event, context) => {
@@ -152,40 +151,6 @@ exports.main = async (event, context) => {
       // ========== 用户上传景点相关 ==========
       case 'userSpots/create':
         return await userSpots.userSpotsCreate(openid, data);
-
-      // ========== AI 生图相关 ==========
-      case 'aiImage/generate':
-        return await aiImage.aiImageGenerate(openid, data);
-      case 'aiImage/status':
-        return await aiImage.aiImageStatus(openid, data);
-      case 'aiImage/summary':
-        return await aiImage.aiImageSummary(openid);
-      case 'aiImage/list':
-        return await aiImage.aiImageList(openid, data);
-      case 'aiImage/delete':
-        return await aiImage.aiImageDelete(openid, data);
-      case 'admin/aiReference/list':
-        return await aiImage.adminAiReferenceList(data);
-      case 'admin/aiReference/cleanup':
-        return await aiImage.adminAiReferenceCleanup(data);
-      case 'aiImage/channels':
-        return await aiImage.aiImageChannels(data);
-      case 'aiImage/packages':
-        return await aiImage.aiImagePackages();
-      case 'aiImage/purchasePackage':
-        return await aiImage.aiImagePurchasePackage(openid, data);
-      case 'aiImage/createPayOrder':
-        return await aiImage.aiImageCreatePayOrder(openid, data);
-      case 'aiImage/confirmPayment':
-        return await aiImage.aiImageConfirmPayment(openid, data);
-      case 'aiImage/templates':
-        return await aiImage.aiImageTemplates(openid, data);
-      case 'aiImage/templateVote':
-        return await aiImage.aiImageTemplateVote(openid, data);
-      case 'aiImage/templateCreate':
-        return await aiImage.aiImageTemplateCreate(openid, data);
-      case 'aiImage/templateUpdate':
-        return await aiImage.aiImageTemplateUpdate(openid, data);
 
       default:
         return { success: false, error: '未知操作' };
