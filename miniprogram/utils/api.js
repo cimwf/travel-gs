@@ -442,6 +442,13 @@ function communityCommentCreate(postId, content) {
 }
 
 /**
+ * 删除社区动态评论
+ */
+function communityCommentDelete(postId, commentId) {
+  return callApi('community/commentDelete', { postId, commentId });
+}
+
+/**
  * 删除社区动态
  */
 function communityDelete(postId) {
@@ -530,5 +537,6 @@ module.exports = {
   communityLikeList,
   communityCommentList,
   communityCommentCreate,
+  communityCommentDelete,
   communityDelete
 };

@@ -170,6 +170,8 @@ exports.main = async (event, context) => {
         return await community.communityCommentList(openid, data);
       case 'community/commentCreate':
         return await community.communityCommentCreate(openid, data);
+      case 'community/commentDelete':
+        return await community.communityCommentDelete(openid, data);
       case 'community/delete':
         return await community.communityDelete(openid, data);
 

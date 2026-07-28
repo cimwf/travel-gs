@@ -78,7 +78,8 @@ run('Page files exist', function () {
 run('API functions registered', function () {
   var s = readText('miniprogram/utils/api.js');
   ['communityList','communityMy','communityCreateUploadSession','communityCreate','communityToggleLike',
-   'communityLikeList','communityCommentList','communityCommentCreate','communityDelete'].forEach(function (fn) {
+   'communityLikeList','communityCommentList','communityCommentCreate','communityCommentDelete',
+   'communityDelete'].forEach(function (fn) {
     ok(s.indexOf(fn) !== -1, fn + ' in api.js');
   });
 });
@@ -94,6 +95,7 @@ run('Cloud handler has community exports + COS check + security', function () {
   ok(s.indexOf('async function communityLikeList') !== -1, 'communityLikeList defined');
   ok(s.indexOf('async function communityCommentList') !== -1, 'communityCommentList defined');
   ok(s.indexOf('async function communityCommentCreate') !== -1, 'communityCommentCreate defined');
+  ok(s.indexOf('async function communityCommentDelete') !== -1, 'communityCommentDelete defined');
   ok(s.indexOf('async function communityDelete') !== -1, 'communityDelete defined');
   ok(s.indexOf('isCosConfigured') !== -1, 'COS config check');
   ok(s.indexOf('msgSecCheck') !== -1, 'content security check');
@@ -105,7 +107,8 @@ run('Cloud function routing', function () {
   var s = readText('cloudfunctions/api/index.js');
   ok(s.indexOf("require('./handlers/community')") !== -1, 'import');
   ['community/list','community/my','community/createUploadSession','community/create','community/toggleLike',
-   'community/likeList','community/commentList','community/commentCreate','community/delete'].forEach(function (r) {
+   'community/likeList','community/commentList','community/commentCreate','community/commentDelete',
+   'community/delete'].forEach(function (r) {
     ok(s.indexOf(r) !== -1, 'route: ' + r);
   });
 });
@@ -188,7 +191,10 @@ run('Community comments: secure text-only create, list and detail integration', 
   ok(handler.indexOf('commentCount: nextCount') !== -1, 'comment count updated atomically');
   ok(detailJs.indexOf('communityCommentList') !== -1, 'detail loads comments');
   ok(detailJs.indexOf('communityCommentCreate') !== -1, 'detail creates comments');
+  ok(detailJs.indexOf('communityCommentDelete') !== -1, 'detail deletes authorized comments');
+  ok(detailJs.indexOf('comment.authorId === currentUserId || postAuthorId === currentUserId') !== -1, 'commenter or post author sees delete action');
   ok(detailWxml.indexOf('来聊聊这个话题吧～') !== -1, 'generic empty-state copy used');
+  ok(detailWxml.indexOf('bindlongpress="onCommentLongPress"') !== -1, 'comment long press opens management');
   ok(detailWxml.indexOf('disabled="{{submittingComment}}"') !== -1, 'duplicate comment submission blocked');
   ok(schema.indexOf('communityCommentSchema') !== -1, 'comment schema documented');
 });

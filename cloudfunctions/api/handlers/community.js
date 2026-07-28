@@ -1116,6 +1116,71 @@ async function communityCommentCreate(openid, data) {
   }
 }
 
+// ===================== community/commentDelete =====================
+
+async function communityCommentDelete(openid, data) {
+  try {
+    if (!openid) return { success: false, error: '请先登录' };
+    var postId = String(data && data.postId || '').trim();
+    var commentId = String(data && data.commentId || '').trim();
+    if (!postId || !commentId) {
+      return { success: false, error: '评论信息不完整' };
+    }
+
+    var result = await db.runTransaction(async function (transaction) {
+      var postDoc = transaction.collection('community_posts').doc(postId);
+      var commentDoc = transaction.collection('community_comments').doc(commentId);
+      var postRes = null;
+      var commentRes = null;
+      try { postRes = await postDoc.get(); }
+      catch (postGetErr) {
+        if (!isDocumentNotFoundError(postGetErr)) throw postGetErr;
+      }
+      try { commentRes = await commentDoc.get(); }
+      catch (commentGetErr) {
+        if (!isDocumentNotFoundError(commentGetErr)) throw commentGetErr;
+      }
+      var post = postRes && postRes.data;
+      var comment = commentRes && commentRes.data;
+
+      if (!post || post.status !== 'active') throw new Error('动态不存在');
+      if (!comment || comment.postId !== postId || comment.status !== 'active') {
+        throw new Error('评论不存在或已删除');
+      }
+      if (comment.authorId !== openid && post.authorId !== openid) {
+        throw new Error('无权删除这条评论');
+      }
+
+      var now = Date.now();
+      var nextCount = Math.max(0, Number(post.commentCount) || 0);
+      nextCount = Math.max(0, nextCount - 1);
+      await commentDoc.update({
+        data: {
+          status: 'deleted',
+          deletedAt: now,
+          updatedAt: now
+        }
+      });
+      await postDoc.update({
+        data: {
+          commentCount: nextCount,
+          updatedAt: now
+        }
+      });
+      return { commentCount: nextCount };
+    });
+
+    return {
+      success: true,
+      commentId: commentId,
+      commentCount: result.commentCount
+    };
+  } catch (err) {
+    console.error('community/commentDelete failed:', err);
+    return { success: false, error: err.message || '删除评论失败，请重试' };
+  }
+}
+
 // ===================== community/delete =====================
 
 async function communityDelete(openid, data) {
@@ -1214,5 +1279,6 @@ module.exports = {
   communityLikeList,
   communityCommentList,
   communityCommentCreate,
+  communityCommentDelete,
   communityDelete
 };

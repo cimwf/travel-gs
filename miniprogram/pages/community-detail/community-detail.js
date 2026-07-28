@@ -121,9 +121,13 @@ Page({
   },
 
   formatComment: function (comment) {
+    var currentUserId = app.globalData.openid || wx.getStorageSync('openid') || '';
+    var postAuthorId = this.data.post && this.data.post.authorId || '';
     return Object.assign({}, comment, {
       timeText: comment.timeText || this.formatTime(comment.createdAt),
-      likeCount: Math.max(0, Number(comment.likeCount) || 0)
+      likeCount: Math.max(0, Number(comment.likeCount) || 0),
+      canDelete: !!currentUserId &&
+        (comment.authorId === currentUserId || postAuthorId === currentUserId)
     });
   },
 
@@ -342,6 +346,47 @@ Page({
 
   onLoadMoreComments: function () {
     this.loadComments(this.data.comments.length === 0);
+  },
+
+  onCommentLongPress: function (event) {
+    var commentId = event.currentTarget.dataset.commentId;
+    var comment = this.data.comments.find(function (item) {
+      return item._id === commentId;
+    });
+    if (!comment || !comment.canDelete || this._deletingCommentId) return;
+
+    var self = this;
+    wx.showActionSheet({
+      itemList: ['删除'],
+      itemColor: '#FF4D4F',
+      success: function (result) {
+        if (result.tapIndex === 0) self.deleteComment(commentId);
+      }
+    });
+  },
+
+  deleteComment: function (commentId) {
+    if (!this.data.post || !commentId || this._deletingCommentId) return;
+    this._deletingCommentId = commentId;
+    wx.showLoading({ title: '删除中...', mask: true });
+    var self = this;
+    api.communityCommentDelete(this.data.post._id, commentId).then(function (result) {
+      self.setData({
+        comments: self.data.comments.filter(function (comment) {
+          return comment._id !== commentId;
+        }),
+        'post.commentCount': Math.max(0, Number(result.commentCount) || 0)
+      });
+      self.cachePost();
+      self.emitPostUpdate();
+      wx.hideLoading();
+      wx.showToast({ title: '已删除', icon: 'success' });
+    }).catch(function (error) {
+      wx.hideLoading();
+      wx.showToast({ title: error.message || '删除失败，请重试', icon: 'none' });
+    }).then(function () {
+      self._deletingCommentId = '';
+    });
   },
 
   cachePost: function () {

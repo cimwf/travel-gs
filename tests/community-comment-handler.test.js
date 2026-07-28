@@ -99,6 +99,19 @@ const db = {
               const _id = `comment-${state.comments.length + 1}`;
               state.comments.push({ _id, ...data });
               return { _id };
+            },
+            doc(id) {
+              return {
+                async get() {
+                  return {
+                    data: state.comments.find((comment) => comment._id === id) || null
+                  };
+                },
+                async update({ data }) {
+                  const comment = state.comments.find((item) => item._id === id);
+                  if (comment) Object.assign(comment, data);
+                }
+              };
             }
           };
         }
@@ -152,6 +165,40 @@ async function main() {
   assert.strictEqual(listed.commentCount, 1);
   assert.strictEqual(listed.hasMore, false);
 
+  const deletedByCommenter = await community.communityCommentDelete('openid-commenter', {
+    postId: state.post._id,
+    commentId: created.comment._id
+  });
+  assert.strictEqual(deletedByCommenter.success, true);
+  assert.strictEqual(deletedByCommenter.commentCount, 0);
+  assert.strictEqual(state.post.commentCount, 0);
+  assert.strictEqual(state.comments[0].status, 'deleted');
+
+  const second = await community.communityCommentCreate('openid-commenter', {
+    postId: state.post._id,
+    content: '作品作者也可以删除'
+  });
+  const deletedByPostAuthor = await community.communityCommentDelete('openid-author', {
+    postId: state.post._id,
+    commentId: second.comment._id
+  });
+  assert.strictEqual(deletedByPostAuthor.success, true);
+  assert.strictEqual(state.post.commentCount, 0);
+  assert.strictEqual(state.comments[1].status, 'deleted');
+
+  const third = await community.communityCommentCreate('openid-commenter', {
+    postId: state.post._id,
+    content: '其他用户不能删除'
+  });
+  const unauthorized = await community.communityCommentDelete('openid-other', {
+    postId: state.post._id,
+    commentId: third.comment._id
+  });
+  assert.strictEqual(unauthorized.success, false);
+  assert(unauthorized.error.includes('无权删除'));
+  assert.strictEqual(state.post.commentCount, 1);
+  assert.strictEqual(state.comments[2].status, 'active');
+
   state.suggest = 'risky';
   const blocked = await community.communityCommentCreate('openid-commenter', {
     postId: state.post._id,
@@ -160,7 +207,7 @@ async function main() {
   assert.strictEqual(blocked.success, false);
   assert(blocked.error.includes('未通过安全检测'));
   assert.strictEqual(state.post.commentCount, 1);
-  assert.strictEqual(state.comments.length, 1);
+  assert.strictEqual(state.comments.length, 3);
 
   const empty = await community.communityCommentCreate('openid-commenter', {
     postId: state.post._id,

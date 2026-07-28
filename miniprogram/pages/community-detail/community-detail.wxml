@@ -64,7 +64,8 @@
         <text class="section-title">共{{post.commentCount || 0}}条评论</text>
       </view>
       <view class="comment-list" wx:if="{{comments.length > 0}}">
-        <view class="comment-item" wx:for="{{comments}}" wx:key="_id">
+        <view class="comment-item" wx:for="{{comments}}" wx:key="_id"
+          bindlongpress="onCommentLongPress" data-comment-id="{{item._id}}">
           <image class="comment-avatar" src="{{item.authorAvatar || '/images/logo.png'}}" mode="aspectFill"></image>
           <view class="comment-main">
             <text class="comment-author">{{item.authorName || '旅行者'}}</text>
