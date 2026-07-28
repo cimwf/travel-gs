@@ -1,0 +1,81 @@
+/* pages/community/community.wxss */
+page { --primary: #4A90E2; --text: #1A1A2E; --secondary: #4A4A68; --hint: #8E8EA0; --border: #E8E8F0; --bg: #F5F7FA; }
+page { background: #fff; }
+
+.container { height: 100vh; display: flex; flex-direction: column; }
+
+/* scroll */
+.list-scroll { flex: 1; height: 0; }
+
+/* status */
+.status-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 200rpx 48rpx; }
+.spinner { width: 48rpx; height: 48rpx; border: 4rpx solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; margin-bottom: 16rpx; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.status-text { font-size: 26rpx; color: var(--hint); }
+.status-title { font-size: 32rpx; font-weight: 600; color: var(--text); margin-bottom: 8rpx; }
+.status-desc { font-size: 26rpx; color: var(--hint); margin-bottom: 40rpx; }
+.empty-camera-icon { width: 88rpx; height: 88rpx; margin-bottom: 28rpx; }
+.retry-btn { margin-top: 24rpx; padding: 20rpx 48rpx; border: 1rpx solid var(--primary); border-radius: 48rpx; color: var(--primary); font-size: 28rpx; }
+.empty-btn { padding: 24rpx 64rpx; background: var(--primary); color: #fff; border-radius: 48rpx; font-size: 28rpx; font-weight: 500; }
+
+/* posts */
+.posts { padding: 0; }
+.post-card { padding: 28rpx 32rpx; border-bottom: 1rpx solid var(--border); }
+
+/* header */
+.post-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14rpx; }
+.author { display: flex; align-items: center; gap: 16rpx; }
+.avatar { width: 72rpx; height: 72rpx; border-radius: 50%; background: var(--border); flex-shrink: 0; }
+.author-meta { display: flex; flex-direction: column; }
+.author-row { display: flex; align-items: center; gap: 8rpx; }
+.author-name { font-size: 28rpx; font-weight: 500; color: var(--text); }
+.post-time { font-size: 22rpx; color: var(--hint); }
+.more-btn { width: 48rpx; height: 48rpx; display: flex; align-items: center; justify-content: center; }
+.more-icon { width: 36rpx; height: 36rpx; }
+
+/* body */
+.post-body { padding: 6rpx 0 16rpx; }
+.post-text { font-size: 28rpx; line-height: 1.7; color: var(--text); word-break: break-all; }
+
+/* images */
+.post-images { display: flex; flex-wrap: wrap; gap: 8rpx; padding-bottom: 16rpx; }
+.post-images.grid-1 { gap: 0; }
+.post-images.grid-1 .img-lg { width: 100%; height: 400rpx; border-radius: 12rpx; }
+.post-images.grid-2 .post-img { width: calc((100% - 8rpx) / 2); height: 260rpx; border-radius: 8rpx; }
+.post-images.grid-3 .post-img { width: calc((100% - 16rpx) / 3); height: 210rpx; border-radius: 8rpx; }
+.post-img { background: var(--border); flex-shrink: 0; }
+
+/* location */
+.post-loc { display: inline-flex; align-items: center; gap: 8rpx; padding: 8rpx 18rpx; margin: 0 0 16rpx; border-radius: 28rpx; background: #F2F7FD; }
+.loc-icon { width: 28rpx; height: 28rpx; }
+.loc-name { font-size: 24rpx; color: var(--hint); }
+
+/* load more */
+.load-more, .no-more { text-align: center; padding: 32rpx; color: var(--hint); font-size: 24rpx; }
+
+/* 与行程页一致的悬浮发布按钮 */
+.fab {
+  position: fixed;
+  bottom: calc(120rpx + env(safe-area-inset-bottom));
+  right: 40rpx;
+  width: 100rpx;
+  height: 100rpx;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.15);
+  z-index: 100;
+}
+.fab:active { opacity: .9; transform: scale(.95); }
+.fab-inner {
+  width: 88rpx;
+  height: 88rpx;
+  border: 3rpx dashed var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.fab-icon { font-size: 56rpx; color: var(--primary); font-weight: 300; }

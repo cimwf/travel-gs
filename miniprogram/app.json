@@ -1,6 +1,9 @@
 {
   "pages": [
     "pages/trip-list/trip-list",
+    "pages/community/community",
+    "pages/community-publish/community-publish",
+    "pages/community-mine/community-mine",
     "pages/auth/auth",
     "pages/place-detail/place-detail",
     "pages/place-list/place-list",
@@ -34,6 +37,12 @@
         "text": "行程",
         "iconPath": "images/tab-trip.png",
         "selectedIconPath": "images/tab-trip-active.png"
+      },
+      {
+        "pagePath": "pages/community/community",
+        "text": "社区",
+        "iconPath": "images/tab-community.png",
+        "selectedIconPath": "images/tab-community-active.png"
       },
       {
         "pagePath": "pages/profile/profile",

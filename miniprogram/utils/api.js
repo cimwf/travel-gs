@@ -379,6 +379,47 @@ function tripLogUnauthorize(tripId, memberId) {
   return callApi('tripLog/unauthorize', { tripId, memberId });
 }
 
+// ========== 社区相关 ==========
+
+/**
+ * 获取社区动态列表
+ */
+function communityList(data) {
+  data = data || {};
+  return callApi('community/list', data);
+}
+
+/**
+ * 获取当前用户所有未删除作品（包含审核中和审核未通过）
+ */
+function communityMy(data) {
+  data = data || {};
+  return callApi('community/my', data);
+}
+
+/**
+ * 创建上传会话（获取COS临时凭证+per-file uploadItems）
+ * @param {object} data - { files: [{ mimeType, size }] }
+ */
+function communityCreateUploadSession(data) {
+  data = data || {};
+  return callApi('community/createUploadSession', data);
+}
+
+/**
+ * 发布社区动态
+ */
+function communityCreate(data) {
+  return callApi('community/create', data);
+}
+
+/**
+ * 删除社区动态
+ */
+function communityDelete(postId) {
+  return callApi('community/delete', { postId });
+}
+
 module.exports = {
   // 用户
   userLogin,
@@ -450,5 +491,12 @@ module.exports = {
   tripLogCreate,
   tripLogDelete,
   tripLogAuthorize,
-  tripLogUnauthorize
+  tripLogUnauthorize,
+
+  // 社区
+  communityList,
+  communityMy,
+  communityCreateUploadSession,
+  communityCreate,
+  communityDelete
 };

@@ -1,0 +1,81 @@
+<!--pages/community-publish/community-publish.wxml-->
+<view class="container">
+  <scroll-view class="pub-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <!-- Author row -->
+    <view class="author-row">
+      <image class="author-avatar" src="{{authorAvatar || '/images/logo.png'}}" mode="aspectFill"></image>
+      <text class="author-name">{{authorName}}</text>
+    </view>
+
+    <!-- Text input -->
+    <view class="text-wrap">
+      <textarea class="text-input" placeholder="分享你的旅途故事..." placeholder-style="color:#C0C0C8"
+        value="{{content}}" bindinput="onContentInput" maxlength="{{maxContentLength}}" auto-height disabled="{{submitting}}"></textarea>
+      <view class="char-count">{{contentLength}}/{{maxContentLength}}</view>
+    </view>
+
+    <!-- Image grid -->
+    <view class="img-grid" wx:if="{{images.length > 0 || !submitting}}">
+      <view class="grid-item {{item.status}}" wx:for="{{images}}" wx:key="id"
+        catchtap="onPreviewImage" data-src="{{item.path || item.url}}">
+        <image class="grid-img" src="{{item.path || item.url}}" mode="aspectFill"></image>
+        <!-- Overlay states -->
+        <view class="grid-overlay" wx:if="{{item.status === 'compressing' || item.status === 'uploading'}}">
+          <view class="overlay-bg"></view>
+          <text class="overlay-text">{{item.status === 'compressing' ? '处理中...' : item.progress + '%'}}</text>
+        </view>
+        <view class="grid-overlay" wx:if="{{item.status === 'failed'}}">
+          <view class="overlay-bg"></view>
+          <view class="retry-btn" catchtap="onRetryImage" data-id="{{item.id}}">
+            <text class="retry-text">重试</text>
+          </view>
+        </view>
+        <!-- Delete button (stop propagation) -->
+        <view class="grid-delete" wx:if="{{item.status !== 'uploading'}}" catchtap="onRemoveImage" data-id="{{item.id}}">
+          <image class="delete-icon" src="/images/icon-close-white.png" mode="aspectFit"></image>
+        </view>
+      </view>
+
+      <!-- Add button -->
+      <view class="grid-item grid-add" wx:if="{{images.length < maxImages}}" bindtap="onAddImages">
+        <view class="add-inner">
+          <image class="add-camera-icon" src="/images/icon-camera-blue.png" mode="aspectFit"></image>
+          <text class="add-count">{{images.length}}/{{maxImages}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Error message -->
+    <view class="upload-error" wx:if="{{errorMsg}}">
+      <text class="error-text">{{errorMsg}}</text>
+    </view>
+
+    <!-- Progress bar -->
+    <view class="progress-wrap" wx:if="{{uploadStage === 'uploading'}}">
+      <view class="progress-bar"><view class="progress-fill" style="width: {{uploadTotal > 0 ? uploadProgress / uploadTotal * 100 : 0}}%;"></view></view>
+      <text class="progress-label">{{uploadProgress}}/{{uploadTotal}}</text>
+    </view>
+
+    <!-- Location -->
+    <view class="action-row" bindtap="onChooseLocation">
+      <image class="action-icon" src="/images/icon-location-blue.png" mode="aspectFit"></image>
+      <text class="action-label" wx:if="{{!hasLocation}}">添加位置</text>
+      <text class="action-value" wx:else>{{location.name}}</text>
+      <view class="action-clear" wx:if="{{hasLocation}}" catchtap="onRemoveLocation">
+        <image class="action-clear-icon" src="/images/icon-close-gray.png" mode="aspectFit"></image>
+      </view>
+    </view>
+
+    <!-- Visibility (fixed) -->
+    <view class="action-row">
+      <image class="action-icon" src="/images/icon-globe-blue.png" mode="aspectFit"></image>
+      <text class="action-label">所有人可见</text>
+      <text class="action-fixed">公开</text>
+    </view>
+
+    <!-- Bottom submit -->
+    <view class="bottom-submit {{submitting ? 'disabled' : ''}}" bindtap="onSubmit">
+      <text>{{submitting ? '发布中...' : '发布'}}</text>
+    </view>
+  </scroll-view>
+</view>

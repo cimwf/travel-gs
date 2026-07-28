@@ -14,6 +14,7 @@ const banner = require('./handlers/banner');
 const attractions = require('./handlers/attractions');
 const userSpots = require('./handlers/userSpots');
 const feedback = require('./handlers/feedback');
+const community = require('./handlers/community');
 
 exports.main = async (event, context) => {
   const { action, data } = event;
@@ -151,6 +152,18 @@ exports.main = async (event, context) => {
       // ========== 用户上传景点相关 ==========
       case 'userSpots/create':
         return await userSpots.userSpotsCreate(openid, data);
+
+      // ========== 社区相关 ==========
+      case 'community/list':
+        return await community.communityList(openid, data);
+      case 'community/my':
+        return await community.communityMy(openid, data);
+      case 'community/createUploadSession':
+        return await community.communityCreateUploadSession(openid, data);
+      case 'community/create':
+        return await community.communityCreate(openid, data);
+      case 'community/delete':
+        return await community.communityDelete(openid, data);
 
       default:
         return { success: false, error: '未知操作' };

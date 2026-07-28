@@ -14,6 +14,10 @@
 6. messages - 消息表
 7. comments - 评论表
 8. notifications - 通知表
+9. community_posts - 社区动态表
+10. community_image_audits - 社区图片异步审核映射表
+11. community_upload_drafts - 社区上传草稿表
+12. community_cleanup_tasks - COS清理任务表
 ==========================================
 集合结构说明
 ==========================================
@@ -187,18 +191,106 @@ const commentSchema = {
 const notificationSchema = {
   _id: "notify_xxx",
   userId: "user_xxx",               // 接收者
-  
+
   type: "apply_accepted",           // apply_accepted/apply_new/comment/trip_reminder
   title: "申请已通过",
   content: "你申请的东灵山行程已被接受",
-  
+
   data: {
     tripId: "trip_xxx",
     placeName: "东灵山"
   },
-  
+
   read: false,
   createdAt: 1711123200000
+};
+
+// 9. community_posts - 社区动态表
+const communityPostSchema = {
+  _id: "post_xxx",
+  draftId: "post_draft_8f31",      // 关联上传草稿ID
+  authorId: "openid_xxx",          // 作者openid
+  authorName: "小鹿在路上",         // 作者昵称（服务端从users读取，不可信客户端）
+  authorAvatar: "https://...",     // 作者头像（服务端从users读取）
+  content: "周末去了京西古道，风比想象中温柔。",
+  images: [{
+    provider: "cos",
+    key: "miniapp/community/2026/07/post_draft_8f31/6c7d2f0e.jpg",
+    url: "https://imagica-images-1436573577.cos.ap-beijing.myqcloud.com/miniapp/community/2026/07/post_draft_8f31/6c7d2f0e.jpg",
+    width: 1920,
+    height: 1280,
+    size: 856231,
+    mimeType: "image/jpeg",
+    sort: 0
+  }],
+  imageCount: 1,
+  location: {
+    name: "门头沟",
+    address: "北京市门头沟区",
+    latitude: 39.94,
+    longitude: 116.10
+  },
+  visibility: "public",            // V1固定为public
+  reviewStatus: "approved",        // approved/reviewing/manual_review/rejected
+  imageAuditStatus: "approved",    // pending/reviewing/manual_review/approved/rejected
+  imageAuditTraceIds: ["trace_xxx"], // 微信 mediaCheckAsync 任务ID
+  imageAuditUpdatedAt: 1785100000000,
+  imageAuditRetryAt: 0,            // 超时补提审核的最后占位时间
+  imageAuditRetryCount: 0,         // 最多补提3次
+  imageAuditLastError: "",
+  status: "active",                // active/deleted
+  createdAt: 1785100000000,
+  updatedAt: 1785100000000,
+  deletedAt: 0
+};
+
+// 10. community_image_audits - 社区图片异步审核映射表
+const communityImageAuditSchema = {
+  _id: "trace_xxx",                // 微信 mediaCheckAsync traceId
+  traceId: "trace_xxx",
+  postId: "post_xxx",
+  imageKey: "miniapp/community/2026/07/...",
+  imageUrl: "https://...",
+  status: "pending",               // pending/completed
+  suggest: "pending",              // pending/pass/review/risky
+  label: 0,
+  detail: [],
+  createdAt: 1711123200000,
+  updatedAt: 1711123200000,
+  completedAt: 0,
+  expiresAt: 1711728000000
+};
+
+// 11. community_upload_drafts - 社区上传草稿表
+const communityDraftSchema = {
+  _id: "post_draft_8f31",
+  ownerId: "openid_xxx",
+  status: "uploading",             // uploading/completed/expired
+  maxFiles: 9,
+  uploadedKeys: [],
+  allowedPrefix: "miniapp/community/2026/07/post_draft_8f31/",
+  uploadItems: [{
+    index: 0,
+    cosKey: "miniapp/community/2026/07/post_draft_8f31/6c7d2f0e.jpg",
+    maxSize: 10485760,
+    allowedMime: "image/jpeg"
+  }],
+  expiresAt: 1785150000000,        // 24小时后过期
+  createdAt: 1785149400000,
+  completedAt: 0
+};
+
+// 12. community_cleanup_tasks - COS清理任务表
+const communityCleanupTaskSchema = {
+  _id: "cleanup_xxx",
+  postId: "post_xxx",
+  provider: "cos",
+  key: "miniapp/community/2026/07/post_draft_8f31/6c7d2f0e.jpg",
+  status: "pending",               // pending/processing/completed/failed
+  retryCount: 0,
+  lastError: "",
+  createdAt: 1711123200000,
+  updatedAt: 1711123200000
 };
 
 /*
@@ -245,5 +337,21 @@ notifications:
   - userId
   - read
   - createdAt
+
+community_posts:
+  - status + reviewStatus + createdAt + _id（复合索引，用于公共列表稳定游标查询）
+  - authorId + status + createdAt + _id（复合索引，用于“我的作品”列表）
+  - draftId（唯一索引，防止重复发布）
+
+community_image_audits:
+  - postId
+  - expiresAt
+
+community_upload_drafts:
+  - ownerId + status + createdAt（复合索引）
+  - expiresAt（TTL索引或定时清理依据）
+
+community_cleanup_tasks:
+  - status + createdAt（用于清理队列处理）
 
 */

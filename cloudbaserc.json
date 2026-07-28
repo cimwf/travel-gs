@@ -17,6 +17,13 @@
       "envVariables": {},
       "runtime": "Nodejs16.13",
       "handler": "index.main"
+    },
+    {
+      "name": "community-media-check-result",
+      "timeout": 20,
+      "envVariables": {},
+      "runtime": "Nodejs16.13",
+      "handler": "index.main"
     }
   ]
 }

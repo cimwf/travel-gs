@@ -141,6 +141,11 @@ Page({
     auth.navigateIfLoggedIn('/pages/my-trips/my-trips');
   },
 
+  // 我的作品
+  onTapMyWorks: function () {
+    auth.navigateIfLoggedIn('/pages/community-mine/community-mine');
+  },
+
   // 行程通知
   onTapTripNotifications: function () {
     auth.navigateIfLoggedIn('/pages/trip-notifications/trip-notifications');

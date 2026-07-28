@@ -22,7 +22,9 @@ function resetRuntime() {
     showToast: [],
     showLoading: [],
     hideLoading: 0,
-    cloudCalls: []
+    cloudCalls: [],
+    previewImage: [],
+    openLocation: []
   };
   app = {
     globalData: {
@@ -65,7 +67,11 @@ function resetRuntime() {
     getStorageSync: (key) => storage[key],
     setStorageSync: (key, value) => { storage[key] = value; },
     removeStorageSync: (key) => { delete storage[key]; },
-    getWindowInfo: () => ({ statusBarHeight: 24 }),
+    getAccountInfoSync: () => ({ miniProgram: { envVersion: 'develop' } }),
+    getWindowInfo: () => ({ statusBarHeight: 24, windowWidth: 390 }),
+    getMenuButtonBoundingClientRect: () => ({ top: 28, left: 290, width: 88, height: 32 }),
+    canIUse: () => false,
+    getFileSystemManager: () => ({}),
     setNavigationBarTitle: () => {},
     navigateTo: (options) => { wxCalls.navigateTo.push(options); },
     switchTab: (options) => { wxCalls.switchTab.push(options); },
@@ -74,6 +80,8 @@ function resetRuntime() {
     showToast: (options) => { wxCalls.showToast.push(options); },
     showLoading: (options) => { wxCalls.showLoading.push(options); },
     hideLoading: () => { wxCalls.hideLoading += 1; },
+    previewImage: (options) => { wxCalls.previewImage.push(options); },
+    openLocation: (options) => { wxCalls.openLocation.push(options); },
     cloud: {
       uploadFile: async ({ cloudPath, filePath }) => {
         wxCalls.uploadFile = wxCalls.uploadFile || [];
@@ -169,13 +177,14 @@ test('app.json 默认首页是 trip-list，tabBar 含行程和我的', () => {
   assert.strictEqual(appJson.pages[0], 'pages/trip-list/trip-list');
   assert.deepStrictEqual(appJson.tabBar.list.map((item) => item.pagePath), [
     'pages/trip-list/trip-list',
+    'pages/community/community',
     'pages/profile/profile'
   ]);
 });
 
 test('trip-list UI 含筛选栏、行程卡片、空状态发布按钮和悬浮发布按钮', () => {
   const wxml = read('miniprogram/pages/trip-list/trip-list.wxml');
-  ['data-filter="destination"', 'data-filter="departure"', 'data-filter="date"', 'bindtap="onPublishTrip"', 'class="trip-card"', '暂无行程'].forEach((needle) => {
+  ['data-filter="destination"', 'data-filter="departure"', 'data-filter="date"', 'bindtap="onPublishTrip"', 'class="trip-card"', '还没有人发起这段旅程'].forEach((needle) => {
     assert(wxml.includes(needle), `missing ${needle}`);
   });
 });
@@ -206,7 +215,7 @@ test('trip-list 未登录点击发布跳转登录页', () => {
 
 test('profile 未登录 UI 和入口都指向登录页', () => {
   const wxml = read('miniprogram/pages/profile/profile.wxml');
-  ['点击登录', '我的行程', '行程通知', '上传景点', '提交建议', '关于我们'].forEach((text) => {
+  ['点击登录', '我的行程', '我的作品', '行程通知', '上传景点', '提交建议', '关于我们'].forEach((text) => {
     assert(wxml.includes(text), `missing ${text}`);
   });
 
@@ -214,10 +223,25 @@ test('profile 未登录 UI 和入口都指向登录页', () => {
   page.checkLogin();
   assert.strictEqual(page.data.isLoggedIn, false);
 
-  ['onLogin', 'onTapMyTrips', 'onTapTripNotifications', 'onTapUploadSpot', 'onTapFeedback', 'onTapAbout'].forEach((method) => {
+  ['onLogin', 'onTapMyTrips', 'onTapMyWorks', 'onTapTripNotifications', 'onTapUploadSpot', 'onTapFeedback', 'onTapAbout'].forEach((method) => {
     wxCalls.navigateTo = [];
     page[method]();
     assert.strictEqual(wxCalls.navigateTo.at(-1).url, '/pages/auth/auth', `${method} did not navigate to auth`);
+  });
+});
+
+test('我的作品使用系统头部并展示全部审核状态', () => {
+  const pageJson = JSON.parse(read('miniprogram/pages/community-mine/community-mine.json'));
+  const wxml = read('miniprogram/pages/community-mine/community-mine.wxml');
+  const js = read('miniprogram/pages/community-mine/community-mine.js');
+  assert.strictEqual(pageJson.navigationBarTitleText, '我的作品');
+  assert.notStrictEqual(pageJson.navigationStyle, 'custom');
+  ['bindtap="onMoreTap"', 'bindtap="onPreviewImage"', 'item.authorAvatar', 'item.authorName', 'icon-more-gray.png'].forEach((needle) => {
+    assert(wxml.includes(needle), `missing ${needle}`);
+  });
+  assert(!wxml.includes('bindtap="onDelete"'), 'direct delete button should be hidden');
+  ['已发布', '审核中', '人工审核', '审核未通过'].forEach((needle) => {
+    assert(js.includes(needle), `missing ${needle}`);
   });
 });
 
@@ -231,7 +255,7 @@ test('auth UI 要求协议、手机号登录、头像昵称和完成登录', () 
 test('auth 未勾选协议时手机号登录给出提示', async () => {
   const page = loadPage('pages/auth/auth.js');
   await page.onGetPhoneNumber({ detail: { code: 'phone-code' } });
-  assert.strictEqual(latestToast().title, '请先同意用户协议');
+  assert.strictEqual(latestToast().title, '请先同意用户协议和隐私政策');
 });
 
 test('auth 勾选协议后老用户一键登录直接跳回首页', async () => {
@@ -416,6 +440,119 @@ test('trip-publish-success UI 含发布成功、摘要和返回按钮', () => {
   ['发布成功', '你的行程已成功发布', '查看行程详情', '返回行程页', '招募人数'].forEach((needle) => {
     assert(wxml.includes(needle), `missing ${needle}`);
   });
+});
+
+test('community UI 含发布入口、动态列表和定位，隐藏审核状态标签', () => {
+  const wxml = read('miniprogram/pages/community/community.wxml');
+  ['bindtap="onPublish"', 'bindtap="onPreviewImage"', 'bindtap="onOpenLocation"'].forEach((needle) => {
+    assert(wxml.includes(needle), `missing ${needle}`);
+  });
+  assert(!wxml.includes('审核中'), '审核中标签不应显示');
+});
+
+test('community 未登录发布会跳登录并保存发布页回跳地址', () => {
+  const page = loadPage('pages/community/community.js');
+  page.onPublish();
+  assert.strictEqual(wxCalls.navigateTo.at(-1).url, '/pages/auth/auth');
+  assert.strictEqual(storage.deepLinkUrl, '/pages/community-publish/community-publish');
+});
+
+test('community 已登录可进入发布页，定位参数经过校验后打开地图', () => {
+  const page = loadPage('pages/community/community.js');
+  storage.userInfo = { nickname: '测试用户' };
+  storage.lastLoginTime = Date.now();
+
+  page.onPublish();
+  assert.strictEqual(wxCalls.navigateTo.at(-1).url, '/pages/community-publish/community-publish');
+
+  page.onOpenLocation({ currentTarget: { dataset: { lat: 91, lng: 116.4, name: '错误位置' } } });
+  assert.strictEqual(wxCalls.openLocation.length, 0);
+
+  page.onOpenLocation({
+    currentTarget: {
+      dataset: { lat: 39.9, lng: 116.4, name: '北京', address: '北京市' }
+    }
+  });
+  assert.deepStrictEqual(wxCalls.openLocation[0], {
+    latitude: 39.9,
+    longitude: 116.4,
+    name: '北京',
+    address: '北京市',
+    scale: 16
+  });
+});
+
+test('community-publish 纯文字发布不申请 COS 上传会话', async () => {
+  const page = loadPage('pages/community-publish/community-publish.js');
+  storage.userInfo = { nickname: '测试用户' };
+  storage.lastLoginTime = Date.now();
+  app.globalData.userInfo = storage.userInfo;
+  page.setData({ content: '今天去爬山', contentLength: 6 });
+
+  await page.onSubmit();
+
+  const communityCalls = wxCalls.cloudCalls.filter((call) => (
+    call.name === 'api' && call.data.action.startsWith('community/')
+  ));
+  assert.deepStrictEqual(communityCalls.map((call) => call.data.action), ['community/create']);
+  assert.strictEqual(communityCalls[0].data.data.content, '今天去爬山');
+  assert.strictEqual(communityCalls[0].data.data.images, undefined);
+  assert.strictEqual(latestToast().title, '发布成功');
+});
+
+test('community-publish 图片重试沿用原上传位置，不串图', async () => {
+  const page = loadPage('pages/community-publish/community-publish.js');
+  const cosModulePath = path.join(miniRoot, 'utils/cos-upload.js');
+  const cosUpload = require(cosModulePath);
+  const uploaded = [];
+  cosUpload.uploadImage = async (filePath, uploadItem, session, onProgress) => {
+    uploaded.push({ filePath, key: uploadItem.cosKey, draftId: session.draftId });
+    onProgress(100);
+    return { key: uploadItem.cosKey, url: `${session.baseUrl}/${uploadItem.cosKey}` };
+  };
+
+  page.setData({
+    images: [
+      {
+        id: 'img-0',
+        path: 'wxfile://0.jpg',
+        status: 'done',
+        uploadIndex: 0,
+        cosKey: 'miniapp/community/draft/key-0.jpg',
+        url: 'https://cos.example/key-0.jpg',
+        mimeType: 'image/jpeg',
+        size: 100
+      },
+      {
+        id: 'img-1',
+        path: 'wxfile://1.jpg',
+        status: 'pending',
+        uploadIndex: 1,
+        mimeType: 'image/jpeg',
+        size: 200
+      }
+    ]
+  });
+
+  const result = await page._doUpload({
+    draftId: 'draft-1',
+    baseUrl: 'https://cos.example',
+    uploadItems: [
+      { cosKey: 'miniapp/community/draft/key-0.jpg', allowedMime: 'image/jpeg' },
+      { cosKey: 'miniapp/community/draft/key-1.jpg', allowedMime: 'image/jpeg' }
+    ]
+  });
+
+  assert.deepStrictEqual(uploaded, [{
+    filePath: 'wxfile://1.jpg',
+    key: 'miniapp/community/draft/key-1.jpg',
+    draftId: 'draft-1'
+  }]);
+  assert.deepStrictEqual(result.images.map((image) => image.key), [
+    'miniapp/community/draft/key-0.jpg',
+    'miniapp/community/draft/key-1.jpg'
+  ]);
+  assert.strictEqual(result.draftId, 'draft-1');
 });
 
 async function run() {

@@ -47,6 +47,14 @@
       <text class="info-arrow">›</text>
     </view>
 
+    <view class="info-bar" bindtap="onTapMyWorks">
+      <view class="info-icon" style="background: linear-gradient(135deg, var(--primary-bg), #DCEAF8);">🖼️</view>
+      <view class="info-content">
+        <view class="info-title">我的作品</view>
+      </view>
+      <text class="info-arrow">›</text>
+    </view>
+
     <view class="info-bar" bindtap="onTapTripNotifications">
       <view class="info-icon" style="background: linear-gradient(135deg, var(--primary-bg), var(--accent-light));">🔔</view>
       <view class="info-content">

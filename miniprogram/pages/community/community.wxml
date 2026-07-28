@@ -1,0 +1,85 @@
+<!--pages/community/community.wxml-->
+<view class="container">
+  <scroll-view class="list-scroll" scroll-y enhanced show-scrollbar="{{false}}"
+    refresher-enabled="{{true}}" refresher-triggered="{{refreshing}}"
+    bindrefresherrefresh="onRefresh" bindscrolltolower="onLoadMore">
+
+    <!-- Loading -->
+    <view class="status-wrap" wx:if="{{loading && posts.length === 0}}">
+      <view class="spinner"></view>
+      <text class="status-text">加载中...</text>
+    </view>
+
+    <!-- Error with retry -->
+    <view class="status-wrap" wx:elif="{{error && posts.length === 0}}">
+      <text class="status-text">社区动态加载失败</text>
+      <view class="retry-btn" bindtap="onRetry">重新加载</view>
+    </view>
+
+    <!-- Empty -->
+    <view class="status-wrap" wx:elif="{{!loading && !error && posts.length === 0}}">
+      <image class="empty-camera-icon" src="/images/icon-camera-blue.png" mode="aspectFit"></image>
+      <text class="status-title">还没有动态</text>
+      <text class="status-desc">分享你的旅途故事，成为第一个发布的人</text>
+      <view class="empty-btn" bindtap="onPublish">发布动态</view>
+    </view>
+
+    <!-- Posts -->
+    <view class="posts" wx:if="{{posts.length > 0}}">
+      <view class="post-card" wx:for="{{posts}}" wx:key="_id">
+        <!-- Author -->
+        <view class="post-hd">
+          <view class="author">
+            <image class="avatar" src="{{item.authorAvatar || '/images/logo.png'}}" mode="aspectFill"></image>
+            <view class="author-meta">
+              <view class="author-row">
+                <text class="author-name">{{item.authorName}}</text>
+              </view>
+              <text class="post-time">{{item.timeText}}</text>
+            </view>
+          </view>
+          <view class="more-btn" bindtap="onMoreTap" data-post-id="{{item._id}}" data-is-author="{{item.isAuthor}}">
+            <image class="more-icon" src="/images/icon-more-gray.png" mode="aspectFit"></image>
+          </view>
+        </view>
+
+        <!-- Text -->
+        <view class="post-body" wx:if="{{item.content}}">
+          <text class="post-text">{{item.content}}</text>
+        </view>
+
+        <!-- Images -->
+        <view class="post-images {{item.imageLayout}}" wx:if="{{item.images && item.images.length > 0}}">
+          <image wx:for="{{item.images}}" wx:for-item="img" wx:key="key"
+            class="post-img {{item.imageLayout === 'grid-1' ? 'img-lg' : ''}}"
+            src="{{img.url}}" mode="aspectFill"
+            bindtap="onPreviewImage" data-urls="{{item.imageUrls}}" data-current="{{img.url}}">
+          </image>
+        </view>
+
+        <!-- Location -->
+        <view class="post-loc" wx:if="{{item.hasLocation}}" bindtap="onOpenLocation"
+          data-lat="{{item.location.latitude}}" data-lng="{{item.location.longitude}}"
+          data-name="{{item.location.name}}" data-address="{{item.location.address}}">
+          <image class="loc-icon" src="/images/icon-location-blue.png" mode="aspectFit"></image>
+          <text class="loc-name">{{item.location.name}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Load more -->
+    <view class="load-more" wx:if="{{hasMore && posts.length > 0 && !loading}}">
+      <text>上拉加载更多</text>
+    </view>
+    <view class="no-more" wx:if="{{!hasMore && posts.length > 0}}">
+      <text>— 没有更多了 —</text>
+    </view>
+  </scroll-view>
+
+  <!-- 悬浮发布按钮，与行程页保持一致 -->
+  <view class="fab" bindtap="onPublish">
+    <view class="fab-inner">
+      <text class="fab-icon">+</text>
+    </view>
+  </view>
+</view>

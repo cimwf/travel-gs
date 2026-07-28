@@ -1,0 +1,10 @@
+{
+  "name": "community-media-check-result",
+  "version": "1.0.0",
+  "description": "社区图片内容安全异步审核结果处理",
+  "main": "index.js",
+  "license": "ISC",
+  "dependencies": {
+    "wx-server-sdk": "^4.0.2"
+  }
+}

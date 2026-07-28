@@ -49,7 +49,7 @@
   "appid": "wx5d9d6bbbc7538c04",
   "projectname": "beijing-travel",
   "description": "北上周边行 - 旅游社交小程序",
-  "cloudfunctionTemplateRoot": "",
+  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/",
   "condition": {},
   "editorSetting": {
     "tabIndent": "insertSpaces",
