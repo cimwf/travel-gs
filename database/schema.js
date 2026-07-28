@@ -15,9 +15,11 @@
 7. comments - 评论表
 8. notifications - 通知表
 9. community_posts - 社区动态表
-10. community_image_audits - 社区图片异步审核映射表
-11. community_upload_drafts - 社区上传草稿表
-12. community_cleanup_tasks - COS清理任务表
+10. community_likes - 社区点赞记录表
+11. community_image_audits - 社区图片异步审核映射表
+12. community_upload_drafts - 社区上传草稿表
+13. community_cleanup_tasks - COS清理任务表
+14. community_comments - 社区评论表
 ==========================================
 集合结构说明
 ==========================================
@@ -232,6 +234,7 @@ const communityPostSchema = {
   },
   visibility: "public",            // V1固定为public
   likeCount: 12,                   // 点赞数，和 community_likes 保持一致
+  commentCount: 3,                 // 评论数，和 community_comments 保持一致
   reviewStatus: "approved",        // approved/reviewing/manual_review/rejected
   imageAuditStatus: "approved",    // pending/reviewing/manual_review/approved/rejected
   imageAuditTraceIds: ["trace_xxx"], // 微信 mediaCheckAsync 任务ID
@@ -306,6 +309,22 @@ const communityCleanupTaskSchema = {
   updatedAt: 1711123200000
 };
 
+// 14. community_comments - 社区评论表
+const communityCommentSchema = {
+  _id: "comment_xxx",
+  postId: "post_xxx",
+  postAuthorId: "openid_author",
+  authorId: "openid_commenter",
+  authorName: "旅行者",             // 评论时的昵称快照
+  authorAvatar: "https://...",     // 评论时的头像快照
+  content: "这个地方看起来很舒服。",
+  likeCount: 0,                    // 预留评论点赞，第一版不开放
+  status: "active",                // active/deleted
+  createdAt: 1785149400000,
+  updatedAt: 1785149400000,
+  deletedAt: 0
+};
+
 /*
 ==========================================
 索引配置（在云开发控制台创建）
@@ -359,6 +378,10 @@ community_posts:
 community_likes:
   - postId + createdAt（复合索引，供后续点赞列表分页）
   - userId + createdAt（复合索引，供用户点赞记录查询）
+
+community_comments:
+  - postId + status + createdAt + _id（复合索引，供评论稳定分页）
+  - authorId + status + createdAt（复合索引，供后续“我的评论”使用）
 
 community_image_audits:
   - postId

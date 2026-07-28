@@ -58,6 +58,7 @@ run('app.json: 3 tabs, community pages registered', function () {
   assert.strictEqual(j.tabBar.list[1].text, '社区'); // 社区
   assert.strictEqual(j.tabBar.list[2].text, '我的'); // 我的
   ok(j.pages.indexOf('pages/community/community') !== -1, 'community page registered');
+  ok(j.pages.indexOf('pages/community-detail/community-detail') !== -1, 'detail page registered');
   ok(j.pages.indexOf('pages/community-publish/community-publish') !== -1, 'publish page registered');
   ok(j.pages.indexOf('pages/community-mine/community-mine') !== -1, 'my works page registered');
 });
@@ -65,6 +66,7 @@ run('app.json: 3 tabs, community pages registered', function () {
 // ---- 2: page files ----
 run('Page files exist', function () {
   [['community','community.js'],['community','community.json'],['community','community.wxml'],['community','community.wxss'],
+   ['community-detail','community-detail.js'],['community-detail','community-detail.json'],['community-detail','community-detail.wxml'],['community-detail','community-detail.wxss'],
    ['community-publish','community-publish.js'],['community-publish','community-publish.json'],['community-publish','community-publish.wxml'],['community-publish','community-publish.wxss'],
    ['community-mine','community-mine.js'],['community-mine','community-mine.json'],['community-mine','community-mine.wxml'],['community-mine','community-mine.wxss']]
     .forEach(function (f) { ok(fs.existsSync(path.join(ROOT, 'miniprogram', 'pages', f[0], f[1])), f.join('/')); });
@@ -73,7 +75,8 @@ run('Page files exist', function () {
 // ---- 3: API registration ----
 run('API functions registered', function () {
   var s = readText('miniprogram/utils/api.js');
-  ['communityList','communityMy','communityCreateUploadSession','communityCreate','communityToggleLike','communityDelete'].forEach(function (fn) {
+  ['communityList','communityMy','communityCreateUploadSession','communityCreate','communityToggleLike',
+   'communityCommentList','communityCommentCreate','communityDelete'].forEach(function (fn) {
     ok(s.indexOf(fn) !== -1, fn + ' in api.js');
   });
 });
@@ -86,6 +89,8 @@ run('Cloud handler has community exports + COS check + security', function () {
   ok(s.indexOf('async function communityCreateUploadSession') !== -1, 'createUploadSession defined');
   ok(s.indexOf('async function communityCreate') !== -1, 'communityCreate defined');
   ok(s.indexOf('async function communityToggleLike') !== -1, 'communityToggleLike defined');
+  ok(s.indexOf('async function communityCommentList') !== -1, 'communityCommentList defined');
+  ok(s.indexOf('async function communityCommentCreate') !== -1, 'communityCommentCreate defined');
   ok(s.indexOf('async function communityDelete') !== -1, 'communityDelete defined');
   ok(s.indexOf('isCosConfigured') !== -1, 'COS config check');
   ok(s.indexOf('msgSecCheck') !== -1, 'content security check');
@@ -96,7 +101,8 @@ run('Cloud handler has community exports + COS check + security', function () {
 run('Cloud function routing', function () {
   var s = readText('cloudfunctions/api/index.js');
   ok(s.indexOf("require('./handlers/community')") !== -1, 'import');
-  ['community/list','community/my','community/createUploadSession','community/create','community/toggleLike','community/delete'].forEach(function (r) {
+  ['community/list','community/my','community/createUploadSession','community/create','community/toggleLike',
+   'community/commentList','community/commentCreate','community/delete'].forEach(function (r) {
     ok(s.indexOf(r) !== -1, 'route: ' + r);
   });
 });
@@ -116,9 +122,56 @@ run('Community likes: future-ready snapshots + feed interaction', function () {
   ok(pageWxml.indexOf('icon-like-heart-gray.svg') !== -1, 'inactive like icon rendered');
   ok(pageWxml.indexOf('icon-comment-gray.svg') !== -1, 'comment icon rendered');
   ok(pageWxml.indexOf('class="comment-btn"') !== -1, 'comment UI rendered');
-  ok(pageWxml.indexOf('bindtap="onComment') === -1, 'comment has no interaction yet');
+  ok(pageWxml.indexOf('catchtap="onOpenDetail"') !== -1, 'comment opens detail page');
+  ok(pageWxml.indexOf('class="post-card"') !== -1 && pageWxml.indexOf('bindtap="onOpenDetail" data-post-id="{{item._id}}"') !== -1, 'post content opens detail page');
+  ok(pageWxml.indexOf('catchtap="onOpenUserProfile"') !== -1, 'feed avatar opens user profile');
+  ok(pageJs.indexOf('/pages/user-profile/user-profile?id=') !== -1, 'feed routes to existing user profile');
   ok(readText('miniprogram/pages/community/community.wxss').indexOf('justify-content: flex-end') !== -1, 'actions align right');
   ok(schema.indexOf('communityLikeSchema') !== -1, 'like schema documented');
+});
+
+run('Community detail: approved UI structure and shared interaction icons', function () {
+  var detailJs = readText('miniprogram/pages/community-detail/community-detail.js');
+  var detailJson = readJson('miniprogram/pages/community-detail/community-detail.json');
+  var detailWxml = readText('miniprogram/pages/community-detail/community-detail.wxml');
+  var detailWxss = readText('miniprogram/pages/community-detail/community-detail.wxss');
+  ok(detailJson.navigationBarTitleText === '动态详情', 'detail uses system navigation');
+  ok(detailWxml.indexOf('128人赞过') === -1, 'like heading uses live count');
+  ok(detailWxml.indexOf('{{post.likeCount || 0}}人赞过') !== -1, 'like list section rendered');
+  ok(detailWxml.indexOf('共{{post.commentCount || 0}}条评论') !== -1, 'comment list section rendered');
+  ok(detailWxml.indexOf('icon-like-heart-active.svg') !== -1, 'detail reuses active heart');
+  ok(detailWxml.indexOf('icon-like-heart-gray.svg') !== -1, 'detail reuses inactive heart');
+  ok(detailWxml.indexOf('icon-comment-gray.svg') !== -1, 'detail reuses comment icon');
+  ok(detailWxml.indexOf('placeholder="说点什么…"') !== -1, 'plain text input rendered');
+  ok(detailWxml.indexOf('confirm-type="send"') !== -1, 'keyboard send action configured');
+  ok(detailWxml.indexOf('>发送<') === -1, 'no visible send button');
+  ok(detailWxml.indexOf('catchtap="onOpenUserProfile"') !== -1, 'detail avatar opens user profile');
+  ok(detailJs.indexOf('/pages/user-profile/user-profile?id=') !== -1, 'detail routes to existing user profile');
+  ok(detailJs.indexOf('onOpenDetail') === -1, 'detail logic stays separate from feed navigation');
+  ok(detailJs.indexOf('communityToggleLike') !== -1, 'existing like API reused');
+  ok(
+    detailWxss.indexOf('.detail-page') !== -1 &&
+    detailWxss.indexOf('flex-direction: column') !== -1 &&
+    detailWxss.indexOf('.interaction-bar') !== -1 &&
+    detailWxss.indexOf('flex-shrink: 0') !== -1,
+    'interaction bar stays anchored below the scroll area'
+  );
+});
+
+run('Community comments: secure text-only create, list and detail integration', function () {
+  var handler = readText('cloudfunctions/api/handlers/community.js');
+  var detailJs = readText('miniprogram/pages/community-detail/community-detail.js');
+  var detailWxml = readText('miniprogram/pages/community-detail/community-detail.wxml');
+  var schema = readText('database/schema.js');
+  ok(handler.indexOf("collection('community_comments')") !== -1, 'community comments collection used');
+  ok(handler.indexOf('MAX_COMMENT_LENGTH = 300') !== -1, 'comment length limited');
+  ok(handler.indexOf('securityCheck(openid, content)') !== -1, 'comment content security checked');
+  ok(handler.indexOf('commentCount: nextCount') !== -1, 'comment count updated atomically');
+  ok(detailJs.indexOf('communityCommentList') !== -1, 'detail loads comments');
+  ok(detailJs.indexOf('communityCommentCreate') !== -1, 'detail creates comments');
+  ok(detailWxml.indexOf('来聊聊这个话题吧～') !== -1, 'generic empty-state copy used');
+  ok(detailWxml.indexOf('disabled="{{submittingComment}}"') !== -1, 'duplicate comment submission blocked');
+  ok(schema.indexOf('communityCommentSchema') !== -1, 'comment schema documented');
 });
 
 // ---- 6: content validation ----

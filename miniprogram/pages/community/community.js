@@ -149,6 +149,56 @@ Page({
     });
   },
 
+  onOpenDetail: function (e) {
+    var postId = e.currentTarget.dataset.postId;
+    if (!postId) return;
+    var post = this.data.posts.find(function (item) {
+      return item._id === postId;
+    });
+    if (!post) return;
+
+    try {
+      wx.setStorageSync('communityDetailPost:' + postId, post);
+    } catch (cacheErr) {
+      console.warn('缓存动态详情失败:', cacheErr);
+    }
+
+    var self = this;
+    wx.navigateTo({
+      url: '/pages/community-detail/community-detail?id=' + encodeURIComponent(postId),
+      events: {
+        postUpdated: function (updatedPost) {
+          if (!updatedPost || updatedPost._id !== postId) return;
+          var index = self.data.posts.findIndex(function (item) {
+            return item._id === postId;
+          });
+          if (index < 0) return;
+          var nextData = {};
+          nextData['posts[' + index + '].isLiked'] = !!updatedPost.isLiked;
+          nextData['posts[' + index + '].likeCount'] = Math.max(0, Number(updatedPost.likeCount) || 0);
+          nextData['posts[' + index + '].commentCount'] = Math.max(0, Number(updatedPost.commentCount) || 0);
+          self.setData(nextData);
+        }
+      },
+      success: function (res) {
+        if (res.eventChannel && res.eventChannel.emit) {
+          res.eventChannel.emit('postData', { post: post });
+        }
+      }
+    });
+  },
+
+  onOpenUserProfile: function (e) {
+    var userId = e.currentTarget.dataset.userId;
+    if (!userId) {
+      wx.showToast({ title: '用户信息暂不可用', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({
+      url: '/pages/user-profile/user-profile?id=' + encodeURIComponent(userId)
+    });
+  },
+
   onMoreTap: function (e) {
     var postId = e.currentTarget.dataset.postId;
     var isAuthor = e.currentTarget.dataset.isAuthor;

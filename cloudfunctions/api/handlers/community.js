@@ -12,6 +12,7 @@ const COS_CONFIG = {
 };
 
 const MAX_CONTENT_LENGTH = 300;
+const MAX_COMMENT_LENGTH = 300;
 const MAX_IMAGES = 9;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -726,6 +727,7 @@ async function communityCreate(openid, data) {
         } : null,
         visibility: 'public',
         likeCount: 0,
+        commentCount: 0,
         reviewStatus: 'reviewing', // image posts always reviewing until image audit
         imageAuditStatus: 'pending',
         imageAuditTraceIds: [],
@@ -818,6 +820,7 @@ async function communityCreate(openid, data) {
       } : null,
       visibility: 'public',
       likeCount: 0,
+      commentCount: 0,
       reviewStatus: 'approved', // text-only posts are approved after msgSecCheck
       status: 'active',
       createdAt: now,
@@ -908,6 +911,145 @@ async function communityToggleLike(openid, data) {
   }
 }
 
+// ===================== community/commentList =====================
+
+async function communityCommentList(openid, data) {
+  try {
+    var postId = String(data && data.postId || '').trim();
+    if (!postId) return { success: false, error: '动态 ID 不能为空' };
+
+    var requestedPageSize = Number(data && data.pageSize) || 20;
+    var pageSize = Math.max(1, Math.min(requestedPageSize, 50));
+    var cursor = Number(data && data.cursor) || 0;
+    var cursorId = String(data && data.cursorId || '');
+
+    var postRes;
+    try { postRes = await db.collection('community_posts').doc(postId).get(); }
+    catch (postGetErr) { return { success: false, error: '动态不存在' }; }
+    var post = postRes && postRes.data;
+    if (!post || post.status !== 'active' || post.reviewStatus !== 'approved') {
+      return { success: false, error: '动态不存在或暂不可评论' };
+    }
+
+    var condition = {
+      postId: postId,
+      status: 'active'
+    };
+    if (cursor > 0) {
+      var cursorCondition = cursorId
+        ? _.or([
+          { createdAt: _.lt(cursor) },
+          { createdAt: _.eq(cursor), _id: _.lt(cursorId) }
+        ])
+        : { createdAt: _.lt(cursor) };
+      condition = _.and([condition, cursorCondition]);
+    }
+
+    var commentsRes = await db.collection('community_comments')
+      .where(condition)
+      .orderBy('createdAt', 'desc')
+      .orderBy('_id', 'desc')
+      .limit(pageSize + 1)
+      .get();
+    var comments = commentsRes.data || [];
+    var hasMore = comments.length > pageSize;
+    if (hasMore) comments = comments.slice(0, pageSize);
+    await resolveAvatarUrls(comments);
+
+    var last = comments.length > 0 ? comments[comments.length - 1] : null;
+    return {
+      success: true,
+      comments: comments,
+      hasMore: hasMore,
+      nextCursor: last ? last.createdAt : 0,
+      nextCursorId: last ? last._id : '',
+      commentCount: Math.max(0, Number(post.commentCount) || 0)
+    };
+  } catch (err) {
+    console.error('community/commentList failed:', err);
+    return { success: false, error: err.message || '评论加载失败，请重试' };
+  }
+}
+
+// ===================== community/commentCreate =====================
+
+async function communityCommentCreate(openid, data) {
+  try {
+    if (!openid) return { success: false, error: '请先登录' };
+    var postId = String(data && data.postId || '').trim();
+    var content = String(data && data.content || '').trim();
+    if (!postId) return { success: false, error: '动态 ID 不能为空' };
+    if (!content) return { success: false, error: '评论内容不能为空' };
+    if (content.length > MAX_COMMENT_LENGTH) {
+      return { success: false, error: '评论不能超过 300 字' };
+    }
+
+    var existingPostRes;
+    try { existingPostRes = await db.collection('community_posts').doc(postId).get(); }
+    catch (postGetErr) { return { success: false, error: '动态不存在' }; }
+    var existingPost = existingPostRes && existingPostRes.data;
+    if (!existingPost || existingPost.status !== 'active' ||
+      existingPost.reviewStatus !== 'approved') {
+      return { success: false, error: '动态不存在或暂不可评论' };
+    }
+
+    var secResult = await securityCheck(openid, content);
+    if (!secResult.ok) {
+      if (secResult.label === 'security_api_unavailable') {
+        return { success: false, error: '内容安全检测服务暂不可用，请稍后重试' };
+      }
+      return { success: false, error: '评论未通过安全检测，请修改后重试' };
+    }
+
+    var user = await getCurrentUser(openid);
+    var now = Date.now();
+    var commentData = {
+      postId: postId,
+      postAuthorId: existingPost.authorId,
+      authorId: openid,
+      authorName: user.nickname || '旅行者',
+      authorAvatar: user.avatar || '',
+      content: content,
+      likeCount: 0,
+      status: 'active',
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: 0
+    };
+
+    var result = await db.runTransaction(async function (transaction) {
+      var postDoc = transaction.collection('community_posts').doc(postId);
+      var postRes = await postDoc.get();
+      var post = postRes && postRes.data;
+      if (!post || post.status !== 'active' || post.reviewStatus !== 'approved') {
+        throw new Error('动态不存在或暂不可评论');
+      }
+
+      var addRes = await transaction.collection('community_comments').add({
+        data: commentData
+      });
+      var nextCount = Math.max(0, Number(post.commentCount) || 0) + 1;
+      await postDoc.update({
+        data: {
+          commentCount: nextCount,
+          updatedAt: now
+        }
+      });
+      return { commentId: addRes._id, commentCount: nextCount };
+    });
+
+    commentData._id = result.commentId;
+    return {
+      success: true,
+      comment: commentData,
+      commentCount: result.commentCount
+    };
+  } catch (err) {
+    console.error('community/commentCreate failed:', err);
+    return { success: false, error: err.message || '评论失败，请重试' };
+  }
+}
+
 // ===================== community/delete =====================
 
 async function communityDelete(openid, data) {
@@ -934,6 +1076,11 @@ async function communityDelete(openid, data) {
       // The post is already hidden, so a cleanup failure must not make deletion
       // look unsuccessful. Orphan likes can be removed by a maintenance task.
       console.error('删除社区点赞记录失败:', likeCleanupErr);
+    }
+    try {
+      await db.collection('community_comments').where({ postId: postId }).remove();
+    } catch (commentCleanupErr) {
+      console.error('删除社区评论记录失败:', commentCleanupErr);
     }
 
     // Delete COS objects immediately. A failed object is queued for retry.
@@ -998,5 +1145,7 @@ module.exports = {
   communityCreateUploadSession,
   communityCreate,
   communityToggleLike,
+  communityCommentList,
+  communityCommentCreate,
   communityDelete
 };

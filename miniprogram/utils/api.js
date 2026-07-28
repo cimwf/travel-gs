@@ -421,6 +421,20 @@ function communityToggleLike(postId) {
 }
 
 /**
+ * 分页获取社区动态评论
+ */
+function communityCommentList(data) {
+  return callApi('community/commentList', data || {});
+}
+
+/**
+ * 发布社区动态评论
+ */
+function communityCommentCreate(postId, content) {
+  return callApi('community/commentCreate', { postId, content });
+}
+
+/**
  * 删除社区动态
  */
 function communityDelete(postId) {
@@ -506,5 +520,7 @@ module.exports = {
   communityCreateUploadSession,
   communityCreate,
   communityToggleLike,
+  communityCommentList,
+  communityCommentCreate,
   communityDelete
 };

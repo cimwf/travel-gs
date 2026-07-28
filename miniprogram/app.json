@@ -2,6 +2,7 @@
   "pages": [
     "pages/trip-list/trip-list",
     "pages/community/community",
+    "pages/community-detail/community-detail",
     "pages/community-publish/community-publish",
     "pages/community-mine/community-mine",
     "pages/auth/auth",

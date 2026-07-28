@@ -71,6 +71,7 @@ https://imagica-images-1436573577.cos.ap-beijing.myqcloud.com
 ```text
 community_posts
 community_likes
+community_comments
 community_image_audits
 community_upload_drafts
 community_cleanup_tasks
@@ -87,6 +88,10 @@ community_posts:
 community_likes:
   postId + createdAt
   userId + createdAt
+
+community_comments:
+  postId + status + createdAt + _id
+  authorId + status + createdAt
 
 community_image_audits:
   postId
@@ -112,6 +117,15 @@ community_cleanup_tasks:
 5. `community_likes` 保存 `userId`、`userName`、`userAvatar` 和 `createdAt`，可供
    后续点赞列表使用。
 6. 审核中、人工审核、审核不通过或已删除的作品不能点赞。
+
+### 评论验证
+
+1. 点击动态正文、图片或评论图标进入详情页。
+2. 无评论时展示“来聊聊这个话题吧～”。
+3. 输入纯文本并使用键盘发送，评论立即出现在列表顶部，输入框清空。
+4. 社区列表和详情页评论数同步增加，重新进入后数量保持一致。
+5. `community_comments` 保存评论者 ID、昵称、头像、正文和创建时间。
+6. 违规文本不写入数据库；审核中、人工审核、审核不通过或已删除作品不能评论。
 
 ## 6. 本地自动化
 

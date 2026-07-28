@@ -52,6 +52,7 @@ COMMUNITY_COS_PREFIX=miniapp/community/
 ```text
 community_posts
 community_likes
+community_comments
 community_image_audits
 community_upload_drafts
 community_cleanup_tasks
@@ -69,6 +70,10 @@ community_likes:
   postId + createdAt(desc)
   userId + createdAt(desc)
 
+community_comments:
+  postId + status + createdAt(desc) + _id(desc)
+  authorId + status + createdAt(desc)
+
 community_image_audits:
   postId
   expiresAt
@@ -85,6 +90,7 @@ community_cleanup_tasks:
 - [ ] 用真实分页数据验证复合索引字段顺序与排序方向，不能只验证空集合。
 - [ ] 确认唯一索引不会被历史脏数据阻止创建。
 - [ ] 验证同一用户连续点赞/取消点赞不会产生重复记录或负数计数。
+- [ ] 验证评论通过 `msgSecCheck` 后写入，违规评论被阻止，评论数与列表一致。
 
 ## 4. P0：图片审核消息推送
 
