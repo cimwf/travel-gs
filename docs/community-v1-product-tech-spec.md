@@ -1,7 +1,7 @@
 # 社区 V1 产品与技术方案
 
 > 状态：V1 已实现并完成首轮联调；正式上线仍需执行上线清单
-> 日期：2026-07-27
+> 日期：2026-07-28
 > 适用范围：微信小程序新增「社区」Tab，不改动现有行程日志和云存储链路
 > 上线检查：见 `docs/community-v1-release-checklist.md`
 
@@ -12,7 +12,8 @@
 1. 用户可以浏览其他用户公开发布的旅行动态。
 2. 登录用户可以发布文字、图片和可选定位。
 
-第一版不做点赞、评论、关注、转发、话题、推荐算法和私密可见范围，避免出现只有界面但没有完整闭环的功能。
+社区基础发布与审核完成后，V1.1 增加社区信息流点赞；评论、关注、转发、话题、
+推荐算法和私密可见范围仍不在当前范围。
 
 ## 2. 已确定的产品规则
 
@@ -46,7 +47,8 @@
 - 右上角更多菜单第一版只提供：
   - 作者本人：删除动态。
   - 其他用户：举报入口预留，正式上线前接入。
-- 第一版不显示点赞和评论按钮。
+- 卡片右下角展示点赞按钮、点赞数和当前用户是否已点赞。
+- 点赞右侧展示评论视觉入口；当前只完成 UI，不绑定点击事件、不调用接口。
 
 ### 2.3 发布动态
 
@@ -68,6 +70,23 @@
 - 随后立即尝试物理删除 COS 图片。
 - 删除失败的对象写入 `community_cleanup_tasks`，等待重试或人工处理。
 - 当前没有 7 天恢复期，用户确认删除后不可恢复。
+
+### 2.5 点赞
+
+- 未登录用户可以浏览点赞数，点击点赞时进入登录流程。
+- 登录用户可点赞和取消点赞；同一用户对同一作品最多保留一条点赞记录。
+- 点赞记录保存用户 ID、昵称、头像和点赞时间，作为后续点赞列表的数据基础。
+- 昵称和头像保存点赞时快照；未来点赞列表如要求资料实时更新，再关联用户表刷新。
+- 点赞记录和作品 `likeCount` 在同一事务中更新。
+- 只允许点赞 `active + approved` 的公开作品。
+- 删除作品时同时清理其点赞记录。
+
+### 2.6 评论入口
+
+- 与点赞一起放在动态卡片右下角。
+- 当前只展示三点气泡图标和评论数量占位（默认 `0`），不实现点击、评论列表、
+  发布或存储逻辑。
+- 后续开始评论功能时，再单独定义内容安全、删除、举报和分页规则。
 
 ## 3. 已选视觉方向
 
@@ -250,6 +269,7 @@ Key，Action 只开放 `name/cos:PutObject`，并限制上传大小和图片 Con
 | `community/my` | 获取本人所有未删除作品，并触发超时审核补偿 |
 | `community/createUploadSession` | 创建草稿并签发最小权限 STS 临时凭证 |
 | `community/create` | 验证上传结果并创建动态 |
+| `community/toggleLike` | 点赞或取消点赞，返回最终点赞状态和数量 |
 | `community/delete` | 作者删除自己的动态 |
 
 ### 6.1 `community/list`
@@ -276,7 +296,24 @@ Key，Action 只开放 `name/cos:PutObject`，并限制上传大小和图片 Con
 
 使用 `createdAt + _id` 作为稳定分页依据，避免新动态插入后造成重复或漏项。实现时以游标分页为准，不使用深度 `skip` 分页。
 
-### 6.2 `community/create`
+### 6.2 `community/toggleLike`
+
+请求：
+
+```js
+{ postId: "post_xxx" }
+```
+
+响应：
+
+```js
+{ success: true, liked: true, likeCount: 12 }
+```
+
+客户端可以先做乐观更新，但必须以接口返回的 `liked` 和 `likeCount` 为准；请求
+失败时回滚界面。
+
+### 6.3 `community/create`
 
 请求：
 
@@ -334,6 +371,7 @@ Key，Action 只开放 `name/cos:PutObject`，并限制上传大小和图片 Con
     longitude: 116.10
   },
   visibility: "public",
+  likeCount: 12,
   reviewStatus: "approved",
   imageAuditStatus: "approved",
   imageAuditTraceIds: [],
@@ -355,7 +393,32 @@ authorId + status + createdAt + _id
 draftId（唯一）
 ```
 
-### 7.2 `community_upload_drafts`
+### 7.2 `community_likes`
+
+```js
+{
+  _id: "服务端确定性哈希",
+  postId: "post_xxx",
+  postAuthorId: "openid_author",
+  userId: "openid_liker",
+  userName: "旅行者",
+  userAvatar: "https://...",
+  createdAt: 1785149400000,
+  updatedAt: 1785149400000
+}
+```
+
+索引：
+
+```text
+postId + createdAt
+userId + createdAt
+```
+
+确定性 `_id` 由 `postId + openid` 在服务端计算，防止重复点赞，并为未来点赞列表
+保留用户资料快照。
+
+### 7.3 `community_upload_drafts`
 
 ```js
 {
@@ -456,9 +519,8 @@ COMMUNITY_COS_PREFIX=miniapp/community/
 - 不迁移任何历史图片。
 - 不修改现有云开发环境 ID。
 
-### 11.2 V1 不做
+### 11.2 当前不做
 
-- 点赞。
 - 评论。
 - 关注。
 - 分享和转发。

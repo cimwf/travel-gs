@@ -231,6 +231,7 @@ const communityPostSchema = {
     longitude: 116.10
   },
   visibility: "public",            // V1固定为public
+  likeCount: 12,                   // 点赞数，和 community_likes 保持一致
   reviewStatus: "approved",        // approved/reviewing/manual_review/rejected
   imageAuditStatus: "approved",    // pending/reviewing/manual_review/approved/rejected
   imageAuditTraceIds: ["trace_xxx"], // 微信 mediaCheckAsync 任务ID
@@ -244,7 +245,19 @@ const communityPostSchema = {
   deletedAt: 0
 };
 
-// 10. community_image_audits - 社区图片异步审核映射表
+// 10. community_likes - 社区点赞记录表
+const communityLikeSchema = {
+  _id: "sha256(postId + openid)",  // 服务端生成的确定性ID，防止重复点赞
+  postId: "post_xxx",
+  postAuthorId: "openid_author",
+  userId: "openid_liker",
+  userName: "旅行者",               // 点赞时的昵称快照，供后续点赞列表使用
+  userAvatar: "https://...",       // 点赞时的头像快照
+  createdAt: 1785149400000,
+  updatedAt: 1785149400000
+};
+
+// 11. community_image_audits - 社区图片异步审核映射表
 const communityImageAuditSchema = {
   _id: "trace_xxx",                // 微信 mediaCheckAsync traceId
   traceId: "trace_xxx",
@@ -261,7 +274,7 @@ const communityImageAuditSchema = {
   expiresAt: 1711728000000
 };
 
-// 11. community_upload_drafts - 社区上传草稿表
+// 12. community_upload_drafts - 社区上传草稿表
 const communityDraftSchema = {
   _id: "post_draft_8f31",
   ownerId: "openid_xxx",
@@ -280,7 +293,7 @@ const communityDraftSchema = {
   completedAt: 0
 };
 
-// 12. community_cleanup_tasks - COS清理任务表
+// 13. community_cleanup_tasks - COS清理任务表
 const communityCleanupTaskSchema = {
   _id: "cleanup_xxx",
   postId: "post_xxx",
@@ -342,6 +355,10 @@ community_posts:
   - status + reviewStatus + createdAt + _id（复合索引，用于公共列表稳定游标查询）
   - authorId + status + createdAt + _id（复合索引，用于“我的作品”列表）
   - draftId（唯一索引，防止重复发布）
+
+community_likes:
+  - postId + createdAt（复合索引，供后续点赞列表分页）
+  - userId + createdAt（复合索引，供用户点赞记录查询）
 
 community_image_audits:
   - postId

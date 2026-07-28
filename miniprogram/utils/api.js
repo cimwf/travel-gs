@@ -414,6 +414,13 @@ function communityCreate(data) {
 }
 
 /**
+ * 点赞或取消点赞社区动态
+ */
+function communityToggleLike(postId) {
+  return callApi('community/toggleLike', { postId });
+}
+
+/**
  * 删除社区动态
  */
 function communityDelete(postId) {
@@ -498,5 +505,6 @@ module.exports = {
   communityMy,
   communityCreateUploadSession,
   communityCreate,
+  communityToggleLike,
   communityDelete
 };

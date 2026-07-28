@@ -73,7 +73,7 @@ run('Page files exist', function () {
 // ---- 3: API registration ----
 run('API functions registered', function () {
   var s = readText('miniprogram/utils/api.js');
-  ['communityList','communityMy','communityCreateUploadSession','communityCreate','communityDelete'].forEach(function (fn) {
+  ['communityList','communityMy','communityCreateUploadSession','communityCreate','communityToggleLike','communityDelete'].forEach(function (fn) {
     ok(s.indexOf(fn) !== -1, fn + ' in api.js');
   });
 });
@@ -85,6 +85,7 @@ run('Cloud handler has community exports + COS check + security', function () {
   ok(s.indexOf('async function communityMy') !== -1, 'communityMy defined');
   ok(s.indexOf('async function communityCreateUploadSession') !== -1, 'createUploadSession defined');
   ok(s.indexOf('async function communityCreate') !== -1, 'communityCreate defined');
+  ok(s.indexOf('async function communityToggleLike') !== -1, 'communityToggleLike defined');
   ok(s.indexOf('async function communityDelete') !== -1, 'communityDelete defined');
   ok(s.indexOf('isCosConfigured') !== -1, 'COS config check');
   ok(s.indexOf('msgSecCheck') !== -1, 'content security check');
@@ -95,9 +96,29 @@ run('Cloud handler has community exports + COS check + security', function () {
 run('Cloud function routing', function () {
   var s = readText('cloudfunctions/api/index.js');
   ok(s.indexOf("require('./handlers/community')") !== -1, 'import');
-  ['community/list','community/my','community/createUploadSession','community/create','community/delete'].forEach(function (r) {
+  ['community/list','community/my','community/createUploadSession','community/create','community/toggleLike','community/delete'].forEach(function (r) {
     ok(s.indexOf(r) !== -1, 'route: ' + r);
   });
+});
+
+run('Community likes: future-ready snapshots + feed interaction', function () {
+  var handler = readText('cloudfunctions/api/handlers/community.js');
+  var pageJs = readText('miniprogram/pages/community/community.js');
+  var pageWxml = readText('miniprogram/pages/community/community.wxml');
+  var schema = readText('database/schema.js');
+  ok(handler.indexOf("collection('community_likes')") !== -1, 'likes collection used');
+  ok(handler.indexOf('userName: user.nickname') !== -1, 'stores liker nickname snapshot');
+  ok(handler.indexOf('userAvatar: user.avatar') !== -1, 'stores liker avatar snapshot');
+  ok(handler.indexOf('getCommunityLikeId') !== -1, 'deterministic like id prevents duplicates');
+  ok(handler.indexOf('likeCount: nextCount') !== -1, 'post count updated');
+  ok(pageJs.indexOf('onLikeTap') !== -1, 'feed like interaction');
+  ok(pageWxml.indexOf('icon-like-heart-active.svg') !== -1, 'active like icon rendered');
+  ok(pageWxml.indexOf('icon-like-heart-gray.svg') !== -1, 'inactive like icon rendered');
+  ok(pageWxml.indexOf('icon-comment-gray.svg') !== -1, 'comment icon rendered');
+  ok(pageWxml.indexOf('class="comment-btn"') !== -1, 'comment UI rendered');
+  ok(pageWxml.indexOf('bindtap="onComment') === -1, 'comment has no interaction yet');
+  ok(readText('miniprogram/pages/community/community.wxss').indexOf('justify-content: flex-end') !== -1, 'actions align right');
+  ok(schema.indexOf('communityLikeSchema') !== -1, 'like schema documented');
 });
 
 // ---- 6: content validation ----

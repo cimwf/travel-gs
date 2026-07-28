@@ -50,6 +50,14 @@ page { background: #fff; }
 .loc-icon { width: 28rpx; height: 28rpx; }
 .loc-name { font-size: 24rpx; color: var(--hint); }
 
+/* interactions */
+.post-actions { display: flex; align-items: center; justify-content: flex-end; gap: 34rpx; min-height: 58rpx; padding-top: 2rpx; }
+.like-btn, .comment-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10rpx; min-width: 80rpx; height: 58rpx; color: #8390A6; }
+.like-btn:active { opacity: .65; }
+.like-btn.is-liked { color: var(--primary); }
+.action-icon { width: 40rpx; height: 40rpx; flex-shrink: 0; }
+.action-count { font-size: 26rpx; line-height: 1; font-weight: 400; color: currentColor; }
+
 /* load more */
 .load-more, .no-more { text-align: center; padding: 32rpx; color: var(--hint); font-size: 24rpx; }
 

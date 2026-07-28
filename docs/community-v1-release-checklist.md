@@ -51,6 +51,7 @@ COMMUNITY_COS_PREFIX=miniapp/community/
 
 ```text
 community_posts
+community_likes
 community_image_audits
 community_upload_drafts
 community_cleanup_tasks
@@ -63,6 +64,10 @@ community_posts:
   status + reviewStatus + createdAt(desc) + _id(desc)
   authorId + status + createdAt(desc) + _id(desc)
   draftId（唯一）
+
+community_likes:
+  postId + createdAt(desc)
+  userId + createdAt(desc)
 
 community_image_audits:
   postId
@@ -79,6 +84,7 @@ community_cleanup_tasks:
 - [ ] 数据库权限设为客户端不可直接读写；社区数据统一经云函数访问。
 - [ ] 用真实分页数据验证复合索引字段顺序与排序方向，不能只验证空集合。
 - [ ] 确认唯一索引不会被历史脏数据阻止创建。
+- [ ] 验证同一用户连续点赞/取消点赞不会产生重复记录或负数计数。
 
 ## 4. P0：图片审核消息推送
 
@@ -162,6 +168,7 @@ https://imagica-images-1436573577.cos.ap-beijing.myqcloud.com
 - [ ] 验证四种本人可见状态：已发布、审核中、人工审核、审核未通过。
 - [ ] 验证公共社区只展示 `approved + active`。
 - [ ] 验证头像、昵称、定位、分页和删除后的列表状态。
+- [ ] 验证未登录点击点赞进入登录；登录后点赞状态和数量刷新后保持一致。
 - [ ] 清理测试动态、测试 COS 对象和无用消息推送规则。
 - [ ] 检查上传包中没有 SecretId、SecretKey、测试账号或调试日志中的敏感信息。
 - [ ] 根据是否需要排障决定是否保留 source map；`project.config.json` 当前为

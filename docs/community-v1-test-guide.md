@@ -70,6 +70,7 @@ https://imagica-images-1436573577.cos.ap-beijing.myqcloud.com
 
 ```text
 community_posts
+community_likes
 community_image_audits
 community_upload_drafts
 community_cleanup_tasks
@@ -82,6 +83,10 @@ community_posts:
   status + reviewStatus + createdAt + _id
   authorId + status + createdAt + _id
   draftId（唯一）
+
+community_likes:
+  postId + createdAt
+  userId + createdAt
 
 community_image_audits:
   postId
@@ -97,6 +102,16 @@ community_cleanup_tasks:
 
 若列表接口提示“缺少索引”，以云开发控制台错误中给出的字段顺序为准创建索引，
 然后重新测试翻页。
+
+### 点赞验证
+
+1. 未登录浏览社区时能够看到点赞数，点击点赞进入登录流程。
+2. 登录后点赞，按钮立即变为已点赞，刷新页面后状态和数量保持一致。
+3. 再次点击取消点赞，数量不会小于 0。
+4. 同一用户快速重复点击不会产生多条点赞记录。
+5. `community_likes` 保存 `userId`、`userName`、`userAvatar` 和 `createdAt`，可供
+   后续点赞列表使用。
+6. 审核中、人工审核、审核不通过或已删除的作品不能点赞。
 
 ## 6. 本地自动化
 

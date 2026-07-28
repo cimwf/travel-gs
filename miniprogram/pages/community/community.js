@@ -58,6 +58,8 @@ Page({
       imageLayout: layout,
       imageUrls: urls,
       hasLocation: !!(post.location && post.location.name),
+      likeCount: Math.max(0, Number(post.likeCount) || 0),
+      isLiked: !!post.isLiked,
       isReviewing: !!post._reviewing
     });
   },
@@ -93,6 +95,58 @@ Page({
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
     if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return;
     wx.openLocation({ latitude: lat, longitude: lng, name: e.currentTarget.dataset.name || '', address: e.currentTarget.dataset.address || '', scale: 16 });
+  },
+
+  onLikeTap: function (e) {
+    if (!auth.ensureLogin()) {
+      auth.saveDeepLink('/pages/community/community');
+      return;
+    }
+
+    var postId = e.currentTarget.dataset.postId;
+    if (!postId) return;
+    this._likingPosts = this._likingPosts || {};
+    if (this._likingPosts[postId]) return;
+
+    var index = this.data.posts.findIndex(function (post) {
+      return post._id === postId;
+    });
+    if (index < 0) return;
+
+    var previousLiked = !!this.data.posts[index].isLiked;
+    var previousCount = Math.max(0, Number(this.data.posts[index].likeCount) || 0);
+    var optimisticLiked = !previousLiked;
+    var optimisticCount = Math.max(0, previousCount + (optimisticLiked ? 1 : -1));
+    var optimisticData = {};
+    optimisticData['posts[' + index + '].isLiked'] = optimisticLiked;
+    optimisticData['posts[' + index + '].likeCount'] = optimisticCount;
+    this.setData(optimisticData);
+    this._likingPosts[postId] = true;
+
+    var self = this;
+    api.communityToggleLike(postId).then(function (res) {
+      var currentIndex = self.data.posts.findIndex(function (post) {
+        return post._id === postId;
+      });
+      if (currentIndex < 0) return;
+      var confirmedData = {};
+      confirmedData['posts[' + currentIndex + '].isLiked'] = !!res.liked;
+      confirmedData['posts[' + currentIndex + '].likeCount'] = Math.max(0, Number(res.likeCount) || 0);
+      self.setData(confirmedData);
+    }).catch(function (err) {
+      var currentIndex = self.data.posts.findIndex(function (post) {
+        return post._id === postId;
+      });
+      if (currentIndex >= 0) {
+        var rollbackData = {};
+        rollbackData['posts[' + currentIndex + '].isLiked'] = previousLiked;
+        rollbackData['posts[' + currentIndex + '].likeCount'] = previousCount;
+        self.setData(rollbackData);
+      }
+      wx.showToast({ title: err.message || '点赞失败，请重试', icon: 'none' });
+    }).then(function () {
+      delete self._likingPosts[postId];
+    });
   },
 
   onMoreTap: function (e) {

@@ -64,6 +64,21 @@
           <image class="loc-icon" src="/images/icon-location-blue.png" mode="aspectFit"></image>
           <text class="loc-name">{{item.location.name}}</text>
         </view>
+
+        <!-- Interactions -->
+        <view class="post-actions">
+          <view class="like-btn {{item.isLiked ? 'is-liked' : ''}}"
+            catchtap="onLikeTap" data-post-id="{{item._id}}">
+            <image class="action-icon"
+              src="{{item.isLiked ? '/images/icon-like-heart-active.svg' : '/images/icon-like-heart-gray.svg'}}"
+              mode="aspectFit"></image>
+            <text class="action-count">{{item.likeCount || 0}}</text>
+          </view>
+          <view class="comment-btn">
+            <image class="action-icon" src="/images/icon-comment-gray.svg" mode="aspectFit"></image>
+            <text class="action-count">{{item.commentCount || 0}}</text>
+          </view>
+        </view>
       </view>
     </view>
 

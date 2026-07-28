@@ -1,4 +1,5 @@
 const { db, _, cloud } = require('../utils/shared');
+const nodeCrypto = require('crypto');
 
 // COS configuration from environment variables
 const COS_CONFIG = {
@@ -50,6 +51,23 @@ function generateUuid() {
     u += h[Math.floor(Math.random() * 16)];
   }
   return u;
+}
+
+function getCommunityLikeId(postId, openid) {
+  return nodeCrypto.createHash('sha256')
+    .update(String(postId) + '\n' + String(openid))
+    .digest('hex')
+    .slice(0, 32);
+}
+
+function isDocumentNotFoundError(error) {
+  var code = error && (error.errCode || error.code);
+  var message = String(error && (error.message || error.errMsg) || '').toLowerCase();
+  return code === -502002 ||
+    code === 'DATABASE_DOCUMENT_NOT_EXIST' ||
+    message.indexOf('not exist') !== -1 ||
+    message.indexOf('not found') !== -1 ||
+    message.indexOf('不存在') !== -1;
 }
 
 function isValidLocation(loc) {
@@ -328,7 +346,29 @@ async function communityList(openid, data) {
 
     posts.forEach(function (p) {
       p.isAuthor = !!(openid && p.authorId === openid);
+      p.likeCount = Math.max(0, Number(p.likeCount) || 0);
+      p.isLiked = false;
     });
+
+    if (openid && posts.length > 0) {
+      try {
+        var postIds = posts.map(function (post) { return post._id; });
+        var likesRes = await db.collection('community_likes').where({
+          userId: openid,
+          postId: _.in(postIds)
+        }).get();
+        var likedPostIds = {};
+        (likesRes.data || []).forEach(function (like) {
+          likedPostIds[like.postId] = true;
+        });
+        posts.forEach(function (post) {
+          post.isLiked = !!likedPostIds[post._id];
+        });
+      } catch (likeQueryErr) {
+        // Keep the public feed available if the likes collection is not ready yet.
+        console.warn('查询社区点赞状态失败:', likeQueryErr.message || likeQueryErr);
+      }
+    }
 
     await resolveAvatarUrls(posts);
 
@@ -685,6 +725,7 @@ async function communityCreate(openid, data) {
           latitude: location.latitude, longitude: location.longitude
         } : null,
         visibility: 'public',
+        likeCount: 0,
         reviewStatus: 'reviewing', // image posts always reviewing until image audit
         imageAuditStatus: 'pending',
         imageAuditTraceIds: [],
@@ -776,6 +817,7 @@ async function communityCreate(openid, data) {
         latitude: location.latitude, longitude: location.longitude
       } : null,
       visibility: 'public',
+      likeCount: 0,
       reviewStatus: 'approved', // text-only posts are approved after msgSecCheck
       status: 'active',
       createdAt: now,
@@ -790,6 +832,79 @@ async function communityCreate(openid, data) {
   } catch (err) {
     console.error('community/create failed:', err);
     return { success: false, error: err.message || '发布动态失败' };
+  }
+}
+
+// ===================== community/toggleLike =====================
+
+async function communityToggleLike(openid, data) {
+  try {
+    if (!openid) return { success: false, error: '请先登录' };
+    var postId = String(data && data.postId || '').trim();
+    if (!postId) return { success: false, error: '动态 ID 不能为空' };
+
+    // Read the current profile before the transaction so a future likes list can
+    // render without joining the users collection for every row.
+    var user = await getCurrentUser(openid);
+    var likeId = getCommunityLikeId(postId, openid);
+    var result = await db.runTransaction(async function (transaction) {
+      var postDoc = transaction.collection('community_posts').doc(postId);
+      var postRes = await postDoc.get();
+      var post = postRes && postRes.data;
+      if (!post || post.status !== 'active' || post.reviewStatus !== 'approved') {
+        throw new Error('动态不存在或暂不可点赞');
+      }
+
+      var likeDoc = transaction.collection('community_likes').doc(likeId);
+      var like = null;
+      try {
+        var likeRes = await likeDoc.get();
+        like = likeRes && likeRes.data;
+      } catch (likeGetErr) {
+        if (!isDocumentNotFoundError(likeGetErr)) throw likeGetErr;
+      }
+
+      var currentCount = Math.max(0, Number(post.likeCount) || 0);
+      var now = Date.now();
+      var liked;
+      var nextCount;
+      if (like) {
+        await likeDoc.remove();
+        liked = false;
+        nextCount = Math.max(0, currentCount - 1);
+      } else {
+        await likeDoc.set({
+          data: {
+            postId: postId,
+            postAuthorId: post.authorId,
+            userId: openid,
+            userName: user.nickname || '旅行者',
+            userAvatar: user.avatar || '',
+            createdAt: now,
+            updatedAt: now
+          }
+        });
+        liked = true;
+        nextCount = currentCount + 1;
+      }
+
+      await postDoc.update({
+        data: {
+          likeCount: nextCount,
+          updatedAt: now
+        }
+      });
+      return { liked: liked, likeCount: nextCount };
+    });
+
+    return {
+      success: true,
+      liked: result.liked,
+      likeCount: result.likeCount
+    };
+  } catch (err) {
+    console.error('community/toggleLike failed:', err);
+    return { success: false, error: err.message || '点赞失败，请重试' };
   }
 }
 
@@ -812,6 +927,14 @@ async function communityDelete(openid, data) {
     await db.collection('community_posts').doc(postId).update({
       data: { status: 'deleted', deletedAt: Date.now(), updatedAt: Date.now() }
     });
+
+    try {
+      await db.collection('community_likes').where({ postId: postId }).remove();
+    } catch (likeCleanupErr) {
+      // The post is already hidden, so a cleanup failure must not make deletion
+      // look unsuccessful. Orphan likes can be removed by a maintenance task.
+      console.error('删除社区点赞记录失败:', likeCleanupErr);
+    }
 
     // Delete COS objects immediately. A failed object is queued for retry.
     if (post.images && post.images.length > 0) {
@@ -874,5 +997,6 @@ module.exports = {
   communityMy,
   communityCreateUploadSession,
   communityCreate,
+  communityToggleLike,
   communityDelete
 };
