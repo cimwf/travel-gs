@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "点赞列表",
+  "navigationBarBackgroundColor": "#ffffff",
+  "navigationBarTextStyle": "black",
+  "enablePullDownRefresh": true
+}

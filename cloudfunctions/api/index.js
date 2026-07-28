@@ -164,6 +164,8 @@ exports.main = async (event, context) => {
         return await community.communityCreate(openid, data);
       case 'community/toggleLike':
         return await community.communityToggleLike(openid, data);
+      case 'community/likeList':
+        return await community.communityLikeList(openid, data);
       case 'community/commentList':
         return await community.communityCommentList(openid, data);
       case 'community/commentCreate':

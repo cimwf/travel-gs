@@ -254,7 +254,7 @@ const communityLikeSchema = {
   postId: "post_xxx",
   postAuthorId: "openid_author",
   userId: "openid_liker",
-  userName: "旅行者",               // 点赞时的昵称快照，供后续点赞列表使用
+  userName: "旅行者",               // 点赞时的昵称快照，供点赞列表展示
   userAvatar: "https://...",       // 点赞时的头像快照
   createdAt: 1785149400000,
   updatedAt: 1785149400000
@@ -376,7 +376,7 @@ community_posts:
   - draftId（唯一索引，防止重复发布）
 
 community_likes:
-  - postId + createdAt（复合索引，供后续点赞列表分页）
+  - postId + createdAt + _id（复合索引，供点赞列表稳定分页）
   - userId + createdAt（复合索引，供用户点赞记录查询）
 
 community_comments:

@@ -421,6 +421,13 @@ function communityToggleLike(postId) {
 }
 
 /**
+ * 分页获取社区动态的点赞用户
+ */
+function communityLikeList(data) {
+  return callApi('community/likeList', data || {});
+}
+
+/**
  * 分页获取社区动态评论
  */
 function communityCommentList(data) {
@@ -520,6 +527,7 @@ module.exports = {
   communityCreateUploadSession,
   communityCreate,
   communityToggleLike,
+  communityLikeList,
   communityCommentList,
   communityCommentCreate,
   communityDelete

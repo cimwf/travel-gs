@@ -86,7 +86,7 @@ community_posts:
   draftId（唯一）
 
 community_likes:
-  postId + createdAt
+  postId + createdAt + _id
   userId + createdAt
 
 community_comments:
@@ -114,9 +114,10 @@ community_cleanup_tasks:
 2. 登录后点赞，按钮立即变为已点赞，刷新页面后状态和数量保持一致。
 3. 再次点击取消点赞，数量不会小于 0。
 4. 同一用户快速重复点击不会产生多条点赞记录。
-5. `community_likes` 保存 `userId`、`userName`、`userAvatar` 和 `createdAt`，可供
-   后续点赞列表使用。
+5. `community_likes` 保存 `userId`、`userName`、`userAvatar` 和 `createdAt`；
+   详情页展示真实点赞头像，点击“查看全部”可稳定分页。
 6. 审核中、人工审核、审核不通过或已删除的作品不能点赞。
+7. 点赞列表中的用户可以进入对应个人主页。
 
 ### 评论验证
 

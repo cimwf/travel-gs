@@ -19,9 +19,11 @@
 
 ### 2.1 页面
 
-新增三个页面：
+社区当前包含五个页面：
 
 - `pages/community/community`：社区信息流。
+- `pages/community-detail/community-detail`：动态详情、点赞预览和评论列表。
+- `pages/community-likes/community-likes`：完整点赞用户列表。
 - `pages/community-publish/community-publish`：发布社区动态。
 - `pages/community-mine/community-mine`：我的作品，展示本人所有未删除作品及审核状态。
 
@@ -75,10 +77,12 @@
 
 - 未登录用户可以浏览点赞数，点击点赞时进入登录流程。
 - 登录用户可点赞和取消点赞；同一用户对同一作品最多保留一条点赞记录。
-- 点赞记录保存用户 ID、昵称、头像和点赞时间，作为后续点赞列表的数据基础。
-- 昵称和头像保存点赞时快照；未来点赞列表如要求资料实时更新，再关联用户表刷新。
+- 点赞记录保存用户 ID、昵称、头像和点赞时间，供详情页预览和完整点赞列表展示。
+- 昵称和头像保存点赞时快照；如后续要求资料实时更新，再关联用户表刷新。
 - 点赞记录和作品 `likeCount` 在同一事务中更新。
 - 只允许点赞 `active + approved` 的公开作品。
+- 详情页加载前 12 位点赞用户；点击“查看全部”进入稳定分页的完整列表。
+- 点赞列表中的头像和用户行可以进入现有个人主页。
 - 删除作品时同时清理其点赞记录。
 
 ### 2.6 评论入口
@@ -413,12 +417,12 @@ draftId（唯一）
 索引：
 
 ```text
-postId + createdAt
+postId + createdAt + _id
 userId + createdAt
 ```
 
-确定性 `_id` 由 `postId + openid` 在服务端计算，防止重复点赞，并为未来点赞列表
-保留用户资料快照。
+确定性 `_id` 由 `postId + openid` 在服务端计算，防止重复点赞；点赞列表直接
+使用记录中的昵称与头像快照。
 
 ### 7.3 `community_upload_drafts`
 

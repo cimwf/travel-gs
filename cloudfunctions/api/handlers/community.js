@@ -87,10 +87,11 @@ async function getCurrentUser(openid) {
   return res.data[0];
 }
 
-async function resolveAvatarUrls(posts) {
+async function resolveAvatarUrls(posts, avatarField) {
+  avatarField = avatarField || 'authorAvatar';
   var ids = [];
   posts.forEach(function (p) {
-    if (p.authorAvatar && p.authorAvatar.startsWith('cloud://')) ids.push(p.authorAvatar);
+    if (p[avatarField] && p[avatarField].startsWith('cloud://')) ids.push(p[avatarField]);
   });
   if (ids.length === 0) return;
   try {
@@ -98,7 +99,7 @@ async function resolveAvatarUrls(posts) {
     var map = {};
     (urlRes.fileList || []).forEach(function (f) { if (f.tempFileURL) map[f.fileID] = f.tempFileURL; });
     posts.forEach(function (p) {
-      if (p.authorAvatar && map[p.authorAvatar]) p.authorAvatar = map[p.authorAvatar];
+      if (p[avatarField] && map[p[avatarField]]) p[avatarField] = map[p[avatarField]];
     });
   } catch (e) { /* ignore */ }
 }
@@ -911,6 +912,71 @@ async function communityToggleLike(openid, data) {
   }
 }
 
+// ===================== community/likeList =====================
+
+async function communityLikeList(openid, data) {
+  try {
+    var postId = String(data && data.postId || '').trim();
+    if (!postId) return { success: false, error: '动态 ID 不能为空' };
+
+    var requestedPageSize = Number(data && data.pageSize) || 20;
+    var pageSize = Math.max(1, Math.min(requestedPageSize, 50));
+    var cursor = Number(data && data.cursor) || 0;
+    var cursorId = String(data && data.cursorId || '');
+
+    var postRes;
+    try { postRes = await db.collection('community_posts').doc(postId).get(); }
+    catch (postGetErr) { return { success: false, error: '动态不存在' }; }
+    var post = postRes && postRes.data;
+    if (!post || post.status !== 'active' || post.reviewStatus !== 'approved') {
+      return { success: false, error: '动态不存在或暂不可查看点赞' };
+    }
+
+    var condition = { postId: postId };
+    if (cursor > 0) {
+      var cursorCondition = cursorId
+        ? _.or([
+          { createdAt: _.lt(cursor) },
+          { createdAt: _.eq(cursor), _id: _.lt(cursorId) }
+        ])
+        : { createdAt: _.lt(cursor) };
+      condition = _.and([condition, cursorCondition]);
+    }
+
+    var likesRes = await db.collection('community_likes')
+      .where(condition)
+      .orderBy('createdAt', 'desc')
+      .orderBy('_id', 'desc')
+      .limit(pageSize + 1)
+      .get();
+    var likes = likesRes.data || [];
+    var hasMore = likes.length > pageSize;
+    if (hasMore) likes = likes.slice(0, pageSize);
+    await resolveAvatarUrls(likes, 'userAvatar');
+
+    var last = likes.length > 0 ? likes[likes.length - 1] : null;
+    return {
+      success: true,
+      likes: likes.map(function (like) {
+        return {
+          _id: like._id,
+          userId: like.userId,
+          userName: like.userName || '旅行者',
+          userAvatar: like.userAvatar || '',
+          createdAt: like.createdAt
+        };
+      }),
+      hasMore: hasMore,
+      nextCursor: last ? last.createdAt : 0,
+      nextCursorId: last ? last._id : '',
+      likeCount: Math.max(0, Number(post.likeCount) || 0)
+    };
+  } catch (err) {
+    console.error('community/likeList failed:', err);
+    return { success: false, error: err.message || '点赞列表加载失败，请重试' };
+  }
+}
+
 // ===================== community/commentList =====================
 
 async function communityCommentList(openid, data) {
@@ -1145,6 +1211,7 @@ module.exports = {
   communityCreateUploadSession,
   communityCreate,
   communityToggleLike,
+  communityLikeList,
   communityCommentList,
   communityCommentCreate,
   communityDelete

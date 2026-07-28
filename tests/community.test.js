@@ -59,6 +59,7 @@ run('app.json: 3 tabs, community pages registered', function () {
   assert.strictEqual(j.tabBar.list[2].text, '我的'); // 我的
   ok(j.pages.indexOf('pages/community/community') !== -1, 'community page registered');
   ok(j.pages.indexOf('pages/community-detail/community-detail') !== -1, 'detail page registered');
+  ok(j.pages.indexOf('pages/community-likes/community-likes') !== -1, 'likes page registered');
   ok(j.pages.indexOf('pages/community-publish/community-publish') !== -1, 'publish page registered');
   ok(j.pages.indexOf('pages/community-mine/community-mine') !== -1, 'my works page registered');
 });
@@ -67,6 +68,7 @@ run('app.json: 3 tabs, community pages registered', function () {
 run('Page files exist', function () {
   [['community','community.js'],['community','community.json'],['community','community.wxml'],['community','community.wxss'],
    ['community-detail','community-detail.js'],['community-detail','community-detail.json'],['community-detail','community-detail.wxml'],['community-detail','community-detail.wxss'],
+   ['community-likes','community-likes.js'],['community-likes','community-likes.json'],['community-likes','community-likes.wxml'],['community-likes','community-likes.wxss'],
    ['community-publish','community-publish.js'],['community-publish','community-publish.json'],['community-publish','community-publish.wxml'],['community-publish','community-publish.wxss'],
    ['community-mine','community-mine.js'],['community-mine','community-mine.json'],['community-mine','community-mine.wxml'],['community-mine','community-mine.wxss']]
     .forEach(function (f) { ok(fs.existsSync(path.join(ROOT, 'miniprogram', 'pages', f[0], f[1])), f.join('/')); });
@@ -76,7 +78,7 @@ run('Page files exist', function () {
 run('API functions registered', function () {
   var s = readText('miniprogram/utils/api.js');
   ['communityList','communityMy','communityCreateUploadSession','communityCreate','communityToggleLike',
-   'communityCommentList','communityCommentCreate','communityDelete'].forEach(function (fn) {
+   'communityLikeList','communityCommentList','communityCommentCreate','communityDelete'].forEach(function (fn) {
     ok(s.indexOf(fn) !== -1, fn + ' in api.js');
   });
 });
@@ -89,6 +91,7 @@ run('Cloud handler has community exports + COS check + security', function () {
   ok(s.indexOf('async function communityCreateUploadSession') !== -1, 'createUploadSession defined');
   ok(s.indexOf('async function communityCreate') !== -1, 'communityCreate defined');
   ok(s.indexOf('async function communityToggleLike') !== -1, 'communityToggleLike defined');
+  ok(s.indexOf('async function communityLikeList') !== -1, 'communityLikeList defined');
   ok(s.indexOf('async function communityCommentList') !== -1, 'communityCommentList defined');
   ok(s.indexOf('async function communityCommentCreate') !== -1, 'communityCommentCreate defined');
   ok(s.indexOf('async function communityDelete') !== -1, 'communityDelete defined');
@@ -102,7 +105,7 @@ run('Cloud function routing', function () {
   var s = readText('cloudfunctions/api/index.js');
   ok(s.indexOf("require('./handlers/community')") !== -1, 'import');
   ['community/list','community/my','community/createUploadSession','community/create','community/toggleLike',
-   'community/commentList','community/commentCreate','community/delete'].forEach(function (r) {
+   'community/likeList','community/commentList','community/commentCreate','community/delete'].forEach(function (r) {
     ok(s.indexOf(r) !== -1, 'route: ' + r);
   });
 });
@@ -149,6 +152,8 @@ run('Community detail: approved UI structure and shared interaction icons', func
   ok(detailJs.indexOf('/pages/user-profile/user-profile?id=') !== -1, 'detail routes to existing user profile');
   ok(detailJs.indexOf('onOpenDetail') === -1, 'detail logic stays separate from feed navigation');
   ok(detailJs.indexOf('communityToggleLike') !== -1, 'existing like API reused');
+  ok(detailJs.indexOf('communityLikeList') !== -1, 'detail loads real like preview');
+  ok(detailWxml.indexOf('bindtap="onViewAllLikes"') !== -1, 'detail opens full likes list');
   ok(
     detailWxss.indexOf('.detail-page') !== -1 &&
     detailWxss.indexOf('flex-direction: column') !== -1 &&
@@ -156,6 +161,20 @@ run('Community detail: approved UI structure and shared interaction icons', func
     detailWxss.indexOf('flex-shrink: 0') !== -1,
     'interaction bar stays anchored below the scroll area'
   );
+});
+
+run('Community likes list: real users, pagination and profile navigation', function () {
+  var handler = readText('cloudfunctions/api/handlers/community.js');
+  var pageJs = readText('miniprogram/pages/community-likes/community-likes.js');
+  var pageJson = readJson('miniprogram/pages/community-likes/community-likes.json');
+  var pageWxml = readText('miniprogram/pages/community-likes/community-likes.wxml');
+  ok(handler.indexOf("resolveAvatarUrls(likes, 'userAvatar')") !== -1, 'like avatar URLs resolved');
+  ok(handler.indexOf("orderBy('_id', 'desc')") !== -1, 'like list uses stable cursor order');
+  ok(pageJson.navigationBarTitleText === '点赞列表', 'likes list uses system navigation');
+  ok(pageJs.indexOf('communityLikeList') !== -1, 'likes page loads backend data');
+  ok(pageJs.indexOf('onReachBottom') !== -1, 'likes page supports pagination');
+  ok(pageJs.indexOf('/pages/user-profile/user-profile?id=') !== -1, 'likes page opens user profile');
+  ok(pageWxml.indexOf('item.userAvatar') !== -1 && pageWxml.indexOf('item.userName') !== -1, 'likes page renders user snapshots');
 });
 
 run('Community comments: secure text-only create, list and detail integration', function () {

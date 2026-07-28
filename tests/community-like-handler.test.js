@@ -65,6 +65,37 @@ const db = {
         }
       };
     }
+    if (name === 'community_posts') {
+      return {
+        doc(id) {
+          return documentFor(name, id);
+        }
+      };
+    }
+    if (name === 'community_likes') {
+      let limitCount = 20;
+      const query = {
+        where() {
+          return query;
+        },
+        orderBy() {
+          return query;
+        },
+        limit(count) {
+          limitCount = count;
+          return query;
+        },
+        async get() {
+          return {
+            data: Object.values(state.likes)
+              .slice()
+              .sort((a, b) => b.createdAt - a.createdAt)
+              .slice(0, limitCount)
+          };
+        }
+      };
+      return query;
+    }
     throw new Error(`Unexpected collection: ${name}`);
   },
   async runTransaction(callback) {
@@ -108,6 +139,17 @@ async function main() {
   assert.strictEqual(like.userName, '点赞用户');
   assert.strictEqual(like.userAvatar, 'https://example.com/liker.jpg');
   assert(Number.isFinite(like.createdAt));
+
+  const listed = await community.communityLikeList('', {
+    postId: state.post._id,
+    pageSize: 20
+  });
+  assert.strictEqual(listed.success, true);
+  assert.strictEqual(listed.likes.length, 1);
+  assert.strictEqual(listed.likes[0].userId, 'openid-liker');
+  assert.strictEqual(listed.likes[0].userName, '点赞用户');
+  assert.strictEqual(listed.likeCount, 1);
+  assert.strictEqual(listed.hasMore, false);
 
   const unliked = await community.communityToggleLike('openid-liker', {
     postId: state.post._id

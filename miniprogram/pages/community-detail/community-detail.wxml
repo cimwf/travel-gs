@@ -44,17 +44,18 @@
     <view class="section likes-section">
       <view class="section-header">
         <text class="section-title">{{post.likeCount || 0}}人赞过</text>
-        <text class="section-link" wx:if="{{post.likeCount > likers.length}}">查看全部</text>
+        <text class="section-link" wx:if="{{post.likeCount > 0}}" bindtap="onViewAllLikes">查看全部</text>
       </view>
       <scroll-view class="liker-scroll" scroll-x enhanced show-scrollbar="{{false}}" wx:if="{{likers.length > 0}}">
         <view class="liker-list">
           <view class="liker-item" wx:for="{{likers}}" wx:key="userId">
-            <image class="liker-avatar" src="{{item.userAvatar || '/images/logo.png'}}" mode="aspectFill"></image>
+            <image class="liker-avatar" src="{{item.userAvatar || '/images/logo.png'}}" mode="aspectFill"
+              catchtap="onOpenUserProfile" data-user-id="{{item.userId}}"></image>
           </view>
         </view>
       </scroll-view>
       <view class="section-empty" wx:else>
-        {{post.likeCount > 0 ? '已有' + post.likeCount + '人点赞' : '还没有人点赞'}}
+        {{likersLoading ? '点赞加载中...' : (post.likeCount > 0 ? '已有' + post.likeCount + '人点赞' : '还没有人点赞')}}
       </view>
     </view>
 

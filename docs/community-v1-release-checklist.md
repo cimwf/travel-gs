@@ -67,7 +67,7 @@ community_posts:
   draftId（唯一）
 
 community_likes:
-  postId + createdAt(desc)
+  postId + createdAt(desc) + _id(desc)
   userId + createdAt(desc)
 
 community_comments:

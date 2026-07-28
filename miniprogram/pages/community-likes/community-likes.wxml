@@ -1,0 +1,32 @@
+<view class="likes-page">
+  <view class="state" wx:if="{{loading && likes.length === 0}}">
+    <view class="spinner"></view>
+    <text>加载中...</text>
+  </view>
+
+  <view class="state" wx:elif="{{error && likes.length === 0}}">
+    <text class="state-title">点赞列表加载失败</text>
+    <view class="retry" bindtap="onRetry">重新加载</view>
+  </view>
+
+  <view class="state" wx:elif="{{!loading && likes.length === 0}}">
+    <text class="state-title">还没有人点赞</text>
+    <text class="state-desc">成为第一个点赞的人吧</text>
+  </view>
+
+  <view class="likes-list" wx:else>
+    <view class="like-user" wx:for="{{likes}}" wx:key="_id"
+      bindtap="onOpenUserProfile" data-user-id="{{item.userId}}">
+      <image class="user-avatar" src="{{item.userAvatar || '/images/logo.png'}}" mode="aspectFill"></image>
+      <view class="user-info">
+        <text class="user-name">{{item.userName || '旅行者'}}</text>
+        <text class="like-label">赞了这条动态</text>
+      </view>
+    </view>
+
+    <view class="list-status" wx:if="{{loading}}">加载中...</view>
+    <view class="list-status retry" wx:elif="{{error}}" bindtap="onLoadMore">加载失败，点击重试</view>
+    <view class="list-status" wx:elif="{{hasMore}}">上拉加载更多</view>
+    <view class="list-status" wx:else>— 已显示全部点赞 —</view>
+  </view>
+</view>

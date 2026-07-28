@@ -8,6 +8,7 @@ Page({
     loading: true,
     error: false,
     likers: [],
+    likersLoading: false,
     comments: [],
     commentsLoading: false,
     commentsError: false,
@@ -55,16 +56,9 @@ Page({
     var imageUrls = (post.images || []).map(function (image) {
       return image.url || '';
     }).filter(Boolean);
-    var userInfo = app.globalData.userInfo || wx.getStorageSync('userInfo') || {};
     var likers = Array.isArray(post.likePreview) ? post.likePreview : [];
-    if (post.isLiked && likers.length === 0) {
-      likers = [{
-        userId: 'current-user',
-        userName: userInfo.nickname || '我',
-        userAvatar: userInfo.avatar || ''
-      }];
-    }
 
+    var shouldLoadLikers = this._likersPostId !== post._id;
     var shouldLoadComments = this._commentsPostId !== post._id;
     this.setData({
       post: Object.assign({}, post, {
@@ -83,9 +77,46 @@ Page({
       loading: false,
       error: false
     }, function () {
-      if (!shouldLoadComments) return;
-      this._commentsPostId = post._id;
-      this.loadComments(true);
+      if (shouldLoadLikers) {
+        this._likersPostId = post._id;
+        this.loadLikers();
+      }
+      if (shouldLoadComments) {
+        this._commentsPostId = post._id;
+        this.loadComments(true);
+      }
+    });
+  },
+
+  loadLikers: function () {
+    if (!this.data.post) return Promise.resolve();
+    if (this._loadingLikers) {
+      this._reloadLikersAfterCurrent = true;
+      return Promise.resolve();
+    }
+    this._loadingLikers = true;
+    this.setData({ likersLoading: true });
+    var self = this;
+    return api.communityLikeList({
+      postId: this.data.post._id,
+      pageSize: 12
+    }).then(function (result) {
+      var nextData = {
+        likers: result.likes || [],
+        likersLoading: false
+      };
+      if (Number.isFinite(Number(result.likeCount))) {
+        nextData['post.likeCount'] = Math.max(0, Number(result.likeCount));
+      }
+      self.setData(nextData);
+    }).catch(function () {
+      self.setData({ likersLoading: false });
+    }).then(function () {
+      self._loadingLikers = false;
+      if (self._reloadLikersAfterCurrent) {
+        self._reloadLikersAfterCurrent = false;
+        self.loadLikers();
+      }
     });
   },
 
@@ -191,6 +222,14 @@ Page({
     });
   },
 
+  onViewAllLikes: function () {
+    if (!this.data.post || !this.data.post._id || this.data.post.likeCount <= 0) return;
+    wx.navigateTo({
+      url: '/pages/community-likes/community-likes?postId=' +
+        encodeURIComponent(this.data.post._id)
+    });
+  },
+
   onLikeTap: function () {
     if (!this.data.post || this._liking) return;
     if (!auth.ensureLogin()) {
@@ -204,18 +243,19 @@ Page({
     var nextLiked = !previousLiked;
     var nextCount = Math.max(0, previousCount + (nextLiked ? 1 : -1));
     var userInfo = app.globalData.userInfo || wx.getStorageSync('userInfo') || {};
+    var currentUserId = app.globalData.openid || wx.getStorageSync('openid') || 'current-user';
     var optimisticLikers = previousLikers.slice();
 
-    if (nextLiked && !optimisticLikers.some(function (item) { return item.userId === 'current-user'; })) {
+    if (nextLiked && !optimisticLikers.some(function (item) { return item.userId === currentUserId; })) {
       optimisticLikers.unshift({
-        userId: 'current-user',
+        userId: currentUserId,
         userName: userInfo.nickname || '我',
         userAvatar: userInfo.avatar || ''
       });
     }
     if (!nextLiked) {
       optimisticLikers = optimisticLikers.filter(function (item) {
-        return item.userId !== 'current-user';
+        return item.userId !== currentUserId;
       });
     }
 
@@ -234,6 +274,7 @@ Page({
       });
       self.cachePost();
       self.emitPostUpdate();
+      self.loadLikers();
     }).catch(function (error) {
       self.setData({
         'post.isLiked': previousLiked,
