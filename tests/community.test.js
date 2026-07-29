@@ -78,7 +78,7 @@ run('Page files exist', function () {
 run('API functions registered', function () {
   var s = readText('miniprogram/utils/api.js');
   ['communityList','communityMy','communityCreateUploadSession','communityCreate','communityToggleLike',
-   'communityLikeList','communityCommentList','communityCommentCreate','communityCommentDelete',
+   'communityLikeList','communityCommentList','communityReplyList','communityCommentCreate','communityCommentDelete',
    'communityDelete'].forEach(function (fn) {
     ok(s.indexOf(fn) !== -1, fn + ' in api.js');
   });
@@ -94,6 +94,7 @@ run('Cloud handler has community exports + COS check + security', function () {
   ok(s.indexOf('async function communityToggleLike') !== -1, 'communityToggleLike defined');
   ok(s.indexOf('async function communityLikeList') !== -1, 'communityLikeList defined');
   ok(s.indexOf('async function communityCommentList') !== -1, 'communityCommentList defined');
+  ok(s.indexOf('async function communityReplyList') !== -1, 'communityReplyList defined');
   ok(s.indexOf('async function communityCommentCreate') !== -1, 'communityCommentCreate defined');
   ok(s.indexOf('async function communityCommentDelete') !== -1, 'communityCommentDelete defined');
   ok(s.indexOf('async function communityDelete') !== -1, 'communityDelete defined');
@@ -107,7 +108,7 @@ run('Cloud function routing', function () {
   var s = readText('cloudfunctions/api/index.js');
   ok(s.indexOf("require('./handlers/community')") !== -1, 'import');
   ['community/list','community/my','community/createUploadSession','community/create','community/toggleLike',
-   'community/likeList','community/commentList','community/commentCreate','community/commentDelete',
+   'community/likeList','community/commentList','community/replyList','community/commentCreate','community/commentDelete',
    'community/delete'].forEach(function (r) {
     ok(s.indexOf(r) !== -1, 'route: ' + r);
   });
@@ -148,7 +149,17 @@ run('Community detail: approved UI structure and shared interaction icons', func
   ok(detailWxml.indexOf('icon-like-heart-active.svg') !== -1, 'detail reuses active heart');
   ok(detailWxml.indexOf('icon-like-heart-gray.svg') !== -1, 'detail reuses inactive heart');
   ok(detailWxml.indexOf('icon-comment-gray.svg') !== -1, 'detail reuses comment icon');
-  ok(detailWxml.indexOf('placeholder="说点什么…"') !== -1, 'plain text input rendered');
+  ok(detailWxml.indexOf('placeholder="{{commentPlaceholder}}"') !== -1 &&
+    detailJs.indexOf("commentPlaceholder: '说点什么…'") !== -1, 'plain text input rendered');
+  ok(detailJs.indexOf("commentPlaceholder: '回复给' + userName") !== -1,
+    'reply target shown in input placeholder');
+  ok(detailWxml.indexOf('class="comment-reply-btn"') !== -1,
+    'reply action rendered beside comment time');
+  ok(detailWxml.indexOf('class="replying-tip"') === -1 &&
+    detailJs.indexOf('onCancelReply') === -1, 'no reply banner above input');
+  ok(detailWxml.indexOf('class="comment-item"\n            bindtap="onReplyTap"') === -1 &&
+    detailWxml.indexOf('class="reply-item" wx:for="{{item.replies}}" wx:for-item="reply" wx:key="_id"\n              catchtap="onReplyTap"') === -1,
+    'comment rows do not trigger reply');
   ok(detailWxml.indexOf('confirm-type="send"') !== -1, 'keyboard send action configured');
   ok(detailWxml.indexOf('>发送<') === -1, 'no visible send button');
   ok(detailWxml.indexOf('catchtap="onOpenUserProfile"') !== -1, 'detail avatar opens user profile');
@@ -186,15 +197,20 @@ run('Community comments: secure text-only create, list and detail integration', 
   var detailWxml = readText('miniprogram/pages/community-detail/community-detail.wxml');
   var schema = readText('database/schema.js');
   ok(handler.indexOf("collection('community_comments')") !== -1, 'community comments collection used');
+  ok(handler.indexOf("collection('community_comment_replies')") !== -1, 'community replies collection used');
   ok(handler.indexOf('MAX_COMMENT_LENGTH = 300') !== -1, 'comment length limited');
   ok(handler.indexOf('securityCheck(openid, content)') !== -1, 'comment content security checked');
   ok(handler.indexOf('commentCount: nextCount') !== -1, 'comment count updated atomically');
   ok(detailJs.indexOf('communityCommentList') !== -1, 'detail loads comments');
   ok(detailJs.indexOf('communityCommentCreate') !== -1, 'detail creates comments');
+  ok(detailJs.indexOf('communityReplyList') !== -1, 'detail expands replies');
   ok(detailJs.indexOf('communityCommentDelete') !== -1, 'detail deletes authorized comments');
   ok(detailJs.indexOf('comment.authorId === currentUserId || postAuthorId === currentUserId') !== -1, 'commenter or post author sees delete action');
   ok(detailWxml.indexOf('来聊聊这个话题吧～') !== -1, 'generic empty-state copy used');
-  ok(detailWxml.indexOf('bindlongpress="onCommentLongPress"') !== -1, 'comment long press opens management');
+  ok(detailWxml.indexOf('longpress="onCommentLongPress"') !== -1, 'comment long press opens management');
+  ok(detailWxml.indexOf('data-target-type="reply"') !== -1, 'reply rows target the clicked replier');
+  ok(detailWxml.indexOf('reply.replyToUserName') !== -1, 'reply displays who is being replied to');
+  ok(detailWxml.indexOf('展开更多回复') !== -1, 'reply thread can expand');
   ok(detailWxml.indexOf('disabled="{{submittingComment}}"') !== -1, 'duplicate comment submission blocked');
   ok(schema.indexOf('communityCommentSchema') !== -1, 'comment schema documented');
 });
@@ -319,6 +335,7 @@ run('Schema: community collections documented', function () {
   var s = readText('database/schema.js');
   ok(s.indexOf('community_posts') !== -1, 'community_posts');
   ok(s.indexOf('community_upload_drafts') !== -1, 'community_upload_drafts');
+  ok(s.indexOf('community_comment_replies') !== -1, 'community_comment_replies');
 });
 
 // ---- 19: cos-upload path ----

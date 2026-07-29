@@ -70,8 +70,9 @@
 
 - 点赞继续复用现有 `communityToggleLike` 接口，详情页的点赞状态会同步回社区
   信息流。
-- 评论列表与键盘发送已接入 `community_comments`；仅支持纯文本一级评论，
-  服务端通过 `msgSecCheck` 后才写入，并同步更新动态评论数。
+- 主评论与键盘发送已接入 `community_comments`，回复使用
+  `community_comment_replies`；回复平铺在主评论下，服务端通过
+  `msgSecCheck` 后才写入，并同步更新动态评论总数。
 - 模拟器已验证输入框可聚焦且配置 `confirm-type="send"`；桌面模拟器不会像真机
   一样完整显示系统软键盘。
 

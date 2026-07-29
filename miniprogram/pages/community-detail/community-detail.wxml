@@ -64,17 +64,59 @@
         <text class="section-title">共{{post.commentCount || 0}}条评论</text>
       </view>
       <view class="comment-list" wx:if="{{comments.length > 0}}">
-        <view class="comment-item" wx:for="{{comments}}" wx:key="_id"
-          bindlongpress="onCommentLongPress" data-comment-id="{{item._id}}">
-          <image class="comment-avatar" src="{{item.authorAvatar || '/images/logo.png'}}" mode="aspectFill"></image>
-          <view class="comment-main">
-            <text class="comment-author">{{item.authorName || '旅行者'}}</text>
-            <text class="comment-content">{{item.content}}</text>
-            <text class="comment-time">{{item.timeText}}</text>
+        <view class="comment-thread" wx:for="{{comments}}" wx:key="_id">
+          <view class="comment-item"
+            catchlongpress="onCommentLongPress"
+            data-target-type="comment" data-root-comment-id="{{item._id}}"
+            data-comment-id="{{item._id}}">
+            <image class="comment-avatar" src="{{item.authorAvatar || '/images/logo.png'}}" mode="aspectFill"
+              catchtap="onOpenUserProfile" data-user-id="{{item.authorId}}"></image>
+            <view class="comment-main">
+              <text class="comment-author">{{item.authorName || '旅行者'}}</text>
+              <text class="comment-content">{{item.content}}</text>
+              <view class="comment-footer">
+                <text class="comment-time">{{item.timeText}}</text>
+                <text class="comment-reply-btn" catchtap="onReplyTap"
+                  data-target-id="{{item._id}}" data-target-type="comment"
+                  data-root-comment-id="{{item._id}}" data-user-name="{{item.authorName}}">回复</text>
+              </view>
+            </view>
+            <view class="comment-like" catchtap="onCommentLikeTap">
+              <image class="comment-like-icon" src="/images/icon-like-heart-gray.svg" mode="aspectFit"></image>
+              <text>{{item.likeCount || 0}}</text>
+            </view>
           </view>
-          <view class="comment-like">
-            <image class="comment-like-icon" src="/images/icon-like-heart-gray.svg" mode="aspectFit"></image>
-            <text>{{item.likeCount || 0}}</text>
+
+          <view class="reply-list" wx:if="{{item.replies && item.replies.length > 0}}">
+            <view class="reply-item" wx:for="{{item.replies}}" wx:for-item="reply" wx:key="_id"
+              catchlongpress="onCommentLongPress"
+              data-target-type="reply" data-root-comment-id="{{item._id}}"
+              data-comment-id="{{reply._id}}">
+              <image class="reply-avatar" src="{{reply.authorAvatar || '/images/logo.png'}}" mode="aspectFill"
+                catchtap="onOpenUserProfile" data-user-id="{{reply.authorId}}"></image>
+              <view class="reply-main">
+                <view class="reply-content">
+                  <text class="reply-author">{{reply.authorName || '旅行者'}}</text>
+                  <text class="reply-word"> 回复 </text>
+                  <text class="reply-target">{{reply.replyToUserName || '旅行者'}}</text>
+                  <text class="reply-text">：{{reply.content}}</text>
+                </view>
+                <view class="reply-footer">
+                  <text class="reply-time">{{reply.timeText}}</text>
+                  <text class="comment-reply-btn" catchtap="onReplyTap"
+                    data-target-id="{{reply._id}}" data-target-type="reply"
+                    data-root-comment-id="{{item._id}}" data-user-name="{{reply.authorName}}">回复</text>
+                </view>
+              </view>
+            </view>
+          </view>
+
+          <view class="reply-more" wx:if="{{item.repliesLoading}}">
+            <text>回复加载中...</text>
+          </view>
+          <view class="reply-more" wx:elif="{{item.repliesHasMore || item.replyCount > item.replies.length}}"
+            catchtap="onLoadMoreReplies" data-root-comment-id="{{item._id}}">
+            <text>展开更多回复</text>
           </view>
         </view>
       </view>
@@ -97,7 +139,7 @@
   </scroll-view>
 
   <view class="interaction-bar" wx:if="{{post}}">
-    <input class="comment-input" value="{{commentDraft}}" placeholder="说点什么…"
+    <input class="comment-input" value="{{commentDraft}}" placeholder="{{commentPlaceholder}}"
       maxlength="300" confirm-type="send" focus="{{inputFocused}}"
       disabled="{{submittingComment}}"
       bindinput="onInput" bindfocus="onInputFocus" bindblur="onInputBlur"

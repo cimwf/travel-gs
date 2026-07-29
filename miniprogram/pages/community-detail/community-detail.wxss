@@ -233,15 +233,19 @@ page {
   margin-top: 12rpx;
 }
 
-.comment-item {
-  padding: 26rpx 0;
-  display: flex;
-  align-items: flex-start;
+.comment-thread {
+  padding: 0 0 22rpx;
   border-bottom: 1rpx solid var(--border);
 }
 
-.comment-item:last-child {
+.comment-thread:last-child {
   border-bottom: 0;
+}
+
+.comment-item {
+  padding: 26rpx 0 14rpx;
+  display: flex;
+  align-items: flex-start;
 }
 
 .comment-avatar {
@@ -274,10 +278,28 @@ page {
   word-break: break-all;
 }
 
-.comment-time {
+.comment-footer,
+.reply-footer {
   margin-top: 8rpx;
+  display: flex;
+  align-items: center;
+}
+
+.comment-time {
   color: var(--hint);
   font-size: 22rpx;
+}
+
+.comment-reply-btn {
+  margin-left: 20rpx;
+  padding: 4rpx 10rpx;
+  color: var(--secondary);
+  font-size: 22rpx;
+  font-weight: 500;
+}
+
+.comment-reply-btn:active {
+  opacity: .55;
 }
 
 .comment-like {
@@ -294,6 +316,68 @@ page {
   width: 34rpx;
   height: 34rpx;
   margin-bottom: 4rpx;
+}
+
+.reply-list {
+  margin-left: 86rpx;
+  padding: 2rpx 0 0;
+}
+
+.reply-item {
+  padding: 12rpx 0;
+  display: flex;
+  align-items: flex-start;
+}
+
+.reply-avatar {
+  width: 48rpx;
+  height: 48rpx;
+  margin-right: 14rpx;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--soft);
+}
+
+.reply-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.reply-content {
+  color: var(--text);
+  font-size: 26rpx;
+  line-height: 1.55;
+  word-break: break-all;
+}
+
+.reply-author,
+.reply-target {
+  color: var(--secondary);
+  font-weight: 600;
+}
+
+.reply-word {
+  color: var(--hint);
+}
+
+.reply-text {
+  color: var(--text);
+}
+
+.reply-time {
+  color: var(--hint);
+  font-size: 21rpx;
+}
+
+.reply-footer {
+  margin-top: 5rpx;
+}
+
+.reply-more {
+  margin-left: 148rpx;
+  padding: 10rpx 0 2rpx;
+  color: var(--primary);
+  font-size: 23rpx;
 }
 
 .comments-empty {
@@ -347,9 +431,9 @@ page {
 
 .comment-input {
   min-width: 0;
+  flex: 1;
   height: 72rpx;
   padding: 0 26rpx;
-  flex: 1;
   border-radius: 38rpx;
   background: var(--soft);
   color: var(--text);

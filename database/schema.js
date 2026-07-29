@@ -20,6 +20,7 @@
 12. community_upload_drafts - 社区上传草稿表
 13. community_cleanup_tasks - COS清理任务表
 14. community_comments - 社区评论表
+15. community_comment_replies - 社区评论回复表
 ==========================================
 集合结构说明
 ==========================================
@@ -234,7 +235,7 @@ const communityPostSchema = {
   },
   visibility: "public",            // V1固定为public
   likeCount: 12,                   // 点赞数，和 community_likes 保持一致
-  commentCount: 3,                 // 评论数，和 community_comments 保持一致
+  commentCount: 3,                 // 主评论+回复总数
   reviewStatus: "approved",        // approved/reviewing/manual_review/rejected
   imageAuditStatus: "approved",    // pending/reviewing/manual_review/approved/rejected
   imageAuditTraceIds: ["trace_xxx"], // 微信 mediaCheckAsync 任务ID
@@ -319,7 +320,32 @@ const communityCommentSchema = {
   authorAvatar: "https://...",     // 评论时的头像快照
   content: "这个地方看起来很舒服。",
   likeCount: 0,                    // 预留评论点赞，第一版不开放
+  replyCount: 2,                   // 当前有效回复数量
+  isReply: false,
   status: "active",                // active/deleted
+  createdAt: 1785149400000,
+  updatedAt: 1785149400000,
+  deletedAt: 0
+};
+
+// 15. community_comment_replies - 社区评论回复表
+const communityCommentReplySchema = {
+  _id: "reply_xxx",
+  postId: "post_xxx",
+  postAuthorId: "openid_author",
+  rootCommentId: "comment_xxx",   // 所属主评论
+  parentReplyId: "reply_parent",  // 回复主评论时为空，回复另一条回复时记录其ID
+  replyToId: "reply_parent",
+  replyToType: "reply",           // comment/reply
+  replyToUserId: "openid_a",
+  replyToUserName: "A",
+  authorId: "openid_c",
+  authorName: "C",
+  authorAvatar: "https://...",
+  content: "我也赞同。",
+  likeCount: 0,
+  isReply: true,
+  status: "active",
   createdAt: 1785149400000,
   updatedAt: 1785149400000,
   deletedAt: 0
@@ -382,6 +408,10 @@ community_likes:
 community_comments:
   - postId + status + createdAt + _id（复合索引，供评论稳定分页）
   - authorId + status + createdAt（复合索引，供后续“我的评论”使用）
+
+community_comment_replies:
+  - postId + rootCommentId + status + createdAt + _id（复合索引，供回复稳定分页）
+  - authorId + status + createdAt（复合索引，供后续“我的回复”使用）
 
 community_image_audits:
   - postId

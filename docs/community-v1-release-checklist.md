@@ -53,6 +53,7 @@ COMMUNITY_COS_PREFIX=miniapp/community/
 community_posts
 community_likes
 community_comments
+community_comment_replies
 community_image_audits
 community_upload_drafts
 community_cleanup_tasks
@@ -74,6 +75,10 @@ community_comments:
   postId + status + createdAt(desc) + _id(desc)
   authorId + status + createdAt(desc)
 
+community_comment_replies:
+  postId + rootCommentId + status + createdAt(asc) + _id(asc)
+  authorId + status + createdAt(desc)
+
 community_image_audits:
   postId
   expiresAt
@@ -92,6 +97,7 @@ community_cleanup_tasks:
 - [ ] 验证同一用户连续点赞/取消点赞不会产生重复记录或负数计数。
 - [ ] 验证评论通过 `msgSecCheck` 后写入，违规评论被阻止，评论数与列表一致。
 - [ ] 验证评论者和作品作者可删除评论，其他用户无法越权删除，删除后评论数不为负。
+- [ ] 验证 A 回复 B、C 回复 A 均平铺在同一主评论下；删除主评论后整条回复链隐藏。
 
 ## 4. P0：图片审核消息推送
 

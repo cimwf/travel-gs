@@ -17,7 +17,8 @@ const state = {
     reviewStatus: 'approved',
     commentCount: 0
   },
-  comments: []
+  comments: [],
+  replies: []
 };
 
 function postDocument(id) {
@@ -27,6 +28,20 @@ function postDocument(id) {
     },
     async update({ data }) {
       Object.assign(state.post, data);
+    }
+  };
+}
+
+function replyDocument(id) {
+  return {
+    async get() {
+      return {
+        data: state.replies.find((reply) => reply._id === id) || null
+      };
+    },
+    async update({ data }) {
+      const reply = state.replies.find((item) => item._id === id);
+      if (reply) Object.assign(reply, data);
     }
   };
 }
@@ -70,6 +85,15 @@ const db = {
           limitCount = count;
           return query;
         },
+        doc(id) {
+          return {
+            async get() {
+              return {
+                data: state.comments.find((comment) => comment._id === id) || null
+              };
+            }
+          };
+        },
         async get() {
           return {
             data: state.comments
@@ -77,6 +101,45 @@ const db = {
               .sort((a, b) => b.createdAt - a.createdAt)
               .slice(0, limitCount)
           };
+        }
+      };
+      return query;
+    }
+    if (name === 'community_comment_replies') {
+      let limitCount = 20;
+      let condition = {};
+      const query = {
+        where(nextCondition) {
+          condition = nextCondition || {};
+          return query;
+        },
+        orderBy() {
+          return query;
+        },
+        limit(count) {
+          limitCount = count;
+          return query;
+        },
+        async get() {
+          return {
+            data: state.replies
+              .filter((reply) =>
+                (!condition.postId || reply.postId === condition.postId) &&
+                (!condition.rootCommentId || reply.rootCommentId === condition.rootCommentId) &&
+                (!condition.status || reply.status === condition.status)
+              )
+              .sort((a, b) => a.createdAt - b.createdAt)
+              .slice(0, limitCount)
+          };
+        },
+        async update({ data }) {
+          state.replies.forEach((reply) => {
+            if ((!condition.postId || reply.postId === condition.postId) &&
+              (!condition.rootCommentId || reply.rootCommentId === condition.rootCommentId) &&
+              (!condition.status || reply.status === condition.status)) {
+              Object.assign(reply, data);
+            }
+          });
         }
       };
       return query;
@@ -112,6 +175,18 @@ const db = {
                   if (comment) Object.assign(comment, data);
                 }
               };
+            }
+          };
+        }
+        if (name === 'community_comment_replies') {
+          return {
+            async add({ data }) {
+              const _id = `reply-${state.replies.length + 1}`;
+              state.replies.push({ _id, ...data });
+              return { _id };
+            },
+            doc(id) {
+              return replyDocument(id);
             }
           };
         }
@@ -165,14 +240,69 @@ async function main() {
   assert.strictEqual(listed.commentCount, 1);
   assert.strictEqual(listed.hasMore, false);
 
+  const replyA = await community.communityCommentCreate('openid-a', {
+    postId: state.post._id,
+    content: 'A 回复 B',
+    replyToId: created.comment._id,
+    replyToType: 'comment'
+  });
+  assert.strictEqual(replyA.success, true);
+  assert.strictEqual(replyA.isReply, true);
+  assert.strictEqual(replyA.comment.rootCommentId, created.comment._id);
+  assert.strictEqual(replyA.comment.replyToUserId, 'openid-commenter');
+  assert.strictEqual(state.comments[0].replyCount, 1);
+  assert.strictEqual(state.post.commentCount, 2);
+
+  const replyC = await community.communityCommentCreate('openid-c', {
+    postId: state.post._id,
+    content: 'C 回复 A',
+    replyToId: replyA.comment._id,
+    replyToType: 'reply'
+  });
+  assert.strictEqual(replyC.success, true);
+  assert.strictEqual(replyC.comment.rootCommentId, created.comment._id);
+  assert.strictEqual(replyC.comment.replyToUserId, 'openid-a');
+  assert.strictEqual(state.comments[0].replyCount, 2);
+  assert.strictEqual(state.post.commentCount, 3);
+
+  const listedWithReplies = await community.communityCommentList('', {
+    postId: state.post._id,
+    pageSize: 20
+  });
+  assert.strictEqual(listedWithReplies.success, true);
+  assert.strictEqual(listedWithReplies.comments[0].replies.length, 2);
+  assert.strictEqual(listedWithReplies.comments[0].replyCount, 2);
+
+  const replies = await community.communityReplyList('', {
+    postId: state.post._id,
+    rootCommentId: created.comment._id,
+    pageSize: 20
+  });
+  assert.strictEqual(replies.success, true);
+  assert.strictEqual(replies.replies.length, 2);
+  assert.strictEqual(replies.replyCount, 2);
+
+  const deletedReply = await community.communityCommentDelete('openid-a', {
+    postId: state.post._id,
+    commentId: replyA.comment._id,
+    targetType: 'reply'
+  });
+  assert.strictEqual(deletedReply.success, true);
+  assert.strictEqual(deletedReply.rootReplyCount, 1);
+  assert.strictEqual(state.replies[0].status, 'deleted');
+  assert.strictEqual(state.post.commentCount, 2);
+
   const deletedByCommenter = await community.communityCommentDelete('openid-commenter', {
     postId: state.post._id,
-    commentId: created.comment._id
+    commentId: created.comment._id,
+    targetType: 'comment'
   });
   assert.strictEqual(deletedByCommenter.success, true);
+  assert.strictEqual(deletedByCommenter.removedCount, 2);
   assert.strictEqual(deletedByCommenter.commentCount, 0);
   assert.strictEqual(state.post.commentCount, 0);
   assert.strictEqual(state.comments[0].status, 'deleted');
+  assert.strictEqual(state.replies[1].status, 'deleted');
 
   const second = await community.communityCommentCreate('openid-commenter', {
     postId: state.post._id,

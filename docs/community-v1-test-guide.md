@@ -72,6 +72,7 @@ https://imagica-images-1436573577.cos.ap-beijing.myqcloud.com
 community_posts
 community_likes
 community_comments
+community_comment_replies
 community_image_audits
 community_upload_drafts
 community_cleanup_tasks
@@ -91,6 +92,10 @@ community_likes:
 
 community_comments:
   postId + status + createdAt + _id
+  authorId + status + createdAt
+
+community_comment_replies:
+  postId + rootCommentId + status + createdAt + _id
   authorId + status + createdAt
 
 community_image_audits:
@@ -130,6 +135,10 @@ community_cleanup_tasks:
 7. 评论者长按自己的评论可看到“删除”，删除后列表和评论数同步更新。
 8. 作品作者可以长按删除自己作品下任意用户的评论。
 9. 非评论者且非作品作者长按不显示删除；直接调用接口也会被云函数拒绝。
+10. 点击主评论后发送，显示“A 回复 B：内容”。
+11. 点击已有回复后发送，显示“C 回复 A：内容”，并保持在同一主评论下。
+12. 默认展示 3 条回复，点击“展开更多回复”后继续加载。
+13. 删除单条回复只减少 1；删除主评论同时移除其下回复，并正确扣减总评论数。
 
 ## 6. 本地自动化
 

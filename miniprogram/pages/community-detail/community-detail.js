@@ -14,6 +14,8 @@ Page({
     commentsError: false,
     commentsHasMore: false,
     commentDraft: '',
+    commentPlaceholder: '说点什么…',
+    replyTarget: null,
     inputFocused: false,
     submittingComment: false
   },
@@ -123,11 +125,31 @@ Page({
   formatComment: function (comment) {
     var currentUserId = app.globalData.openid || wx.getStorageSync('openid') || '';
     var postAuthorId = this.data.post && this.data.post.authorId || '';
+    var self = this;
     return Object.assign({}, comment, {
       timeText: comment.timeText || this.formatTime(comment.createdAt),
       likeCount: Math.max(0, Number(comment.likeCount) || 0),
+      replyCount: Math.max(0, Number(comment.replyCount) || 0),
+      replies: (comment.replies || []).map(function (reply) {
+        return self.formatReply(reply);
+      }),
+      repliesHasMore: comment.repliesHasMore === true,
+      repliesLoading: false,
+      nextReplyCursor: comment.nextReplyCursor || 0,
+      nextReplyCursorId: comment.nextReplyCursorId || '',
       canDelete: !!currentUserId &&
         (comment.authorId === currentUserId || postAuthorId === currentUserId)
+    });
+  },
+
+  formatReply: function (reply) {
+    var currentUserId = app.globalData.openid || wx.getStorageSync('openid') || '';
+    var postAuthorId = this.data.post && this.data.post.authorId || '';
+    return Object.assign({}, reply, {
+      timeText: reply.timeText || this.formatTime(reply.createdAt),
+      likeCount: Math.max(0, Number(reply.likeCount) || 0),
+      canDelete: !!currentUserId &&
+        (reply.authorId === currentUserId || postAuthorId === currentUserId)
     });
   },
 
@@ -292,7 +314,39 @@ Page({
   },
 
   onCommentTap: function () {
-    this.setData({ inputFocused: true });
+    this.setData({
+      replyTarget: null,
+      commentPlaceholder: '说点什么…',
+      inputFocused: true
+    });
+  },
+
+  onReplyTap: function (event) {
+    if (!this.data.post) return;
+    if (!auth.ensureLogin()) {
+      auth.saveDeepLink('/pages/community-detail/community-detail?id=' +
+        encodeURIComponent(this.data.post._id));
+      return;
+    }
+    var targetId = event.currentTarget.dataset.targetId;
+    var targetType = event.currentTarget.dataset.targetType;
+    var rootCommentId = event.currentTarget.dataset.rootCommentId || targetId;
+    var userName = event.currentTarget.dataset.userName || '旅行者';
+    if (!targetId || ['comment', 'reply'].indexOf(targetType) === -1) return;
+    this.setData({
+      replyTarget: {
+        id: targetId,
+        type: targetType,
+        rootCommentId: rootCommentId,
+        userName: userName
+      },
+      commentPlaceholder: '回复给' + userName,
+      inputFocused: true
+    });
+  },
+
+  onCommentLikeTap: function () {
+    // 评论点赞不在当前版本范围内。
   },
 
   onInput: function (event) {
@@ -317,17 +371,38 @@ Page({
     }
 
     this.setData({ submittingComment: true });
-    wx.showLoading({ title: '评论中...', mask: true });
+    var replyTarget = this.data.replyTarget;
+    wx.showLoading({ title: replyTarget ? '回复中...' : '评论中...', mask: true });
     var self = this;
-    api.communityCommentCreate(this.data.post._id, content).then(function (result) {
+    api.communityCommentCreate(this.data.post._id, content, replyTarget).then(function (result) {
       var comment = self.formatComment(result.comment || {});
       var commentCount = Math.max(
         0,
         Number(result.commentCount) || (Number(self.data.post.commentCount) || 0) + 1
       );
+      var nextComments = self.data.comments.slice();
+      if (result.isReply) {
+        var rootIndex = nextComments.findIndex(function (item) {
+          return item._id === result.rootCommentId;
+        });
+        if (rootIndex >= 0) {
+          var reply = self.formatReply(result.comment || {});
+          var root = Object.assign({}, nextComments[rootIndex]);
+          root.replies = (root.replies || []).concat([reply]);
+          root.replyCount = Math.max(
+            root.replies.length,
+            Number(result.rootReplyCount) || root.replyCount + 1
+          );
+          nextComments[rootIndex] = root;
+        }
+      } else {
+        nextComments.unshift(comment);
+      }
       self.setData({
-        comments: [comment].concat(self.data.comments),
+        comments: nextComments,
         commentDraft: '',
+        commentPlaceholder: '说点什么…',
+        replyTarget: null,
         inputFocused: false,
         submittingComment: false,
         commentsError: false,
@@ -336,11 +411,14 @@ Page({
       self.cachePost();
       self.emitPostUpdate();
       wx.hideLoading();
-      wx.showToast({ title: '评论成功', icon: 'success' });
+      wx.showToast({ title: result.isReply ? '回复成功' : '评论成功', icon: 'success' });
     }).catch(function (error) {
       self.setData({ submittingComment: false });
       wx.hideLoading();
-      wx.showToast({ title: error.message || '评论失败，请重试', icon: 'none' });
+      wx.showToast({
+        title: error.message || (replyTarget ? '回复失败，请重试' : '评论失败，请重试'),
+        icon: 'none'
+      });
     });
   },
 
@@ -348,11 +426,80 @@ Page({
     this.loadComments(this.data.comments.length === 0);
   },
 
+  onLoadMoreReplies: function (event) {
+    var rootCommentId = event.currentTarget.dataset.rootCommentId;
+    var index = this.data.comments.findIndex(function (comment) {
+      return comment._id === rootCommentId;
+    });
+    if (index < 0 || this.data.comments[index].repliesLoading) return;
+
+    var root = this.data.comments[index];
+    var loadingData = {};
+    loadingData['comments[' + index + '].repliesLoading'] = true;
+    this.setData(loadingData);
+    var request = {
+      postId: this.data.post._id,
+      rootCommentId: rootCommentId,
+      pageSize: 20
+    };
+    if (root.nextReplyCursor) {
+      request.cursor = root.nextReplyCursor;
+      request.cursorId = root.nextReplyCursorId;
+    }
+
+    var self = this;
+    api.communityReplyList(request).then(function (result) {
+      var currentIndex = self.data.comments.findIndex(function (comment) {
+        return comment._id === rootCommentId;
+      });
+      if (currentIndex < 0) return;
+      var existing = self.data.comments[currentIndex].replies || [];
+      var seen = {};
+      existing.forEach(function (reply) { seen[reply._id] = true; });
+      var incoming = (result.replies || []).map(function (reply) {
+        return self.formatReply(reply);
+      }).filter(function (reply) {
+        return !seen[reply._id];
+      });
+      var nextData = {};
+      nextData['comments[' + currentIndex + '].replies'] = existing.concat(incoming);
+      nextData['comments[' + currentIndex + '].replyCount'] =
+        Math.max(0, Number(result.replyCount) || 0);
+      nextData['comments[' + currentIndex + '].repliesHasMore'] = result.hasMore === true;
+      nextData['comments[' + currentIndex + '].repliesLoading'] = false;
+      nextData['comments[' + currentIndex + '].nextReplyCursor'] = result.nextCursor || 0;
+      nextData['comments[' + currentIndex + '].nextReplyCursorId'] = result.nextCursorId || '';
+      self.setData(nextData);
+    }).catch(function (error) {
+      var currentIndex = self.data.comments.findIndex(function (comment) {
+        return comment._id === rootCommentId;
+      });
+      if (currentIndex >= 0) {
+        var nextData = {};
+        nextData['comments[' + currentIndex + '].repliesLoading'] = false;
+        self.setData(nextData);
+      }
+      wx.showToast({ title: error.message || '回复加载失败', icon: 'none' });
+    });
+  },
+
   onCommentLongPress: function (event) {
     var commentId = event.currentTarget.dataset.commentId;
-    var comment = this.data.comments.find(function (item) {
-      return item._id === commentId;
-    });
+    var targetType = event.currentTarget.dataset.targetType || 'comment';
+    var rootCommentId = event.currentTarget.dataset.rootCommentId || commentId;
+    var comment;
+    if (targetType === 'reply') {
+      var root = this.data.comments.find(function (item) {
+        return item._id === rootCommentId;
+      });
+      comment = root && (root.replies || []).find(function (reply) {
+        return reply._id === commentId;
+      });
+    } else {
+      comment = this.data.comments.find(function (item) {
+        return item._id === commentId;
+      });
+    }
     if (!comment || !comment.canDelete || this._deletingCommentId) return;
 
     var self = this;
@@ -360,23 +507,50 @@ Page({
       itemList: ['删除'],
       itemColor: '#FF4D4F',
       success: function (result) {
-        if (result.tapIndex === 0) self.deleteComment(commentId);
+        if (result.tapIndex === 0) {
+          self.deleteComment(commentId, targetType, rootCommentId);
+        }
       }
     });
   },
 
-  deleteComment: function (commentId) {
+  deleteComment: function (commentId, targetType, rootCommentId) {
     if (!this.data.post || !commentId || this._deletingCommentId) return;
-    this._deletingCommentId = commentId;
+    this._deletingCommentId = targetType + ':' + commentId;
     wx.showLoading({ title: '删除中...', mask: true });
     var self = this;
-    api.communityCommentDelete(this.data.post._id, commentId).then(function (result) {
-      self.setData({
-        comments: self.data.comments.filter(function (comment) {
+    api.communityCommentDelete(this.data.post._id, commentId, targetType).then(function (result) {
+      var nextComments = self.data.comments.slice();
+      if (targetType === 'reply') {
+        var rootIndex = nextComments.findIndex(function (comment) {
+          return comment._id === rootCommentId;
+        });
+        if (rootIndex >= 0) {
+          var root = Object.assign({}, nextComments[rootIndex]);
+          root.replies = (root.replies || []).filter(function (reply) {
+            return reply._id !== commentId;
+          });
+          root.replyCount = Math.max(0, Number(result.rootReplyCount) || 0);
+          nextComments[rootIndex] = root;
+        }
+      } else {
+        nextComments = nextComments.filter(function (comment) {
           return comment._id !== commentId;
-        }),
+        });
+      }
+      var nextData = {
+        comments: nextComments,
         'post.commentCount': Math.max(0, Number(result.commentCount) || 0)
-      });
+      };
+      var replyTarget = self.data.replyTarget;
+      if (replyTarget && (
+        replyTarget.id === commentId ||
+        (targetType === 'comment' && replyTarget.rootCommentId === commentId)
+      )) {
+        nextData.replyTarget = null;
+        nextData.commentPlaceholder = '说点什么…';
+      }
+      self.setData(nextData);
       self.cachePost();
       self.emitPostUpdate();
       wx.hideLoading();

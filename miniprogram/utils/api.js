@@ -435,17 +435,33 @@ function communityCommentList(data) {
 }
 
 /**
+ * 分页获取一条主评论下的回复
+ */
+function communityReplyList(data) {
+  return callApi('community/replyList', data || {});
+}
+
+/**
  * 发布社区动态评论
  */
-function communityCommentCreate(postId, content) {
-  return callApi('community/commentCreate', { postId, content });
+function communityCommentCreate(postId, content, replyTarget) {
+  var data = { postId, content };
+  if (replyTarget && replyTarget.id) {
+    data.replyToId = replyTarget.id;
+    data.replyToType = replyTarget.type;
+  }
+  return callApi('community/commentCreate', data);
 }
 
 /**
  * 删除社区动态评论
  */
-function communityCommentDelete(postId, commentId) {
-  return callApi('community/commentDelete', { postId, commentId });
+function communityCommentDelete(postId, commentId, targetType) {
+  return callApi('community/commentDelete', {
+    postId,
+    commentId,
+    targetType: targetType || 'comment'
+  });
 }
 
 /**
@@ -536,6 +552,7 @@ module.exports = {
   communityToggleLike,
   communityLikeList,
   communityCommentList,
+  communityReplyList,
   communityCommentCreate,
   communityCommentDelete,
   communityDelete

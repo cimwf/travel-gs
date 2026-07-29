@@ -979,6 +979,45 @@ async function communityLikeList(openid, data) {
 
 // ===================== community/commentList =====================
 
+async function queryCommunityReplies(postId, rootCommentId, data) {
+  var requestedPageSize = Number(data && data.pageSize) || 20;
+  var pageSize = Math.max(1, Math.min(requestedPageSize, 50));
+  var cursor = Number(data && data.cursor) || 0;
+  var cursorId = String(data && data.cursorId || '');
+  var condition = {
+    postId: postId,
+    rootCommentId: rootCommentId,
+    status: 'active'
+  };
+  if (cursor > 0) {
+    var cursorCondition = cursorId
+      ? _.or([
+        { createdAt: _.gt(cursor) },
+        { createdAt: _.eq(cursor), _id: _.gt(cursorId) }
+      ])
+      : { createdAt: _.gt(cursor) };
+    condition = _.and([condition, cursorCondition]);
+  }
+
+  var repliesRes = await db.collection('community_comment_replies')
+    .where(condition)
+    .orderBy('createdAt', 'asc')
+    .orderBy('_id', 'asc')
+    .limit(pageSize + 1)
+    .get();
+  var replies = repliesRes.data || [];
+  var hasMore = replies.length > pageSize;
+  if (hasMore) replies = replies.slice(0, pageSize);
+  await resolveAvatarUrls(replies);
+  var last = replies.length > 0 ? replies[replies.length - 1] : null;
+  return {
+    replies: replies,
+    hasMore: hasMore,
+    nextCursor: last ? last.createdAt : 0,
+    nextCursorId: last ? last._id : ''
+  };
+}
+
 async function communityCommentList(openid, data) {
   try {
     var postId = String(data && data.postId || '').trim();
@@ -1021,6 +1060,25 @@ async function communityCommentList(openid, data) {
     var hasMore = comments.length > pageSize;
     if (hasMore) comments = comments.slice(0, pageSize);
     await resolveAvatarUrls(comments);
+    await Promise.all(comments.map(async function (comment) {
+      comment.replyCount = Math.max(0, Number(comment.replyCount) || 0);
+      comment.replies = [];
+      comment.repliesHasMore = false;
+      comment.nextReplyCursor = 0;
+      comment.nextReplyCursorId = '';
+      if (comment.replyCount === 0) return;
+      try {
+        var preview = await queryCommunityReplies(postId, comment._id, { pageSize: 3 });
+        comment.replies = preview.replies;
+        comment.repliesHasMore = preview.hasMore;
+        comment.nextReplyCursor = preview.nextCursor;
+        comment.nextReplyCursorId = preview.nextCursorId;
+      } catch (replyPreviewErr) {
+        // Keep the root comment list available if reply preview loading fails.
+        comment.repliesHasMore = true;
+        console.warn('加载回复预览失败:', replyPreviewErr.message || replyPreviewErr);
+      }
+    }));
 
     var last = comments.length > 0 ? comments[comments.length - 1] : null;
     return {
@@ -1037,6 +1095,46 @@ async function communityCommentList(openid, data) {
   }
 }
 
+// ===================== community/replyList =====================
+
+async function communityReplyList(openid, data) {
+  try {
+    var postId = String(data && data.postId || '').trim();
+    var rootCommentId = String(data && data.rootCommentId || '').trim();
+    if (!postId || !rootCommentId) {
+      return { success: false, error: '回复信息不完整' };
+    }
+
+    var postRes;
+    var rootRes;
+    try {
+      postRes = await db.collection('community_posts').doc(postId).get();
+      rootRes = await db.collection('community_comments').doc(rootCommentId).get();
+    } catch (getErr) {
+      return { success: false, error: '评论不存在或已删除' };
+    }
+    var post = postRes && postRes.data;
+    var root = rootRes && rootRes.data;
+    if (!post || post.status !== 'active' || post.reviewStatus !== 'approved' ||
+      !root || root.postId !== postId || root.status !== 'active') {
+      return { success: false, error: '评论不存在或已删除' };
+    }
+
+    var page = await queryCommunityReplies(postId, rootCommentId, data);
+    return {
+      success: true,
+      replies: page.replies,
+      hasMore: page.hasMore,
+      nextCursor: page.nextCursor,
+      nextCursorId: page.nextCursorId,
+      replyCount: Math.max(0, Number(root.replyCount) || 0)
+    };
+  } catch (err) {
+    console.error('community/replyList failed:', err);
+    return { success: false, error: err.message || '回复加载失败，请重试' };
+  }
+}
+
 // ===================== community/commentCreate =====================
 
 async function communityCommentCreate(openid, data) {
@@ -1044,10 +1142,16 @@ async function communityCommentCreate(openid, data) {
     if (!openid) return { success: false, error: '请先登录' };
     var postId = String(data && data.postId || '').trim();
     var content = String(data && data.content || '').trim();
+    var replyToId = String(data && data.replyToId || '').trim();
+    var replyToType = String(data && data.replyToType || '').trim();
+    var isReply = !!replyToId;
     if (!postId) return { success: false, error: '动态 ID 不能为空' };
     if (!content) return { success: false, error: '评论内容不能为空' };
     if (content.length > MAX_COMMENT_LENGTH) {
       return { success: false, error: '评论不能超过 300 字' };
+    }
+    if (isReply && ['comment', 'reply'].indexOf(replyToType) === -1) {
+      return { success: false, error: '回复目标无效' };
     }
 
     var existingPostRes;
@@ -1077,6 +1181,8 @@ async function communityCommentCreate(openid, data) {
       authorAvatar: user.avatar || '',
       content: content,
       likeCount: 0,
+      replyCount: 0,
+      isReply: false,
       status: 'active',
       createdAt: now,
       updatedAt: now,
@@ -1091,9 +1197,79 @@ async function communityCommentCreate(openid, data) {
         throw new Error('动态不存在或暂不可评论');
       }
 
-      var addRes = await transaction.collection('community_comments').add({
-        data: commentData
-      });
+      var addRes;
+      var createdData = commentData;
+      var rootCommentId = '';
+      var rootReplyCount = 0;
+
+      if (isReply) {
+        var targetCollection = replyToType === 'reply'
+          ? 'community_comment_replies'
+          : 'community_comments';
+        var targetDoc = transaction.collection(targetCollection).doc(replyToId);
+        var targetRes = null;
+        try { targetRes = await targetDoc.get(); }
+        catch (targetGetErr) {
+          if (!isDocumentNotFoundError(targetGetErr)) throw targetGetErr;
+        }
+        var target = targetRes && targetRes.data;
+        if (!target || target.postId !== postId || target.status !== 'active') {
+          throw new Error('回复目标不存在或已删除');
+        }
+
+        rootCommentId = replyToType === 'reply' ? target.rootCommentId : target._id;
+        var rootDoc = transaction.collection('community_comments').doc(rootCommentId);
+        var root;
+        if (replyToType === 'comment') {
+          root = target;
+        } else {
+          var rootRes = null;
+          try { rootRes = await rootDoc.get(); }
+          catch (rootGetErr) {
+            if (!isDocumentNotFoundError(rootGetErr)) throw rootGetErr;
+          }
+          root = rootRes && rootRes.data;
+        }
+        if (!root || root.postId !== postId || root.status !== 'active') {
+          throw new Error('主评论不存在或已删除');
+        }
+
+        createdData = {
+          postId: postId,
+          postAuthorId: post.authorId,
+          rootCommentId: rootCommentId,
+          parentReplyId: replyToType === 'reply' ? target._id : '',
+          replyToId: target._id,
+          replyToType: replyToType,
+          replyToUserId: target.authorId,
+          replyToUserName: target.authorName || '旅行者',
+          authorId: openid,
+          authorName: user.nickname || '旅行者',
+          authorAvatar: user.avatar || '',
+          content: content,
+          likeCount: 0,
+          isReply: true,
+          status: 'active',
+          createdAt: now,
+          updatedAt: now,
+          deletedAt: 0
+        };
+        addRes = await transaction.collection('community_comment_replies').add({
+          data: createdData
+        });
+        rootReplyCount = Math.max(0, Number(root.replyCount) || 0) + 1;
+        await rootDoc.update({
+          data: {
+            replyCount: rootReplyCount,
+            updatedAt: now
+          }
+        });
+      } else {
+        addRes = await transaction.collection('community_comments').add({
+          data: createdData
+        });
+      }
+
       var nextCount = Math.max(0, Number(post.commentCount) || 0) + 1;
       await postDoc.update({
         data: {
@@ -1101,13 +1277,23 @@ async function communityCommentCreate(openid, data) {
           updatedAt: now
         }
       });
-      return { commentId: addRes._id, commentCount: nextCount };
+      return {
+        commentId: addRes._id,
+        commentCount: nextCount,
+        rootCommentId: rootCommentId,
+        rootReplyCount: rootReplyCount,
+        createdData: createdData
+      };
     });
 
-    commentData._id = result.commentId;
+    var responseComment = result.createdData;
+    responseComment._id = result.commentId;
     return {
       success: true,
-      comment: commentData,
+      comment: responseComment,
+      isReply: isReply,
+      rootCommentId: result.rootCommentId,
+      rootReplyCount: result.rootReplyCount,
       commentCount: result.commentCount
     };
   } catch (err) {
@@ -1123,56 +1309,142 @@ async function communityCommentDelete(openid, data) {
     if (!openid) return { success: false, error: '请先登录' };
     var postId = String(data && data.postId || '').trim();
     var commentId = String(data && data.commentId || '').trim();
+    var targetType = String(data && data.targetType || 'comment').trim();
     if (!postId || !commentId) {
       return { success: false, error: '评论信息不完整' };
+    }
+    if (['comment', 'reply'].indexOf(targetType) === -1) {
+      return { success: false, error: '评论类型无效' };
     }
 
     var result = await db.runTransaction(async function (transaction) {
       var postDoc = transaction.collection('community_posts').doc(postId);
-      var commentDoc = transaction.collection('community_comments').doc(commentId);
       var postRes = null;
-      var commentRes = null;
       try { postRes = await postDoc.get(); }
       catch (postGetErr) {
         if (!isDocumentNotFoundError(postGetErr)) throw postGetErr;
       }
-      try { commentRes = await commentDoc.get(); }
-      catch (commentGetErr) {
-        if (!isDocumentNotFoundError(commentGetErr)) throw commentGetErr;
-      }
       var post = postRes && postRes.data;
-      var comment = commentRes && commentRes.data;
-
       if (!post || post.status !== 'active') throw new Error('动态不存在');
-      if (!comment || comment.postId !== postId || comment.status !== 'active') {
-        throw new Error('评论不存在或已删除');
-      }
-      if (comment.authorId !== openid && post.authorId !== openid) {
-        throw new Error('无权删除这条评论');
-      }
 
       var now = Date.now();
       var nextCount = Math.max(0, Number(post.commentCount) || 0);
-      nextCount = Math.max(0, nextCount - 1);
-      await commentDoc.update({
-        data: {
-          status: 'deleted',
-          deletedAt: now,
-          updatedAt: now
+      var rootCommentId = '';
+      var rootReplyCount = 0;
+      var removedCount = 1;
+
+      if (targetType === 'reply') {
+        var replyDoc = transaction.collection('community_comment_replies').doc(commentId);
+        var replyRes = null;
+        try { replyRes = await replyDoc.get(); }
+        catch (replyGetErr) {
+          if (!isDocumentNotFoundError(replyGetErr)) throw replyGetErr;
         }
-      });
+        var reply = replyRes && replyRes.data;
+        if (!reply || reply.postId !== postId || reply.status !== 'active') {
+          throw new Error('回复不存在或已删除');
+        }
+        if (reply.authorId !== openid && post.authorId !== openid) {
+          throw new Error('无权删除这条回复');
+        }
+
+        rootCommentId = reply.rootCommentId;
+        var rootDoc = transaction.collection('community_comments').doc(rootCommentId);
+        var rootRes = null;
+        try { rootRes = await rootDoc.get(); }
+        catch (rootGetErr) {
+          if (!isDocumentNotFoundError(rootGetErr)) throw rootGetErr;
+        }
+        var root = rootRes && rootRes.data;
+        if (!root || root.postId !== postId || root.status !== 'active') {
+          throw new Error('主评论不存在或已删除');
+        }
+        rootReplyCount = Math.max(0, Number(root.replyCount) || 0);
+        rootReplyCount = Math.max(0, rootReplyCount - 1);
+
+        await replyDoc.update({
+          data: {
+            status: 'deleted',
+            deletedAt: now,
+            updatedAt: now
+          }
+        });
+        await rootDoc.update({
+          data: {
+            replyCount: rootReplyCount,
+            updatedAt: now
+          }
+        });
+      } else {
+        var commentDoc = transaction.collection('community_comments').doc(commentId);
+        var commentRes = null;
+        try { commentRes = await commentDoc.get(); }
+        catch (commentGetErr) {
+          if (!isDocumentNotFoundError(commentGetErr)) throw commentGetErr;
+        }
+        var comment = commentRes && commentRes.data;
+        if (!comment || comment.postId !== postId || comment.status !== 'active') {
+          throw new Error('评论不存在或已删除');
+        }
+        if (comment.authorId !== openid && post.authorId !== openid) {
+          throw new Error('无权删除这条评论');
+        }
+
+        rootCommentId = comment._id;
+        rootReplyCount = Math.max(0, Number(comment.replyCount) || 0);
+        removedCount += rootReplyCount;
+        await commentDoc.update({
+          data: {
+            status: 'deleted',
+            replyCount: 0,
+            deletedAt: now,
+            updatedAt: now
+          }
+        });
+      }
+
+      nextCount = Math.max(0, nextCount - removedCount);
       await postDoc.update({
         data: {
           commentCount: nextCount,
           updatedAt: now
         }
       });
-      return { commentCount: nextCount };
+      return {
+        commentCount: nextCount,
+        rootCommentId: rootCommentId,
+        rootReplyCount: rootReplyCount,
+        removedCount: removedCount
+      };
     });
+
+    if (targetType === 'comment' && result.rootReplyCount > 0) {
+      try {
+        var cascadeNow = Date.now();
+        await db.collection('community_comment_replies').where({
+          postId: postId,
+          rootCommentId: result.rootCommentId,
+          status: 'active'
+        }).update({
+          data: {
+            status: 'deleted',
+            deletedAt: cascadeNow,
+            updatedAt: cascadeNow
+          }
+        });
+      } catch (cascadeErr) {
+        // The root is already hidden, so active orphan rows are not visible.
+        console.error('级联删除评论回复失败:', cascadeErr);
+      }
+    }
 
     return {
       success: true,
       commentId: commentId,
+      targetType: targetType,
+      rootCommentId: result.rootCommentId,
+      rootReplyCount: result.rootReplyCount,
+      removedCount: result.removedCount,
       commentCount: result.commentCount
     };
   } catch (err) {
@@ -1212,6 +1484,11 @@ async function communityDelete(openid, data) {
       await db.collection('community_comments').where({ postId: postId }).remove();
     } catch (commentCleanupErr) {
       console.error('删除社区评论记录失败:', commentCleanupErr);
+    }
+    try {
+      await db.collection('community_comment_replies').where({ postId: postId }).remove();
+    } catch (replyCleanupErr) {
+      console.error('删除社区回复记录失败:', replyCleanupErr);
     }
 
     // Delete COS objects immediately. A failed object is queued for retry.
@@ -1278,6 +1555,7 @@ module.exports = {
   communityToggleLike,
   communityLikeList,
   communityCommentList,
+  communityReplyList,
   communityCommentCreate,
   communityCommentDelete,
   communityDelete
