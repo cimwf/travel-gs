@@ -1,90 +1,108 @@
-<!--pages/user-profile/user-profile.wxml-->
-<view class="container">
-  <!-- 加载中 -->
+<!-- pages/user-profile/user-profile.wxml -->
+<view class="profile-page">
   <view class="loading-state" wx:if="{{loading}}">
     <view class="loading-spinner"></view>
     <text>加载中...</text>
   </view>
 
   <block wx:else>
-    <!-- 用户信息卡片 -->
-    <view class="user-card">
-      <image class="user-bg-image" src="{{userInfo.background || defaultBackground}}" mode="aspectFill"></image>
-      <view class="user-card-overlay">
-        <view class="user-avatar-wrap">
-          <image class="user-avatar" src="{{userInfo.avatar}}" wx:if="{{userInfo.avatar}}" mode="aspectFill"></image>
-          <view class="user-avatar-text" wx:else>
-            <text>👤</text>
+    <view class="profile-summary">
+      <view class="identity-row">
+        <image class="user-avatar" src="{{userInfo.avatar || '/images/logo.png'}}" mode="aspectFill"></image>
+        <view class="identity-copy">
+          <text class="user-name">{{userInfo.nickname}}</text>
+          <view class="region-row">
+            <image class="region-icon" src="/images/icon-location-blue.png" mode="aspectFit"></image>
+            <text>{{userInfo.region ? '北京市 · ' + userInfo.region : '北京市'}}</text>
           </view>
+          <text class="user-bio">{{userInfo.bio}}</text>
         </view>
-        <view class="user-name">{{userInfo.nickname || '旅行者'}}</view>
-        <view class="user-id-row">
-          <text class="user-id">ID: {{userInfo.userId || '未设置'}}</text>
-          <text class="user-meta-pill" wx:if="{{userInfo.age}}">{{userInfo.age}}</text>
-          <image class="user-gender" src="/images/male.svg" wx:if="{{userInfo.gender === 'male'}}" />
-          <image class="user-gender" src="/images/female.svg" wx:if="{{userInfo.gender === 'female'}}" />
+        <view class="edit-btn" wx:if="{{isCurrentUser}}" bindtap="onEditProfile">编辑资料</view>
+      </view>
+
+      <view class="social-stats">
+        <view class="stat-item">
+          <text class="stat-number">{{stats.following}}</text>
+          <text class="stat-label">关注</text>
         </view>
-        <view class="profile-actions" wx:if="{{isCurrentUser}}">
-          <view class="edit-profile-btn" bindtap="onEditProfile">编辑资料</view>
+        <view class="stat-divider"></view>
+        <view class="stat-item">
+          <text class="stat-number">{{stats.followers}}</text>
+          <text class="stat-label">粉丝</text>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-item">
+          <text class="stat-number">{{stats.receivedLikes}}</text>
+          <text class="stat-label">获赞</text>
         </view>
       </view>
     </view>
 
-    <!-- 内容区域 -->
-    <view class="content">
-      <!-- 个人简介 -->
-      <view class="section-card" wx:if="{{userInfo.bio}}">
-        <view class="section-title">📝 个人简介</view>
-        <view class="bio-text">{{userInfo.bio}}</view>
+    <view class="content-tabs">
+      <view class="tab-item {{activeTab === 'works' ? 'active' : ''}}" bindtap="onSwitchTab" data-tab="works">
+        <text>作品 {{stats.works}}</text>
+        <view class="tab-line"></view>
       </view>
+      <view class="tab-item {{activeTab === 'trips' ? 'active' : ''}}" bindtap="onSwitchTab" data-tab="trips">
+        <text>行程 {{stats.trips}}</text>
+        <view class="tab-line"></view>
+      </view>
+    </view>
 
-      <!-- 旅行照片 -->
-      <view class="section-card" wx:if="{{photos.length > 0}}">
-        <view class="section-title">📸 旅行照片</view>
-        <view class="photos-grid">
-          <view class="photo-item" wx:for="{{photos}}" wx:key="index" bindtap="onPhotoTap" data-index="{{index}}">
-            <image class="photo-img" src="{{item}}" mode="aspectFill"></image>
+    <view class="works-list" wx:if="{{activeTab === 'works' && posts.length > 0}}">
+      <view class="work-item" wx:for="{{posts}}" wx:key="_id" bindtap="onOpenPost" data-post-id="{{item._id}}">
+        <text class="work-text" wx:if="{{item.content}}">{{item.content}}</text>
+
+        <view class="work-images {{item.imageLayout}}" wx:if="{{item.images && item.images.length > 0}}">
+          <image wx:for="{{item.images}}" wx:for-item="img" wx:key="key"
+            class="work-image" src="{{img.url}}" mode="aspectFill"
+            catchtap="onPreviewImage" data-current="{{img.url}}" data-urls="{{item.imageUrls}}">
+          </image>
+        </view>
+
+        <view class="work-meta">
+          <view class="meta-left">
+            <text class="work-time">{{item.timeText}}</text>
+            <view class="location-pill" wx:if="{{item.hasLocation}}" catchtap="onOpenLocation"
+              data-lat="{{item.location.latitude}}" data-lng="{{item.location.longitude}}"
+              data-name="{{item.location.name}}" data-address="{{item.location.address}}">
+              <image src="/images/icon-location-blue.png" mode="aspectFit"></image>
+              <text>{{item.location.name}}</text>
+            </view>
+          </view>
+          <view class="work-actions">
+            <view class="action-item {{item.isLiked ? 'liked' : ''}}" catchtap="onLikeTap" data-post-id="{{item._id}}">
+              <image src="{{item.isLiked ? '/images/icon-like-heart-active.svg' : '/images/icon-like-heart-gray.svg'}}" mode="aspectFit"></image>
+              <text>{{item.likeCount}}</text>
+            </view>
+            <view class="action-item" catchtap="onOpenPost" data-post-id="{{item._id}}">
+              <image src="/images/icon-comment-gray.svg" mode="aspectFit"></image>
+              <text>{{item.commentCount}}</text>
+            </view>
           </view>
         </view>
       </view>
+    </view>
 
-      <!-- 发布的行程 -->
-      <view class="trip-list profile-trip-list" wx:if="{{trips.length > 0}}">
-        <view class="trip-card" wx:for="{{trips}}" wx:key="_id" bindtap="onTripTap" data-id="{{item._id}}">
-          <view class="trip-header">
-            <image class="trip-img" src="{{item.placeCoverImage}}" mode="aspectFill" wx:if="{{item.placeCoverImage}}"></image>
-            <view class="trip-img" style="background: {{item.imgBg}};" wx:else>
-              <text class="trip-emoji">{{item.emoji}}</text>
-            </view>
-            <view class="trip-info">
-              <view class="trip-title-row">
-                <view class="trip-title">{{item.displayTitle || item.placeName}}</view>
-                <view class="trip-status {{item.statusClass}}">{{item.statusText}}</view>
-              </view>
-              <view class="trip-meta">
-                <text>📅 {{item.dateText}}</text>
-                <text class="meta-dot">·</text>
-                <text>📍 {{item.departure || '待定'}}</text>
-              </view>
-              <view class="trip-meta trip-meta-second">
-                <text>{{item.carText}}</text>
-                <text class="meta-dot" wx:if="{{item.priceText}}">·</text>
-                <text wx:if="{{item.priceText}}">{{item.priceText}}</text>
-              </view>
-            </view>
-          </view>
-
-          <view class="trip-footer">
-            <view class="trip-footer-left">
-              <view class="participants">
-                <image class="participant-avatar" wx:for="{{item.participants}}" wx:for-item="p" wx:for-index="pIndex" wx:key="userId" src="{{p.avatar}}" mode="aspectFill"></image>
-              </view>
-              <text class="trip-need" wx:if="{{item.needCount > 0}}">还差{{item.needCount}}人</text>
-            </view>
-            <text class="publish-time">{{item.publishTime}}</text>
-          </view>
+    <view class="trip-list" wx:elif="{{activeTab === 'trips' && trips.length > 0}}">
+      <view class="trip-card" wx:for="{{trips}}" wx:key="_id" bindtap="onTripTap" data-id="{{item._id}}">
+        <image class="trip-cover" src="{{item.cover || '/images/logo.png'}}" mode="aspectFill"></image>
+        <view class="trip-copy">
+          <text class="trip-title">{{item.title}}</text>
+          <text class="trip-place">{{item.placeName}}</text>
+          <text class="trip-meta">{{item.dateText}} · {{item.departure}}出发</text>
         </view>
+        <image class="trip-arrow" src="/images/icon-profile-chevron.svg" mode="aspectFit"></image>
       </view>
+    </view>
+
+    <view class="empty-state" wx:if="{{activeTab === 'works' && posts.length === 0}}">
+      <text class="empty-title">还没有公开作品</text>
+      <text class="empty-desc">审核通过的作品会展示在这里</text>
+    </view>
+    <view class="empty-state" wx:if="{{activeTab === 'trips' && trips.length === 0}}">
+      <text class="empty-title">还没有发布行程</text>
+      <text class="empty-desc">发布的行程会展示在这里</text>
     </view>
   </block>
 </view>

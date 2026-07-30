@@ -319,6 +319,7 @@ async function userUpdate(openid, data) {
     avatar: data.avatar === undefined ? undefined : normalizeAvatarForDb(data.avatar),
     gender: data.gender,
     age: data.age,
+    region: data.region,
     contactPhone: data.contactPhone,
     bio: data.bio,
     background: data.background,

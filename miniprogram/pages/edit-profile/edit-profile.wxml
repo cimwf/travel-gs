@@ -1,109 +1,89 @@
-<!--
-  个人信息编辑页 (edit-profile)
-  ================================
-  设计稿：docs/design-spec.html
--->
-
-<view class="container">
-  <!-- 头像卡片 -->
-  <view class="profile-header-card">
-    <image class="profile-bg-image" src="{{userInfo.background || defaultBackground}}" mode="aspectFill" bindtap="onChooseBackground"></image>
-    <view class="profile-bg-overlay"></view>
-    <button class="avatar-container" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
-      <image class="avatar-large" src="{{userInfo.avatar || defaultAvatar}}" mode="aspectFill" wx:if="{{userInfo.avatar}}"></image>
-      <view class="avatar-large-placeholder" wx:else>
-        <text>👤</text>
-        <view class="avatar-edit-badge">
-          <text>📷</text>
+<!-- pages/edit-profile/edit-profile.wxml -->
+<view class="edit-page">
+  <view class="avatar-section">
+    <button class="avatar-picker" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+      <view class="avatar-image-wrap">
+        <image class="avatar-image" src="{{userInfo.avatar || '/images/logo.png'}}" mode="aspectFill"></image>
+        <view class="avatar-camera-badge">
+          <image src="/images/icon-camera-white.png" mode="aspectFit"></image>
         </view>
       </view>
+      <text class="avatar-hint">点击更换头像</text>
     </button>
-    <view class="profile-nickname">{{userInfo.nickname || '旅行达人'}}</view>
-    <view class="profile-id">ID: {{userInfo.userId || 'BJ20260406'}}</view>
-    <view class="background-edit-hint" bindtap="onChooseBackground">点击更换背景</view>
   </view>
 
-  <view class="content-section-view">
-    <view class="content-section">
-      <!-- 基础信息分组 -->
-      <view class="info-group">
-        <view class="group-header">
-          <view class="group-icon" style="background: linear-gradient(135deg, #FFF5F0, #FFE8DB);">
-            <text>👤</text>
-          </view>
-          <text class="group-title">基础信息</text>
-          <text class="group-arrow">▼</text>
-        </view>
-        <view class="group-content">
-          <view class="info-row">
-            <text class="info-label">昵称</text>
-            <input class="info-input" placeholder="请输入昵称" placeholder-class="input-placeholder" value="{{userInfo.nickname}}" maxlength="12" bindinput="onNicknameInput" bindblur="onNicknameBlur" />
-          </view>
-          <view class="info-row">
-            <text class="info-label">性别</text>
-            <view class="gender-tags">
-              <view class="gender-tag {{userInfo.gender === 'male' ? 'active' : ''}}" data-value="male" bindtap="onGenderChange">男</view>
-              <view class="gender-tag {{userInfo.gender === 'female' ? 'active' : ''}}" data-value="female" bindtap="onGenderChange">女</view>
-              <view class="gender-tag {{userInfo.gender === 'secret' ? 'active' : ''}}" data-value="secret" bindtap="onGenderChange">保密</view>
-            </view>
-          </view>
-          <view class="info-row">
-            <text class="info-label">年龄</text>
-            <view class="info-inline-input">
-              <input class="info-input age-input" type="number" placeholder="请输入年龄" placeholder-class="input-placeholder" value="{{userInfo.age}}" maxlength="3" bindinput="onAgeInput" bindblur="onAgeBlur" />
-              <text class="info-suffix">岁</text>
-            </view>
-          </view>
-          <view class="info-row phone-row">
-            <text class="info-label">联系方式 <text class="required">*</text></text>
-            <view class="info-input-view">
-              <input class="info-input" type="text" placeholder="请输入手机号（同时也是微信号）" placeholder-class="input-placeholder" value="{{userInfo.contactPhone}}" maxlength="11" bindinput="onPhoneInput" bindblur="onPhoneBlur" />
-            </view>
-          </view>
-          <view class="phone-tip">
-            <text class="tip-icon">💡</text>
-            <text class="tip-text">此号码将同时作为手机号和微信号，展示给已加入行程的成员</text>
-          </view>
-        </view>
-      </view>
+  <view class="form-group">
+    <view class="form-row">
+      <text class="form-label">昵称</text>
+      <input class="form-input" type="nickname" value="{{userInfo.nickname}}" maxlength="12"
+        placeholder="请输入昵称" placeholder-class="placeholder"
+        bindinput="onNicknameInput"></input>
+    </view>
 
-      <!-- 旅行照片分组 -->
-      <view class="info-group">
-        <view class="group-header">
-          <view class="group-icon" style="background: linear-gradient(135deg, #FFF0E5, #FFF9F5);">
-            <text>📸</text>
-          </view>
-          <text class="group-title">旅行照片</text>
-          <text class="group-arrow">▼</text>
-        </view>
-        <view class="group-content">
-          <view class="photo-grid">
-            <view class="photo-item" wx:for="{{userInfo.photos}}" wx:key="index" data-index="{{index}}" bindtap="onPreviewPhoto">
-              <image class="photo-image" src="{{item}}" mode="aspectFill"></image>
-              <view class="photo-delete" data-index="{{index}}" catchtap="onDeletePhoto">×</view>
-            </view>
-            <view class="photo-add" wx:if="{{userInfo.photos.length < 9}}" bindtap="onAddPhoto">
-              <text class="photo-add-icon">+</text>
-            </view>
-          </view>
-          <view class="photo-tip">已上传 {{userInfo.photos.length || 0}}/9 张，点击图片可删除</view>
-        </view>
-      </view>
-
-      <!-- 自我描述分组 -->
-      <view class="info-group">
-        <view class="group-header">
-          <view class="group-icon" style="background: linear-gradient(135deg, #E8F4FF, #F0F8FF);">
-            <text>📝</text>
-          </view>
-          <text class="group-title">自我描述</text>
-          <text class="group-arrow">▼</text>
-        </view>
-        <view class="group-content">
-          <textarea class="bio-textarea" placeholder="介绍一下自己，让队友更了解你～" placeholder-class="textarea-placeholder" value="{{userInfo.bio}}" maxlength="200" bindinput="onBioInput" bindblur="onBioBlur" />
-          <view class="textarea-count">{{userInfo.bio.length || 0}}/200字</view>
-        </view>
+    <view class="form-row gender-row">
+      <text class="form-label">性别</text>
+      <view class="gender-options">
+        <view class="gender-option {{userInfo.gender === 'male' ? 'active' : ''}}"
+          bindtap="onGenderChange" data-value="male">男</view>
+        <view class="gender-option {{userInfo.gender === 'female' ? 'active' : ''}}"
+          bindtap="onGenderChange" data-value="female">女</view>
+        <view class="gender-option {{userInfo.gender === 'secret' || !userInfo.gender ? 'active' : ''}}"
+          bindtap="onGenderChange" data-value="secret">保密</view>
       </view>
     </view>
+
+    <view class="form-row">
+      <text class="form-label">年龄</text>
+      <view class="age-value">
+        <input class="form-input age-input" type="number" value="{{userInfo.age}}" maxlength="3"
+          placeholder="未设置" placeholder-class="placeholder"
+          bindinput="onAgeInput" bindblur="onAgeBlur"></input>
+        <text wx:if="{{userInfo.age}}">岁</text>
+      </view>
+    </view>
+
+    <view class="form-row tappable" bindtap="onOpenRegionModal">
+      <text class="form-label">地区</text>
+      <view class="row-value">
+        <text class="{{userInfo.region ? '' : 'placeholder'}}">{{userInfo.region ? '北京市 · ' + userInfo.region : '请选择'}}</text>
+        <image src="/images/icon-profile-chevron.svg" mode="aspectFit"></image>
+      </view>
+    </view>
+
+    <view class="form-row">
+      <text class="form-label">联系方式</text>
+      <input class="form-input" type="number" value="{{userInfo.contactPhone}}" maxlength="11"
+        placeholder="请输入手机号" placeholder-class="placeholder"
+        bindinput="onPhoneInput"></input>
+    </view>
+  </view>
+
+  <view class="bio-group">
+    <text class="bio-label">自我介绍</text>
+    <textarea class="bio-input" value="{{userInfo.bio}}" maxlength="200"
+      placeholder="介绍一下自己，让更多旅友认识你～"
+      placeholder-class="placeholder" bindinput="onBioInput"></textarea>
+    <text class="bio-count">{{userInfo.bio.length || 0}}/200</text>
+  </view>
+
+  <view class="save-button {{saving ? 'disabled' : ''}}" bindtap="onSave">{{saving ? '保存中...' : '保存'}}</view>
+  <view class="bottom-safe"></view>
+</view>
+
+<view class="modal-mask" wx:if="{{showRegionModal}}" bindtap="onCloseRegionModal">
+  <view class="region-sheet" catchtap="preventBubble">
+    <view class="sheet-header">
+      <view>
+        <text class="sheet-title">选择地区</text>
+        <text class="sheet-subtitle">选择区（北京 · 共16个区）</text>
+      </view>
+      <image class="sheet-close" src="/images/icon-close-gray.png" mode="aspectFit" bindtap="onCloseRegionModal"></image>
+    </view>
+    <view class="district-grid">
+      <view class="district-item {{userInfo.region === item ? 'active' : ''}}"
+        wx:for="{{districts}}" wx:key="*this"
+        bindtap="onSelectDistrict" data-district="{{item}}">{{item}}</view>
+    </view>
+    <view class="sheet-safe"></view>
   </view>
 </view>

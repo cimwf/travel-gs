@@ -81,3 +81,160 @@
 没有剩余 P0、P1 或 P2 视觉问题。
 
 final result: passed
+
+# 个人主页与编辑资料 Design QA（2026-07-29）
+
+## 对比基准
+
+- Source visual truth:
+  `/Users/shan/.codex/generated_images/019f6506-a4d4-7db1-9774-24137bcc1805/call_d3rblvnvDJs5KjRQ9ExjcnDm.png`
+- Personal profile implementation:
+  `/tmp/user-profile-implementation.png`
+- Edit profile implementation:
+  `/tmp/edit-profile-implementation.png`
+- Region selector implementation:
+  `/tmp/edit-profile-region-implementation.png`
+- Full comparison evidence:
+  `/tmp/profile-flow-comparison.png`
+- Focused region comparison:
+  `/tmp/edit-region-comparison.png`
+- Source pixels: `1702 × 924`，为 ImageGen 输出的双页面设计板。
+- DevTools captures: `390 × 780`，裁掉开发者工具栏后页面内容为
+  `390 × 694`；微信开发者工具使用 iPhone 12/13 (Pro) 70%。
+- State: 当前真实登录用户、公开作品列表、编辑资料默认态、北京地区弹窗展开态。
+
+## Full-view comparison
+
+- 个人主页保持浅蓝白色资料区、三项社交统计和“作品/行程”双标签层级。
+- 作品区使用真实社区数据验证，实际画面包含文字和多张图片；单图、双图和多图
+  由同一布局规则处理，不再使用只适合照片的瀑布流。
+- 编辑资料使用头像、基础资料、自我介绍和底部主按钮的单列结构；保存按钮已调整为
+  与表单同宽并居中。
+- 两个页面都使用页面 JSON 配置的微信系统导航栏；开发者工具分离模拟器截图只保留
+  页面内容，系统标题由运行时单独渲染。
+
+## Focused region comparison
+
+- 北京地区弹窗与确认稿并排检查：标题、副标题、关闭按钮、四列布局、16 个区名称、
+  选中蓝色状态和底部圆角均一致。
+- 实际测试通过点击“地区”行右侧箭头打开，不依赖原生省市区选择器。
+
+## Required fidelity surfaces
+
+- Fonts and typography: 使用微信小程序系统中文字体，昵称、统计、标签、表单标签和
+  辅助文字层级清晰；模拟器 70% 缩放造成的轻微锐度下降属于运行时显示差异。
+- Spacing and layout rhythm: 个人资料区、统计区和标签区与设计稿比例接近；作品动态
+  使用分隔线形成连续信息流；编辑表单采用两个连续白色分组。
+- Colors and visual tokens: 页面统一使用 `#F4F9FF`、`#FFFFFF`、`#2783EE`、
+  `#17202B`、`#7F8997` 和 `#E8EDF3`。
+- Image quality and asset fidelity: 头像和作品使用真实用户数据；位置、点赞、评论、
+  相机和箭头均复用项目现有图标资源，没有 Emoji 或临时字符图标。
+- Copy and content: 个人主页包含地区、关注、粉丝、获赞、作品和行程；编辑资料新增
+  地区，并明确限制为北京 16 区。
+
+## Interaction verification
+
+- 从“我的”头像进入 `pages/user-profile/user-profile` 成功。
+- 个人主页真实作品数据加载成功，作品数量和获赞数量随数据展示。
+- 点击“编辑资料”进入 `pages/edit-profile/edit-profile` 成功。
+- 点击地区行打开北京 16 区弹窗成功。
+- `npm test` 的个人主页、编辑资料、头像上传和地区结构测试通过。
+- `npm run test:community` 的 34 组社区测试通过。
+- 微信开发者工具调试器显示 `0` 个错误；已有警告与本次改动无关。
+
+## Findings
+
+没有剩余 P0、P1 或 P2 视觉问题。
+
+## Follow-up Polish
+
+- [P3] 当前获赞数优先读取用户聚合字段，字段为空时使用本次加载的公开作品点赞和；
+  后续关注/粉丝模块完成时，可统一由服务端统计接口返回全部计数。
+- [P3] ImageGen 双页面设计板的单屏宽高比不是标准手机比例；实现保持真实微信小程序
+  纵向滚动比例，因此同屏展示的作品数量与设计板不同，但信息层级和布局规则一致。
+
+final result: passed
+
+---
+
+# 我的页面 Design QA（2026-07-29）
+
+## 对比基准
+
+- Source visual truth:
+  `/Users/shan/.codex/generated_images/019f6506-a4d4-7db1-9774-24137bcc1805/call_jVrRA8eFOoLqnnUXklZHlJaQ.png`
+- Implementation screenshot:
+  `/tmp/profile-implementation.jpg`
+- Full side-by-side comparison:
+  `/tmp/profile-ui-comparison.jpg`
+- Source pixels: `853 × 1844`
+- Implementation capture: `390 × 844`
+- Normalization: source downsampled to `390 × 844`; simulator at iPhone 12/13
+  (Pro) 70% and cropped/resampled to the same content ratio.
+- State: 已登录、真实头像与昵称、关注/粉丝/获赞为当前本地用户数据、行程数为
+  当前真实数据。
+
+## Full-view comparison
+
+- 顶部标题、头像资料区、三项社交数据、两组紧密功能列表和系统 Tab 的信息
+  层级与选定设计一致。
+- 微信原生胶囊位于右上角，页面标题和个人资料均未进入胶囊安全区域。
+- “其他”标题已删除；上传景点、提交建议和关于我们保留为紧接核心功能的第二组。
+- 消息提醒只出现在“消息中心”行，不修改系统 Tab。
+- 实现截图带有开发者工具模拟器提供的刘海和底部 Home Indicator；这些属于运行时
+  设备外壳，不属于页面实现内容。
+
+## Required fidelity surfaces
+
+- Fonts and typography: 使用项目现有系统中文字体；标题、昵称、统计数字、菜单
+  标题和辅助文案保持清晰的五级层次。模拟器截图缩放会降低文字锐度，真机渲染
+  使用矢量文字。
+- Spacing and layout rhythm: 头像区与统计区留白接近设计稿；两组列表同宽，间距
+  为 `14rpx`，没有多余分区标题；小屏设备允许页面自然纵向滚动。
+- Colors and visual tokens: 页面使用 `#F4F9FF`、`#EAF4FF`、白色和
+  `#2783EE`，保持选定方案的冷色蓝白体系；红色仅用于未读数量。
+- Image quality and asset fidelity: 头像使用用户真实图片；菜单使用 Tabler Icons
+  的 MIT 授权 SVG 资源，没有 Emoji、字符图标或临时占位图。
+- Copy and content: 保留我的行程、我的作品、互动记录、消息中心、上传景点、
+  提交建议和关于我们；为避免在统一消息中心上线前丢失现有能力，消息副标题暂为
+  “行程通知、赞、评论与回复”，点击继续进入现有行程通知页面。
+
+## Comparison history
+
+### Iteration 1
+
+- Finding: 原设计把消息入口放在微信右上角胶囊区域，会被原生关闭与更多按钮遮挡。
+- Fix: 移除顶部消息按钮，通过 `wx.getMenuButtonBoundingClientRect()` 动态计算
+  自定义导航高度和右侧安全距离；消息未读状态移动到列表中的消息中心入口。
+- Post-fix evidence:
+  `/tmp/profile-implementation.jpg`
+
+### Iteration 2
+
+- Finding: 独立“其他”标题使页面被人为切成两块，和用户选定的紧凑方向不一致。
+- Fix: 删除标题，将辅助功能改为与核心列表同宽、仅间隔 `14rpx` 的第二个列表组。
+- Post-fix evidence:
+  `/tmp/profile-ui-comparison.jpg`
+
+## Functional verification
+
+- 微信开发者工具中从系统 Tab 切换到“我的”成功，当前路由为
+  `pages/profile/profile`。
+- `tests/mvp-ui-flow.test.js` 中“我的”页面入口与未登录跳转测试通过。
+- 社区完整测试 `34/34` 通过。
+- 微信开发者工具调试器显示 `0` 个错误；现有警告不来自本次页面改动。
+- 关注、粉丝、获赞和互动记录的完整列表尚未开发，当前点击会给出“开发中”反馈，
+  不会跳转到不存在的页面。
+
+## Findings
+
+没有剩余 P0、P1 或 P2 视觉问题。
+
+## Follow-up Polish
+
+- [P3] 关注、粉丝和获赞目前读取用户资料中的已有统计字段；获赞聚合接口完成后，
+  应以服务端社区作品点赞汇总替换本地字段。
+- [P3] 统一消息中心上线后，将当前行程通知路由切换为消息中心，并在内部保留
+  行程通知分类。
+
+final result: passed

@@ -2,26 +2,40 @@
 const app = getApp();
 const api = require('../../utils/api.js');
 const auth = require('../../utils/auth.js');
-const env = require('../../utils/env.js');
 
 Page({
   data: {
     userInfo: null,
     isLoggedIn: false,
     statusBarHeight: 0,
+    navBarHeight: 44,
     unreadCount: 0,
-    defaultBackground: env.defaultBackground,
     stats: {
       following: 0,
       followers: 0,
-      trips: 0
+      receivedLikes: 0,
+      trips: 0,
+      works: 0
     }
   },
 
   onLoad: function () {
-    // 获取状态栏高度
     const windowInfo = wx.getWindowInfo();
-    this.setData({ statusBarHeight: windowInfo.statusBarHeight });
+    const statusBarHeight = windowInfo.statusBarHeight || 0;
+    let menuButton = null;
+    if (typeof wx.getMenuButtonBoundingClientRect === 'function') {
+      menuButton = wx.getMenuButtonBoundingClientRect();
+    }
+    const menuGap = menuButton && menuButton.top > statusBarHeight
+      ? menuButton.top - statusBarHeight
+      : 6;
+    const navBarHeight = menuButton && menuButton.height
+      ? menuButton.height + menuGap * 2
+      : 44;
+    this.setData({
+      statusBarHeight,
+      navBarHeight
+    });
 
     this.checkLogin();
   },
@@ -43,13 +57,25 @@ Page({
 
     this.setData({
       isLoggedIn: loggedIn,
-      userInfo: storedUserInfo || null
+      userInfo: storedUserInfo || null,
+      stats: this.getStatsFromUser(storedUserInfo)
     });
 
     // 处理云存储链接
     if (storedUserInfo) {
       await this.convertCloudUrls();
     }
+  },
+
+  getStatsFromUser: function (userInfo) {
+    userInfo = userInfo || {};
+    return {
+      following: Math.max(0, Number(userInfo.following) || 0),
+      followers: Math.max(0, Number(userInfo.followers) || 0),
+      receivedLikes: Math.max(0, Number(userInfo.receivedLikes) || 0),
+      trips: Math.max(0, Number(userInfo.trips) || 0),
+      works: Math.max(0, Number(userInfo.works) || 0)
+    };
   },
 
   // 转换云存储链接为临时URL
@@ -90,14 +116,8 @@ Page({
   // 加载用户统计
   loadUserStats: async function () {
     try {
-      // 模拟数据
-      this.setData({
-        stats: {
-          following: 12,
-          followers: 28,
-          trips: 5
-        }
-      });
+      const storedUserInfo = wx.getStorageSync('userInfo') || this.data.userInfo;
+      this.setData({ stats: this.getStatsFromUser(storedUserInfo) });
     } catch (err) {
       console.error('加载统计数据失败', err);
     }
@@ -149,6 +169,20 @@ Page({
   // 行程通知
   onTapTripNotifications: function () {
     auth.navigateIfLoggedIn('/pages/trip-notifications/trip-notifications');
+  },
+
+  // 互动记录页将在下一阶段接入真实列表
+  onTapInteractionRecords: function () {
+    if (auth.ensureLogin()) {
+      wx.showToast({ title: '互动记录开发中', icon: 'none' });
+    }
+  },
+
+  // 关注、粉丝、获赞列表将在对应数据接口完成后开放
+  onTapSocialStat: function () {
+    if (auth.ensureLogin()) {
+      wx.showToast({ title: '列表功能开发中', icon: 'none' });
+    }
   },
 
   // 上传景点

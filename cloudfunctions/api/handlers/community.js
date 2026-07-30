@@ -322,10 +322,13 @@ async function communityList(openid, data) {
 
   // The community feed only shows content that has fully passed moderation.
   // Reviewing/rejected posts stay hidden from everyone, including the author.
-  var listCondition = {
-    status: 'active',
-    reviewStatus: 'approved'
-  };
+  var listCondition = { status: 'active' };
+  var authorId = String(data && data.authorId || '').trim();
+  if (authorId) {
+    listCondition.authorId = authorId;
+  } else {
+    listCondition.reviewStatus = 'approved';
+  }
 
   if (cursor > 0) {
     var cursorCondition = cursorId
@@ -338,13 +341,22 @@ async function communityList(openid, data) {
   }
 
   try {
+    // Author profiles reuse the existing authorId + status + createdAt + _id
+    // index. Fetch a wider private batch, then filter before returning so
+    // reviewing/rejected posts never leak through a public profile.
+    var queryLimit = authorId ? 100 : pageSize;
     var postsRes = await db.collection('community_posts')
       .where(listCondition)
       .orderBy('createdAt', 'desc')
       .orderBy('_id', 'desc')
-      .limit(pageSize)
+      .limit(queryLimit)
       .get();
     var posts = postsRes.data || [];
+    if (authorId) {
+      posts = posts.filter(function (post) {
+        return post.reviewStatus === 'approved';
+      }).slice(0, pageSize);
+    }
 
     posts.forEach(function (p) {
       p.isAuthor = !!(openid && p.authorId === openid);

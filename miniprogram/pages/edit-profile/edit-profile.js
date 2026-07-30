@@ -1,199 +1,71 @@
 // pages/edit-profile/edit-profile.js
 const app = getApp();
 const api = require('../../utils/api.js');
-const env = require('../../utils/env.js');
 
 Page({
   data: {
+    saving: false,
+    showRegionModal: false,
+    originalUserInfo: {},
     userInfo: {
+      _id: '',
       avatar: '',
       avatarFileID: '',
-      background: '',
-      backgroundFileID: '',
       nickname: '',
       gender: '',
       age: '',
-      contactPhone: '',  // 联系方式
-      bio: '',
-      birthday: '',
-      userId: '',
-      photos: [],
-      photoFileIDs: [],
-      travelPreferences: {
-        adults: 2,
-        children: 0,
-        elderly: 0,
-        pace: 'medium'
-      }
+      region: '',
+      contactPhone: '',
+      bio: ''
     },
-    defaultAvatar: 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0',
-    defaultBackground: env.defaultBackground,
-    // 景点类型选项
-    scenicTypes: [
-      { id: 1, name: '山岳', icon: '🏔️', selected: false },
-      { id: 2, name: '古迹', icon: '🏛️', selected: false },
-      { id: 3, name: '美食', icon: '🍜', selected: false },
-      { id: 4, name: '购物', icon: '🛍️', selected: false },
-      { id: 5, name: '自然', icon: '🌿', selected: false },
-      { id: 6, name: '乐园', icon: '🎢', selected: false }
+    districts: [
+      '海淀区', '朝阳区', '丰台区', '东城区',
+      '西城区', '石景山区', '门头沟区', '房山区',
+      '通州区', '顺义区', '昌平区', '大兴区',
+      '怀柔区', '平谷区', '密云区', '延庆区'
     ]
   },
 
-  onLoad: async function (options) {
-    // 加载已有用户信息
-    const existingUserInfo = app.globalData.userInfo || wx.getStorageSync('userInfo');
-    if (existingUserInfo) {
-      // 合并用户数据
-      const mergedInfo = {
-        ...this.data.userInfo,
-        ...existingUserInfo,
-        travelPreferences: {
-          ...this.data.userInfo.travelPreferences,
-          ...(existingUserInfo.travelPreferences || {})
-        }
-      };
-
-      // 更新景点类型的选中状态
-      if (existingUserInfo.scenicTypes) {
-        const updatedScenicTypes = this.data.scenicTypes.map(item => ({
-          ...item,
-          selected: existingUserInfo.scenicTypes.includes(item.id)
-        }));
-        this.setData({ scenicTypes: updatedScenicTypes });
+  onLoad: async function () {
+    this.openerEventChannel = typeof this.getOpenerEventChannel === 'function'
+      ? this.getOpenerEventChannel()
+      : null;
+    const existing = app.globalData.userInfo || wx.getStorageSync('userInfo') || {};
+    this.setData({
+      originalUserInfo: existing,
+      userInfo: {
+        _id: existing._id || wx.getStorageSync('userId') || '',
+        avatar: existing.avatar || existing.avatarUrl || '',
+        avatarFileID: existing.avatarFileID || '',
+        nickname: existing.nickname || existing.nickName || '',
+        gender: existing.gender || '',
+        age: existing.age === undefined || existing.age === null ? '' : String(existing.age),
+        region: existing.region || '',
+        contactPhone: existing.contactPhone || '',
+        bio: existing.bio || ''
       }
-
-      this.setData({ userInfo: mergedInfo });
-
-      // 处理云存储链接，转换为临时URL用于显示
-      await this.convertCloudUrls();
-    }
-
-    // 生成用户ID
-    if (!this.data.userInfo.userId) {
-      const userId = 'BJ' + new Date().toISOString().slice(0, 10).replace(/-/g, '');
-      this.setData({ 'userInfo.userId': userId });
-    }
-  },
-
-  // 保存到本地存储
-  saveToLocal: function () {
-    const { userInfo, scenicTypes } = this.data;
-    const selectedScenicTypes = scenicTypes.filter(item => item.selected).map(item => item.id);
-    const avatarForDb = userInfo.avatarFileID || userInfo.avatar;
-    const backgroundForDb = userInfo.backgroundFileID || userInfo.background;
-
-    const userData = {
-      ...userInfo,
-      avatar: avatarForDb,
-      background: backgroundForDb,
-      scenicTypes: selectedScenicTypes,
-      updatedAt: Date.now()
-    };
-
-    // 保存到本地存储
-    wx.setStorageSync('userInfo', {
-      ...userData,
-      avatar: userInfo.avatar,
-      background: userInfo.background
     });
-    wx.setStorageSync('lastLoginTime', Date.now());
-
-    // 更新全局数据
-    app.globalData.userInfo = userData;
+    await this.convertAvatarUrl();
   },
 
-  // 异步同步到数据库
-  saveToDatabase: function () {
-    const { userInfo, scenicTypes } = this.data;
-    const dbUserInfo = app.globalData.userInfo || {};
-    const userId = dbUserInfo._id || wx.getStorageSync('userId');
-    if (!userId) return;
-
-    const selectedScenicTypes = scenicTypes.filter(item => item.selected).map(item => item.id);
-    const avatarForDb = userInfo.avatarFileID || userInfo.avatar;
-    const backgroundForDb = userInfo.backgroundFileID || userInfo.background;
-    const photosForDb = (userInfo.photoFileIDs && userInfo.photoFileIDs.length > 0)
-      ? userInfo.photoFileIDs
-      : userInfo.photos.filter(p => p.startsWith('cloud://'));
-
-    api.userUpdate({
-      _id: userId,
-      nickname: userInfo.nickname,
-      avatar: avatarForDb,
-      gender: userInfo.gender,
-      age: userInfo.age,
-      contactPhone: userInfo.contactPhone,
-      bio: userInfo.bio,
-      background: backgroundForDb,
-      photos: photosForDb
-    }).catch(err => console.warn('同步到数据库失败', err));
-  },
-
-  // 实时保存
-  autoSave: function () {
-    this.saveToLocal();
-    this.saveToDatabase();
-  },
-
-  // 转换云存储链接为临时URL
-  convertCloudUrls: async function () {
-    const { avatar, background, photos } = this.data.userInfo;
-    const cloudUrls = [];
-
-    if (avatar && avatar.startsWith('cloud://')) {
-      cloudUrls.push(avatar);
-    }
-    if (background && background.startsWith('cloud://')) {
-      cloudUrls.push(background);
-    }
-
-    // 处理照片中的云存储链接
-    const cloudPhotos = (photos || []).filter(p => p.startsWith('cloud://'));
-    cloudUrls.push(...cloudPhotos);
-
-    if (cloudUrls.length > 0 && wx.cloud) {
-      try {
-        const urlRes = await wx.cloud.getTempFileURL({ fileList: cloudUrls });
-        if (urlRes.fileList) {
-          const updates = {};
-          const newPhotos = [...(photos || [])];
-          const fileIDMap = {};
-
-          urlRes.fileList.forEach(item => {
-            if (item.tempFileURL) {
-              fileIDMap[item.fileID] = item.tempFileURL;
-
-              if (item.fileID === avatar) {
-                updates['userInfo.avatar'] = item.tempFileURL;
-                updates['userInfo.avatarFileID'] = item.fileID;
-              }
-              if (item.fileID === background) {
-                updates['userInfo.background'] = item.tempFileURL;
-                updates['userInfo.backgroundFileID'] = item.fileID;
-              }
-            }
-          });
-
-          const photoFileIDs = [];
-          newPhotos.forEach((photo, index) => {
-            if (photo.startsWith('cloud://') && fileIDMap[photo]) {
-              newPhotos[index] = fileIDMap[photo];
-              photoFileIDs.push(photo);
-            }
-          });
-
-          updates['userInfo.photos'] = newPhotos;
-          updates['userInfo.photoFileIDs'] = photoFileIDs;
-
-          this.setData(updates);
-        }
-      } catch (err) {
-        console.warn('转换云存储链接失败', err);
+  convertAvatarUrl: async function () {
+    const avatar = this.data.userInfo.avatar;
+    if (!avatar || !avatar.startsWith('cloud://') || !wx.cloud) return;
+    try {
+      const res = await wx.cloud.getTempFileURL({ fileList: [avatar] });
+      const displayUrl = res.fileList && res.fileList[0] && res.fileList[0].tempFileURL;
+      if (displayUrl) {
+        this.setData({
+          'userInfo.avatar': displayUrl,
+          'userInfo.avatarFileID': avatar
+        });
       }
+    } catch (err) {
+      console.warn('获取头像临时链接失败', err);
     }
   },
 
-  isLocalAvatarPath(path) {
+  isLocalAvatarPath: function (path) {
     return path && (
       path.startsWith('wxfile://') ||
       path.startsWith('http://tmp') ||
@@ -202,279 +74,183 @@ Page({
     );
   },
 
-  getImageSuffix(path) {
+  getImageSuffix: function (path) {
     const cleanPath = (path || '').split('?')[0];
     const match = cleanPath.match(/\.([a-zA-Z0-9]+)$/);
     const suffix = match ? match[1].toLowerCase() : 'jpg';
     return ['jpg', 'jpeg', 'png', 'webp'].includes(suffix) ? suffix : 'jpg';
   },
 
-  getCloudPathName(value) {
+  getCloudPathName: function (value) {
     return String(value || 'anonymous')
       .replace(/[^a-zA-Z0-9_-]/g, '_')
       .slice(0, 64) || 'anonymous';
   },
 
-  async uploadAvatar(tempFilePath) {
-    if (!tempFilePath || !wx.cloud || !wx.cloud.uploadFile) {
-      return null;
-    }
-
-    const openid = this.getCloudPathName(app.globalData.openid || wx.getStorageSync('openid') || this.data.userInfo._id);
-    const suffix = this.getImageSuffix(tempFilePath);
-    const cloudPath = `avatars/${openid}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${suffix}`;
-    const uploadRes = await wx.cloud.uploadFile({
-      cloudPath,
-      filePath: tempFilePath
-    });
-
-    if (!uploadRes.fileID) {
-      return null;
-    }
+  uploadAvatar: async function (tempFilePath) {
+    if (!wx.cloud || !wx.cloud.uploadFile) return null;
+    const openid = this.getCloudPathName(
+      app.globalData.openid || wx.getStorageSync('openid') || this.data.userInfo._id
+    );
+    const cloudPath = `avatars/${openid}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${this.getImageSuffix(tempFilePath)}`;
+    const uploadRes = await wx.cloud.uploadFile({ cloudPath, filePath: tempFilePath });
+    if (!uploadRes.fileID) return null;
 
     let displayUrl = uploadRes.fileID;
     if (wx.cloud.getTempFileURL) {
       try {
-        const urlRes = await wx.cloud.getTempFileURL({ fileList: [uploadRes.fileID] });
-        if (urlRes.fileList && urlRes.fileList[0] && urlRes.fileList[0].tempFileURL) {
-          displayUrl = urlRes.fileList[0].tempFileURL;
-        }
+        const res = await wx.cloud.getTempFileURL({ fileList: [uploadRes.fileID] });
+        displayUrl = (res.fileList && res.fileList[0] && res.fileList[0].tempFileURL) || displayUrl;
       } catch (err) {
-        console.warn('获取头像临时链接失败，使用云存储ID展示', err);
+        console.warn('获取头像展示链接失败', err);
       }
     }
-
-    return {
-      fileID: uploadRes.fileID,
-      displayUrl
-    };
+    return { fileID: uploadRes.fileID, displayUrl };
   },
 
-  // 选择微信头像
-  onChooseAvatar: async function (e) {
-    const avatarUrl = e.detail && e.detail.avatarUrl;
+  onChooseAvatar: function (event) {
+    const avatarUrl = event.detail && event.detail.avatarUrl;
+    return this.selectAndUploadAvatar(avatarUrl);
+  },
 
-    if (!avatarUrl) {
-      return;
-    }
-
+  selectAndUploadAvatar: async function (avatarUrl) {
+    if (!avatarUrl) return;
     this.setData({ 'userInfo.avatar': avatarUrl });
-
     if (!this.isLocalAvatarPath(avatarUrl)) {
       this.setData({ 'userInfo.avatarFileID': '' });
-      this.autoSave();
       return;
     }
 
     wx.showLoading({ title: '上传中...' });
     try {
       const uploaded = await this.uploadAvatar(avatarUrl);
-      wx.hideLoading();
-
-      if (!uploaded) {
-        wx.showToast({ title: '头像上传失败', icon: 'none' });
-        this.setData({ 'userInfo.avatar': this.data.userInfo.avatarFileID || '' });
-        return;
-      }
-
+      if (!uploaded) throw new Error('头像上传失败');
       this.setData({
         'userInfo.avatar': uploaded.displayUrl,
         'userInfo.avatarFileID': uploaded.fileID
       });
-      this.autoSave();
     } catch (err) {
-      wx.hideLoading();
       console.warn('头像上传失败', err);
       wx.showToast({ title: '头像上传失败', icon: 'none' });
-      this.setData({ 'userInfo.avatar': this.data.userInfo.avatarFileID || '' });
+      this.setData({
+        'userInfo.avatar': this.data.originalUserInfo.avatar || '',
+        'userInfo.avatarFileID': this.data.originalUserInfo.avatarFileID || ''
+      });
+    } finally {
+      wx.hideLoading();
     }
   },
 
-  // 选择背景图
-  onChooseBackground: async function () {
-    wx.chooseMedia({
-      count: 1,
-      mediaType: ['image'],
-      sourceType: ['album', 'camera'],
-      success: async (res) => {
-        const tempFilePath = res.tempFiles[0].tempFilePath;
-        this.setData({ 'userInfo.background': tempFilePath });
-
-        if (wx.cloud) {
-          try {
-            const cloudPath = `backgrounds/${Date.now()}-${Math.random().toString(36).substr(2)}.jpg`;
-            const uploadRes = await wx.cloud.uploadFile({
-              cloudPath: cloudPath,
-              filePath: tempFilePath
-            });
-
-            if (uploadRes.fileID) {
-              const urlRes = await wx.cloud.getTempFileURL({ fileList: [uploadRes.fileID] });
-              if (urlRes.fileList && urlRes.fileList[0] && urlRes.fileList[0].tempFileURL) {
-                this.setData({
-                  'userInfo.background': urlRes.fileList[0].tempFileURL,
-                  'userInfo.backgroundFileID': uploadRes.fileID
-                });
-                this.autoSave();
-              }
-            }
-          } catch (err) {
-            console.warn('背景图上传失败', err);
-          }
-        }
-      }
-    });
+  onNicknameInput: function (event) {
+    this.setData({ 'userInfo.nickname': event.detail.value });
   },
 
-  // 昵称输入（失焦时保存）
-  onNicknameInput: function (e) {
-    this.setData({ 'userInfo.nickname': e.detail.value });
+  onGenderChange: function (event) {
+    this.setData({ 'userInfo.gender': event.currentTarget.dataset.value });
   },
 
-  onNicknameBlur: function () {
-    this.autoSave();
-  },
-
-  // 性别选择
-  onGenderChange: function (e) {
-    const value = e.currentTarget.dataset.value;
-    this.setData({ 'userInfo.gender': value });
-    this.autoSave();
-  },
-
-  onAgeInput: function (e) {
-    const value = String(e.detail.value || '').replace(/\D/g, '').slice(0, 3);
+  onAgeInput: function (event) {
+    const value = String(event.detail.value || '').replace(/\D/g, '').slice(0, 3);
     this.setData({ 'userInfo.age': value });
   },
 
   onAgeBlur: function () {
-    const rawAge = this.data.userInfo.age;
-    if (rawAge === '' || rawAge === null || rawAge === undefined) {
-      this.autoSave();
-      return;
-    }
-
-    const ageNumber = Number(rawAge);
-    const normalizedAge = Number.isNaN(ageNumber)
-      ? ''
-      : String(Math.min(120, Math.max(1, ageNumber)));
-
-    this.setData({ 'userInfo.age': normalizedAge });
-    this.autoSave();
+    const raw = this.data.userInfo.age;
+    if (raw === '') return;
+    const age = Math.min(120, Math.max(1, Number(raw) || 1));
+    this.setData({ 'userInfo.age': String(age) });
   },
 
-  // 联系方式输入
-  onPhoneInput: function (e) {
-    let value = e.detail.value;
-    value = value.replace(/\D/g, '').slice(0, 11);
+  onPhoneInput: function (event) {
+    const value = String(event.detail.value || '').replace(/\D/g, '').slice(0, 11);
     this.setData({ 'userInfo.contactPhone': value });
   },
 
-  onPhoneBlur: function () {
-    this.autoSave();
+  onBioInput: function (event) {
+    this.setData({ 'userInfo.bio': event.detail.value });
   },
 
-  // 简介输入
-  onBioInput: function (e) {
-    this.setData({ 'userInfo.bio': e.detail.value });
+  onOpenRegionModal: function () {
+    this.setData({ showRegionModal: true });
   },
 
-  onBioBlur: function () {
-    this.autoSave();
+  onCloseRegionModal: function () {
+    this.setData({ showRegionModal: false });
   },
 
-  // 添加旅行照片
-  onAddPhoto: async function () {
-    const currentCount = this.data.userInfo.photos.length;
-    if (currentCount >= 9) {
-      wx.showToast({ title: '最多上传9张照片', icon: 'none' });
-      return;
-    }
-
-    wx.chooseMedia({
-      count: 9 - currentCount,
-      mediaType: ['image'],
-      sourceType: ['album', 'camera'],
-      success: async (res) => {
-        const tempFiles = res.tempFiles.map(file => file.tempFilePath);
-        this.setData({ 'userInfo.photos': [...this.data.userInfo.photos, ...tempFiles] });
-
-        if (wx.cloud) {
-          wx.showLoading({ title: '上传中...' });
-          const uploadedPhotos = [];
-          const newFileIDs = [];
-
-          for (let i = 0; i < tempFiles.length; i++) {
-            try {
-              const cloudPath = `photos/${Date.now()}-${i}-${Math.random().toString(36).substr(2)}.jpg`;
-              const uploadRes = await wx.cloud.uploadFile({
-                cloudPath: cloudPath,
-                filePath: tempFiles[i]
-              });
-              if (uploadRes.fileID) {
-                newFileIDs.push(uploadRes.fileID);
-              }
-            } catch (err) {
-              console.warn('照片上传失败', err);
-            }
-          }
-
-          if (newFileIDs.length > 0) {
-            try {
-              const urlRes = await wx.cloud.getTempFileURL({ fileList: newFileIDs });
-              if (urlRes.fileList) {
-                urlRes.fileList.forEach(item => {
-                  if (item.tempFileURL) {
-                    uploadedPhotos.push(item.tempFileURL);
-                  }
-                });
-              }
-            } catch (err) {
-              console.warn('获取照片链接失败', err);
-              uploadedPhotos.push(...newFileIDs);
-            }
-          }
-
-          wx.hideLoading();
-
-          const allPhotos = [...this.data.userInfo.photos.slice(0, currentCount), ...uploadedPhotos];
-          const existingFileIDs = this.data.userInfo.photoFileIDs || [];
-          const allFileIDs = [...existingFileIDs, ...newFileIDs];
-
-          this.setData({
-            'userInfo.photos': allPhotos,
-            'userInfo.photoFileIDs': allFileIDs
-          });
-          this.autoSave();
-        }
-      }
-    });
-  },
-
-  // 预览照片
-  onPreviewPhoto: function (e) {
-    const index = e.currentTarget.dataset.index;
-    wx.previewImage({
-      current: this.data.userInfo.photos[index],
-      urls: this.data.userInfo.photos
-    });
-  },
-
-  // 删除照片
-  onDeletePhoto: function (e) {
-    const index = e.currentTarget.dataset.index;
-    const photos = [...this.data.userInfo.photos];
-    const photoFileIDs = [...(this.data.userInfo.photoFileIDs || [])];
-
-    photos.splice(index, 1);
-    if (photoFileIDs.length === this.data.userInfo.photos.length) {
-      photoFileIDs.splice(index, 1);
-    }
-
+  onSelectDistrict: function (event) {
+    const region = event.currentTarget.dataset.district;
     this.setData({
-      'userInfo.photos': photos,
-      'userInfo.photoFileIDs': photoFileIDs
+      'userInfo.region': region,
+      showRegionModal: false
     });
-    this.autoSave();
+  },
+
+  preventBubble: function () {},
+
+  validateForm: function () {
+    const info = this.data.userInfo;
+    if (!String(info.nickname || '').trim()) {
+      wx.showToast({ title: '请输入昵称', icon: 'none' });
+      return false;
+    }
+    if (info.contactPhone && !/^1\d{10}$/.test(info.contactPhone)) {
+      wx.showToast({ title: '请输入正确的手机号', icon: 'none' });
+      return false;
+    }
+    return true;
+  },
+
+  onSave: async function () {
+    if (this.data.saving || !this.validateForm()) return;
+    this.setData({ saving: true });
+    wx.showLoading({ title: '保存中...', mask: true });
+
+    const info = this.data.userInfo;
+    const avatarForDb = info.avatarFileID || info.avatar;
+    const payload = {
+      _id: info._id || undefined,
+      nickname: String(info.nickname || '').trim(),
+      avatar: avatarForDb,
+      gender: info.gender,
+      age: info.age,
+      region: info.region,
+      contactPhone: info.contactPhone,
+      bio: String(info.bio || '').trim()
+    };
+
+    try {
+      await api.userUpdate(payload);
+      const localUserInfo = {
+        ...this.data.originalUserInfo,
+        ...payload,
+        avatar: info.avatar,
+        avatarFileID: info.avatarFileID,
+        updatedAt: Date.now()
+      };
+      delete localUserInfo._id;
+      if (info._id) localUserInfo._id = info._id;
+      wx.setStorageSync('userInfo', localUserInfo);
+      app.globalData.userInfo = localUserInfo;
+      const profileUpdate = {
+        nickname: localUserInfo.nickname || '',
+        avatar: localUserInfo.avatar || '',
+        bio: localUserInfo.bio || '',
+        region: localUserInfo.region || ''
+      };
+      app.globalData._profileUpdated = profileUpdate;
+      if (this.openerEventChannel && typeof this.openerEventChannel.emit === 'function') {
+        this.openerEventChannel.emit('profileUpdated', profileUpdate);
+      }
+      wx.hideLoading();
+      wx.showToast({ title: '保存成功', icon: 'success' });
+      setTimeout(function () { wx.navigateBack(); }, 500);
+    } catch (err) {
+      wx.hideLoading();
+      console.error('保存用户资料失败', err);
+      wx.showToast({ title: err.message || '保存失败，请重试', icon: 'none' });
+    } finally {
+      this.setData({ saving: false });
+    }
   }
 });

@@ -215,9 +215,15 @@ test('trip-list 未登录点击发布跳转登录页', () => {
 
 test('profile 未登录 UI 和入口都指向登录页', () => {
   const wxml = read('miniprogram/pages/profile/profile.wxml');
-  ['点击登录', '我的行程', '我的作品', '行程通知', '上传景点', '提交建议', '关于我们'].forEach((text) => {
+  ['点击登录', '关注', '粉丝', '获赞', '我的行程', '我的作品', '互动记录', '消息中心',
+    '行程通知', '上传景点', '提交建议', '关于我们'].forEach((text) => {
     assert(wxml.includes(text), `missing ${text}`);
   });
+  assert(wxml.includes('statusBarHeight + navBarHeight'), 'profile page should reserve capsule-safe height');
+  assert(!wxml.includes('profile-nav-title'), 'profile page should not render a custom title');
+  assert(wxml.includes('menu-group menu-group-secondary'), 'secondary functions should use the selected tight second group');
+  assert(!wxml.includes('>其他<'), 'profile should not render an extra section heading');
+  assert(!wxml.includes('📅') && !wxml.includes('🔔'), 'profile should use real icon assets');
 
   const page = loadPage('pages/profile/profile.js');
   page.checkLogin();
@@ -336,8 +342,20 @@ test('auth 完成登录会先上传 wxfile 头像并保存云存储 fileID', asy
 
 test('edit-profile UI 支持微信头像并上传云存储头像', async () => {
   const wxml = read('miniprogram/pages/edit-profile/edit-profile.wxml');
-  assert(wxml.includes('open-type="chooseAvatar"'), 'edit-profile avatar should use WeChat chooseAvatar');
-  assert(wxml.includes('bindchooseavatar="onChooseAvatar"'), 'edit-profile avatar should bind chooseAvatar event');
+  assert(wxml.includes('class="avatar-picker"'), 'edit-profile should render the native avatar picker');
+  assert(wxml.includes('open-type="chooseAvatar"'), 'the avatar area should directly use WeChat chooseAvatar');
+  assert(wxml.includes('bindchooseavatar="onChooseAvatar"'), 'the native WeChat avatar result should be handled');
+  assert(wxml.includes('class="form-input" type="nickname"'), 'nickname input should use the same native type as registration');
+  assert(wxml.includes('class="avatar-camera-badge"') && wxml.includes('/images/icon-camera-white.png'),
+    'avatar should show a non-blocking camera badge');
+  const wxss = read('miniprogram/pages/edit-profile/edit-profile.wxss');
+  assert(/\.avatar-picker\s*\{[\s\S]*?width:\s*200rpx;[\s\S]*?height:\s*200rpx;/.test(wxss),
+    'native chooseAvatar button should have an explicit clickable width and height');
+  assert(/\.avatar-camera-badge\s*\{[\s\S]*?left:\s*-4rpx;[\s\S]*?bottom:\s*2rpx;/.test(wxss),
+    'camera badge should sit at the avatar lower-left corner');
+  assert(wxml.includes('地区'), 'edit-profile should include region');
+  assert(wxml.includes('选择区（北京 · 共16个区）'), 'edit-profile should reuse the Beijing district selector');
+  assert(wxml.includes('bindtap="onSave"'), 'edit-profile should provide an explicit save action');
 
   const page = loadPage('pages/edit-profile/edit-profile.js');
 
@@ -345,7 +363,7 @@ test('edit-profile UI 支持微信头像并上传云存储头像', async () => {
     _id: 'user-doc-id',
     openid: 'openid-test',
     nickname: '测试用户',
-    avatar: '',
+    avatar: 'cloud://test-env.avatars/existing-avatar.jpg',
     photos: []
   };
   storage.userId = 'user-doc-id';
@@ -355,6 +373,7 @@ test('edit-profile UI 支持微信头像并上传云存储头像', async () => {
   app.globalData.openid = 'openid-test';
 
   await page.onLoad();
+  assert(page.data.userInfo.avatar.includes('existing-avatar.jpg'), 'existing avatar should still be displayed');
   await page.onChooseAvatar({ detail: { avatarUrl: 'wxfile://tmp_profile_avatar.jpg' } });
 
   const uploadCall = wxCalls.uploadFile && wxCalls.uploadFile[0];
@@ -362,9 +381,30 @@ test('edit-profile UI 支持微信头像并上传云存储头像', async () => {
   assert.strictEqual(uploadCall.filePath, 'wxfile://tmp_profile_avatar.jpg');
   assert(page.data.userInfo.avatarFileID.startsWith('cloud://test-env.avatars/'), 'avatarFileID should be cloud fileID');
 
+  await page.onSave();
   const updateCall = wxCalls.cloudCalls.find((call) => call.name === 'api' && call.data.action === 'user/update');
-  assert(updateCall, 'edit-profile should sync avatar to database');
+  assert(updateCall, 'edit-profile should sync avatar to database after save');
   assert(updateCall.data.data.avatar.startsWith('cloud://test-env.avatars/'), 'database avatar should be cloud fileID');
+});
+
+test('user-profile UI 支持作品动态流和行程切换', () => {
+  const wxml = read('miniprogram/pages/user-profile/user-profile.wxml');
+  const js = read('miniprogram/pages/user-profile/user-profile.js');
+  ['个人主页', '关注', '粉丝', '获赞', '作品', '行程'].forEach((text) => {
+    if (text !== '个人主页') assert(wxml.includes(text), `user-profile missing ${text}`);
+  });
+  assert(js.includes("'grid-1'"), 'user-profile should support a single-image work');
+  assert(js.includes("'grid-2'"), 'user-profile should support a two-image work');
+  assert(js.includes("'grid-3'"), 'user-profile should support multi-image works');
+  assert(wxml.includes('onOpenPost'), 'user-profile works should open community detail');
+  assert(wxml.includes('onSwitchTab'), 'user-profile should switch between works and trips');
+  assert(js.includes('profileUpdated'), 'user-profile should receive saved profile fields through EventChannel');
+  assert(js.includes('applyProfileUpdate'), 'user-profile should update profile fields without reloading the page');
+  const onShowBody = js.match(/onShow:\s*function\s*\(\)\s*\{([\s\S]*?)\n\s*\},/);
+  assert(onShowBody && !onShowBody[1].includes('loadUserProfile'), 'returning to user-profile should not reload all content');
+
+  const json = JSON.parse(read('miniprogram/pages/user-profile/user-profile.json'));
+  assert.strictEqual(json.navigationStyle, undefined, 'user-profile should use system navigation');
 });
 
 test('apply-modal 顶部不展示无意义默认头像', () => {
@@ -444,7 +484,7 @@ test('trip-publish-success UI 含发布成功、摘要和返回按钮', () => {
 
 test('community UI 含发布入口、动态列表和定位，隐藏审核状态标签', () => {
   const wxml = read('miniprogram/pages/community/community.wxml');
-  ['bindtap="onPublish"', 'bindtap="onPreviewImage"', 'bindtap="onOpenLocation"'].forEach((needle) => {
+  ['bindtap="onPublish"', 'bindtap="onOpenDetail"', 'catchtap="onOpenLocation"'].forEach((needle) => {
     assert(wxml.includes(needle), `missing ${needle}`);
   });
   assert(!wxml.includes('审核中'), '审核中标签不应显示');

@@ -1,91 +1,93 @@
-<!--
-  我的页面 (profile)
-  ================================
-  设计稿：我的页面最终简洁版设计稿-v4.0.html - 方案G: 奶油杏
--->
+<view class="profile-page">
+  <view class="profile-safe-area" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
 
-<view class="container">
-  <view class="profile-bg-layer">
-    <image class="profile-bg-image" src="{{userInfo.background || defaultBackground}}" mode="aspectFill"></image>
-    <view class="profile-bg-mask"></view>
-  </view>
-
-  <!-- 用户信息头部 -->
-  <view class="profile-header" style="padding-top: {{statusBarHeight + 20}}px;">
-    <!-- 未登录状态 -->
-    <view class="user-card" wx:if="{{!isLoggedIn}}" bindtap="onLogin">
-      <view class="avatar">
-        <text class="avatar-icon">👤</text>
+  <view class="profile-content">
+    <view class="profile-identity" wx:if="{{!isLoggedIn}}" bindtap="onLogin">
+      <view class="avatar avatar-placeholder"><text>旅</text></view>
+      <view class="identity-copy">
+        <text class="identity-name">点击登录</text>
+        <text class="identity-bio">登录后查看个人信息</text>
       </view>
-      <view class="user-info">
-        <view class="user-name">点击登录</view>
-        <view class="user-id">登录后查看个人信息</view>
+      <image class="menu-arrow" src="/images/icon-profile-chevron.svg" mode="aspectFit"></image>
+    </view>
+
+    <view class="profile-identity" wx:else bindtap="onTapMyProfile">
+      <image class="avatar" src="{{userInfo.avatar || userInfo.avatarUrl}}" mode="aspectFill"
+        wx:if="{{userInfo.avatar || userInfo.avatarUrl}}"></image>
+      <view class="avatar avatar-placeholder" wx:else>
+        <text>{{userInfo.nickname ? userInfo.nickname[0] : '旅'}}</text>
+      </view>
+      <view class="identity-copy">
+        <text class="identity-name">{{userInfo.nickname || userInfo.nickName || '旅行者'}}</text>
+        <text class="identity-bio">{{userInfo.bio || '喜欢户外运动，周末出游'}}</text>
+      </view>
+      <image class="menu-arrow" src="/images/icon-profile-chevron.svg" mode="aspectFit"></image>
+    </view>
+
+    <view class="social-stats">
+      <view class="stat-item" bindtap="onTapSocialStat" data-type="following">
+        <text class="stat-number">{{stats.following || 0}}</text>
+        <text class="stat-label">关注</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item" bindtap="onTapSocialStat" data-type="followers">
+        <text class="stat-number">{{stats.followers || 0}}</text>
+        <text class="stat-label">粉丝</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item" bindtap="onTapSocialStat" data-type="receivedLikes">
+        <text class="stat-number">{{stats.receivedLikes || 0}}</text>
+        <text class="stat-label">获赞</text>
       </view>
     </view>
 
-    <!-- 已登录状态 -->
-    <view class="user-card" wx:else bindtap="onTapMyProfile">
-      <image class="avatar-img" src="{{userInfo.avatar || userInfo.avatarUrl}}" mode="aspectFill" wx:if="{{userInfo.avatar || userInfo.avatarUrl}}"></image>
-      <view class="avatar" wx:else>
-        <text class="avatar-icon">{{userInfo.nickname ? userInfo.nickname[0] : '旅'}}</text>
+    <view class="menu-stack">
+      <view class="menu-group">
+        <view class="menu-row" bindtap="onTapMyTrips">
+          <image class="menu-icon" src="/images/icon-profile-calendar.svg" mode="aspectFit"></image>
+          <text class="menu-title">我的行程</text>
+          <text class="menu-count" wx:if="{{stats.trips > 0}}">{{stats.trips}}</text>
+          <image class="menu-arrow" src="/images/icon-profile-chevron.svg" mode="aspectFit"></image>
+        </view>
+        <view class="menu-row" bindtap="onTapMyWorks">
+          <image class="menu-icon" src="/images/icon-profile-photo.svg" mode="aspectFit"></image>
+          <text class="menu-title">我的作品</text>
+          <text class="menu-count" wx:if="{{stats.works > 0}}">{{stats.works}}</text>
+          <image class="menu-arrow" src="/images/icon-profile-chevron.svg" mode="aspectFit"></image>
+        </view>
+        <view class="menu-row" bindtap="onTapInteractionRecords">
+          <image class="menu-icon" src="/images/icon-profile-interaction.svg" mode="aspectFit"></image>
+          <text class="menu-title">互动记录</text>
+          <image class="menu-arrow" src="/images/icon-profile-chevron.svg" mode="aspectFit"></image>
+        </view>
+        <view class="menu-row" bindtap="onTapTripNotifications">
+          <image class="menu-icon" src="/images/icon-profile-bell.svg" mode="aspectFit"></image>
+          <view class="menu-copy">
+            <text class="menu-title">消息中心</text>
+            <text class="menu-subtitle">行程通知、赞、评论与回复</text>
+          </view>
+          <view class="menu-badge" wx:if="{{unreadCount > 0}}">{{unreadCount > 99 ? '99+' : unreadCount}}</view>
+          <image class="menu-arrow" src="/images/icon-profile-chevron.svg" mode="aspectFit"></image>
+        </view>
       </view>
-      <view class="user-info">
-        <view class="user-name">{{userInfo.nickname || userInfo.nickName || '旅行者'}}</view>
-        <view class="user-id">{{userInfo.bio || '喜欢户外运动，周末出游'}}</view>
-      </view>
-    </view>
-  </view>
 
-  <!-- 信息列表 -->
-  <view class="info-list">
-
-    <view class="info-bar" bindtap="onTapMyTrips">
-      <view class="info-icon" style="background: linear-gradient(135deg, var(--primary-bg), var(--secondary-light));">📅</view>
-      <view class="info-content">
-        <view class="info-title">我的行程</view>
+      <view class="menu-group menu-group-secondary">
+        <view class="menu-row" bindtap="onTapUploadSpot">
+          <image class="menu-icon" src="/images/icon-profile-location.svg" mode="aspectFit"></image>
+          <text class="menu-title">上传景点</text>
+          <image class="menu-arrow" src="/images/icon-profile-chevron.svg" mode="aspectFit"></image>
+        </view>
+        <view class="menu-row" bindtap="onTapFeedback">
+          <image class="menu-icon" src="/images/icon-profile-pencil.svg" mode="aspectFit"></image>
+          <text class="menu-title">提交建议</text>
+          <image class="menu-arrow" src="/images/icon-profile-chevron.svg" mode="aspectFit"></image>
+        </view>
+        <view class="menu-row" bindtap="onTapAbout">
+          <image class="menu-icon" src="/images/icon-profile-info.svg" mode="aspectFit"></image>
+          <text class="menu-title">关于我们</text>
+          <image class="menu-arrow" src="/images/icon-profile-chevron.svg" mode="aspectFit"></image>
+        </view>
       </view>
-      <text class="info-arrow">›</text>
-    </view>
-
-    <view class="info-bar" bindtap="onTapMyWorks">
-      <view class="info-icon" style="background: linear-gradient(135deg, var(--primary-bg), #DCEAF8);">🖼️</view>
-      <view class="info-content">
-        <view class="info-title">我的作品</view>
-      </view>
-      <text class="info-arrow">›</text>
-    </view>
-
-    <view class="info-bar" bindtap="onTapTripNotifications">
-      <view class="info-icon" style="background: linear-gradient(135deg, var(--primary-bg), var(--accent-light));">🔔</view>
-      <view class="info-content">
-        <view class="info-title">行程通知</view>
-      </view>
-      <view class="info-badge" wx:if="{{unreadCount > 0}}">{{unreadCount}}</view>
-      <text class="info-arrow">›</text>
-    </view>
-
-    <view class="info-bar" bindtap="onTapUploadSpot">
-      <view class="info-icon" style="background: linear-gradient(135deg, var(--primary-bg), #E8D4C8);">📸</view>
-      <view class="info-content">
-        <view class="info-title">上传景点</view>
-      </view>
-      <text class="info-arrow">›</text>
-    </view>
-
-    <view class="info-bar" bindtap="onTapFeedback">
-      <view class="info-icon" style="background: linear-gradient(135deg, var(--primary-bg), var(--tertiary-light));">💡</view>
-      <view class="info-content">
-        <view class="info-title">提交建议</view>
-      </view>
-      <text class="info-arrow">›</text>
-    </view>
-
-    <view class="info-bar" bindtap="onTapAbout">
-      <view class="info-icon" style="background: linear-gradient(135deg, var(--primary-bg), var(--primary-light));">ℹ️</view>
-      <view class="info-content">
-        <view class="info-title">关于我们</view>
-      </view>
-      <text class="info-arrow">›</text>
     </view>
   </view>
 </view>
