@@ -84,6 +84,102 @@ final result: passed
 
 ---
 
+# 行程详情页 V2 Design QA（2026-07-30）
+
+## 对比基准
+
+- Source visual truth:
+  `/Users/shan/.codex/generated_images/019f6506-a4d4-7db1-9774-24137bcc1805/call_Xdg4n70uFB1H4qnQSL85VZVc.png`
+- 行程完整信息 source:
+  `/Users/shan/.codex/generated_images/019f6506-a4d4-7db1-9774-24137bcc1805/call_fCTgNIIwfkpE4EPdbZzQYYJs.png`
+- 旅途记录 source:
+  `/Users/shan/.codex/generated_images/019f6506-a4d4-7db1-9774-24137bcc1805/call_b3mivnw0CC2r6fKVX6I1jn6k.png`
+- 发布日志 source:
+  `/Users/shan/.codex/generated_images/019f6506-a4d4-7db1-9774-24137bcc1805/call_C6PGl6y1WTC613ADejOZPq48.png`
+- Implementation top screenshot: `/tmp/trip-detail-v2-top.png`
+- Implementation member screenshot: `/tmp/trip-detail-v2-members.png`
+- Full side-by-side comparison: `/tmp/trip-detail-v2-comparison.png`
+- Members side-by-side comparison: `/tmp/trip-detail-v2-members-comparison.png`
+- Source pixels: `853 × 1844`，归一到 `390 × 845`。
+- Implementation capture: `390 × 780`，微信开发者工具 iPhone 12/13
+  (Pro) 70%；截图含独立模拟器顶部和底部工具栏，页面 CSS 视口宽度为 `390px`。
+- State: 已登录、发起人、未开始、真实云端行程；成员为 1 人和 3 个待加入名额。
+
+## Full-view comparison
+
+- 顶部使用微信原生系统导航栏，封面图、圆角信息面板、标题、
+  状态、目的地、日期、集合地和成员摘要的层级与选定方案一致。
+- 页面不再在封面图上叠加大段文案；真实图片保持 `aspectFill`，信息内容在白色
+  面板中稳定展示。
+- 用户后续确认取消了“查看完整行程信息”，实现按普通纵向滚动直接展示已有字段，
+  这是相对首张 source 的已确认产品调整。
+- 当前真实行程没有行程说明、集合时间、车辆型号、人均费用和目的定位，因此截图
+  只显示有值字段；WXML 与结构测试覆盖这些条件字段。
+
+## Focused member comparison
+
+- `/tmp/trip-detail-v2-members-comparison.png` 将完整信息 source 和实际滚动截图放在
+  同一画布中对比。
+- 成员区按从左到右排列，单项宽度为 `25%`，每行四项；使用
+  `flex-wrap: wrap`，超过四人自动进入下一行。
+- 已加入成员展示头像和昵称，剩余名额展示虚线圆形占位，不改变现有成员点击管理
+  行为。
+
+## Required fidelity surfaces
+
+- Fonts and typography: 使用微信系统中文字体；页面标题、行程标题、区块标题、
+  正文和辅助信息形成五级层次，长文本允许自然换行。
+- Spacing and layout rhythm: 封面图下白色面板使用 `32rpx` 顶部圆角，正文卡片为
+  `22rpx` 圆角和轻阴影；信息行保持一致高度，成员按四列左对齐自动换行。
+- Colors and visual tokens: 统一使用 `#F5F7FA`、白色、`#2F80ED` 和语义状态色；
+  危险操作继续使用红色描边，未改变业务含义。
+- Image quality and asset fidelity: 封面和头像使用真实数据；返回、日期、定位、相机、
+  更多、关闭和加号复用项目现有 PNG/SVG 资源，核心界面没有新增 Emoji 图标。
+- Copy and content: 保留全部当前行程字段、成员、旅途记录、发布日志、编辑、
+  分享、退出和结束行程入口；旅途记录空状态不写死为某类旅行内容。
+
+## Interaction and functional verification
+
+- 微信开发者工具实际打开 `pages/trip-detail/trip-detail`，封面、信息卡、成员区和
+  固定底部操作正常渲染。
+- 页面滚动后完整信息与成员区可见，底部操作未遮挡最后一行内容。
+- 旅途记录及发布弹层沿用现有 JS 事件、权限、图片预览、定位和上传逻辑，只替换
+  WXML/WXSS 视觉结构。
+- `npm test`: `27/27` 通过。
+- `node tests/trip-log-rules.test.js`: `12/12` 通过。
+- `git diff --check` 通过。
+
+## Comparison history
+
+### Iteration 1
+
+- Finding: 旧页面把标题和状态叠加在封面图上，信息区由多个视觉较重的旧卡片组成，
+  与选定的沉浸式封面和轻量信息层级不一致。
+- Fix: 重构为微信原生系统导航、纯封面、圆角概览面板、轻卡片信息区和双标签结构；
+  所有业务入口与状态判断保持不变。
+- Post-fix evidence: `/tmp/trip-detail-v2-comparison.png`。
+
+### Iteration 2
+
+- Finding: 用户要求成员必须从左到右排列，人数多时换行，旧网格不能明确保证
+  该顺序。
+- Fix: 成员容器改为 `display: flex; flex-wrap: wrap;
+  justify-content: flex-start`，成员宽度固定 `25%`。
+- Post-fix evidence: `/tmp/trip-detail-v2-members-comparison.png`。
+
+## Findings
+
+没有剩余 P0、P1 或 P2 视觉问题。
+
+## Follow-up Polish
+
+- [P3] 当前真实行程处于“未开始”，因此旅途记录真实数据态和发布弹层需在行程开始
+  后再做一次真机视觉回归；结构、样式和现有事件已由自动测试覆盖。
+
+final result: passed
+
+---
+
 # 行程大图卡片 Design QA（2026-07-29）
 
 ## 对比基准

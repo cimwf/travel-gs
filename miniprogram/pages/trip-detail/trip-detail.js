@@ -2,11 +2,9 @@
 const app = getApp();
 const api = require('../../utils/api.js');
 const auth = require('../../utils/auth.js');
-const nav = require('../../utils/nav.js');
 
 Page({
   data: {
-    statusBarHeight: 0,
     tripId: '',
     trip: null,
     participants: [],
@@ -54,7 +52,6 @@ Page({
     const windowInfo = wx.getWindowInfo();
     this.setData({
       tripId,
-      statusBarHeight: windowInfo.statusBarHeight,
       windowWidth: windowInfo.windowWidth || 375
     });
 
@@ -706,12 +703,6 @@ Page({
       wx.hideLoading();
       wx.showToast({ title: err.message || '操作失败', icon: 'none' });
     }
-  },
-
-  // ========== 原有方法保留 ==========
-
-  onBackTap: function () {
-    nav.goBack();
   },
 
   onCopyPhone: function () {

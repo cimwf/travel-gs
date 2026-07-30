@@ -220,6 +220,44 @@ test('trip-detail uses tripStage for log UI and authorization entry', () => {
   assertIncludes(js, "if (activeTab === 'log')");
   assertIncludes(js, "const activeTab = this.data.activeTab === 'log' && showTabs ? 'log' : 'trip';");
   assertIncludes(json, '"enablePullDownRefresh": true');
+  assertNotIncludes(json, '"navigationStyle": "custom"');
+  assertIncludes(json, '"navigationBarTitleText": "行程详情"');
+  assertIncludes(json, '"navigationBarBackgroundColor": "#ffffff"');
+});
+
+test('trip-detail v2 keeps complete trip info, wrapping members, logs and publish sheet', () => {
+  const wxml = read('miniprogram/pages/trip-detail/trip-detail.wxml');
+  const wxss = read('miniprogram/pages/trip-detail/trip-detail.wxss');
+
+  [
+    'detail-v2-hero',
+    'detail-v2-overview',
+    'detail-v2-tabs',
+    'detail-v2-info-list',
+    'detail-v2-members-grid',
+    'detail-v2-log-entry',
+    'detail-v2-publish-sheet'
+  ].forEach((needle) => assertIncludes(wxml, needle));
+
+  [
+    '出发日期',
+    '出发地',
+    '集合地点',
+    '集合时间',
+    '出行方式',
+    '车辆信息',
+    '出行描述',
+    '人均费用',
+    '目的定位',
+    '招募人数'
+  ].forEach((needle) => assertIncludes(wxml, needle));
+
+  assertNotIncludes(wxml, '查看完整行程信息');
+  assertIncludes(wxss, '.detail-v2-members-grid {');
+  assertIncludes(wxss, 'flex-wrap: wrap;');
+  assertIncludes(wxss, 'justify-content: flex-start;');
+  assertIncludes(wxss, '.detail-v2-member {');
+  assertIncludes(wxss, 'width: 25%;');
 });
 
 test('my-trips keeps identity tabs and uses tripStage-first status display', () => {
