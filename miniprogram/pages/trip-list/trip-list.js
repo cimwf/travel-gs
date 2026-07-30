@@ -47,6 +47,34 @@ Page({
     return Number.isNaN(tripTime) ? 0 : tripTime;
   },
 
+  formatPublishTime: function (createdAt) {
+    const timestamp = new Date(createdAt).getTime();
+    if (!timestamp) {
+      return '';
+    }
+
+    const now = new Date();
+    const date = new Date(timestamp);
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const dateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+    const dayDiff = Math.max(0, Math.round((todayStart - dateStart) / (24 * 60 * 60 * 1000)));
+    const timeText = `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+
+    if (dayDiff === 0) {
+      return timeText;
+    }
+    if (dayDiff === 1) {
+      return `昨天 ${timeText}`;
+    }
+    if (dayDiff < 7) {
+      return `${date.getMonth() + 1}-${date.getDate()} ${timeText}`;
+    }
+    if (date.getFullYear() === now.getFullYear()) {
+      return `${date.getMonth() + 1}-${date.getDate()}`;
+    }
+    return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+  },
+
   onLoad: async function () {
     // 两个请求并行发出，互不依赖
     await Promise.all([
@@ -146,25 +174,20 @@ Page({
             dateText = `${month}月${day}日 周${weekDay}`;
           }
 
-          // 格式化发布时间
-          let publishTime = '刚刚';
-          if (trip.createdAt) {
-            const now = Date.now();
-            const diff = now - trip.createdAt;
-            const hours = Math.floor(diff / (1000 * 60 * 60));
-            const days = Math.floor(hours / 24);
-            if (days > 0) {
-              publishTime = `${days}天前`;
-            } else if (hours > 0) {
-              publishTime = `${hours}小时前`;
-            }
-          }
+          const publishTime = this.formatPublishTime(trip.createdAt);
 
           // 优先使用行程自定义封面，没有时再回退到景点封面。
           const placeCoverImage = this.getTripCover(trip);
 
           // 参与者信息已由云函数处理
           const participants = trip.participants || [];
+          const creator = participants.find(p => p.userId === trip.creatorId) || participants[0] || {};
+          const creatorAvatar = creator.avatar || trip.creatorAvatar || '';
+          const creatorName = trip.creatorName || creator.nickname || '旅行者';
+          const displayParticipants = participants.slice(0, 4).map(p => ({
+            ...p,
+            initial: (p.nickname || '旅').slice(0, 1)
+          }));
 
           // 获取图片背景和emoji
           const imgBg = this.getImgBg(trip.placeName);
@@ -227,11 +250,18 @@ Page({
             dateText,
             date: trip.date,
             departure: trip.departure || '',
+            departureTimeText: trip.meetingTime || '',
+            meetingLocation: trip.meetingPlace || trip.departure || '集合地点待定',
             hasCar: trip.hasCar,
             carText,
             priceText,
             publishTime,
             participants,
+            displayParticipants,
+            participantCount: Math.max(Number(trip.currentCount) || 0, participants.length),
+            creatorAvatar,
+            creatorName,
+            creatorInitial: creatorName.slice(0, 1),
             placeCoverImage,
             imgBg,
             emoji,

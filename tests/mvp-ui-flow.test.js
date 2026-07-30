@@ -187,6 +187,29 @@ test('trip-list UI 含筛选栏、行程卡片、空状态发布按钮和悬浮�
   ['data-filter="destination"', 'data-filter="departure"', 'data-filter="date"', 'bindtap="onPublishTrip"', 'class="trip-card"', '还没有人发起这段旅程'].forEach((needle) => {
     assert(wxml.includes(needle), `missing ${needle}`);
   });
+  ['class="trip-card-cover"', 'class="trip-card-avatar-cover"', 'class="trip-creator-avatar"',
+    'class="trip-card-title-row"', 'class="trip-card-footer"', 'class="trip-publish-time"'].forEach((needle) => {
+    assert(wxml.includes(needle), `trip-list missing large-card element ${needle}`);
+  });
+  assert(!wxml.includes('查看详情'), 'trip-list should use whole-card navigation without a detail link');
+  const js = read('miniprogram/pages/trip-list/trip-list.js');
+  assert(js.includes("const creatorAvatar = creator.avatar || trip.creatorAvatar || '';"),
+    'trip-list should fall back to creator avatar when no trip/place cover exists');
+  assert(js.includes('formatPublishTime'), 'trip-list should format the trip publication time');
+});
+
+test('我的行程复用大图卡片并支持头像兜底', () => {
+  const wxml = read('miniprogram/pages/my-trips/my-trips.wxml');
+  ['data-tab="all"', 'data-tab="created"', 'data-tab="joined"', 'data-tab="ended"',
+    'class="trip-card-cover"', 'class="trip-card-avatar-cover"', 'class="trip-creator-avatar"',
+    'catchtap="onManageTap"', 'class="trip-publish-time"'].forEach((needle) => {
+    assert(wxml.includes(needle), `my-trips missing ${needle}`);
+  });
+  assert(!wxml.includes('查看详情'), 'my-trips should use whole-card navigation without a detail link');
+  const js = read('miniprogram/pages/my-trips/my-trips.js');
+  assert(js.includes("const creatorAvatar = creator.avatar || item.creatorAvatar || '';"),
+    'my-trips should fall back to creator avatar when no trip/place cover exists');
+  assert(js.includes('formatPublishTime'), 'my-trips should format the trip publication time');
 });
 
 test('trip-list 筛选点击会打开对应面板并关闭其他面板', () => {

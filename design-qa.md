@@ -82,6 +82,74 @@
 
 final result: passed
 
+---
+
+# 行程大图卡片 Design QA（2026-07-29）
+
+## 对比基准
+
+- Source visual truth:
+  `/var/folders/c3/7dkyt48n3vq6_v4x4nq82cv40000gp/T/codex-clipboard-1841c166-9e0a-4d60-806d-e5658a1b2e70.png`
+- 首页实现截图: `/tmp/trip-list-card-implementation.png`
+- 我的行程实现截图: `/tmp/my-trips-card-implementation.png`
+- 同尺寸并排对比: `/tmp/my-trips-card-comparison.png`
+- Source pixels: `853 × 1844`
+- Implementation capture: `1200 × 768`（含开发者工具），其中模拟器内容裁切并归一为
+  `263 × 568`；source 同比例缩放为 `263 × 568`。
+- State: 微信开发者工具真实云数据；首页一条招募中行程，“我的行程”同时包含招募中
+  与已结束状态。
+
+## Full-view comparison
+
+- 两个页面原有系统导航、首页筛选栏、“我的行程”身份标签和系统 Tab 均未改动。
+- 行程卡片改为与 source 一致的上方横向大图、下方标题/状态、日期、集合地、
+  参与者和右侧操作区。
+- 卡片宽度、圆角、图片比例、卡片间距和蓝白色层级与 source 接近；开发者工具
+  70% 模拟缩放仅影响截图文字锐度，不影响真机矢量渲染。
+
+## Focused card comparison
+
+- `/tmp/my-trips-card-comparison.png` 左侧为 source，右侧为实现。
+- 实现沿用真实景区图和真实行程文案，因此图片内容、日期和人数与 source 示例不同；
+  卡片结构、信息顺序、状态位置与操作区位置一致。
+- 当前云数据中的所有可见行程都有景区图，因此头像兜底没有出现在本次截图中；
+  WXML 同时保留 `trip-card-avatar-cover` 状态，结构测试验证无封面时会展示发起人头像
+  与“发起”文案。
+
+## Required fidelity surfaces
+
+- Fonts and typography: 使用小程序系统中文字体；标题 33rpx/650，辅助信息 25rpx，
+  状态 23rpx，层级和 source 一致且没有换行挤压。
+- Spacing and layout rhythm: 图片高度 250rpx，正文内边距 22/24rpx，操作区保持单行；
+  iPhone 12/13 模拟器中未出现横向溢出或按钮遮挡。
+- Colors and visual tokens: 沿用项目 `#F4F9FF`、白色、`#2783EE` 和语义状态色，
+  不修改页面头部颜色。
+- Image quality and asset fidelity: 自定义封面优先，其次景区图；两者都没有时使用
+  `#EAF4FF` 头像区，头像保持圆形比例而非拉伸为横图。日期、定位和箭头复用项目
+  已有图片资源。
+- Copy and content: 首页保留“查看详情”；“我的行程”保留“管理”“退出”“查看详情”，
+  原有全部/我发起的/我参与的/已结束逻辑不变。
+
+## Functional verification
+
+- 微信开发者工具实际打开 `pages/trip-list/trip-list` 和
+  `pages/my-trips/my-trips`，两页卡片均正常渲染。
+- 调试器显示 `0` 个代码问题；现有基础库和 SharedArrayBuffer 警告与本次改动无关。
+- `npm test`: `27/27` 通过。
+- `node tests/trip-log-rules.test.js`: `11/11` 通过。
+- `git diff --check` 通过。
+
+## Findings
+
+没有剩余 P0、P1 或 P2 视觉问题。
+
+## Follow-up Polish
+
+- [P3] 当前首页真实数据只有一张卡片，头像兜底建议在真机测试数据中再覆盖一次，
+  确认不同长度昵称的单行截断效果。
+
+final result: passed
+
 # 个人主页与编辑资料 Design QA（2026-07-29）
 
 ## 对比基准

@@ -15,35 +15,55 @@
     <!-- 行程列表 -->
     <block wx:if="{{trips.length > 0}}">
       <view class="trip-card" wx:for="{{trips}}" wx:key="_id" bindtap="onTripTap" data-id="{{item._id}}">
-        <!-- 卡片头部 -->
-        <view class="trip-header">
-          <view class="trip-img" style="background: {{item.placeCoverImage ? '#EEF1F5' : item.imgBg}};">
-            <image wx:if="{{item.placeCoverImage}}" class="trip-cover" src="{{item.placeCoverImage}}" mode="aspectFill"></image>
-            <text wx:else class="trip-emoji">{{item.emoji}}</text>
+        <image class="trip-card-cover" src="{{item.placeCoverImage}}" mode="aspectFill"
+          wx:if="{{item.placeCoverImage}}"></image>
+        <view class="trip-card-avatar-cover" wx:else>
+          <image class="trip-creator-avatar" src="{{item.creatorAvatar}}" mode="aspectFill"
+            wx:if="{{item.creatorAvatar}}"></image>
+          <view class="trip-creator-avatar trip-creator-avatar-placeholder" wx:else>
+            <text>{{item.creatorInitial}}</text>
           </view>
-          <view class="trip-info">
-            <view class="trip-name">{{item.placeName}}</view>
-            <view class="trip-date">📅 {{item.dateText}}</view>
-            <view class="trip-count">👥 已{{item.currentCount}}人 · {{item.needCount > 0 ? '还需' + item.needCount + '人' : '已满员'}}</view>
-          </view>
-          <view class="trip-status status-{{item.statusClass}}">{{item.statusText}}</view>
+          <text class="trip-creator-label">{{item.creatorName}} 发起</text>
         </view>
 
-        <!-- 参与者 -->
-        <view class="trip-participants">
-          <block wx:for="{{item.participants}}" wx:for-item="p" wx:for-index="pIndex" wx:key="userId">
-            <image class="participant-avatar {{pIndex === 0 ? 'participant-creator' : ''}}" src="{{p.avatar}}" wx:if="{{p.avatar}}" mode="aspectFill"></image>
-            <view class="participant {{pIndex === 0 ? 'participant-creator' : ''}}" wx:else>
-              <text>{{p.nickname ? p.nickname[0] : '旅'}}</text>
+        <view class="trip-card-body">
+          <view class="trip-card-title-row">
+            <text class="trip-card-title">{{item.displayTitle || item.placeName}}</text>
+            <text class="trip-status status-{{item.statusClass}}">{{item.statusText}}</text>
+          </view>
+
+          <view class="trip-card-meta-row">
+            <image src="/images/icon-profile-calendar.svg" mode="aspectFit"></image>
+            <text>{{item.dateText}}{{item.departureTimeText ? ' ' + item.departureTimeText + ' 出发' : ''}}</text>
+          </view>
+
+          <view class="trip-card-meta-row">
+            <image src="/images/icon-location-blue.png" mode="aspectFit"></image>
+            <text>{{item.meetingLocation}}</text>
+          </view>
+
+          <view class="trip-card-footer">
+            <view class="trip-card-people">
+              <view class="participants">
+                <block wx:for="{{item.displayParticipants}}" wx:for-item="p" wx:for-index="pIndex" wx:key="userId">
+                  <image class="participant-avatar" src="{{p.avatar}}" mode="aspectFill" wx:if="{{p.avatar}}"></image>
+                  <view class="participant-avatar participant-placeholder" wx:else>
+                    <text>{{p.initial}}</text>
+                  </view>
+                </block>
+              </view>
+              <text class="participant-count">共{{item.participantCount}}人</text>
             </view>
-          </block>
-        </view>
 
-        <!-- 操作按钮 -->
-        <view class="trip-actions">
-          <view class="action-btn secondary" wx:if="{{item.isCreator}}" catchtap="onManageTap" data-id="{{item._id}}">管理</view>
-          <view class="action-btn secondary" wx:if="{{!item.isCreator && activeTab === 'joined'}}" catchtap="onQuitTap" data-id="{{item._id}}">退出</view>
-          <view class="action-btn primary" catchtap="onDetailTap" data-id="{{item._id}}">查看详情</view>
+            <view class="trip-card-actions">
+              <text class="trip-publish-time" wx:if="{{item.publishTime}}">{{item.publishTime}}</text>
+              <text class="trip-card-action" wx:if="{{item.isCreator}}"
+                catchtap="onManageTap" data-id="{{item._id}}">管理</text>
+              <text class="trip-card-action trip-card-action-muted"
+                wx:if="{{!item.isCreator && activeTab === 'joined'}}"
+                catchtap="onQuitTap" data-id="{{item._id}}">退出</text>
+            </view>
+          </view>
         </view>
       </view>
     </block>

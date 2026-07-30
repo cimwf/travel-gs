@@ -35,6 +35,34 @@ Page({
     return Number.isNaN(tripTime) ? 0 : tripTime;
   },
 
+  formatPublishTime: function (createdAt) {
+    const timestamp = new Date(createdAt).getTime();
+    if (!timestamp) {
+      return '';
+    }
+
+    const now = new Date();
+    const date = new Date(timestamp);
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const dateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+    const dayDiff = Math.max(0, Math.round((todayStart - dateStart) / (24 * 60 * 60 * 1000)));
+    const timeText = `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+
+    if (dayDiff === 0) {
+      return timeText;
+    }
+    if (dayDiff === 1) {
+      return `昨天 ${timeText}`;
+    }
+    if (dayDiff < 7) {
+      return `${date.getMonth() + 1}-${date.getDate()} ${timeText}`;
+    }
+    if (date.getFullYear() === now.getFullYear()) {
+      return `${date.getMonth() + 1}-${date.getDate()}`;
+    }
+    return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+  },
+
   onLoad: function (options) {
     // 设置默认标签
     const tab = options.tab || 'all';
@@ -115,12 +143,21 @@ Page({
 
           // 参与者信息已由云函数处理
           const participants = item.participants || [];
+          const creator = participants.find(p => p.userId === item.creatorId) || participants[0] || {};
+          const creatorAvatar = creator.avatar || item.creatorAvatar || '';
+          const creatorName = item.creatorName || creator.nickname || '旅行者';
+          const displayParticipants = participants.slice(0, 4).map(p => ({
+            ...p,
+            initial: (p.nickname || '旅').slice(0, 1)
+          }));
 
           trips.push({
             _id: item._id,
             placeName: item.placeName,
+            displayTitle: item.tripTitle || item.placeName,
             dateText: dateText,
             date: item.date,
+            departureTimeText: item.meetingTime || '',
             currentCount: item.currentCount,
             needCount: item.needCount,
             totalCount: item.currentCount + item.needCount,
@@ -132,9 +169,15 @@ Page({
             isCreator,
             hasCar: item.hasCar,
             departure: item.departure,
+            meetingLocation: item.meetingPlace || item.departure || '集合地点待定',
             remark: item.remark,
             participants: participants,
-            creatorName: item.creatorName,
+            displayParticipants,
+            participantCount: Math.max(Number(item.currentCount) || 0, participants.length),
+            creatorName,
+            creatorAvatar,
+            creatorInitial: creatorName.slice(0, 1),
+            publishTime: this.formatPublishTime(item.createdAt),
             rawStatus: status
           });
         }
@@ -320,15 +363,6 @@ Page({
 
   // 点击行程卡片
   onTripTap: function (e) {
-    if (!auth.ensureLogin()) {
-      return;
-    }
-    const tripId = e.currentTarget.dataset.id;
-    this.checkAndNavigateToDetail(tripId);
-  },
-
-  // 查看详情
-  onDetailTap: function (e) {
     if (!auth.ensureLogin()) {
       return;
     }
