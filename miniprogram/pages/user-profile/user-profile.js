@@ -203,21 +203,89 @@ Page({
         return item._id === trip.placeId || item.id === trip.placeId;
       })
       : null;
-    const cover = trip.customCoverImageUrl ||
+    const placeCoverImage = trip.customCoverImageUrl ||
       trip.customCoverImage ||
       (trip.coverImageUrls && trip.coverImageUrls[0]) ||
       trip.placeCoverImage ||
       trip.placeImage ||
       (attraction && attraction.coverImage) ||
       '';
+
+    const participants = trip.participants || [];
+    const creator = participants.find(function (participant) {
+      return participant.userId === trip.creatorId;
+    }) || participants[0] || {};
+    const creatorName = trip.creatorName || creator.nickname || '旅行者';
+    const creatorAvatar = creator.avatar || trip.creatorAvatar || '';
+    const displayParticipants = participants.slice(0, 4).map(function (participant) {
+      return {
+        ...participant,
+        initial: (participant.nickname || '旅').slice(0, 1)
+      };
+    });
+
+    const needCount = Number(trip.needCount) || 0;
+    const tripStage = trip.tripStage || 'not_started';
+    let statusClass = 'recruiting';
+    let statusText = '招募中';
+    if (tripStage === 'cancelled') {
+      statusClass = 'cancelled';
+      statusText = '已取消';
+    } else if (tripStage === 'ongoing') {
+      statusClass = 'ongoing';
+      statusText = '进行中';
+    } else if (tripStage === 'ended') {
+      statusClass = 'ended';
+      statusText = '已结束';
+    } else if (trip.status === 'stopped') {
+      statusClass = 'stopped';
+      statusText = '停止招募';
+    } else if (needCount <= 0) {
+      statusClass = 'full';
+      statusText = '已满员';
+    } else if (needCount === 1) {
+      statusClass = 'almost-full';
+      statusText = '即将满员';
+    }
+
     return {
       _id: trip._id,
-      title: trip.tripTitle || trip.title || trip.placeName || '未命名行程',
+      displayTitle: trip.tripTitle || trip.title || trip.placeName || '未命名行程',
       placeName: trip.placeName || '',
-      departure: trip.departure || '北京',
+      departureTimeText: trip.meetingTime || '',
+      meetingLocation: trip.meetingPlace || trip.departure || '集合地点待定',
       dateText,
-      cover
+      publishTime: this.formatTripPublishTime(trip.createdAt),
+      participants,
+      displayParticipants,
+      participantCount: Math.max(Number(trip.currentCount) || 0, participants.length),
+      creatorName,
+      creatorAvatar,
+      creatorInitial: creatorName.slice(0, 1),
+      placeCoverImage,
+      statusClass,
+      statusText
     };
+  },
+
+  formatTripPublishTime: function (createdAt) {
+    const timestamp = new Date(createdAt).getTime();
+    if (!timestamp) return '';
+
+    const now = new Date();
+    const date = new Date(timestamp);
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const dateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+    const dayDiff = Math.max(0, Math.round((todayStart - dateStart) / 86400000));
+    const timeText = `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+
+    if (dayDiff === 0) return timeText;
+    if (dayDiff === 1) return `昨天 ${timeText}`;
+    if (dayDiff < 7) return `${date.getMonth() + 1}-${date.getDate()} ${timeText}`;
+    if (date.getFullYear() === now.getFullYear()) {
+      return `${date.getMonth() + 1}-${date.getDate()}`;
+    }
+    return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
   },
 
   onSwitchTab: function (event) {

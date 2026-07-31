@@ -86,13 +86,48 @@
 
     <view class="trip-list" wx:elif="{{activeTab === 'trips' && trips.length > 0}}">
       <view class="trip-card" wx:for="{{trips}}" wx:key="_id" bindtap="onTripTap" data-id="{{item._id}}">
-        <image class="trip-cover" src="{{item.cover || '/images/logo.png'}}" mode="aspectFill"></image>
-        <view class="trip-copy">
-          <text class="trip-title">{{item.title}}</text>
-          <text class="trip-place">{{item.placeName}}</text>
-          <text class="trip-meta">{{item.dateText}} · {{item.departure}}出发</text>
+        <image class="trip-card-cover" src="{{item.placeCoverImage}}" mode="aspectFill"
+          wx:if="{{item.placeCoverImage}}"></image>
+        <view class="trip-card-avatar-cover" wx:else>
+          <image class="trip-creator-avatar" src="{{item.creatorAvatar}}" mode="aspectFill"
+            wx:if="{{item.creatorAvatar}}"></image>
+          <view class="trip-creator-avatar trip-creator-avatar-placeholder" wx:else>
+            <text>{{item.creatorInitial}}</text>
+          </view>
+          <text class="trip-creator-label">{{item.creatorName}} 发起</text>
         </view>
-        <image class="trip-arrow" src="/images/icon-profile-chevron.svg" mode="aspectFit"></image>
+
+        <view class="trip-card-body">
+          <view class="trip-card-title-row">
+            <text class="trip-card-title">{{item.displayTitle || item.placeName}}</text>
+            <text class="trip-status {{item.statusClass}}">{{item.statusText}}</text>
+          </view>
+
+          <view class="trip-card-meta-row">
+            <image src="/images/icon-profile-calendar.svg" mode="aspectFit"></image>
+            <text>{{item.dateText}}{{item.departureTimeText ? ' ' + item.departureTimeText + ' 出发' : ''}}</text>
+          </view>
+
+          <view class="trip-card-meta-row">
+            <image src="/images/icon-location-blue.png" mode="aspectFit"></image>
+            <text>{{item.meetingLocation}}</text>
+          </view>
+
+          <view class="trip-card-footer">
+            <view class="trip-card-people">
+              <view class="participants">
+                <block wx:for="{{item.displayParticipants}}" wx:for-item="p" wx:key="userId">
+                  <image class="participant-avatar" src="{{p.avatar}}" mode="aspectFill" wx:if="{{p.avatar}}"></image>
+                  <view class="participant-avatar participant-placeholder" wx:else>
+                    <text>{{p.initial}}</text>
+                  </view>
+                </block>
+              </view>
+              <text class="participant-count">共{{item.participantCount}}人</text>
+            </view>
+            <text class="trip-publish-time" wx:if="{{item.publishTime}}">{{item.publishTime}}</text>
+          </view>
+        </view>
       </view>
     </view>
 

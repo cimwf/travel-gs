@@ -840,11 +840,7 @@ async function tripListByUser(data) {
 
   const formattedTrips = trips.map(trip => {
     const placeInfo = placeMap[trip.placeId] || {};
-    let placeImage = placeInfo.images?.[0] || '';
-
-    if (!placeImage) {
-      placeImage = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop';
-    }
+    const placeImage = placeInfo.images?.[0] || '';
 
     return {
       _id: trip._id,
@@ -862,6 +858,11 @@ async function tripListByUser(data) {
       date: trip.date,
       duration: trip.duration || '1天',
       departure: trip.departure || '',
+      meetingTime: trip.meetingTime || '',
+      meetingPlace: trip.meetingPlace || '',
+      creatorId: trip.creatorId || '',
+      creatorName: trip.creatorName || '',
+      creatorAvatar: trip.creatorAvatar || '',
       hasCar: trip.hasCar,
       carSeats: trip.carSeats || '',
       carModel: trip.carModel || '',

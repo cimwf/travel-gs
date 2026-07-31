@@ -462,6 +462,14 @@ test('user-profile UI 支持作品动态流和行程切换', () => {
   assert(js.includes("'grid-3'"), 'user-profile should support multi-image works');
   assert(wxml.includes('onOpenPost'), 'user-profile works should open community detail');
   assert(wxml.includes('onSwitchTab'), 'user-profile should switch between works and trips');
+  ['class="trip-card-cover"', 'class="trip-card-avatar-cover"', 'class="trip-creator-avatar"',
+    'class="trip-card-title-row"', 'class="trip-card-meta-row"', 'class="trip-card-footer"',
+    'class="trip-publish-time"'].forEach((needle) => {
+    assert(wxml.includes(needle), `user-profile trip card should reuse homepage structure: ${needle}`);
+  });
+  assert(js.includes('formatTripPublishTime'), 'user-profile trip card should use homepage publish-time formatting');
+  assert(js.includes('displayParticipants'), 'user-profile trip card should render participant avatars');
+  assert(js.includes('statusClass'), 'user-profile trip card should render trip status');
   assert(js.includes('profileUpdated'), 'user-profile should receive saved profile fields through EventChannel');
   assert(js.includes('applyProfileUpdate'), 'user-profile should update profile fields without reloading the page');
   const onShowBody = js.match(/onShow:\s*function\s*\(\)\s*\{([\s\S]*?)\n\s*\},/);
