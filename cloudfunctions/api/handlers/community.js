@@ -989,6 +989,308 @@ async function communityLikeList(openid, data) {
   }
 }
 
+// ===================== community/interactions =====================
+
+function withInteractionCursor(condition, cursor, cursorId) {
+  if (cursor <= 0) return condition;
+  var cursorCondition = cursorId
+    ? _.or([
+      { createdAt: _.lt(cursor) },
+      { createdAt: _.eq(cursor), _id: _.lt(cursorId) }
+    ])
+    : { createdAt: _.lt(cursor) };
+  return _.and([condition, cursorCondition]);
+}
+
+async function hydrateInteractionPosts(openid, interactionItems) {
+  var postIds = [];
+  interactionItems.forEach(function (item) {
+    if (item.postId && postIds.indexOf(item.postId) === -1) postIds.push(item.postId);
+  });
+
+  var postPairs = await Promise.all(postIds.map(async function (postId) {
+    try {
+      var postRes = await db.collection('community_posts').doc(postId).get();
+      var post = postRes && postRes.data;
+      if (!post || post.status !== 'active' || post.reviewStatus !== 'approved') {
+        return [postId, null];
+      }
+      return [postId, post];
+    } catch (err) {
+      return [postId, null];
+    }
+  }));
+
+  var posts = postPairs.map(function (pair) { return pair[1]; }).filter(Boolean);
+  var likedPostIds = {};
+  if (posts.length > 0) {
+    try {
+      var likesRes = await db.collection('community_likes').where({
+        userId: openid,
+        postId: _.in(posts.map(function (post) { return post._id; }))
+      }).get();
+      (likesRes.data || []).forEach(function (like) {
+        likedPostIds[like.postId] = true;
+      });
+    } catch (likeErr) {
+      console.warn('查询我的互动点赞状态失败:', likeErr.message || likeErr);
+    }
+  }
+
+  posts.forEach(function (post) {
+    post.isAuthor = post.authorId === openid;
+    post.isLiked = !!likedPostIds[post._id];
+    post.likeCount = Math.max(0, Number(post.likeCount) || 0);
+    post.commentCount = Math.max(0, Number(post.commentCount) || 0);
+  });
+  await resolveAvatarUrls(posts);
+
+  var postMap = {};
+  posts.forEach(function (post) { postMap[post._id] = post; });
+  return interactionItems.map(function (item) {
+    var post = postMap[item.postId];
+    if (!post) return null;
+    return Object.assign({}, item, { post: post });
+  }).filter(Boolean);
+}
+
+async function communityInteractions(openid, data) {
+  try {
+    if (!openid) return { success: false, error: '请先登录' };
+    var type = String(data && data.type || 'liked').trim();
+    if (['liked', 'commented'].indexOf(type) === -1) {
+      return { success: false, error: '互动类型无效' };
+    }
+
+    var requestedPageSize = Number(data && data.pageSize) || 10;
+    var pageSize = Math.max(1, Math.min(requestedPageSize, 20));
+    var cursor = Number(data && data.cursor) || 0;
+    var cursorId = String(data && data.cursorId || '');
+    var rawItems = [];
+
+    if (type === 'liked') {
+      var likesCondition = withInteractionCursor({ userId: openid }, cursor, cursorId);
+      var likesRes = await db.collection('community_likes')
+        .where(likesCondition)
+        .orderBy('createdAt', 'desc')
+        .orderBy('_id', 'desc')
+        .limit(pageSize + 1)
+        .get();
+      rawItems = (likesRes.data || []).map(function (like) {
+        return {
+          _id: like._id,
+          postId: like.postId,
+          interactionType: 'like',
+          interactionContent: '',
+          interactionCreatedAt: Number(like.createdAt) || 0,
+          createdAt: Number(like.createdAt) || 0
+        };
+      });
+    } else {
+      var commentCondition = withInteractionCursor({
+        authorId: openid,
+        status: 'active'
+      }, cursor, cursorId);
+      var replyCondition = withInteractionCursor({
+        authorId: openid,
+        status: 'active'
+      }, cursor, cursorId);
+      var commentResults = await Promise.all([
+        db.collection('community_comments')
+          .where(commentCondition)
+          .orderBy('createdAt', 'desc')
+          .orderBy('_id', 'desc')
+          .limit(pageSize + 1)
+          .get(),
+        db.collection('community_comment_replies')
+          .where(replyCondition)
+          .orderBy('createdAt', 'desc')
+          .orderBy('_id', 'desc')
+          .limit(pageSize + 1)
+          .get()
+      ]);
+
+      (commentResults[0].data || []).forEach(function (comment) {
+        rawItems.push({
+          _id: 'comment_' + comment._id,
+          sourceId: comment._id,
+          sourceType: 'comment',
+          postId: comment.postId,
+          interactionType: 'comment',
+          interactionContent: comment.content || '',
+          interactionCreatedAt: Number(comment.createdAt) || 0,
+          createdAt: Number(comment.createdAt) || 0
+        });
+      });
+      (commentResults[1].data || []).forEach(function (reply) {
+        rawItems.push({
+          _id: 'reply_' + reply._id,
+          sourceId: reply._id,
+          sourceType: 'reply',
+          postId: reply.postId,
+          interactionType: 'comment',
+          interactionContent: reply.content || '',
+          interactionCreatedAt: Number(reply.createdAt) || 0,
+          createdAt: Number(reply.createdAt) || 0
+        });
+      });
+      rawItems.sort(function (a, b) {
+        if (b.createdAt !== a.createdAt) return b.createdAt - a.createdAt;
+        return String(b._id).localeCompare(String(a._id));
+      });
+    }
+
+    var hasMore = rawItems.length > pageSize;
+    if (hasMore) rawItems = rawItems.slice(0, pageSize);
+    var last = rawItems.length > 0 ? rawItems[rawItems.length - 1] : null;
+    var interactions = await hydrateInteractionPosts(openid, rawItems);
+
+    return {
+      success: true,
+      type: type,
+      interactions: interactions,
+      hasMore: hasMore,
+      nextCursor: last ? last.createdAt : 0,
+      nextCursorId: last ? (last.sourceId || last._id) : ''
+    };
+  } catch (err) {
+    console.error('community/interactions failed:', err);
+    return { success: false, error: err.message || '我的互动加载失败，请重试' };
+  }
+}
+
+// ===================== community/notifications =====================
+
+async function communityNotifications(openid, data) {
+  try {
+    if (!openid) return { success: false, error: '请先登录' };
+    var requestedPageSize = Number(data && data.pageSize) || 50;
+    var pageSize = Math.max(1, Math.min(requestedPageSize, 100));
+    var user = await getCurrentUser(openid);
+    var readAt = Math.max(0, Number(user.communityMessageReadAt) || 0);
+
+    var results = await Promise.all([
+      db.collection('community_likes')
+        .where({ postAuthorId: openid })
+        .limit(100)
+        .get(),
+      db.collection('community_comments')
+        .where({ postAuthorId: openid })
+        .limit(100)
+        .get(),
+      db.collection('community_comment_replies')
+        .where({ replyToUserId: openid })
+        .limit(100)
+        .get()
+    ]);
+
+    var rawItems = [];
+    (results[0].data || []).forEach(function (like) {
+      if (like.userId === openid) return;
+      rawItems.push({
+        _id: 'like_' + like._id,
+        sourceId: like._id,
+        kind: 'like',
+        postId: like.postId,
+        actorId: like.userId,
+        actorName: like.userName || '旅行者',
+        actorAvatar: like.userAvatar || '',
+        content: '',
+        createdAt: Number(like.createdAt) || 0
+      });
+    });
+    (results[1].data || []).forEach(function (comment) {
+      if (comment.authorId === openid || comment.status !== 'active') return;
+      rawItems.push({
+        _id: 'comment_' + comment._id,
+        sourceId: comment._id,
+        kind: 'comment',
+        postId: comment.postId,
+        actorId: comment.authorId,
+        actorName: comment.authorName || '旅行者',
+        actorAvatar: comment.authorAvatar || '',
+        content: comment.content || '',
+        createdAt: Number(comment.createdAt) || 0
+      });
+    });
+    (results[2].data || []).forEach(function (reply) {
+      if (reply.authorId === openid || reply.status !== 'active') return;
+      rawItems.push({
+        _id: 'reply_' + reply._id,
+        sourceId: reply._id,
+        kind: 'reply',
+        postId: reply.postId,
+        actorId: reply.authorId,
+        actorName: reply.authorName || '旅行者',
+        actorAvatar: reply.authorAvatar || '',
+        content: reply.content || '',
+        createdAt: Number(reply.createdAt) || 0
+      });
+    });
+
+    rawItems.sort(function (a, b) {
+      if (b.createdAt !== a.createdAt) return b.createdAt - a.createdAt;
+      return String(b._id).localeCompare(String(a._id));
+    });
+    rawItems = rawItems.slice(0, pageSize);
+
+    var postIds = [];
+    rawItems.forEach(function (item) {
+      if (item.postId && postIds.indexOf(item.postId) === -1) postIds.push(item.postId);
+    });
+    var postPairs = await Promise.all(postIds.map(async function (postId) {
+      try {
+        var postRes = await db.collection('community_posts').doc(postId).get();
+        return [postId, postRes && postRes.data || null];
+      } catch (err) {
+        return [postId, null];
+      }
+    }));
+    var postMap = {};
+    postPairs.forEach(function (pair) { postMap[pair[0]] = pair[1]; });
+
+    var notifications = rawItems.map(function (item) {
+      var post = postMap[item.postId] || {};
+      var firstImage = Array.isArray(post.images) && post.images.length > 0
+        ? post.images[0]
+        : null;
+      return Object.assign({}, item, {
+        unread: item.createdAt > readAt,
+        postContent: post.content || '',
+        postThumbnail: firstImage && (firstImage.url || firstImage.tempFileURL || '') || ''
+      });
+    });
+    await resolveAvatarUrls(notifications, 'actorAvatar');
+
+    return {
+      success: true,
+      notifications: notifications,
+      unreadCount: notifications.filter(function (item) { return item.unread; }).length,
+      readAt: readAt
+    };
+  } catch (err) {
+    console.error('community/notifications failed:', err);
+    return { success: false, error: err.message || '互动消息加载失败，请重试' };
+  }
+}
+
+async function communityNotificationsMarkRead(openid) {
+  try {
+    if (!openid) return { success: false, error: '请先登录' };
+    var user = await getCurrentUser(openid);
+    await db.collection('users').doc(user._id).update({
+      data: {
+        communityMessageReadAt: Date.now(),
+        updatedAt: Date.now()
+      }
+    });
+    return { success: true };
+  } catch (err) {
+    console.error('community/notificationsMarkRead failed:', err);
+    return { success: false, error: err.message || '标记已读失败，请重试' };
+  }
+}
+
 // ===================== community/commentList =====================
 
 async function queryCommunityReplies(postId, rootCommentId, data) {
@@ -1566,6 +1868,9 @@ module.exports = {
   communityCreate,
   communityToggleLike,
   communityLikeList,
+  communityInteractions,
+  communityNotifications,
+  communityNotificationsMarkRead,
   communityCommentList,
   communityReplyList,
   communityCommentCreate,

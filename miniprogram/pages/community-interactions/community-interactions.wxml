@@ -1,0 +1,122 @@
+<view class="interaction-page">
+  <view class="interaction-tabs">
+    <view class="interaction-tab {{activeTab === 'liked' ? 'interaction-tab-active' : ''}}"
+      data-tab="liked" bindtap="onTabTap">赞过</view>
+    <view class="interaction-tab {{activeTab === 'commented' ? 'interaction-tab-active' : ''}}"
+      data-tab="commented" bindtap="onTabTap">评论</view>
+  </view>
+
+  <view class="interaction-section-title">
+    {{activeTab === 'liked' ? '最近赞过' : '我的评论'}}
+  </view>
+
+  <view class="interaction-status" wx:if="{{loading && visibleItems.length === 0}}">
+    <text>加载中...</text>
+  </view>
+
+  <view class="interaction-status" wx:elif="{{error && visibleItems.length === 0}}">
+    <image src="/images/icon-profile-interaction.svg" mode="aspectFit"></image>
+    <text class="interaction-status-title">互动记录加载失败</text>
+    <text class="interaction-status-desc">请检查网络后重新尝试</text>
+    <view class="interaction-retry" bindtap="onRetry">重新加载</view>
+  </view>
+
+  <view class="interaction-status" wx:elif="{{!loading && visibleItems.length === 0}}">
+    <image src="/images/icon-profile-interaction.svg" mode="aspectFit"></image>
+    <text class="interaction-status-title">
+      {{activeTab === 'liked' ? '还没有赞过的内容' : '还没有评论'}}
+    </text>
+    <text class="interaction-status-desc">
+      {{activeTab === 'liked' ? '遇到喜欢的旅行故事，点亮红心后会出现在这里' : '参与社区讨论后，你的评论会保存在这里'}}
+    </text>
+  </view>
+
+  <view class="interaction-list" wx:else>
+    <block wx:for="{{visibleItems}}" wx:key="_id">
+      <view class="liked-card" wx:if="{{activeTab === 'liked'}}"
+        bindtap="onOpenDetail" data-interaction-id="{{item._id}}">
+        <view class="post-author">
+          <image class="post-avatar" src="{{item.post.authorAvatar || '/images/logo.png'}}" mode="aspectFill"
+            catchtap="onOpenUserProfile" data-user-id="{{item.post.authorId}}"></image>
+          <view class="post-author-copy">
+            <text class="post-author-name">{{item.post.authorName || '旅行者'}}</text>
+            <text class="post-time">{{item.post.timeText}}</text>
+          </view>
+        </view>
+
+        <view class="post-text" wx:if="{{item.post.content}}">{{item.post.content}}</view>
+
+        <view class="post-location" wx:if="{{item.post.hasLocation}}" catchtap="onOpenLocation"
+          data-lat="{{item.post.location.latitude}}" data-lng="{{item.post.location.longitude}}"
+          data-name="{{item.post.location.name}}" data-address="{{item.post.location.address}}">
+          <image src="/images/icon-location-blue.png" mode="aspectFit"></image>
+          <text>{{item.post.location.name}}</text>
+        </view>
+
+        <view class="post-images {{item.post.imageLayout}}" wx:if="{{item.post.displayImages.length > 0}}">
+          <image wx:for="{{item.post.displayImages}}" wx:for-item="image" wx:key="key"
+            class="post-image" src="{{image.url}}" mode="aspectFill"></image>
+        </view>
+
+        <view class="post-actions">
+          <view class="post-action post-action-liked" catchtap="onLikeTap"
+            data-interaction-id="{{item._id}}">
+            <image src="/images/icon-like-heart-active.svg" mode="aspectFit"></image>
+            <text>{{item.post.likeCount || 0}}</text>
+          </view>
+          <view class="post-action" catchtap="onOpenDetail" data-interaction-id="{{item._id}}">
+            <image src="/images/icon-comment-gray.svg" mode="aspectFit"></image>
+            <text>{{item.post.commentCount || 0}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="comment-card" wx:else
+        bindtap="onOpenDetail" data-interaction-id="{{item._id}}">
+        <view class="post-author">
+          <image class="post-avatar" src="{{item.post.authorAvatar || '/images/logo.png'}}" mode="aspectFill"
+            catchtap="onOpenUserProfile" data-user-id="{{item.post.authorId}}"></image>
+          <view class="post-author-copy">
+            <text class="post-author-name">{{item.post.authorName || '旅行者'}}</text>
+            <text class="post-time">{{item.interactionTimeText}}</text>
+          </view>
+        </view>
+
+        <view class="comment-source">
+          <view class="comment-source-copy">
+            <text class="comment-source-text">{{item.post.content || '分享了旅途照片'}}</text>
+            <view class="post-location comment-location" wx:if="{{item.post.hasLocation}}" catchtap="onOpenLocation"
+              data-lat="{{item.post.location.latitude}}" data-lng="{{item.post.location.longitude}}"
+              data-name="{{item.post.location.name}}" data-address="{{item.post.location.address}}">
+              <image src="/images/icon-location-blue.png" mode="aspectFit"></image>
+              <text>{{item.post.location.name}}</text>
+            </view>
+          </view>
+          <image class="comment-source-image" wx:if="{{item.post.firstImage}}"
+            src="{{item.post.firstImage}}" mode="aspectFill"></image>
+        </view>
+
+        <view class="my-comment">
+          <text class="my-comment-label">我的评论：</text>
+          <text>{{item.interactionContent}}</text>
+        </view>
+
+        <view class="post-actions">
+          <view class="post-action {{item.post.isLiked ? 'post-action-liked' : ''}}"
+            catchtap="onLikeTap" data-interaction-id="{{item._id}}">
+            <image src="{{item.post.isLiked ? '/images/icon-like-heart-active.svg' : '/images/icon-like-heart-gray.svg'}}"
+              mode="aspectFit"></image>
+            <text>{{item.post.likeCount || 0}}</text>
+          </view>
+          <view class="post-action" catchtap="onOpenDetail" data-interaction-id="{{item._id}}">
+            <image src="/images/icon-comment-gray.svg" mode="aspectFit"></image>
+            <text>{{item.post.commentCount || 0}}</text>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <view class="interaction-more" wx:if="{{loading && visibleItems.length > 0}}">加载中...</view>
+  <view class="interaction-more" wx:if="{{!hasMore && visibleItems.length > 0}}">— 没有更多了 —</view>
+</view>

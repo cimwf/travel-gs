@@ -1,11 +1,13 @@
 {
   "pages": [
     "pages/trip-list/trip-list",
+    "pages/message-center/message-center",
     "pages/community/community",
     "pages/community-detail/community-detail",
     "pages/community-likes/community-likes",
     "pages/community-publish/community-publish",
     "pages/community-mine/community-mine",
+    "pages/community-interactions/community-interactions",
     "pages/auth/auth",
     "pages/place-detail/place-detail",
     "pages/place-list/place-list",

@@ -428,6 +428,27 @@ function communityLikeList(data) {
 }
 
 /**
+ * 分页获取当前用户赞过或评论过的社区动态
+ */
+function communityInteractions(data) {
+  return callApi('community/interactions', data || {});
+}
+
+/**
+ * 获取当前用户收到的社区点赞、评论和回复消息
+ */
+function communityNotifications(data) {
+  return callApi('community/notifications', data || {});
+}
+
+/**
+ * 将当前用户的社区互动消息标记为已读
+ */
+function communityNotificationsMarkRead() {
+  return callApi('community/notificationsMarkRead', {});
+}
+
+/**
  * 分页获取社区动态评论
  */
 function communityCommentList(data) {
@@ -551,6 +572,9 @@ module.exports = {
   communityCreate,
   communityToggleLike,
   communityLikeList,
+  communityInteractions,
+  communityNotifications,
+  communityNotificationsMarkRead,
   communityCommentList,
   communityReplyList,
   communityCommentCreate,

@@ -403,15 +403,15 @@ community_posts:
 
 community_likes:
   - postId + createdAt + _id（复合索引，供点赞列表稳定分页）
-  - userId + createdAt（复合索引，供用户点赞记录查询）
+  - userId + createdAt + _id（复合索引，供“我的互动-赞过”稳定分页）
 
 community_comments:
   - postId + status + createdAt + _id（复合索引，供评论稳定分页）
-  - authorId + status + createdAt（复合索引，供后续“我的评论”使用）
+  - authorId + status + createdAt + _id（复合索引，供“我的互动-评论”稳定分页）
 
 community_comment_replies:
   - postId + rootCommentId + status + createdAt + _id（复合索引，供回复稳定分页）
-  - authorId + status + createdAt（复合索引，供后续“我的回复”使用）
+  - authorId + status + createdAt + _id（复合索引，供“我的互动-评论”稳定分页）
 
 community_image_audits:
   - postId

@@ -1,404 +1,61 @@
-# 社区动态详情页 Design QA
+# 我的互动 UI Design QA
 
 ## 对比基准
 
 - Source visual truth:
-  `/Users/shan/.codex/generated_images/019f6506-a4d4-7db1-9774-24137bcc1805/call_mzJCV4eWwmvuzawXal95Iu9P.png`
-- Implementation screenshot:
-  `/tmp/community-detail-unliked-final-v2.png`
-- Full side-by-side comparison:
-  `/tmp/community-detail-ui-comparison.png`
-- Focused bottom-bar comparison:
-  `/tmp/community-detail-bottom-bar-comparison.png`
+  `/Users/shan/.codex/generated_images/019f6506-a4d4-7db1-9774-24137bcc1805/call_YC6th4da260riPsKRGgd9sRx.png`
 - Source pixels: `853 × 1844`
-- Implementation capture: `390 × 780`
-- Simulator: 微信开发者工具独立模拟器，iPhone 12/13 (Pro)
-- State: 未点赞、点赞数 0、评论数 0
+- Target simulator: iPhone 12/13 (Pro), `390 × 844` CSS px, 70% display scale
+- Intended state: 已登录、“赞过”标签、单图与多图社区动态混排
 
-实现使用模拟器中的真实动态数据，因此正文、图片和计数与设计稿不同；本次重点核对
-详情页结构、互动区布局、图标资源和状态样式。
+## 实现范围
 
-## Full-view comparison
+- 使用系统头部“我的互动”，保留“赞过 / 评论”双标签。
+- “赞过”复用社区完整动态卡片，兼容纯文字、单图、双图和三图布局。
+- 点赞数和评论数集中在卡片右下角，复用社区现有心形与评论图标。
+- “评论”使用紧凑的原动态摘要，并展示“我的评论：…”。
+- 点击整卡进入动态详情，点击头像进入个人主页，点击定位打开地图。
+- 提供分页、下拉刷新、空状态、失败重试以及取消点赞后即时移除。
 
-- 页面使用系统导航栏，标题为“动态详情”。
-- 原动态的头像、昵称、时间、文字、定位和图片完整展示。
-- 点赞列表和评论列表位于原动态下方；没有数据时展示安全空状态。
-- 页面主体独立滚动，底部互动栏始终保持在可视区域内。
-- 信息区没有再次出现信息流页面的点赞/评论按钮。
+## Rendered implementation evidence
 
-## Focused bottom-bar comparison
-
-- 左侧为圆角纯文本输入框，提示语为“说点什么…”。
-- 右侧依次为点赞图标与数量、评论图标与数量。
-- 未点赞使用社区信息流共用的灰色空心心形；点赞后使用共用的红色实心心形。
-- 评论继续复用社区信息流的灰色三点气泡图标。
-- 不展示独立“发送”按钮，输入框通过键盘的发送动作提交。
-
-## Required fidelity surfaces
-
-- Fonts and typography: 使用项目系统字体；正文、辅助信息和计数层级与现有社区
-  页面一致。
-- Spacing and layout rhythm: 底部输入框占据主要宽度，两个互动操作紧凑排列，
-  不挤压安全区。
-- Colors and visual tokens: 默认互动色为 `#8390A6`，点赞态为
-  `#FF4D4F`，边框与背景沿用社区页面现有色值。
-- Image quality and asset fidelity: 复用项目已有
-  `icon-like-heart-gray.svg`、`icon-like-heart-active.svg` 和
-  `icon-comment-gray.svg`，没有使用字符图标或临时占位图。
-- Copy and content: 点赞数、评论数均为动态数据；评论输入仅支持纯文本。
-
-## Comparison history
-
-### Iteration 1
-
-- Finding: 短内容动态下，固定定位的互动栏会被原生导航栏与视口高度计算挤出
-  屏幕。
-- Fix: 将详情页改为完整高度的纵向 flex 容器，内容区独立滚动，互动栏使用
-  `flex-shrink: 0` 锚定在滚动区下方。
-- Post-fix evidence:
-  `/tmp/community-detail-unliked-final-v2.png`
-
-### Iteration 2
-
-- Finding: 需要确认默认心形不能为红色，并且详情页仍需同时展示点赞数和评论数。
-- Fix: 默认使用灰色空心心形，点赞后切换红色实心心形；补齐评论图标及两个实时
-  计数。
-- Post-fix evidence:
-  `/tmp/community-detail-bottom-bar-comparison.png`
-
-## Functional boundary
-
-- 点赞继续复用现有 `communityToggleLike` 接口，详情页的点赞状态会同步回社区
-  信息流。
-- 主评论与键盘发送已接入 `community_comments`，回复使用
-  `community_comment_replies`；回复平铺在主评论下，服务端通过
-  `msgSecCheck` 后才写入，并同步更新动态评论总数。
-- 模拟器已验证输入框可聚焦且配置 `confirm-type="send"`；桌面模拟器不会像真机
-  一样完整显示系统软键盘。
-
-## Findings
-
-没有剩余 P0、P1 或 P2 视觉问题。
-
-final result: passed
-
----
-
-# 行程详情页 V2 Design QA（2026-07-30）
-
-## 对比基准
-
-- Source visual truth:
-  `/Users/shan/.codex/generated_images/019f6506-a4d4-7db1-9774-24137bcc1805/call_Xdg4n70uFB1H4qnQSL85VZVc.png`
-- 行程完整信息 source:
-  `/Users/shan/.codex/generated_images/019f6506-a4d4-7db1-9774-24137bcc1805/call_fCTgNIIwfkpE4EPdbZzQYYJs.png`
-- 旅途记录 source:
-  `/Users/shan/.codex/generated_images/019f6506-a4d4-7db1-9774-24137bcc1805/call_b3mivnw0CC2r6fKVX6I1jn6k.png`
-- 发布日志 source:
-  `/Users/shan/.codex/generated_images/019f6506-a4d4-7db1-9774-24137bcc1805/call_C6PGl6y1WTC613ADejOZPq48.png`
-- Implementation top screenshot: `/tmp/trip-detail-v2-top.png`
-- Implementation member screenshot: `/tmp/trip-detail-v2-members.png`
-- Full side-by-side comparison: `/tmp/trip-detail-v2-comparison.png`
-- Members side-by-side comparison: `/tmp/trip-detail-v2-members-comparison.png`
-- Source pixels: `853 × 1844`，归一到 `390 × 845`。
-- Implementation capture: `390 × 780`，微信开发者工具 iPhone 12/13
-  (Pro) 70%；截图含独立模拟器顶部和底部工具栏，页面 CSS 视口宽度为 `390px`。
-- State: 已登录、发起人、未开始、真实云端行程；成员为 1 人和 3 个待加入名额。
+- 微信开发者工具已成功编译并将页面路径切换为：
+  `pages/community-interactions/community-interactions`
+- Developer Tools screenshot:
+  `/tmp/community-interactions-devtools.jpeg`
+- 截图刷新前，macOS 自动锁屏；自动化无法解锁，最终截图仍是上一页面的陈旧画面，
+  不能作为当前实现的视觉证据。
+- 所有仅用于视觉验收的预览数据、临时启动导航和首页顺序调整均已撤回。
 
 ## Full-view comparison
 
-- 顶部使用微信原生系统导航栏，封面图、圆角信息面板、标题、
-  状态、目的地、日期、集合地和成员摘要的层级与选定方案一致。
-- 页面不再在封面图上叠加大段文案；真实图片保持 `aspectFill`，信息内容在白色
-  面板中稳定展示。
-- 用户后续确认取消了“查看完整行程信息”，实现按普通纵向滚动直接展示已有字段，
-  这是相对首张 source 的已确认产品调整。
-- 当前真实行程没有行程说明、集合时间、车辆型号、人均费用和目的定位，因此截图
-  只显示有值字段；WXML 与结构测试覆盖这些条件字段。
-
-## Focused member comparison
-
-- `/tmp/trip-detail-v2-members-comparison.png` 将完整信息 source 和实际滚动截图放在
-  同一画布中对比。
-- 成员区按从左到右排列，单项宽度为 `25%`，每行四项；使用
-  `flex-wrap: wrap`，超过四人自动进入下一行。
-- 已加入成员展示头像和昵称，剩余名额展示虚线圆形占位，不改变现有成员点击管理
-  行为。
-
-## Required fidelity surfaces
-
-- Fonts and typography: 使用微信系统中文字体；页面标题、行程标题、区块标题、
-  正文和辅助信息形成五级层次，长文本允许自然换行。
-- Spacing and layout rhythm: 封面图下白色面板使用 `32rpx` 顶部圆角，正文卡片为
-  `22rpx` 圆角和轻阴影；信息行保持一致高度，成员按四列左对齐自动换行。
-- Colors and visual tokens: 统一使用 `#F5F7FA`、白色、`#2F80ED` 和语义状态色；
-  危险操作继续使用红色描边，未改变业务含义。
-- Image quality and asset fidelity: 封面和头像使用真实数据；返回、日期、定位、相机、
-  更多、关闭和加号复用项目现有 PNG/SVG 资源，核心界面没有新增 Emoji 图标。
-- Copy and content: 保留全部当前行程字段、成员、旅途记录、发布日志、编辑、
-  分享、退出和结束行程入口；旅途记录空状态不写死为某类旅行内容。
-
-## Interaction and functional verification
-
-- 微信开发者工具实际打开 `pages/trip-detail/trip-detail`，封面、信息卡、成员区和
-  固定底部操作正常渲染。
-- 页面滚动后完整信息与成员区可见，底部操作未遮挡最后一行内容。
-- 旅途记录及发布弹层沿用现有 JS 事件、权限、图片预览、定位和上传逻辑，只替换
-  WXML/WXSS 视觉结构。
-- `npm test`: `27/27` 通过。
-- `node tests/trip-log-rules.test.js`: `12/12` 通过。
-- `git diff --check` 通过。
-
-## Comparison history
-
-### Iteration 1
-
-- Finding: 旧页面把标题和状态叠加在封面图上，信息区由多个视觉较重的旧卡片组成，
-  与选定的沉浸式封面和轻量信息层级不一致。
-- Fix: 重构为微信原生系统导航、纯封面、圆角概览面板、轻卡片信息区和双标签结构；
-  所有业务入口与状态判断保持不变。
-- Post-fix evidence: `/tmp/trip-detail-v2-comparison.png`。
-
-### Iteration 2
-
-- Finding: 用户要求成员必须从左到右排列，人数多时换行，旧网格不能明确保证
-  该顺序。
-- Fix: 成员容器改为 `display: flex; flex-wrap: wrap;
-  justify-content: flex-start`，成员宽度固定 `25%`。
-- Post-fix evidence: `/tmp/trip-detail-v2-members-comparison.png`。
-
-## Findings
-
-没有剩余 P0、P1 或 P2 视觉问题。
-
-## Follow-up Polish
-
-- [P3] 当前真实行程处于“未开始”，因此旅途记录真实数据态和发布弹层需在行程开始
-  后再做一次真机视觉回归；结构、样式和现有事件已由自动测试覆盖。
-
-final result: passed
-
----
-
-# 行程大图卡片 Design QA（2026-07-29）
-
-## 对比基准
-
-- Source visual truth:
-  `/var/folders/c3/7dkyt48n3vq6_v4x4nq82cv40000gp/T/codex-clipboard-1841c166-9e0a-4d60-806d-e5658a1b2e70.png`
-- 首页实现截图: `/tmp/trip-list-card-implementation.png`
-- 我的行程实现截图: `/tmp/my-trips-card-implementation.png`
-- 同尺寸并排对比: `/tmp/my-trips-card-comparison.png`
-- Source pixels: `853 × 1844`
-- Implementation capture: `1200 × 768`（含开发者工具），其中模拟器内容裁切并归一为
-  `263 × 568`；source 同比例缩放为 `263 × 568`。
-- State: 微信开发者工具真实云数据；首页一条招募中行程，“我的行程”同时包含招募中
-  与已结束状态。
-
-## Full-view comparison
-
-- 两个页面原有系统导航、首页筛选栏、“我的行程”身份标签和系统 Tab 均未改动。
-- 行程卡片改为与 source 一致的上方横向大图、下方标题/状态、日期、集合地、
-  参与者和右侧操作区。
-- 卡片宽度、圆角、图片比例、卡片间距和蓝白色层级与 source 接近；开发者工具
-  70% 模拟缩放仅影响截图文字锐度，不影响真机矢量渲染。
-
-## Focused card comparison
-
-- `/tmp/my-trips-card-comparison.png` 左侧为 source，右侧为实现。
-- 实现沿用真实景区图和真实行程文案，因此图片内容、日期和人数与 source 示例不同；
-  卡片结构、信息顺序、状态位置与操作区位置一致。
-- 当前云数据中的所有可见行程都有景区图，因此头像兜底没有出现在本次截图中；
-  WXML 同时保留 `trip-card-avatar-cover` 状态，结构测试验证无封面时会展示发起人头像
-  与“发起”文案。
-
-## Required fidelity surfaces
-
-- Fonts and typography: 使用小程序系统中文字体；标题 33rpx/650，辅助信息 25rpx，
-  状态 23rpx，层级和 source 一致且没有换行挤压。
-- Spacing and layout rhythm: 图片高度 250rpx，正文内边距 22/24rpx，操作区保持单行；
-  iPhone 12/13 模拟器中未出现横向溢出或按钮遮挡。
-- Colors and visual tokens: 沿用项目 `#F4F9FF`、白色、`#2783EE` 和语义状态色，
-  不修改页面头部颜色。
-- Image quality and asset fidelity: 自定义封面优先，其次景区图；两者都没有时使用
-  `#EAF4FF` 头像区，头像保持圆形比例而非拉伸为横图。日期、定位和箭头复用项目
-  已有图片资源。
-- Copy and content: 首页保留“查看详情”；“我的行程”保留“管理”“退出”“查看详情”，
-  原有全部/我发起的/我参与的/已结束逻辑不变。
-
-## Functional verification
-
-- 微信开发者工具实际打开 `pages/trip-list/trip-list` 和
-  `pages/my-trips/my-trips`，两页卡片均正常渲染。
-- 调试器显示 `0` 个代码问题；现有基础库和 SharedArrayBuffer 警告与本次改动无关。
-- `npm test`: `27/27` 通过。
-- `node tests/trip-log-rules.test.js`: `11/11` 通过。
-- `git diff --check` 通过。
-
-## Findings
-
-没有剩余 P0、P1 或 P2 视觉问题。
-
-## Follow-up Polish
-
-- [P3] 当前首页真实数据只有一张卡片，头像兜底建议在真机测试数据中再覆盖一次，
-  确认不同长度昵称的单行截断效果。
-
-final result: passed
-
-# 个人主页与编辑资料 Design QA（2026-07-29）
-
-## 对比基准
-
-- Source visual truth:
-  `/Users/shan/.codex/generated_images/019f6506-a4d4-7db1-9774-24137bcc1805/call_d3rblvnvDJs5KjRQ9ExjcnDm.png`
-- Personal profile implementation:
-  `/tmp/user-profile-implementation.png`
-- Edit profile implementation:
-  `/tmp/edit-profile-implementation.png`
-- Region selector implementation:
-  `/tmp/edit-profile-region-implementation.png`
-- Full comparison evidence:
-  `/tmp/profile-flow-comparison.png`
-- Focused region comparison:
-  `/tmp/edit-region-comparison.png`
-- Source pixels: `1702 × 924`，为 ImageGen 输出的双页面设计板。
-- DevTools captures: `390 × 780`，裁掉开发者工具栏后页面内容为
-  `390 × 694`；微信开发者工具使用 iPhone 12/13 (Pro) 70%。
-- State: 当前真实登录用户、公开作品列表、编辑资料默认态、北京地区弹窗展开态。
-
-## Full-view comparison
-
-- 个人主页保持浅蓝白色资料区、三项社交统计和“作品/行程”双标签层级。
-- 作品区使用真实社区数据验证，实际画面包含文字和多张图片；单图、双图和多图
-  由同一布局规则处理，不再使用只适合照片的瀑布流。
-- 编辑资料使用头像、基础资料、自我介绍和底部主按钮的单列结构；保存按钮已调整为
-  与表单同宽并居中。
-- 两个页面都使用页面 JSON 配置的微信系统导航栏；开发者工具分离模拟器截图只保留
-  页面内容，系统标题由运行时单独渲染。
+无法完成可信的并排比较。当前实现路径已加载，但在截图刷新时系统锁屏，没有取得
+“我的互动”页面的最终渲染图。
 
 ## Focused region comparison
 
-- 北京地区弹窗与确认稿并排检查：标题、副标题、关闭按钮、四列布局、16 个区名称、
-  选中蓝色状态和底部圆角均一致。
-- 实际测试通过点击“地区”行右侧箭头打开，不依赖原生省市区选择器。
+无法对标签栏、动态卡片、图片网格、评论摘要及右下角互动区做最终像素级比较。
 
-## Required fidelity surfaces
+## 功能验证
 
-- Fonts and typography: 使用微信小程序系统中文字体，昵称、统计、标签、表单标签和
-  辅助文字层级清晰；模拟器 70% 缩放造成的轻微锐度下降属于运行时显示差异。
-- Spacing and layout rhythm: 个人资料区、统计区和标签区与设计稿比例接近；作品动态
-  使用分隔线形成连续信息流；编辑表单采用两个连续白色分组。
-- Colors and visual tokens: 页面统一使用 `#F4F9FF`、`#FFFFFF`、`#2783EE`、
-  `#17202B`、`#7F8997` 和 `#E8EDF3`。
-- Image quality and asset fidelity: 头像和作品使用真实用户数据；位置、点赞、评论、
-  相机和箭头均复用项目现有图标资源，没有 Emoji 或临时字符图标。
-- Copy and content: 个人主页包含地区、关注、粉丝、获赞、作品和行程；编辑资料新增
-  地区，并明确限制为北京 16 区。
-
-## Interaction verification
-
-- 从“我的”头像进入 `pages/user-profile/user-profile` 成功。
-- 个人主页真实作品数据加载成功，作品数量和获赞数量随数据展示。
-- 点击“编辑资料”进入 `pages/edit-profile/edit-profile` 成功。
-- 点击地区行打开北京 16 区弹窗成功。
-- `npm test` 的个人主页、编辑资料、头像上传和地区结构测试通过。
-- `npm run test:community` 的 34 组社区测试通过。
-- 微信开发者工具调试器显示 `0` 个错误；已有警告与本次改动无关。
+- `npm test`: `29/29` 通过。
+- `npm run test:community`: `35/35` 测试组通过。
+- `npm run test:trip-log`: `12/12` 通过。
+- `node --check`: 新页面、社区处理器和 API 路由均通过。
+- `git diff --check`: 通过。
+- 静态测试覆盖页面注册、系统头部、双标签、真实接口、评论与回复合并、互动图标、
+  整卡跳转、个人主页跳转、取消点赞移除和个人页入口。
 
 ## Findings
 
-没有剩余 P0、P1 或 P2 视觉问题。
+- [P1] 缺少最终渲染对比证据
+  - Location: 微信开发者工具 iPhone 12/13 (Pro) 模拟器。
+  - Evidence: 页面路径已切换到“我的互动”，但截图刷新时系统提示 Mac 已锁定。
+  - Impact: 代码与自动测试已通过，但尚不能确认与选定 UI 的最终像素级一致性。
+  - Fix: 解锁 Mac 后重新打开该页面，截取“赞过”和“评论”两个状态并与基准图并排复核。
 
 ## Follow-up Polish
 
-- [P3] 当前获赞数优先读取用户聚合字段，字段为空时使用本次加载的公开作品点赞和；
-  后续关注/粉丝模块完成时，可统一由服务端统计接口返回全部计数。
-- [P3] ImageGen 双页面设计板的单屏宽高比不是标准手机比例；实现保持真实微信小程序
-  纵向滚动比例，因此同屏展示的作品数量与设计板不同，但信息层级和布局规则一致。
+- 解锁后补做“赞过”“评论”、空状态和取消点赞即时移除的视觉复核。
 
-final result: passed
-
----
-
-# 我的页面 Design QA（2026-07-29）
-
-## 对比基准
-
-- Source visual truth:
-  `/Users/shan/.codex/generated_images/019f6506-a4d4-7db1-9774-24137bcc1805/call_jVrRA8eFOoLqnnUXklZHlJaQ.png`
-- Implementation screenshot:
-  `/tmp/profile-implementation.jpg`
-- Full side-by-side comparison:
-  `/tmp/profile-ui-comparison.jpg`
-- Source pixels: `853 × 1844`
-- Implementation capture: `390 × 844`
-- Normalization: source downsampled to `390 × 844`; simulator at iPhone 12/13
-  (Pro) 70% and cropped/resampled to the same content ratio.
-- State: 已登录、真实头像与昵称、关注/粉丝/获赞为当前本地用户数据、行程数为
-  当前真实数据。
-
-## Full-view comparison
-
-- 顶部标题、头像资料区、三项社交数据、两组紧密功能列表和系统 Tab 的信息
-  层级与选定设计一致。
-- 微信原生胶囊位于右上角，页面标题和个人资料均未进入胶囊安全区域。
-- “其他”标题已删除；上传景点、提交建议和关于我们保留为紧接核心功能的第二组。
-- 消息提醒只出现在“消息中心”行，不修改系统 Tab。
-- 实现截图带有开发者工具模拟器提供的刘海和底部 Home Indicator；这些属于运行时
-  设备外壳，不属于页面实现内容。
-
-## Required fidelity surfaces
-
-- Fonts and typography: 使用项目现有系统中文字体；标题、昵称、统计数字、菜单
-  标题和辅助文案保持清晰的五级层次。模拟器截图缩放会降低文字锐度，真机渲染
-  使用矢量文字。
-- Spacing and layout rhythm: 头像区与统计区留白接近设计稿；两组列表同宽，间距
-  为 `14rpx`，没有多余分区标题；小屏设备允许页面自然纵向滚动。
-- Colors and visual tokens: 页面使用 `#F4F9FF`、`#EAF4FF`、白色和
-  `#2783EE`，保持选定方案的冷色蓝白体系；红色仅用于未读数量。
-- Image quality and asset fidelity: 头像使用用户真实图片；菜单使用 Tabler Icons
-  的 MIT 授权 SVG 资源，没有 Emoji、字符图标或临时占位图。
-- Copy and content: 保留我的行程、我的作品、互动记录、消息中心、上传景点、
-  提交建议和关于我们；为避免在统一消息中心上线前丢失现有能力，消息副标题暂为
-  “行程通知、赞、评论与回复”，点击继续进入现有行程通知页面。
-
-## Comparison history
-
-### Iteration 1
-
-- Finding: 原设计把消息入口放在微信右上角胶囊区域，会被原生关闭与更多按钮遮挡。
-- Fix: 移除顶部消息按钮，通过 `wx.getMenuButtonBoundingClientRect()` 动态计算
-  自定义导航高度和右侧安全距离；消息未读状态移动到列表中的消息中心入口。
-- Post-fix evidence:
-  `/tmp/profile-implementation.jpg`
-
-### Iteration 2
-
-- Finding: 独立“其他”标题使页面被人为切成两块，和用户选定的紧凑方向不一致。
-- Fix: 删除标题，将辅助功能改为与核心列表同宽、仅间隔 `14rpx` 的第二个列表组。
-- Post-fix evidence:
-  `/tmp/profile-ui-comparison.jpg`
-
-## Functional verification
-
-- 微信开发者工具中从系统 Tab 切换到“我的”成功，当前路由为
-  `pages/profile/profile`。
-- `tests/mvp-ui-flow.test.js` 中“我的”页面入口与未登录跳转测试通过。
-- 社区完整测试 `34/34` 通过。
-- 微信开发者工具调试器显示 `0` 个错误；现有警告不来自本次页面改动。
-- 关注、粉丝、获赞和互动记录的完整列表尚未开发，当前点击会给出“开发中”反馈，
-  不会跳转到不存在的页面。
-
-## Findings
-
-没有剩余 P0、P1 或 P2 视觉问题。
-
-## Follow-up Polish
-
-- [P3] 关注、粉丝和获赞目前读取用户资料中的已有统计字段；获赞聚合接口完成后，
-  应以服务端社区作品点赞汇总替换本地字段。
-- [P3] 统一消息中心上线后，将当前行程通知路由切换为消息中心，并在内部保留
-  行程通知分类。
-
-final result: passed
+final result: blocked

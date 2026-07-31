@@ -272,6 +272,7 @@ async function applyNotifications(openid, page = 1, pageSize = 5) {
         tripTitle: tripData?.tripTitle || '',
         placeCoverImage: placeCoverImage,
         tripDate: tripData?.date ? formatDate(tripData.date) : '待定',
+        unread: !!item.unread,
         createdAt: item.createdAt
       });
     } else if (item.status === 'removed') {
@@ -297,6 +298,7 @@ async function applyNotifications(openid, page = 1, pageSize = 5) {
         tripTitle: tripData?.tripTitle || '',
         placeCoverImage: placeCoverImage,
         tripDate: tripData?.date ? formatDate(tripData.date) : '待定',
+        unread: !!item.unread,
         createdAt: item.createdAt
       });
     } else if (item.status === 'cancelled') {
@@ -322,6 +324,7 @@ async function applyNotifications(openid, page = 1, pageSize = 5) {
         tripTitle: tripData?.tripTitle || '',
         placeCoverImage: placeCoverImage,
         tripDate: tripData?.date ? formatDate(tripData.date) : '待定',
+        unread: !!item.unread,
         createdAt: item.createdAt
       });
     } else if (item.status === 'deleted') {
@@ -347,6 +350,7 @@ async function applyNotifications(openid, page = 1, pageSize = 5) {
         tripTitle: tripData?.tripTitle || '',
         placeCoverImage: placeCoverImage,
         tripDate: tripData?.date ? formatDate(tripData.date) : '待定',
+        unread: !!item.unread,
         createdAt: item.createdAt
       });
     } else {
@@ -372,6 +376,7 @@ async function applyNotifications(openid, page = 1, pageSize = 5) {
         tripTitle: tripData?.tripTitle || '',
         placeCoverImage: placeCoverImage,
         tripDate: tripData?.date ? formatDate(tripData.date) : '待定',
+        unread: !!item.unread,
         createdAt: item.createdAt
       });
     }
@@ -435,6 +440,7 @@ async function applyNotifications(openid, page = 1, pageSize = 5) {
       applyTime: formatApplyTime(item.createdAt),
       creatorPhone: creatorPhone,
       creatorWechat: creatorWechat,
+      unread: !!item.unread,
       createdAt: item.createdAt
     });
   }

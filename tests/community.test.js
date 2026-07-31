@@ -62,6 +62,7 @@ run('app.json: 3 tabs, community pages registered', function () {
   ok(j.pages.indexOf('pages/community-likes/community-likes') !== -1, 'likes page registered');
   ok(j.pages.indexOf('pages/community-publish/community-publish') !== -1, 'publish page registered');
   ok(j.pages.indexOf('pages/community-mine/community-mine') !== -1, 'my works page registered');
+  ok(j.pages.indexOf('pages/community-interactions/community-interactions') !== -1, 'my interactions page registered');
 });
 
 // ---- 2: page files ----
@@ -70,7 +71,9 @@ run('Page files exist', function () {
    ['community-detail','community-detail.js'],['community-detail','community-detail.json'],['community-detail','community-detail.wxml'],['community-detail','community-detail.wxss'],
    ['community-likes','community-likes.js'],['community-likes','community-likes.json'],['community-likes','community-likes.wxml'],['community-likes','community-likes.wxss'],
    ['community-publish','community-publish.js'],['community-publish','community-publish.json'],['community-publish','community-publish.wxml'],['community-publish','community-publish.wxss'],
-   ['community-mine','community-mine.js'],['community-mine','community-mine.json'],['community-mine','community-mine.wxml'],['community-mine','community-mine.wxss']]
+   ['community-mine','community-mine.js'],['community-mine','community-mine.json'],['community-mine','community-mine.wxml'],['community-mine','community-mine.wxss'],
+   ['community-interactions','community-interactions.js'],['community-interactions','community-interactions.json'],
+   ['community-interactions','community-interactions.wxml'],['community-interactions','community-interactions.wxss']]
     .forEach(function (f) { ok(fs.existsSync(path.join(ROOT, 'miniprogram', 'pages', f[0], f[1])), f.join('/')); });
 });
 
@@ -78,7 +81,7 @@ run('Page files exist', function () {
 run('API functions registered', function () {
   var s = readText('miniprogram/utils/api.js');
   ['communityList','communityMy','communityCreateUploadSession','communityCreate','communityToggleLike',
-   'communityLikeList','communityCommentList','communityReplyList','communityCommentCreate','communityCommentDelete',
+   'communityLikeList','communityInteractions','communityCommentList','communityReplyList','communityCommentCreate','communityCommentDelete',
    'communityDelete'].forEach(function (fn) {
     ok(s.indexOf(fn) !== -1, fn + ' in api.js');
   });
@@ -93,6 +96,7 @@ run('Cloud handler has community exports + COS check + security', function () {
   ok(s.indexOf('async function communityCreate') !== -1, 'communityCreate defined');
   ok(s.indexOf('async function communityToggleLike') !== -1, 'communityToggleLike defined');
   ok(s.indexOf('async function communityLikeList') !== -1, 'communityLikeList defined');
+  ok(s.indexOf('async function communityInteractions') !== -1, 'communityInteractions defined');
   ok(s.indexOf('async function communityCommentList') !== -1, 'communityCommentList defined');
   ok(s.indexOf('async function communityReplyList') !== -1, 'communityReplyList defined');
   ok(s.indexOf('async function communityCommentCreate') !== -1, 'communityCommentCreate defined');
@@ -108,7 +112,7 @@ run('Cloud function routing', function () {
   var s = readText('cloudfunctions/api/index.js');
   ok(s.indexOf("require('./handlers/community')") !== -1, 'import');
   ['community/list','community/my','community/createUploadSession','community/create','community/toggleLike',
-   'community/likeList','community/commentList','community/replyList','community/commentCreate','community/commentDelete',
+   'community/likeList','community/interactions','community/commentList','community/replyList','community/commentCreate','community/commentDelete',
    'community/delete'].forEach(function (r) {
     ok(s.indexOf(r) !== -1, 'route: ' + r);
   });
@@ -449,6 +453,34 @@ run('My works: includes every non-deleted review status', function () {
   ok(profileWxml.indexOf('bindtap="onTapMyWorks"') !== -1, 'profile entry registered');
   ok(pageJs.indexOf('scheduleReviewRefresh') !== -1, 'polls while reviewing');
   ok(pageJs.indexOf('clearReviewTimer') !== -1, 'cleans up review polling');
+});
+
+run('My interactions: liked and commented history are separate from notifications', function () {
+  var handler = readText('cloudfunctions/api/handlers/community.js');
+  var pageJson = readJson('miniprogram/pages/community-interactions/community-interactions.json');
+  var pageWxml = readText('miniprogram/pages/community-interactions/community-interactions.wxml');
+  var pageJs = readText('miniprogram/pages/community-interactions/community-interactions.js');
+  var pageWxss = readText('miniprogram/pages/community-interactions/community-interactions.wxss');
+  var profileJs = readText('miniprogram/pages/profile/profile.js');
+  var profileWxml = readText('miniprogram/pages/profile/profile.wxml');
+  ok(handler.indexOf("type === 'liked'") !== -1, 'loads current user likes');
+  ok(handler.indexOf("community_comments") !== -1 && handler.indexOf("community_comment_replies") !== -1,
+    'loads both comments and replies');
+  ok(pageJson.navigationStyle !== 'custom' && pageJson.navigationBarTitleText === '我的互动',
+    'uses system navigation');
+  ok(pageWxml.indexOf('data-tab="liked"') !== -1 && pageWxml.indexOf('data-tab="commented"') !== -1,
+    'liked and comment tabs rendered');
+  ok(pageWxml.indexOf('>评论</view>') !== -1 && pageWxml.indexOf('评论过') === -1,
+    'comment tab uses approved copy');
+  ok(pageWxml.indexOf('我的评论：') !== -1, 'comment rows show the user comment');
+  ok(pageWxml.indexOf('icon-like-heart-active.svg') !== -1 &&
+    pageWxml.indexOf('icon-comment-gray.svg') !== -1, 'shared action icons rendered');
+  ok(pageWxss.indexOf('justify-content: flex-end') !== -1, 'like and comment actions align right');
+  ok(pageJs.indexOf('removeLikedPost') !== -1, 'unliked posts leave liked history');
+  ok(pageJs.indexOf('/pages/community-detail/community-detail?id=') !== -1,
+    'interaction rows open community detail');
+  ok(profileJs.indexOf('/pages/community-interactions/community-interactions') !== -1 &&
+    profileWxml.indexOf('我的互动') !== -1, 'profile entry opens my interactions');
 });
 
 run('Delete: removes COS objects and queues failures', function () {

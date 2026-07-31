@@ -88,15 +88,15 @@ community_posts:
 
 community_likes:
   postId + createdAt + _id
-  userId + createdAt
+  userId + createdAt + _id
 
 community_comments:
   postId + status + createdAt + _id
-  authorId + status + createdAt
+  authorId + status + createdAt + _id
 
 community_comment_replies:
   postId + rootCommentId + status + createdAt + _id
-  authorId + status + createdAt
+  authorId + status + createdAt + _id
 
 community_image_audits:
   postId

@@ -175,11 +175,35 @@ function test(name, fn) {
 test('app.json 默认首页是 trip-list，tabBar 含行程和我的', () => {
   const appJson = JSON.parse(read('miniprogram/app.json'));
   assert.strictEqual(appJson.pages[0], 'pages/trip-list/trip-list');
+  assert(appJson.pages.includes('pages/message-center/message-center'));
   assert.deepStrictEqual(appJson.tabBar.list.map((item) => item.pagePath), [
     'pages/trip-list/trip-list',
     'pages/community/community',
     'pages/profile/profile'
   ]);
+});
+
+test('消息中心使用系统头部并支持全部、行程和互动筛选', () => {
+  const json = JSON.parse(read('miniprogram/pages/message-center/message-center.json'));
+  assert.strictEqual(json.navigationBarTitleText, '消息中心');
+  assert.notStrictEqual(json.navigationStyle, 'custom');
+
+  const wxml = read('miniprogram/pages/message-center/message-center.wxml');
+  ['data-filter="all"', 'data-filter="trip"', 'data-filter="interaction"',
+    'bindtap="onMarkAllRead"', 'class="message-row"', 'class="message-unread-dot"'].forEach((needle) => {
+    assert(wxml.includes(needle), `message-center missing ${needle}`);
+  });
+
+  const js = read('miniprogram/pages/message-center/message-center.js');
+  ['api.applyNotifications(1, 50)', 'api.communityNotifications({ pageSize: 50 })',
+    'api.applyMarkRead()', 'api.communityNotificationsMarkRead()',
+    "'/pages/trip-notifications/trip-notifications'",
+    "'/pages/community-detail/community-detail?id='"].forEach((needle) => {
+    assert(js.includes(needle), `message-center missing behavior ${needle}`);
+  });
+
+  const profileJs = read('miniprogram/pages/profile/profile.js');
+  assert(profileJs.includes("auth.navigateIfLoggedIn('/pages/message-center/message-center')"));
 });
 
 test('trip-list UI 含筛选栏、行程卡片、空状态发布按钮和悬浮发布按钮', () => {
@@ -238,7 +262,7 @@ test('trip-list 未登录点击发布跳转登录页', () => {
 
 test('profile 未登录 UI 和入口都指向登录页', () => {
   const wxml = read('miniprogram/pages/profile/profile.wxml');
-  ['点击登录', '关注', '粉丝', '获赞', '我的行程', '我的作品', '互动记录', '消息中心',
+  ['点击登录', '关注', '粉丝', '获赞', '我的行程', '我的作品', '我的互动', '消息中心',
     '行程通知', '上传景点', '提交建议', '关于我们'].forEach((text) => {
     assert(wxml.includes(text), `missing ${text}`);
   });
@@ -252,11 +276,28 @@ test('profile 未登录 UI 和入口都指向登录页', () => {
   page.checkLogin();
   assert.strictEqual(page.data.isLoggedIn, false);
 
-  ['onLogin', 'onTapMyTrips', 'onTapMyWorks', 'onTapTripNotifications', 'onTapUploadSpot', 'onTapFeedback', 'onTapAbout'].forEach((method) => {
+  ['onLogin', 'onTapMyTrips', 'onTapMyWorks', 'onTapInteractionRecords', 'onTapTripNotifications',
+    'onTapUploadSpot', 'onTapFeedback', 'onTapAbout'].forEach((method) => {
     wxCalls.navigateTo = [];
     page[method]();
     assert.strictEqual(wxCalls.navigateTo.at(-1).url, '/pages/auth/auth', `${method} did not navigate to auth`);
   });
+});
+
+test('我的互动使用系统头部并区分赞过和评论', () => {
+  const pageJson = JSON.parse(read('miniprogram/pages/community-interactions/community-interactions.json'));
+  const wxml = read('miniprogram/pages/community-interactions/community-interactions.wxml');
+  const js = read('miniprogram/pages/community-interactions/community-interactions.js');
+  assert.strictEqual(pageJson.navigationBarTitleText, '我的互动');
+  assert.notStrictEqual(pageJson.navigationStyle, 'custom');
+  ['data-tab="liked"', 'data-tab="commented"', '我的评论：',
+    'icon-like-heart-active.svg', 'icon-comment-gray.svg',
+    'bindtap="onOpenDetail"'].forEach((needle) => {
+    assert(wxml.includes(needle), `community-interactions missing ${needle}`);
+  });
+  assert(!wxml.includes('评论过'));
+  assert(js.includes('api.communityInteractions(request)'));
+  assert(js.includes('removeLikedPost'));
 });
 
 test('我的作品使用系统头部并展示全部审核状态', () => {

@@ -69,15 +69,15 @@ community_posts:
 
 community_likes:
   postId + createdAt(desc) + _id(desc)
-  userId + createdAt(desc)
+  userId + createdAt(desc) + _id(desc)
 
 community_comments:
   postId + status + createdAt(desc) + _id(desc)
-  authorId + status + createdAt(desc)
+  authorId + status + createdAt(desc) + _id(desc)
 
 community_comment_replies:
   postId + rootCommentId + status + createdAt(asc) + _id(asc)
-  authorId + status + createdAt(desc)
+  authorId + status + createdAt(desc) + _id(desc)
 
 community_image_audits:
   postId

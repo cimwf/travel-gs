@@ -57,7 +57,7 @@
         </view>
         <view class="menu-row" bindtap="onTapInteractionRecords">
           <image class="menu-icon" src="/images/icon-profile-interaction.svg" mode="aspectFit"></image>
-          <text class="menu-title">互动记录</text>
+          <text class="menu-title">我的互动</text>
           <image class="menu-arrow" src="/images/icon-profile-chevron.svg" mode="aspectFit"></image>
         </view>
         <view class="menu-row" bindtap="onTapTripNotifications">

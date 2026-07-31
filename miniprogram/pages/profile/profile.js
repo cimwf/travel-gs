@@ -129,13 +129,17 @@ Page({
     if (!openid) return;
 
     try {
-      const res = await api.applyUnreadCount();
-
-      if (res.success) {
-        this.setData({
-          unreadCount: res.count || 0
-        });
-      }
+      const results = await Promise.all([
+        api.applyUnreadCount(),
+        api.communityNotifications({ pageSize: 100 })
+      ]);
+      const tripCount = results[0] && results[0].success
+        ? Number(results[0].count) || 0
+        : 0;
+      const interactionCount = results[1] && results[1].success
+        ? Number(results[1].unreadCount) || 0
+        : 0;
+      this.setData({ unreadCount: tripCount + interactionCount });
     } catch (err) {
       console.warn('加载未读消息数量失败', err);
     }
@@ -166,16 +170,14 @@ Page({
     auth.navigateIfLoggedIn('/pages/community-mine/community-mine');
   },
 
-  // 行程通知
+  // 消息中心
   onTapTripNotifications: function () {
-    auth.navigateIfLoggedIn('/pages/trip-notifications/trip-notifications');
+    auth.navigateIfLoggedIn('/pages/message-center/message-center');
   },
 
-  // 互动记录页将在下一阶段接入真实列表
+  // 我的互动
   onTapInteractionRecords: function () {
-    if (auth.ensureLogin()) {
-      wx.showToast({ title: '互动记录开发中', icon: 'none' });
-    }
+    auth.navigateIfLoggedIn('/pages/community-interactions/community-interactions');
   },
 
   // 关注、粉丝、获赞列表将在对应数据接口完成后开放

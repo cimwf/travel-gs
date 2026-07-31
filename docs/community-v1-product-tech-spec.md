@@ -286,6 +286,7 @@ Key，Action 只开放 `name/cos:PutObject`，并限制上传大小和图片 Con
 | `community/createUploadSession` | 创建草稿并签发最小权限 STS 临时凭证 |
 | `community/create` | 验证上传结果并创建动态 |
 | `community/toggleLike` | 点赞或取消点赞，返回最终点赞状态和数量 |
+| `community/interactions` | 分页获取本人赞过、评论或回复过的公开动态 |
 | `community/delete` | 作者删除自己的动态 |
 
 ### 6.1 `community/list`
@@ -428,7 +429,7 @@ draftId（唯一）
 
 ```text
 postId + createdAt + _id
-userId + createdAt
+userId + createdAt + _id
 ```
 
 确定性 `_id` 由 `postId + openid` 在服务端计算，防止重复点赞；点赞列表直接

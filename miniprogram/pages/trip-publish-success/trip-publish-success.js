@@ -80,8 +80,8 @@ Page({
         url: '/pages/trip-detail/trip-detail?id=' + tripId
       });
     } else {
-      wx.switchTab({
-        url: '/pages/trip-notifications/trip-notifications'
+      wx.redirectTo({
+        url: '/pages/message-center/message-center'
       });
     }
   },
