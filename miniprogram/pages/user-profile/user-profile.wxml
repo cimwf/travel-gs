@@ -18,15 +18,19 @@
           <text class="user-bio">{{userInfo.bio}}</text>
         </view>
         <view class="edit-btn" wx:if="{{isCurrentUser}}" bindtap="onEditProfile">编辑资料</view>
+        <view class="profile-follow-btn {{isFollowing ? 'profile-following-btn' : ''}}"
+          wx:else bindtap="onFollowUser">
+          {{isMutual ? '相互关注' : (isFollowing ? '已关注' : '关注')}}
+        </view>
       </view>
 
       <view class="social-stats">
-        <view class="stat-item">
+        <view class="stat-item" bindtap="onOpenFollowList" data-type="following">
           <text class="stat-number">{{stats.following}}</text>
           <text class="stat-label">关注</text>
         </view>
         <view class="stat-divider"></view>
-        <view class="stat-item">
+        <view class="stat-item" bindtap="onOpenFollowList" data-type="followers">
           <text class="stat-number">{{stats.followers}}</text>
           <text class="stat-label">粉丝</text>
         </view>

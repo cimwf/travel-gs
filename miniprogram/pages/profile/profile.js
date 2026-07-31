@@ -180,11 +180,16 @@ Page({
     auth.navigateIfLoggedIn('/pages/community-interactions/community-interactions');
   },
 
-  // 关注、粉丝、获赞列表将在对应数据接口完成后开放
-  onTapSocialStat: function () {
-    if (auth.ensureLogin()) {
-      wx.showToast({ title: '列表功能开发中', icon: 'none' });
+  onTapSocialStat: function (event) {
+    if (!auth.ensureLogin()) return;
+    const type = event.currentTarget.dataset.type;
+    if (type === 'following' || type === 'followers') {
+      wx.navigateTo({
+        url: '/pages/followers/followers?type=' + type
+      });
+      return;
     }
+    wx.showToast({ title: '获赞列表后续开放', icon: 'none' });
   },
 
   // 上传景点

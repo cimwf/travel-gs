@@ -57,6 +57,7 @@ community_comment_replies
 community_image_audits
 community_upload_drafts
 community_cleanup_tasks
+user_follows
 ```
 
 建议索引：
@@ -89,6 +90,10 @@ community_upload_drafts:
 
 community_cleanup_tasks:
   status + createdAt
+
+user_follows:
+  followerId + createdAt(desc) + _id(desc)
+  followingId + createdAt(desc) + _id(desc)
 ```
 
 - [ ] 数据库权限设为客户端不可直接读写；社区数据统一经云函数访问。
@@ -98,6 +103,7 @@ community_cleanup_tasks:
 - [ ] 验证评论通过 `msgSecCheck` 后写入，违规评论被阻止，评论数与列表一致。
 - [ ] 验证评论者和作品作者可删除评论，其他用户无法越权删除，删除后评论数不为负。
 - [ ] 验证 A 回复 B、C 回复 A 均平铺在同一主评论下；删除主评论后整条回复链隐藏。
+- [ ] 验证关注、取消关注、相互关注状态与双方统计数字一致，且不能关注自己。
 
 ## 4. P0：图片审核消息推送
 

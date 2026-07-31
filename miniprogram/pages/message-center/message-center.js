@@ -132,7 +132,8 @@ Page({
     var actionMap = {
       like: '赞了你的动态',
       comment: '评论了你',
-      reply: '回复了你'
+      reply: '回复了你',
+      follow: '关注了你'
     };
     var preview = item.content || item.postContent || '';
     if (preview.length > 42) preview = preview.slice(0, 42) + '…';
@@ -150,7 +151,8 @@ Page({
       avatar: item.actorAvatar || '',
       avatarText: (item.actorName || '旅').slice(0, 1),
       thumbnail: item.postThumbnail || '',
-      postId: item.postId || ''
+      postId: item.postId || '',
+      userId: item.actorId || ''
     };
   },
 
@@ -221,6 +223,12 @@ Page({
     if (message.postId) {
       wx.navigateTo({
         url: '/pages/community-detail/community-detail?id=' + encodeURIComponent(message.postId)
+      });
+      return;
+    }
+    if (message.kind === 'follow' && message.userId) {
+      wx.navigateTo({
+        url: '/pages/user-profile/user-profile?id=' + encodeURIComponent(message.userId)
       });
     }
   },

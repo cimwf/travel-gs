@@ -479,6 +479,59 @@ test('user-profile UI 支持作品动态流和行程切换', () => {
   assert.strictEqual(json.navigationStyle, undefined, 'user-profile should use system navigation');
 });
 
+test('关注与粉丝页面使用选定胶囊标签方案并支持关注状态', () => {
+  const appJson = JSON.parse(read('miniprogram/app.json'));
+  const pageJson = JSON.parse(read('miniprogram/pages/followers/followers.json'));
+  const wxml = read('miniprogram/pages/followers/followers.wxml');
+  const wxss = read('miniprogram/pages/followers/followers.wxss');
+  const js = read('miniprogram/pages/followers/followers.js');
+  const profileWxml = read('miniprogram/pages/user-profile/user-profile.wxml');
+  const profileJs = read('miniprogram/pages/user-profile/user-profile.js');
+  const api = read('miniprogram/utils/api.js');
+  const handler = read('cloudfunctions/api/handlers/user.js');
+  const router = read('cloudfunctions/api/index.js');
+
+  assert(appJson.pages.includes('pages/followers/followers'), 'followers page should be registered');
+  assert.strictEqual(pageJson.navigationStyle, undefined, 'followers page should use system navigation');
+  assert.strictEqual(pageJson.navigationBarBackgroundColor, '#ffffff',
+    'followers system navigation should use white background');
+  assert.strictEqual(pageJson.backgroundColor, '#ffffff',
+    'followers page should use white background');
+  ['关注 {{counts.following}}', '粉丝 {{counts.followers}}', 'follow-tabs', 'follow-row',
+    'relationshipText'].forEach((needle) => {
+    assert(wxml.includes(needle), `followers UI missing ${needle}`);
+  });
+  ['follow-button-follow', 'follow-button-following', 'follow-button-mutual'].forEach((needle) => {
+    assert(wxss.includes(needle), `followers styles missing ${needle}`);
+  });
+  ['还没有关注的人', '还没有粉丝', '去社区看看', '去发布内容',
+    'icon-follow-empty.svg', 'icon-followers-empty.svg'].forEach((needle) => {
+    assert(wxml.includes(needle), `followers empty state missing ${needle}`);
+  });
+  assert(wxss.includes('follow-empty-action-primary'), 'following CTA should use solid blue style');
+  assert(wxss.includes('follow-empty-action-outline'), 'followers CTA should use outline style');
+  assert(js.includes('onEmptyAction'), 'followers empty-state CTA should be interactive');
+  assert(js.includes("wx.switchTab({ url: '/pages/community/community' })"),
+    'following empty CTA should open community');
+  assert(js.includes("wx.navigateTo({ url: '/pages/community-publish/community-publish' })"),
+    'followers empty CTA should open publish page');
+  assert(js.includes('userFollowList'), 'followers page should load real relationship data');
+  assert(js.includes('userFollowToggle'), 'followers page should toggle follow state');
+  assert(profileWxml.includes('profile-follow-btn'), 'other user profile should render follow button');
+  assert(profileJs.includes('loadFollowStatus'), 'user profile should load follow status');
+  assert(profileJs.includes('onOpenFollowList'), 'profile stats should open relationship list');
+  ['userFollowStatus', 'userFollowToggle', 'userFollowList'].forEach((needle) => {
+    assert(api.includes(needle), `api missing ${needle}`);
+    assert(handler.includes(needle), `user handler missing ${needle}`);
+  });
+  ['user/followStatus', 'user/followToggle', 'user/followList'].forEach((route) => {
+    assert(router.includes(route), `cloud route missing ${route}`);
+  });
+  assert(handler.includes("collection('user_follows')"), 'follow relationships should use user_follows');
+  assert(handler.includes('不能关注自己'), 'follow handler should block self-follow');
+  assert(handler.includes('runTransaction'), 'follow toggle should update relation and counters atomically');
+});
+
 test('apply-modal 顶部不展示无意义默认头像', () => {
   const wxml = read('miniprogram/components/apply-modal/apply-modal.wxml');
   assert(wxml.includes('申请加入行程'), 'apply modal should keep title');

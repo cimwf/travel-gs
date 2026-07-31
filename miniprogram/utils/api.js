@@ -79,6 +79,18 @@ function userGet(userId) {
   return callApi('user/get', { userId });
 }
 
+function userFollowStatus(userId) {
+  return callApi('user/followStatus', { userId });
+}
+
+function userFollowToggle(userId) {
+  return callApi('user/followToggle', { userId });
+}
+
+function userFollowList(data = {}) {
+  return callApi('user/followList', data);
+}
+
 /**
  * 获取用户行程列表
  */
@@ -498,6 +510,9 @@ module.exports = {
   userLoginByPhone,
   userUpdate,
   userGet,
+  userFollowStatus,
+  userFollowToggle,
+  userFollowList,
 
   // 地点
   placeList,

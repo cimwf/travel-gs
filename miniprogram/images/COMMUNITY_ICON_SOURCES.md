@@ -19,6 +19,8 @@ The upstream MIT license is stored in `BOOTSTRAP_ICONS_LICENSE`.
 The community comment icon uses Heroicons 2.2.0:
 
 - `chat-bubble-oval-left-ellipsis`
+- `user-plus` (follow-list empty state)
+- `user-group` (followers-list empty state)
 
 Source: https://github.com/tailwindlabs/heroicons/tree/v2.2.0
 

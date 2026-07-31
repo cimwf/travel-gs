@@ -21,6 +21,7 @@
 13. community_cleanup_tasks - COS清理任务表
 14. community_comments - 社区评论表
 15. community_comment_replies - 社区评论回复表
+16. user_follows - 用户关注关系表
 ==========================================
 集合结构说明
 ==========================================
@@ -351,6 +352,19 @@ const communityCommentReplySchema = {
   deletedAt: 0
 };
 
+// 16. user_follows - 用户关注关系表
+const userFollowSchema = {
+  _id: "sha256_follower_following",
+  followerId: "openid_follower",       // 发起关注的人
+  followingId: "openid_following",     // 被关注的人
+  followerName: "小鹿在路上",          // 关注发生时的昵称快照
+  followerAvatar: "https://...",       // 关注发生时的头像快照
+  followingName: "山野漫游记",
+  followingAvatar: "https://...",
+  createdAt: 1785149400000,
+  updatedAt: 1785149400000
+};
+
 /*
 ==========================================
 索引配置（在云开发控制台创建）
@@ -423,5 +437,9 @@ community_upload_drafts:
 
 community_cleanup_tasks:
   - status + createdAt（用于清理队列处理）
+
+user_follows:
+  - followerId + createdAt + _id（复合索引，供“关注”列表稳定分页）
+  - followingId + createdAt + _id（复合索引，供“粉丝”和新关注通知稳定分页）
 
 */

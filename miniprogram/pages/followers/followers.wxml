@@ -1,19 +1,63 @@
-<!--
-  关注/粉丝列表 (followers)
-  ================================
-  设计要点：
-  1. 标签切换：关注 / 粉丝
-  2. 用户卡片：头像+昵称+简介+关注按钮
-  3. 按钮状态：+关注 / 已关注 / 相互关注
-  4. 点击用户：跳转用户主页
+<view class="follow-page">
+  <view class="follow-tabs">
+    <view class="follow-tab {{activeTab === 'following' ? 'follow-tab-active' : ''}}"
+      data-type="following" bindtap="onTabTap">
+      <text>关注 {{counts.following}}</text>
+    </view>
+    <view class="follow-tab {{activeTab === 'followers' ? 'follow-tab-active' : ''}}"
+      data-type="followers" bindtap="onTabTap">
+      <text>粉丝 {{counts.followers}}</text>
+    </view>
+  </view>
 
-  组件结构：
-  - 用户卡片
-  - 关注按钮
+  <view class="follow-status" wx:if="{{loading && users.length === 0}}">
+    <view class="follow-loading-dot"></view>
+    <text>加载中...</text>
+  </view>
 
-  参考：E:\beijing-travel\docs\缺失页面设计方案.md
--->
+  <view class="follow-status" wx:elif="{{error && users.length === 0}}">
+    <image class="follow-error-icon" src="/images/icon-profile-info.svg" mode="aspectFit"></image>
+    <text class="follow-status-title">列表加载失败</text>
+    <text class="follow-status-desc">请检查网络后重新尝试</text>
+    <view class="follow-retry" bindtap="onRetry">重新加载</view>
+  </view>
 
-<view class="container">
-  <!-- TODO: 实现关注/粉丝列表 -->
+  <view class="follow-status follow-status-empty" wx:elif="{{!loading && users.length === 0}}">
+    <view class="follow-empty-icon">
+      <image src="{{activeTab === 'following' ? '/images/icon-follow-empty.svg' : '/images/icon-followers-empty.svg'}}"
+        mode="aspectFit"></image>
+    </view>
+    <text class="follow-status-title">{{activeTab === 'following' ? '还没有关注的人' : '还没有粉丝'}}</text>
+    <text class="follow-status-desc">
+      {{activeTab === 'following' ? '去社区发现有趣的旅行者吧' : '分享行程和旅行故事，会有更多人认识你'}}
+    </text>
+    <view wx:if="{{isCurrentOwner}}"
+      class="follow-empty-action {{activeTab === 'following' ? 'follow-empty-action-primary' : 'follow-empty-action-outline'}}"
+      bindtap="onEmptyAction">
+      {{activeTab === 'following' ? '去社区看看' : '去发布内容'}}
+    </view>
+  </view>
+
+  <view class="follow-list" wx:else>
+    <view class="follow-row" wx:for="{{users}}" wx:key="userId"
+      bindtap="onUserTap" data-user-id="{{item.userId}}">
+      <image class="follow-avatar" src="{{item.avatar || '/images/logo.png'}}" mode="aspectFill"></image>
+      <view class="follow-copy">
+        <text class="follow-name">{{item.nickname}}</text>
+        <view class="follow-region">
+          <image src="/images/icon-location-blue.png" mode="aspectFit"></image>
+          <text>{{item.regionText}}</text>
+        </view>
+        <text class="follow-bio">{{item.bio}}</text>
+      </view>
+      <view wx:if="{{!item.isCurrentUser}}"
+        class="follow-button follow-button-{{item.relationshipClass}}"
+        catchtap="onFollowTap" data-user-id="{{item.userId}}">
+        {{item.relationshipText}}
+      </view>
+    </view>
+  </view>
+
+  <view class="follow-more" wx:if="{{loading && users.length > 0}}">加载中...</view>
+  <view class="follow-more" wx:if="{{!hasMore && users.length > 0}}">— 没有更多了 —</view>
 </view>

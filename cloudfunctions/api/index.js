@@ -44,6 +44,12 @@ exports.main = async (event, context) => {
         return await user.userUpdate(openid, data);
       case 'user/get':
         return await user.userGet(data.userId || openid);
+      case 'user/followStatus':
+        return await user.userFollowStatus(openid, data);
+      case 'user/followToggle':
+        return await user.userFollowToggle(openid, data);
+      case 'user/followList':
+        return await user.userFollowList(openid, data);
 
       // ========== 地点相关 ==========
       case 'place/list':

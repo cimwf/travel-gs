@@ -7,6 +7,8 @@ Page({
     loading: true,
     userId: '',
     isCurrentUser: false,
+    isFollowing: false,
+    isMutual: false,
     activeTab: 'works',
     userInfo: {
       nickname: '',
@@ -44,6 +46,9 @@ Page({
     if (this.data.isCurrentUser && app.globalData._profileUpdated) {
       this.applyProfileUpdate(app.globalData._profileUpdated);
       app.globalData._profileUpdated = null;
+    }
+    if (this.data.userId) {
+      this.refreshFollowCounts();
     }
   },
 
@@ -105,7 +110,8 @@ Page({
 
       await Promise.all([
         this.loadUserPosts(authorId),
-        this.loadUserTrips(authorId)
+        this.loadUserTrips(authorId),
+        this.loadFollowStatus(authorId)
       ]);
     } catch (err) {
       console.error('加载用户主页失败', err);
@@ -113,6 +119,65 @@ Page({
     } finally {
       this.setData({ loading: false });
     }
+  },
+
+  loadFollowStatus: async function (userId) {
+    if (this.data.isCurrentUser) return;
+    try {
+      const res = await api.userFollowStatus(userId);
+      this.setData({
+        isFollowing: !!res.isFollowing,
+        isMutual: !!res.isMutual,
+        'stats.followers': Math.max(0, Number(res.followerCount) || 0)
+      });
+    } catch (err) {
+      console.warn('加载关注状态失败', err);
+    }
+  },
+
+  refreshFollowCounts: function () {
+    api.userFollowStatus(this.data.userId).then(res => {
+      const update = {
+        'stats.following': Math.max(0, Number(res.followingCount) || 0),
+        'stats.followers': Math.max(0, Number(res.followerCount) || 0)
+      };
+      if (!this.data.isCurrentUser) {
+        update.isFollowing = !!res.isFollowing;
+        update.isMutual = !!res.isMutual;
+      }
+      this.setData(update);
+    }).catch(err => {
+      console.warn('刷新关注统计失败', err);
+    });
+  },
+
+  onFollowUser: function () {
+    if (this.data.isCurrentUser || this._followingUser) return;
+    this._followingUser = true;
+    api.userFollowToggle(this.data.userId).then(res => {
+      this.setData({
+        isFollowing: !!res.isFollowing,
+        isMutual: !!res.isMutual,
+        'stats.followers': Math.max(0, Number(res.followerCount) || 0)
+      });
+      const currentUser = wx.getStorageSync('userInfo') || {};
+      currentUser.following = Math.max(0, Number(res.followingCount) || 0);
+      wx.setStorageSync('userInfo', currentUser);
+      if (app.globalData.userInfo) app.globalData.userInfo.following = currentUser.following;
+    }).catch(err => {
+      wx.showToast({ title: err.message || '操作失败，请重试', icon: 'none' });
+    }).then(() => {
+      this._followingUser = false;
+    });
+  },
+
+  onOpenFollowList: function (event) {
+    const type = event.currentTarget.dataset.type;
+    if (type !== 'following' && type !== 'followers') return;
+    wx.navigateTo({
+      url: '/pages/followers/followers?type=' + type +
+        '&userId=' + encodeURIComponent(this.data.userId)
+    });
   },
 
   resolveCloudUrl: async function (url) {

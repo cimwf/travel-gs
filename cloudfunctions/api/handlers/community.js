@@ -1181,7 +1181,15 @@ async function communityNotifications(openid, data) {
       db.collection('community_comment_replies')
         .where({ replyToUserId: openid })
         .limit(100)
+        .get(),
+      db.collection('user_follows')
+        .where({ followingId: openid })
+        .limit(100)
         .get()
+        .catch(function (err) {
+          console.warn('user_follows collection unavailable, skip follow notifications:', err);
+          return { data: [] };
+        })
     ]);
 
     var rawItems = [];
@@ -1225,6 +1233,20 @@ async function communityNotifications(openid, data) {
         actorAvatar: reply.authorAvatar || '',
         content: reply.content || '',
         createdAt: Number(reply.createdAt) || 0
+      });
+    });
+    (results[3].data || []).forEach(function (follow) {
+      if (follow.followerId === openid) return;
+      rawItems.push({
+        _id: 'follow_' + follow._id,
+        sourceId: follow._id,
+        kind: 'follow',
+        postId: '',
+        actorId: follow.followerId,
+        actorName: follow.followerName || '旅行者',
+        actorAvatar: follow.followerAvatar || '',
+        content: '',
+        createdAt: Number(follow.createdAt) || 0
       });
     });
 

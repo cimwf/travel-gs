@@ -112,7 +112,28 @@ page {
   box-sizing: border-box;
 }
 
+.profile-follow-btn {
+  min-width: 146rpx;
+  height: 62rpx;
+  margin-left: 18rpx;
+  padding: 0 24rpx;
+  border: 2rpx solid var(--profile-primary);
+  border-radius: 32rpx;
+  background: var(--profile-primary);
+  color: #fff;
+  font-size: 25rpx;
+  line-height: 58rpx;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.profile-following-btn {
+  background: transparent;
+  color: var(--profile-primary);
+}
+
 .edit-btn:active,
+.profile-follow-btn:active,
 .tab-item:active,
 .trip-card:active,
 .work-item:active {

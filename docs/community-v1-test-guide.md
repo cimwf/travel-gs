@@ -76,6 +76,7 @@ community_comment_replies
 community_image_audits
 community_upload_drafts
 community_cleanup_tasks
+user_follows
 ```
 
 建议创建：
@@ -108,6 +109,10 @@ community_upload_drafts:
 
 community_cleanup_tasks:
   status + createdAt
+
+user_follows:
+  followerId + createdAt + _id
+  followingId + createdAt + _id
 ```
 
 若列表接口提示“缺少索引”，以云开发控制台错误中给出的字段顺序为准创建索引，
