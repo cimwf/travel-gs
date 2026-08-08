@@ -37,7 +37,10 @@
               <view class="author-row">
                 <text class="author-name">{{item.authorName}}</text>
               </view>
-              <text class="post-time">{{item.timeText}}</text>
+              <view class="post-meta-row">
+                <text class="post-time">{{item.timeText}}</text>
+                <text class="author-region" wx:if="{{item.authorRegion}}"> · 北京市 · {{item.authorRegion}}</text>
+              </view>
             </view>
           </view>
           <view class="more-btn" catchtap="onMoreTap" data-post-id="{{item._id}}" data-is-author="{{item.isAuthor}}">

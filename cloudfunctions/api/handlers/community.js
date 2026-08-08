@@ -104,6 +104,29 @@ async function resolveAvatarUrls(posts, avatarField) {
   } catch (e) { /* ignore */ }
 }
 
+async function resolveAuthorRegions(posts) {
+  var authorIds = [];
+  (posts || []).forEach(function (post) {
+    if (post.authorId && authorIds.indexOf(post.authorId) === -1) authorIds.push(post.authorId);
+  });
+  if (authorIds.length === 0) return;
+  try {
+    var usersRes = await db.collection('users').where({
+      openid: _.in(authorIds)
+    }).get();
+    var regionMap = {};
+    (usersRes.data || []).forEach(function (user) {
+      if (user.openid && user.region) regionMap[user.openid] = user.region;
+    });
+    posts.forEach(function (post) {
+      post.authorRegion = regionMap[post.authorId] || '';
+    });
+  } catch (err) {
+    console.warn('查询社区作者地区失败:', err.message || err);
+    posts.forEach(function (post) { post.authorRegion = ''; });
+  }
+}
+
 /**
  * Content security check v2.
  * scene: 4 = social / timeline post
@@ -384,7 +407,10 @@ async function communityList(openid, data) {
       }
     }
 
-    await resolveAvatarUrls(posts);
+    await Promise.all([
+      resolveAvatarUrls(posts),
+      resolveAuthorRegions(posts)
+    ]);
 
     var hasMore = posts.length >= pageSize;
     var last = posts.length > 0 ? posts[posts.length - 1] : null;

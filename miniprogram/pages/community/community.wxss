@@ -29,7 +29,9 @@ page { background: #fff; }
 .author-meta { display: flex; flex-direction: column; }
 .author-row { display: flex; align-items: center; gap: 8rpx; }
 .author-name { font-size: 28rpx; font-weight: 500; color: var(--text); }
+.post-meta-row { display: flex; align-items: center; }
 .post-time { font-size: 22rpx; color: var(--hint); }
+.author-region { font-size: 22rpx; color: var(--hint); }
 .more-btn { width: 48rpx; height: 48rpx; display: flex; align-items: center; justify-content: center; }
 .more-icon { width: 36rpx; height: 36rpx; }
 

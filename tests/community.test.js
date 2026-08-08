@@ -136,6 +136,9 @@ run('Community likes: future-ready snapshots + feed interaction', function () {
   ok(pageWxml.indexOf('catchtap="onOpenDetail"') !== -1, 'comment opens detail page');
   ok(pageWxml.indexOf('class="post-card"') !== -1 && pageWxml.indexOf('bindtap="onOpenDetail" data-post-id="{{item._id}}"') !== -1, 'post content opens detail page');
   ok(pageWxml.indexOf('catchtap="onOpenUserProfile"') !== -1, 'feed avatar opens user profile');
+  ok(pageWxml.indexOf('wx:if="{{item.authorRegion}}"') !== -1, 'feed only shows profile region when configured');
+  ok(pageWxml.indexOf('北京市 · {{item.authorRegion}}') !== -1, 'profile region follows publish time');
+  ok(handler.indexOf('resolveAuthorRegions(posts)') !== -1, 'feed resolves current author profile regions');
   ok(pageJs.indexOf('/pages/user-profile/user-profile?id=') !== -1, 'feed routes to existing user profile');
   ok(readText('miniprogram/pages/community/community.wxss').indexOf('justify-content: flex-end') !== -1, 'actions align right');
   ok(schema.indexOf('communityLikeSchema') !== -1, 'like schema documented');
