@@ -296,7 +296,9 @@ Key，Action 只开放 `name/cos:PutObject`，并限制上传大小和图片 Con
 ```js
 {
   cursor: 0,
-  pageSize: 10
+  pageSize: 10,
+  feedType: "all",       // all / following
+  region: "朝阳区"       // 空字符串表示全北京，按作者资料地区筛选
 }
 ```
 
@@ -312,6 +314,7 @@ Key，Action 只开放 `name/cos:PutObject`，并限制上传大小和图片 Con
 ```
 
 使用 `createdAt + _id` 作为稳定分页依据，避免新动态插入后造成重复或漏项。实现时以游标分页为准，不使用深度 `skip` 分页。
+`following` 频道从 `user_follows` 获取当前用户关注的人；地区与关注频道可以同时生效，结果仍按发布时间倒序展示。
 
 ### 6.2 `community/toggleLike`
 
@@ -406,6 +409,7 @@ Key，Action 只开放 `name/cos:PutObject`，并限制上传大小和图片 Con
 
 ```text
 status + reviewStatus + createdAt + _id
+status + reviewStatus + authorId + createdAt + _id
 authorId + status + createdAt + _id
 draftId（唯一）
 ```

@@ -654,6 +654,26 @@ test('community 已登录可进入发布页，定位参数经过校验后打开�
   });
 });
 
+test('community 关注频道和作者地区筛选会传给后端', async () => {
+  const page = loadPage('pages/community/community.js');
+  storage.userInfo = { nickname: '测试用户' };
+  storage.lastLoginTime = Date.now();
+
+  await page.onFeedTabTap({ currentTarget: { dataset: { feed: 'following' } } });
+  let listCall = wxCalls.cloudCalls.filter((call) => (
+    call.name === 'api' && call.data.action === 'community/list'
+  )).at(-1);
+  assert.strictEqual(listCall.data.data.feedType, 'following');
+  assert.strictEqual(listCall.data.data.region, '');
+
+  await page.onSelectRegion({ currentTarget: { dataset: { region: '朝阳区' } } });
+  listCall = wxCalls.cloudCalls.filter((call) => (
+    call.name === 'api' && call.data.action === 'community/list'
+  )).at(-1);
+  assert.strictEqual(listCall.data.data.feedType, 'following');
+  assert.strictEqual(listCall.data.data.region, '朝阳区');
+});
+
 test('community-publish 纯文字发布不申请 COS 上传会话', async () => {
   const page = loadPage('pages/community-publish/community-publish.js');
   storage.userInfo = { nickname: '测试用户' };

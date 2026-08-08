@@ -20,6 +20,11 @@ const DRAFT_EXPIRY_HOURS = 24;
 const STS_DURATION_SECONDS = 900; // 15 minutes
 const IMAGE_AUDIT_RETRY_AFTER_MS = 10 * 60 * 1000;
 const IMAGE_AUDIT_MAX_RETRIES = 3;
+const COMMUNITY_AUTHOR_FILTER_LIMIT = 100;
+const BEIJING_DISTRICTS = [
+  '海淀区', '朝阳区', '丰台区', '东城区', '西城区', '石景山区', '门头沟区', '房山区',
+  '通州区', '顺义区', '昌平区', '大兴区', '怀柔区', '平谷区', '密云区', '延庆区'
+];
 
 // ========== helpers ==========
 
@@ -125,6 +130,39 @@ async function resolveAuthorRegions(posts) {
     console.warn('查询社区作者地区失败:', err.message || err);
     posts.forEach(function (post) { post.authorRegion = ''; });
   }
+}
+
+async function getCommunityFeedAuthorIds(openid, feedType, region) {
+  var allowedIds = null;
+  if (feedType === 'following') {
+    if (!openid) throw new Error('请先登录后查看关注动态');
+    var followsRes = await db.collection('user_follows')
+      .where({ followerId: openid })
+      .limit(COMMUNITY_AUTHOR_FILTER_LIMIT)
+      .get();
+    allowedIds = (followsRes.data || []).map(function (follow) {
+      return follow.followingId;
+    }).filter(Boolean);
+  }
+
+  if (region) {
+    var usersRes = await db.collection('users')
+      .where({ region: region })
+      .limit(COMMUNITY_AUTHOR_FILTER_LIMIT)
+      .get();
+    var regionIds = (usersRes.data || []).map(function (user) {
+      return user.openid;
+    }).filter(Boolean);
+    if (allowedIds === null) {
+      allowedIds = regionIds;
+    } else {
+      var regionMap = {};
+      regionIds.forEach(function (id) { regionMap[id] = true; });
+      allowedIds = allowedIds.filter(function (id) { return regionMap[id]; });
+    }
+  }
+
+  return allowedIds;
 }
 
 /**
@@ -342,6 +380,15 @@ async function communityList(openid, data) {
   var pageSize = Math.max(1, Math.min(requestedPageSize, 20));
   var cursor = Number(data && data.cursor) || 0;
   var cursorId = String(data && data.cursorId || '');
+  var feedType = String(data && data.feedType || 'all').trim();
+  var region = String(data && data.region || '').trim();
+
+  if (feedType !== 'all' && feedType !== 'following') {
+    return { success: false, error: '社区频道参数不正确' };
+  }
+  if (region && BEIJING_DISTRICTS.indexOf(region) === -1) {
+    return { success: false, error: '地区筛选参数不正确' };
+  }
 
   // The community feed only shows content that has fully passed moderation.
   // Reviewing/rejected posts stay hidden from everyone, including the author.
@@ -351,6 +398,15 @@ async function communityList(openid, data) {
     listCondition.authorId = authorId;
   } else {
     listCondition.reviewStatus = 'approved';
+    try {
+      var feedAuthorIds = await getCommunityFeedAuthorIds(openid, feedType, region);
+      if (feedAuthorIds && feedAuthorIds.length === 0) {
+        return { success: true, posts: [], nextCursor: 0, nextCursorId: '', hasMore: false };
+      }
+      if (feedAuthorIds) listCondition.authorId = _.in(feedAuthorIds);
+    } catch (filterErr) {
+      return { success: false, error: filterErr.message || '社区筛选失败' };
+    }
   }
 
   if (cursor > 0) {

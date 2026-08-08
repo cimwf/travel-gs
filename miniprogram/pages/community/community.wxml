@@ -1,5 +1,18 @@
 <!--pages/community/community.wxml-->
 <view class="container">
+  <view class="feed-toolbar">
+    <view class="feed-tabs">
+      <view class="feed-tab {{activeFeed === 'all' ? 'active' : ''}}"
+        bindtap="onFeedTabTap" data-feed="all">全部</view>
+      <view class="feed-tab {{activeFeed === 'following' ? 'active' : ''}}"
+        bindtap="onFeedTabTap" data-feed="following">关注</view>
+    </view>
+    <view class="region-filter" bindtap="onOpenRegionModal">
+      <text>{{selectedRegion || '全北京'}}</text>
+      <view class="region-chevron"></view>
+    </view>
+  </view>
+
   <scroll-view class="list-scroll" scroll-y enhanced show-scrollbar="{{false}}"
     refresher-enabled="{{true}}" refresher-triggered="{{refreshing}}"
     bindrefresherrefresh="onRefresh" bindscrolltolower="onLoadMore">
@@ -19,9 +32,10 @@
     <!-- Empty -->
     <view class="status-wrap" wx:elif="{{!loading && !error && posts.length === 0}}">
       <image class="empty-camera-icon" src="/images/icon-camera-blue.png" mode="aspectFit"></image>
-      <text class="status-title">还没有动态</text>
-      <text class="status-desc">分享你的旅途故事，成为第一个发布的人</text>
-      <view class="empty-btn" bindtap="onPublish">发布动态</view>
+      <text class="status-title">{{activeFeed === 'following' ? '还没有关注动态' : (selectedRegion ? selectedRegion + '还没有动态' : '还没有动态')}}</text>
+      <text class="status-desc">{{activeFeed === 'following' ? '关注感兴趣的旅行者，动态会显示在这里' : '分享你的旅途故事，成为第一个发布的人'}}</text>
+      <view class="empty-btn" wx:if="{{activeFeed === 'following'}}" bindtap="onBrowseAll">看看全部</view>
+      <view class="empty-btn" wx:else bindtap="onPublish">发布动态</view>
     </view>
 
     <!-- Posts -->
@@ -103,5 +117,25 @@
     <view class="fab-inner">
       <text class="fab-icon">+</text>
     </view>
+  </view>
+</view>
+
+<view class="region-mask" wx:if="{{showRegionModal}}" bindtap="onCloseRegionModal">
+  <view class="region-sheet" catchtap="preventBubble">
+    <view class="region-sheet-head">
+      <view>
+        <text class="region-sheet-title">选择地区</text>
+        <text class="region-sheet-desc">按作者资料中的北京地区筛选</text>
+      </view>
+      <text class="region-sheet-close" bindtap="onCloseRegionModal">×</text>
+    </view>
+    <view class="region-grid">
+      <view class="region-option {{!selectedRegion ? 'active' : ''}}"
+        bindtap="onSelectRegion" data-region="">全北京</view>
+      <view class="region-option {{selectedRegion === item ? 'active' : ''}}"
+        wx:for="{{districts}}" wx:key="*this"
+        bindtap="onSelectRegion" data-region="{{item}}">{{item}}</view>
+    </view>
+    <view class="region-sheet-safe"></view>
   </view>
 </view>

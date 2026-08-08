@@ -4,6 +4,14 @@ page { background: #fff; }
 
 .container { height: 100vh; display: flex; flex-direction: column; }
 
+.feed-toolbar { width: 100%; height: 92rpx; padding: 0 38rpx; display: flex; align-items: center; border-bottom: 1rpx solid var(--border); background: #fff; box-sizing: border-box; }
+.feed-tabs { min-width: 0; flex: 1; align-self: stretch; display: flex; align-items: center; justify-content: flex-start; gap: 48rpx; }
+.feed-tab { position: relative; height: 100%; display: flex; align-items: center; color: var(--hint); font-size: 30rpx; }
+.feed-tab.active { color: var(--text); font-weight: 600; }
+.feed-tab.active::after { content: ''; position: absolute; left: 50%; bottom: 12rpx; width: 46rpx; height: 6rpx; border-radius: 3rpx; background: var(--primary); transform: translateX(-50%); }
+.region-filter { flex: none; min-width: 120rpx; height: 72rpx; margin-left: auto; display: flex; align-items: center; justify-content: flex-end; gap: 12rpx; color: var(--text); font-size: 28rpx; }
+.region-chevron { width: 14rpx; height: 14rpx; margin-top: -7rpx; border-right: 3rpx solid var(--text); border-bottom: 3rpx solid var(--text); transform: rotate(45deg); box-sizing: border-box; }
+
 /* scroll */
 .list-scroll { flex: 1; height: 0; }
 
@@ -89,3 +97,15 @@ page { background: #fff; }
   justify-content: center;
 }
 .fab-icon { font-size: 56rpx; color: var(--primary); font-weight: 300; }
+
+.region-mask { position: fixed; inset: 0; z-index: 300; display: flex; align-items: flex-end; background: rgba(17, 24, 39, .42); }
+.region-sheet { width: 100%; padding: 34rpx 30rpx 0; border-radius: 34rpx 34rpx 0 0; background: #fff; box-sizing: border-box; }
+.region-sheet-head { min-height: 92rpx; display: flex; align-items: flex-start; justify-content: space-between; }
+.region-sheet-head > view { display: flex; flex-direction: column; }
+.region-sheet-title { color: var(--text); font-size: 34rpx; font-weight: 600; }
+.region-sheet-desc { margin-top: 10rpx; color: var(--hint); font-size: 24rpx; }
+.region-sheet-close { width: 52rpx; height: 52rpx; color: var(--hint); font-size: 44rpx; line-height: 46rpx; text-align: center; }
+.region-grid { padding: 10rpx 0 20rpx; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16rpx; }
+.region-option { height: 64rpx; border: 1rpx solid #dce3ec; border-radius: 12rpx; color: #3f4a58; font-size: 25rpx; line-height: 64rpx; text-align: center; box-sizing: border-box; }
+.region-option.active { border-color: #72adf3; background: #e7f2ff; color: var(--primary); font-weight: 500; }
+.region-sheet-safe { height: calc(20rpx + env(safe-area-inset-bottom)); }

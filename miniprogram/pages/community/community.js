@@ -6,6 +6,15 @@ var api = require('../../utils/api.js');
 Page({
   data: {
     posts: [],
+    activeFeed: 'all',
+    selectedRegion: '',
+    showRegionModal: false,
+    districts: [
+      '海淀区', '朝阳区', '丰台区', '东城区',
+      '西城区', '石景山区', '门头沟区', '房山区',
+      '通州区', '顺义区', '昌平区', '大兴区',
+      '怀柔区', '平谷区', '密云区', '延庆区'
+    ],
     loading: true,
     error: false,
     refreshing: false,
@@ -23,31 +32,88 @@ Page({
       this.loadPosts(true);
     }
     auth.syncToApp(app);
+    if (this.data.activeFeed === 'following' && !auth.isLoggedIn()) {
+      this.setData({ activeFeed: 'all' });
+      this.loadPosts(true);
+    }
   },
 
   loadPosts: function (reset) {
-    if (this._loadingPosts) return Promise.resolve();
+    if (this._loadingPosts && !reset) return Promise.resolve();
+    var loadVersion = this._loadVersion || 0;
+    if (reset) {
+      loadVersion += 1;
+      this._loadVersion = loadVersion;
+    }
     if (reset) { this._cursor = 0; this._cursorId = ''; this.setData({ loading: true, error: false }); }
     if (!reset && (!this.data.hasMore || this.data.loading)) return Promise.resolve();
     this._loadingPosts = true;
 
     var self = this;
-    var req = { pageSize: this.data.pageSize };
+    var req = {
+      pageSize: this.data.pageSize,
+      feedType: this.data.activeFeed,
+      region: this.data.selectedRegion
+    };
     if (!reset && this._cursor) { req.cursor = this._cursor; req.cursorId = this._cursorId; }
 
     return api.communityList(req).then(function (res) {
+      if (loadVersion !== self._loadVersion) return;
       var posts = (res.posts || []).map(function (p) { return self.formatPost(p); });
       var all = reset ? posts : self.data.posts.concat(posts);
       self._cursor = res.nextCursor || 0;
       self._cursorId = res.nextCursorId || '';
       self.setData({ posts: all, hasMore: res.hasMore !== false, loading: false, error: false });
-    }).catch(function () {
+    }).catch(function (err) {
+      if (loadVersion !== self._loadVersion) return;
       self.setData({ loading: false, error: reset });
-      if (reset) wx.showToast({ title: '加载失败，请重试', icon: 'none' });
+      if (reset) wx.showToast({ title: err.message || '加载失败，请重试', icon: 'none' });
     }).then(function () {
-      self._loadingPosts = false;
+      if (loadVersion === self._loadVersion) self._loadingPosts = false;
     });
   },
+
+  onFeedTabTap: function (event) {
+    var feed = event.currentTarget.dataset.feed;
+    if (feed !== 'all' && feed !== 'following') return;
+    if (feed === this.data.activeFeed) return;
+    if (feed === 'following' && !auth.ensureLogin()) {
+      auth.saveDeepLink('/pages/community/community');
+      return;
+    }
+    this.setData({ activeFeed: feed, posts: [], hasMore: true });
+    return this.loadPosts(true);
+  },
+
+  onOpenRegionModal: function () {
+    this.setData({ showRegionModal: true });
+  },
+
+  onCloseRegionModal: function () {
+    this.setData({ showRegionModal: false });
+  },
+
+  onSelectRegion: function (event) {
+    var region = event.currentTarget.dataset.region || '';
+    if (region === this.data.selectedRegion) {
+      this.setData({ showRegionModal: false });
+      return;
+    }
+    this.setData({
+      selectedRegion: region,
+      showRegionModal: false,
+      posts: [],
+      hasMore: true
+    });
+    return this.loadPosts(true);
+  },
+
+  onBrowseAll: function () {
+    this.setData({ activeFeed: 'all', posts: [], hasMore: true });
+    return this.loadPosts(true);
+  },
+
+  preventBubble: function () {},
 
   formatPost: function (post) {
     var count = (post.images || []).length;

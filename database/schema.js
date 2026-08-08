@@ -412,6 +412,7 @@ notifications:
 
 community_posts:
   - status + reviewStatus + createdAt + _id（复合索引，用于公共列表稳定游标查询）
+  - status + reviewStatus + authorId + createdAt + _id（复合索引，用于关注和地区筛选）
   - authorId + status + createdAt + _id（复合索引，用于“我的作品”列表）
   - draftId（唯一索引，防止重复发布）
 
@@ -441,5 +442,8 @@ community_cleanup_tasks:
 user_follows:
   - followerId + createdAt + _id（复合索引，供“关注”列表稳定分页）
   - followingId + createdAt + _id（复合索引，供“粉丝”和新关注通知稳定分页）
+
+users:
+  - region（单字段索引，供社区作者地区筛选）
 
 */

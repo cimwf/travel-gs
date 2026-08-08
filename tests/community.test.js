@@ -403,6 +403,21 @@ run('Community uses trip-style FAB and publish page uses bottom submit', functio
   ok(pwxml.indexOf('class="pub-nav"') === -1, 'publish: custom nav removed');
 });
 
+run('Community feed supports following channel and profile-region filter', function () {
+  var handler = readText('cloudfunctions/api/handlers/community.js');
+  var pageJs = readText('miniprogram/pages/community/community.js');
+  var pageWxml = readText('miniprogram/pages/community/community.wxml');
+  ['data-feed="all"', 'data-feed="following"', "selectedRegion || '全北京'", 'showRegionModal'].forEach(function (needle) {
+    ok(pageWxml.indexOf(needle) !== -1, 'feed UI includes ' + needle);
+  });
+  ok(pageJs.indexOf('onFeedTabTap') !== -1, 'feed tabs are interactive');
+  ok(pageJs.indexOf('onSelectRegion') !== -1, 'region filter is interactive');
+  ok(handler.indexOf("collection('user_follows')") !== -1, 'following feed uses follow relationships');
+  ok(handler.indexOf('getCommunityFeedAuthorIds') !== -1, 'backend combines feed filters');
+  ok(handler.indexOf("feedType !== 'all' && feedType !== 'following'") !== -1, 'feed type is validated');
+  ok(handler.indexOf('BEIJING_DISTRICTS.indexOf(region)') !== -1, 'region is server validated');
+});
+
 run('Publish: shows masked loading and always provides cleanup', function () {
   var js = readText('miniprogram/pages/community-publish/community-publish.js');
   ok(js.indexOf("wx.showLoading({ title: hasImages ? '上传并发布中...' : '发布中...', mask: true })") !== -1, 'shows masked publish loading');
