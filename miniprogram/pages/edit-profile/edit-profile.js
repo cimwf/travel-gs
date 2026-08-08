@@ -31,21 +31,47 @@ Page({
       ? this.getOpenerEventChannel()
       : null;
     const existing = app.globalData.userInfo || wx.getStorageSync('userInfo') || {};
+    this.applyUserInfo(existing);
+    await this.convertAvatarUrl();
+
+    const userId = existing.openid || app.globalData.openid || existing._id || wx.getStorageSync('userId');
+    if (!userId) return;
+    try {
+      const result = await api.userGet(userId);
+      if (result.user) {
+        const latest = { ...existing, ...result.user };
+        this.applyUserInfo(latest);
+        await this.convertAvatarUrl();
+      }
+    } catch (err) {
+      console.warn('获取最新用户资料失败，继续使用本地资料', err);
+    }
+  },
+
+  normalizeGender: function (value) {
+    if (value === 1 || value === '1') return 'male';
+    if (value === 2 || value === '2') return 'female';
+    if (value === 'male' || value === 'female') return value;
+    return 'secret';
+  },
+
+  applyUserInfo: function (existing) {
+    existing = existing || {};
+    const avatar = existing.avatar || existing.avatarUrl || '';
     this.setData({
       originalUserInfo: existing,
       userInfo: {
         _id: existing._id || wx.getStorageSync('userId') || '',
-        avatar: existing.avatar || existing.avatarUrl || '',
-        avatarFileID: existing.avatarFileID || '',
+        avatar,
+        avatarFileID: existing.avatarFileID || (avatar.startsWith('cloud://') ? avatar : ''),
         nickname: existing.nickname || existing.nickName || '',
-        gender: existing.gender || '',
+        gender: this.normalizeGender(existing.gender),
         age: existing.age === undefined || existing.age === null ? '' : String(existing.age),
         region: existing.region || '',
         contactPhone: existing.contactPhone || '',
         bio: existing.bio || ''
       }
     });
-    await this.convertAvatarUrl();
   },
 
   convertAvatarUrl: async function () {
@@ -220,21 +246,21 @@ Page({
     };
 
     try {
-      await api.userUpdate(payload);
+      const result = await api.userUpdate(payload);
+      const savedUser = result.user || payload;
+      const persistedAvatar = savedUser.avatar || avatarForDb || '';
       const localUserInfo = {
         ...this.data.originalUserInfo,
-        ...payload,
-        avatar: info.avatar,
-        avatarFileID: info.avatarFileID,
-        updatedAt: Date.now()
+        ...savedUser,
+        avatar: persistedAvatar,
+        avatarFileID: persistedAvatar.startsWith('cloud://') ? persistedAvatar : '',
+        updatedAt: savedUser.updatedAt || Date.now()
       };
-      delete localUserInfo._id;
-      if (info._id) localUserInfo._id = info._id;
       wx.setStorageSync('userInfo', localUserInfo);
       app.globalData.userInfo = localUserInfo;
       const profileUpdate = {
         nickname: localUserInfo.nickname || '',
-        avatar: localUserInfo.avatar || '',
+        avatar: info.avatar || localUserInfo.avatar || '',
         bio: localUserInfo.bio || '',
         region: localUserInfo.region || ''
       };

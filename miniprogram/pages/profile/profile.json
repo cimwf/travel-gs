@@ -1,5 +1,7 @@
 {
   "navigationStyle": "custom",
+  "navigationBarTextStyle": "black",
+  "backgroundTextStyle": "dark",
   "usingComponents": {
     "login-modal": "/components/login-modal/login-modal"
   }

@@ -1,6 +1,11 @@
 const { db, _, cloud, crypto, normalizeAvatarForDb, isLocalTempFilePath } = require('../utils/shared');
 const nodeCrypto = require('crypto');
 
+const BEIJING_DISTRICTS = [
+  '海淀区', '朝阳区', '丰台区', '东城区', '西城区', '石景山区', '门头沟区', '房山区',
+  '通州区', '顺义区', '昌平区', '大兴区', '怀柔区', '平谷区', '密云区', '延庆区'
+];
+
 function getFollowId(followerId, followingId) {
   return nodeCrypto.createHash('sha256')
     .update(String(followerId) + '\n' + String(followingId))
@@ -84,6 +89,32 @@ async function refreshReceivedLikes(user) {
     console.warn('刷新用户获赞数失败:', err);
     return { ...user, receivedLikes: Math.max(0, Number(user.receivedLikes) || 0) };
   }
+}
+
+async function checkProfileText(openid, nickname, bio) {
+  const content = [nickname, bio].filter(Boolean).join('\n');
+  if (!content) return null;
+  try {
+    const result = await cloud.openapi.security.msgSecCheck({
+      version: 2,
+      scene: 1,
+      openid,
+      content
+    });
+    const suggest = result && result.result && result.result.suggest;
+    if (suggest !== 'pass') return '昵称或自我介绍包含不适宜内容';
+    return null;
+  } catch (err) {
+    console.warn('用户资料文本安全检测失败:', err);
+    return '资料安全检测暂时不可用，请稍后重试';
+  }
+}
+
+function normalizeGender(value) {
+  if (value === 1 || value === '1') return 'male';
+  if (value === 2 || value === '2') return 'female';
+  if (!value || value === 0 || value === '0') return 'secret';
+  return value;
 }
 
 async function hasFollow(followerId, followingId) {
@@ -463,48 +494,91 @@ async function userLoginByPhone(openid, data) {
 }
 
 async function userUpdate(openid, data) {
-  let user = null;
+  try {
+    if (!openid) return { success: false, error: '请先登录' };
+    data = data || {};
 
-  if (data._id) {
-    const res = await db.collection('users').doc(data._id).get();
-    user = res.data;
-  }
-
-  if (!user && openid) {
-    const userRes = await db.collection('users').where({ openid }).get();
-    if (userRes.data.length > 0) {
-      user = userRes.data[0];
+    const bindings = await getUsersByBinding('openid', openid);
+    if (bindings.length > 1) {
+      return bindingConflict('当前微信的账号绑定异常，请联系客服处理', 'DUPLICATE_OPENID');
     }
-  }
-
-  if (!user) {
-    return { success: false, error: '用户不存在' };
-  }
-
-  const updateData = {
-    nickname: data.nickname,
-    avatar: data.avatar === undefined ? undefined : normalizeAvatarForDb(data.avatar),
-    gender: data.gender,
-    age: data.age,
-    region: data.region,
-    contactPhone: data.contactPhone,
-    bio: data.bio,
-    background: data.background,
-    photos: data.photos,
-    lastActiveAt: Date.now()
-  };
-
-  Object.keys(updateData).forEach(key => {
-    if (updateData[key] === undefined) {
-      delete updateData[key];
+    const user = bindings[0];
+    if (!user) return { success: false, error: '用户不存在' };
+    if (data._id && data._id !== user._id) {
+      return { success: false, error: '无权修改其他用户资料' };
     }
-  });
 
-  await db.collection('users').doc(user._id).update({
-    data: updateData
-  });
+    const updateData = {};
+    if (data.nickname !== undefined) {
+      const nickname = String(data.nickname || '').trim();
+      if (!nickname) return { success: false, error: '昵称不能为空' };
+      if (nickname.length > 12) return { success: false, error: '昵称不能超过12个字' };
+      updateData.nickname = nickname;
+    }
+    if (data.avatar !== undefined) {
+      const avatar = normalizeAvatarForDb(data.avatar);
+      if (data.avatar && !avatar) return { success: false, error: '头像尚未上传完成' };
+      updateData.avatar = avatar;
+    }
+    if (data.gender !== undefined) {
+      const gender = normalizeGender(data.gender);
+      if (['male', 'female', 'secret'].indexOf(gender) === -1) {
+        return { success: false, error: '性别选项不正确' };
+      }
+      updateData.gender = gender;
+    }
+    if (data.age !== undefined) {
+      if (data.age === '' || data.age === null) {
+        updateData.age = null;
+      } else {
+        const age = Number(data.age);
+        if (!Number.isInteger(age) || age < 1 || age > 120) {
+          return { success: false, error: '年龄应为1至120岁' };
+        }
+        updateData.age = age;
+      }
+    }
+    if (data.region !== undefined) {
+      const region = String(data.region || '').trim();
+      if (region && BEIJING_DISTRICTS.indexOf(region) === -1) {
+        return { success: false, error: '请选择北京市内的地区' };
+      }
+      updateData.region = region;
+    }
+    if (data.contactPhone !== undefined) {
+      const contactPhone = String(data.contactPhone || '').trim();
+      if (contactPhone && !/^1\d{10}$/.test(contactPhone)) {
+        return { success: false, error: '请输入正确的手机号' };
+      }
+      updateData.contactPhone = contactPhone;
+    }
+    if (data.bio !== undefined) {
+      const bio = String(data.bio || '').trim();
+      if (bio.length > 200) return { success: false, error: '自我介绍不能超过200个字' };
+      updateData.bio = bio;
+    }
+    if (data.background !== undefined) updateData.background = data.background;
+    if (data.photos !== undefined) updateData.photos = data.photos;
 
-  return { success: true };
+    const securityError = await checkProfileText(
+      openid,
+      updateData.nickname === undefined ? '' : updateData.nickname,
+      updateData.bio === undefined ? '' : updateData.bio
+    );
+    if (securityError) return { success: false, error: securityError };
+
+    const now = Date.now();
+    updateData.lastActiveAt = now;
+    updateData.updatedAt = now;
+    await db.collection('users').doc(user._id).update({ data: updateData });
+
+    const safeUser = { ...user, ...updateData };
+    delete safeUser.password;
+    return { success: true, user: safeUser };
+  } catch (err) {
+    console.error('user/update failed:', err);
+    return { success: false, error: err.message || '保存资料失败，请重试' };
+  }
 }
 
 async function userGet(userId) {

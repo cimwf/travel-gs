@@ -261,7 +261,9 @@ test('trip-list 未登录点击发布跳转登录页', () => {
 });
 
 test('profile 未登录 UI 和入口都指向登录页', () => {
+  const pageJson = JSON.parse(read('miniprogram/pages/profile/profile.json'));
   const wxml = read('miniprogram/pages/profile/profile.wxml');
+  assert.strictEqual(pageJson.navigationBarTextStyle, 'black', 'profile should use dark system status-bar icons');
   ['点击登录', '关注', '粉丝', '获赞', '我的行程', '我的作品', '我的互动', '消息中心',
     '行程通知', '上传景点', '提交建议', '关于我们'].forEach((text) => {
     assert(wxml.includes(text), `missing ${text}`);
@@ -445,10 +447,13 @@ test('edit-profile UI 支持微信头像并上传云存储头像', async () => {
   assert.strictEqual(uploadCall.filePath, 'wxfile://tmp_profile_avatar.jpg');
   assert(page.data.userInfo.avatarFileID.startsWith('cloud://test-env.avatars/'), 'avatarFileID should be cloud fileID');
 
+  page.onSelectDistrict({ currentTarget: { dataset: { district: '朝阳区' } } });
   await page.onSave();
   const updateCall = wxCalls.cloudCalls.find((call) => call.name === 'api' && call.data.action === 'user/update');
   assert(updateCall, 'edit-profile should sync avatar to database after save');
   assert(updateCall.data.data.avatar.startsWith('cloud://test-env.avatars/'), 'database avatar should be cloud fileID');
+  assert.strictEqual(updateCall.data.data.region, '朝阳区', 'selected region should be sent to the backend');
+  assert(storage.userInfo.avatar.startsWith('cloud://test-env.avatars/'), 'local profile should keep the durable avatar fileID');
 });
 
 test('user-profile UI 支持作品动态流和行程切换', () => {

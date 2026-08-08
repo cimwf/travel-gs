@@ -89,7 +89,14 @@ require.cache[sharedPath] = {
   exports: {
     db: { collection },
     _: {},
-    cloud: { getWXContext: () => ({ OPENID: 'wx-a' }) },
+    cloud: {
+      getWXContext: () => ({ OPENID: 'wx-a' }),
+      openapi: {
+        security: {
+          msgSecCheck: async () => ({ result: { suggest: 'pass' } })
+        }
+      }
+    },
     crypto,
     normalizeAvatarForDb: value => value || '',
     isLocalTempFilePath: () => false
@@ -112,6 +119,34 @@ async function main() {
   assert.strictEqual(profile.success, true);
   assert.strictEqual(profile.user.receivedLikes, 2);
   assert.strictEqual(state.users.find(item => item._id === 'user-a').receivedLikes, 2);
+
+  const updatedProfile = await user.userUpdate('wx-a', {
+    _id: 'user-a',
+    nickname: '新昵称',
+    gender: 'female',
+    age: '28',
+    region: '朝阳区',
+    contactPhone: '13800000001',
+    bio: '周末一起出发'
+  });
+  assert.strictEqual(updatedProfile.success, true);
+  assert.strictEqual(updatedProfile.user.region, '朝阳区');
+  assert.strictEqual(updatedProfile.user.age, 28);
+  assert.strictEqual(state.users.find(item => item._id === 'user-a').region, '朝阳区');
+
+  const forbiddenUpdate = await user.userUpdate('wx-a', {
+    _id: 'user-b',
+    region: '海淀区'
+  });
+  assert.strictEqual(forbiddenUpdate.success, false);
+  assert(forbiddenUpdate.error.includes('无权'));
+
+  const invalidRegion = await user.userUpdate('wx-a', {
+    _id: 'user-a',
+    region: '上海市'
+  });
+  assert.strictEqual(invalidRegion.success, false);
+  assert(invalidRegion.error.includes('北京市内'));
 
   const crossLogin = await user.userLoginByPhone('wx-a', {
     phone: '13800000002',
