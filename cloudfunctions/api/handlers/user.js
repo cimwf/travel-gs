@@ -17,6 +17,34 @@ function isDocumentNotFoundError(error) {
     message.indexOf('not found') !== -1;
 }
 
+async function getUsersByBinding(field, value) {
+  if (!value) return [];
+  const result = await db.collection('users')
+    .where({ [field]: value })
+    .limit(2)
+    .get();
+  return result.data || [];
+}
+
+function bindingConflict(error, code) {
+  return {
+    success: false,
+    error,
+    code: code || 'ACCOUNT_BINDING_CONFLICT'
+  };
+}
+
+async function ensureWechatCanBind(openid, userId) {
+  const users = await getUsersByBinding('openid', openid);
+  if (users.length > 1) {
+    return bindingConflict('当前微信的账号绑定异常，请联系客服处理', 'DUPLICATE_OPENID');
+  }
+  if (users.length === 1 && users[0]._id !== userId) {
+    return bindingConflict('当前微信已绑定其他账号，请使用原账号登录');
+  }
+  return null;
+}
+
 async function getUserByAnyId(userId) {
   if (!userId) return null;
   try {
@@ -35,6 +63,27 @@ async function getUserByAnyId(userId) {
     }
   }
   return null;
+}
+
+async function refreshReceivedLikes(user) {
+  if (!user || !user.openid) return user;
+  try {
+    const result = await db.collection('community_likes')
+      .where({ postAuthorId: user.openid })
+      .count();
+    const receivedLikes = Math.max(0, Number(result.total) || 0);
+    if (receivedLikes !== Math.max(0, Number(user.receivedLikes) || 0) && user._id) {
+      await db.collection('users').doc(user._id).update({
+        data: { receivedLikes, updatedAt: Date.now() }
+      });
+    }
+    return { ...user, receivedLikes };
+  } catch (err) {
+    // Keep profiles usable before the likes collection exists or during a
+    // temporary database failure; the cached value is only a fallback.
+    console.warn('刷新用户获赞数失败:', err);
+    return { ...user, receivedLikes: Math.max(0, Number(user.receivedLikes) || 0) };
+  }
 }
 
 async function hasFollow(followerId, followingId) {
@@ -116,6 +165,9 @@ async function userRegister(openid, data) {
     return { success: false, error: '该手机号已注册' };
   }
 
+  const bindingError = await ensureWechatCanBind(openid, '');
+  if (bindingError) return bindingError;
+
   const defaultNickname = nickname || '用户' + phone.slice(-4);
 
   let hashedPassword = '';
@@ -164,7 +216,11 @@ async function userRegister(openid, data) {
 async function userLogin(openid, data) {
   const avatarForDb = normalizeAvatarForDb(data.avatar);
 
-  const userRes = await db.collection('users').where({ openid }).get();
+  const userRes = await db.collection('users').where({ openid }).limit(2).get();
+
+  if (userRes.data.length > 1) {
+    return bindingConflict('当前微信的账号绑定异常，请联系客服处理', 'DUPLICATE_OPENID');
+  }
 
   if (userRes.data.length > 0) {
     await db.collection('users').doc(userRes.data[0]._id).update({
@@ -273,6 +329,12 @@ async function userLoginPassword(data) {
   const wxContext = cloud.getWXContext();
   const currentOpenid = wxContext.OPENID;
 
+  if (user.openid && user.openid !== currentOpenid) {
+    return bindingConflict('该账号已绑定其他微信，请使用原微信登录');
+  }
+  const bindingError = await ensureWechatCanBind(currentOpenid, user._id);
+  if (bindingError) return bindingError;
+
   const updateData = {
     loginAttempts: 0,
     lockedUntil: 0,
@@ -300,13 +362,23 @@ async function userLoginByPhone(openid, data) {
     return { success: false, error: '手机号不能为空' };
   }
 
-  const userRes = await db.collection('users').where({ phone }).get();
+  const userRes = await db.collection('users').where({ phone }).limit(2).get();
+
+  if (userRes.data.length > 1) {
+    return bindingConflict('该手机号的账号数据异常，请联系客服处理', 'DUPLICATE_PHONE');
+  }
 
   if (userRes.data.length > 0) {
     const user = userRes.data[0];
 
+    if (user.openid && user.openid !== openid) {
+      return bindingConflict('该账号已绑定其他微信，请使用原微信登录');
+    }
+    const bindingError = await ensureWechatCanBind(openid, user._id);
+    if (bindingError) return bindingError;
+
     const updateData = { lastActiveAt: Date.now() };
-    if (!user.openid || user.openid !== openid) {
+    if (!user.openid) {
       updateData.openid = openid;
     }
     if (nickname && (!user.nickname || user.nickname.startsWith('用户'))) {
@@ -320,6 +392,34 @@ async function userLoginByPhone(openid, data) {
     await db.collection('users').doc(user._id).update({ data: updateData });
 
     const safeUser = { ...user, openid: openid, ...updateData };
+    delete safeUser.password;
+    return { success: true, user: safeUser, isNew: false };
+  }
+
+  const openidUsers = await getUsersByBinding('openid', openid);
+  if (openidUsers.length > 1) {
+    return bindingConflict('当前微信的账号绑定异常，请联系客服处理', 'DUPLICATE_OPENID');
+  }
+  if (openidUsers.length === 1) {
+    const boundUser = openidUsers[0];
+    if (boundUser.phone && boundUser.phone !== phone) {
+      return bindingConflict('当前微信已绑定其他账号，请使用已绑定账号登录');
+    }
+
+    const updateData = {
+      phone,
+      phoneMask: crypto.maskPhone(phone),
+      contactPhone: phone,
+      lastActiveAt: Date.now()
+    };
+    if (nickname && (!boundUser.nickname || boundUser.nickname.startsWith('用户'))) {
+      updateData.nickname = nickname;
+    }
+    if (avatarForDb && (!boundUser.avatar || isLocalTempFilePath(boundUser.avatar))) {
+      updateData.avatar = avatarForDb;
+    }
+    await db.collection('users').doc(boundUser._id).update({ data: updateData });
+    const safeUser = { ...boundUser, ...updateData };
     delete safeUser.password;
     return { success: true, user: safeUser, isNew: false };
   }
@@ -412,32 +512,9 @@ async function userGet(userId) {
     return { success: false, error: '用户ID不能为空' };
   }
 
-  try {
-    const resById = await db.collection('users').doc(userId).get();
-    return { success: true, user: resById.data };
-  } catch (e) {
-    // _id 查询失败，尝试通过 openid 查询
-  }
-
-  try {
-    const resByOpenid = await db.collection('users').where({ openid: userId }).get();
-    if (resByOpenid.data && resByOpenid.data.length > 0) {
-      return { success: true, user: resByOpenid.data[0] };
-    }
-  } catch (e) {
-    // openid 查询失败
-  }
-
-  try {
-    const resByUserId = await db.collection('users').where({ userId: userId }).get();
-    if (resByUserId.data && resByUserId.data.length > 0) {
-      return { success: true, user: resByUserId.data[0] };
-    }
-  } catch (e) {
-    // userId 查询失败
-  }
-
-  return { success: false, error: '用户不存在' };
+  const user = await getUserByAnyId(userId);
+  if (!user) return { success: false, error: '用户不存在' };
+  return { success: true, user: await refreshReceivedLikes(user) };
 }
 
 async function userFollowStatus(openid, data) {

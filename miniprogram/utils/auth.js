@@ -145,9 +145,13 @@ function clearLoginStatus() {
   
   wx.removeStorageSync('userInfo');
   wx.removeStorageSync('lastLoginTime');
+  wx.removeStorageSync('openid');
+  wx.removeStorageSync('userId');
   
   if (app && app.globalData) {
     app.globalData.userInfo = null;
+    app.globalData.openid = null;
+    app.globalData.userId = null;
     app.globalData.isLoggedIn = false;
   }
 }

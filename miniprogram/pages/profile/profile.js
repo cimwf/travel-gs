@@ -117,7 +117,15 @@ Page({
   loadUserStats: async function () {
     try {
       const storedUserInfo = wx.getStorageSync('userInfo') || this.data.userInfo;
-      this.setData({ stats: this.getStatsFromUser(storedUserInfo) });
+      const userId = (storedUserInfo && (storedUserInfo.openid || storedUserInfo._id)) ||
+        app.globalData.openid;
+      if (!storedUserInfo || !userId) return;
+
+      const result = await api.userGet(userId);
+      const latestUserInfo = { ...storedUserInfo, ...(result.user || {}) };
+      wx.setStorageSync('userInfo', latestUserInfo);
+      app.globalData.userInfo = latestUserInfo;
+      this.setData({ stats: this.getStatsFromUser(latestUserInfo) });
     } catch (err) {
       console.error('加载统计数据失败', err);
     }
