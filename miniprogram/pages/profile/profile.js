@@ -195,9 +195,7 @@ Page({
       wx.navigateTo({
         url: '/pages/followers/followers?type=' + type
       });
-      return;
     }
-    wx.showToast({ title: '获赞列表后续开放', icon: 'none' });
   },
 
   // 上传景点

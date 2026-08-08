@@ -35,7 +35,7 @@ page {
 }
 
 .profile-identity:active,
-.stat-item:active,
+.stat-item:not(.stat-item-static):active,
 .menu-row:active {
   opacity: .66;
 }

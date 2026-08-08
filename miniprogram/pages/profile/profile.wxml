@@ -35,7 +35,7 @@
         <text class="stat-label">粉丝</text>
       </view>
       <view class="stat-divider"></view>
-      <view class="stat-item" bindtap="onTapSocialStat" data-type="receivedLikes">
+      <view class="stat-item stat-item-static">
         <text class="stat-number">{{stats.receivedLikes || 0}}</text>
         <text class="stat-label">获赞</text>
       </view>

@@ -271,6 +271,8 @@ test('profile 未登录 UI 和入口都指向登录页', () => {
   assert(wxml.includes('statusBarHeight + navBarHeight'), 'profile page should reserve capsule-safe height');
   assert(!wxml.includes('profile-nav-title'), 'profile page should not render a custom title');
   assert(wxml.includes('menu-group menu-group-secondary'), 'secondary functions should use the selected tight second group');
+  assert(wxml.includes('class="stat-item stat-item-static"'), 'received likes should be display-only');
+  assert(!wxml.includes('data-type="receivedLikes"'), 'received likes should not expose a dead click target');
   assert(!wxml.includes('>其他<'), 'profile should not render an extra section heading');
   assert(!wxml.includes('📅') && !wxml.includes('🔔'), 'profile should use real icon assets');
 
