@@ -80,7 +80,7 @@ run('Page files exist', function () {
 // ---- 3: API registration ----
 run('API functions registered', function () {
   var s = readText('miniprogram/utils/api.js');
-  ['communityList','communityMy','communityCreateUploadSession','communityCreate','communityToggleLike',
+  ['communityList','communityGet','communityMy','communityCreateUploadSession','communityCreate','communityToggleLike',
    'communityLikeList','communityInteractions','communityCommentList','communityReplyList','communityCommentCreate','communityCommentDelete',
    'communityDelete'].forEach(function (fn) {
     ok(s.indexOf(fn) !== -1, fn + ' in api.js');
@@ -91,6 +91,7 @@ run('API functions registered', function () {
 run('Cloud handler has community exports + COS check + security', function () {
   var s = readText('cloudfunctions/api/handlers/community.js');
   ok(s.indexOf('async function communityList') !== -1, 'communityList defined');
+  ok(s.indexOf('async function communityGet') !== -1, 'communityGet defined');
   ok(s.indexOf('async function communityMy') !== -1, 'communityMy defined');
   ok(s.indexOf('async function communityCreateUploadSession') !== -1, 'createUploadSession defined');
   ok(s.indexOf('async function communityCreate') !== -1, 'communityCreate defined');
@@ -111,7 +112,7 @@ run('Cloud handler has community exports + COS check + security', function () {
 run('Cloud function routing', function () {
   var s = readText('cloudfunctions/api/index.js');
   ok(s.indexOf("require('./handlers/community')") !== -1, 'import');
-  ['community/list','community/my','community/createUploadSession','community/create','community/toggleLike',
+  ['community/list','community/get','community/my','community/createUploadSession','community/create','community/toggleLike',
    'community/likeList','community/interactions','community/commentList','community/replyList','community/commentCreate','community/commentDelete',
    'community/delete'].forEach(function (r) {
     ok(s.indexOf(r) !== -1, 'route: ' + r);
@@ -174,6 +175,16 @@ run('Community detail: approved UI structure and shared interaction icons', func
   ok(detailJs.indexOf('onOpenDetail') === -1, 'detail logic stays separate from feed navigation');
   ok(detailJs.indexOf('communityToggleLike') !== -1, 'existing like API reused');
   ok(detailJs.indexOf('communityLikeList') !== -1, 'detail loads real like preview');
+  ok(detailJs.indexOf('api.communityGet(this._postId)') !== -1, 'detail loads a post by ID when opened from notifications');
+  ok(detailWxml.indexOf('scroll-into-view="{{scrollIntoView}}"') !== -1 &&
+    detailWxml.indexOf('id="comments-section"') !== -1, 'comment notifications scroll to the comment section');
+  ok(detailJs.indexOf("errorCode === 'POST_UNAVAILABLE'") !== -1,
+    'unavailable notification targets leave loading state');
+  ok(detailJs.indexOf('if (isNewPost) {') !== -1 &&
+    detailJs.indexOf('nextData.comments =') !== -1,
+    'post refresh preserves independently loaded comments and likes');
+  ok(detailJs.indexOf("priorityMap = { cache: 1, opener: 2, server: 3 }") !== -1,
+    'server post data cannot be overwritten by late cache or opener data');
   ok(detailWxml.indexOf('bindtap="onViewAllLikes"') !== -1, 'detail opens full likes list');
   ok(
     detailWxss.indexOf('.detail-page') !== -1 &&

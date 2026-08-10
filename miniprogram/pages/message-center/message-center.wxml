@@ -56,8 +56,8 @@
     <view class="message-list" wx:else>
       <view class="message-row" wx:for="{{visibleMessages}}" wx:key="_id" bindtap="onMessageTap" data-index="{{index}}">
         <view class="message-avatar-wrap">
-          <image class="message-avatar {{item.category === 'trip' ? 'message-trip-avatar' : ''}}" wx:if="{{item.avatar}}" src="{{item.avatar}}" mode="aspectFill"></image>
-          <view class="message-avatar message-avatar-fallback {{item.category === 'trip' ? 'message-trip-fallback' : ''}}" wx:else>
+          <image class="message-avatar" wx:if="{{item.avatar}}" src="{{item.avatar}}" mode="aspectFill"></image>
+          <view class="message-avatar message-avatar-fallback" wx:else>
             <image wx:if="{{item.category === 'trip'}}" src="/images/icon-profile-calendar.svg" mode="aspectFit"></image>
             <text wx:else>{{item.avatarText}}</text>
           </view>

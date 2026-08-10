@@ -60,6 +60,21 @@ page {
 
 .status-desc {
   font-size: 25rpx;
+  text-align: center;
+}
+
+.status-retry {
+  min-width: 180rpx;
+  height: 68rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 28rpx;
+  padding: 0 28rpx;
+  border-radius: 36rpx;
+  background: var(--primary);
+  color: #fff;
+  font-size: 26rpx;
 }
 
 .post {

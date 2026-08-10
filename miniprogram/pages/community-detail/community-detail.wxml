@@ -6,10 +6,12 @@
 
   <view class="status-state" wx:elif="{{error || !post}}">
     <text class="status-title">动态暂不可用</text>
-    <text class="status-desc">请返回社区后重新进入</text>
+    <text class="status-desc">{{errorMessage || '内容可能已删除或暂不可查看'}}</text>
+    <view class="status-retry" bindtap="onRetryLoad">重新加载</view>
   </view>
 
-  <scroll-view class="detail-scroll" scroll-y enhanced show-scrollbar="{{false}}" wx:else>
+  <scroll-view class="detail-scroll" scroll-y enhanced show-scrollbar="{{false}}"
+    scroll-into-view="{{scrollIntoView}}" scroll-with-animation wx:else>
     <view class="post">
       <view class="post-header">
         <view class="author">
@@ -59,7 +61,7 @@
       </view>
     </view>
 
-    <view class="section comments-section">
+    <view class="section comments-section" id="comments-section">
       <view class="section-header">
         <text class="section-title">共{{post.commentCount || 0}}条评论</text>
       </view>

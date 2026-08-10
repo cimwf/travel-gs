@@ -124,11 +124,15 @@ Page({
       createdAt: Number(item.createdAt) || 0,
       timeText: this.formatMessageTime(item.createdAt),
       unread: !item.isRead,
-      avatar: item.actorAvatar || (category === 'trip' ? item.thumbnail : ''),
+      avatar: isSystem
+        ? '/images/xing-logo.png'
+        : (item.actorAvatar || (category === 'trip' ? item.thumbnail : '')),
       avatarText: isSystem ? '系' : ((actorName || '旅').slice(0, 1)),
       thumbnail: category === 'trip' ? '' : (item.thumbnail || ''),
       targetType: item.targetType || '',
       targetId: item.targetId || '',
+      sourceType: item.sourceType || '',
+      sourceId: item.sourceId || '',
       actorId: item.actorId || ''
     };
   },
@@ -199,8 +203,13 @@ Page({
 
   openMessageTarget: function (message) {
     if (message.targetType === 'community_post' && message.targetId) {
+      var communityUrl = '/pages/community-detail/community-detail?id=' +
+        encodeURIComponent(message.targetId);
+      if (message.sourceType === 'comment' || message.sourceType === 'reply') {
+        communityUrl += '&focus=comments&commentId=' + encodeURIComponent(message.sourceId || '');
+      }
       wx.navigateTo({
-        url: '/pages/community-detail/community-detail?id=' + encodeURIComponent(message.targetId),
+        url: communityUrl,
         fail: function () { wx.showToast({ title: '该内容暂时无法查看', icon: 'none' }); }
       });
       return;

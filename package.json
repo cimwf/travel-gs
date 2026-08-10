@@ -17,7 +17,7 @@
     "test:trip-log": "node tests/trip-log-rules.test.js",
     "test:account-binding": "node tests/user-account-binding.test.js",
     "test:notification": "node tests/notification-handler.test.js && node tests/follow-notification-handler.test.js && node tests/apply-notification-handler.test.js && node tests/trip-notification-handler.test.js",
-    "test:community": "node tests/community.test.js && node tests/community-handler.test.js && node tests/community-feed-filter-handler.test.js && node tests/community-like-handler.test.js && node tests/community-comment-handler.test.js && node tests/community-interactions-handler.test.js && node tests/community-media-check-result.test.js"
+    "test:community": "node tests/community.test.js && node tests/community-handler.test.js && node tests/community-detail-handler.test.js && node tests/community-detail-page-state.test.js && node tests/community-feed-filter-handler.test.js && node tests/community-like-handler.test.js && node tests/community-comment-handler.test.js && node tests/community-interactions-handler.test.js && node tests/community-media-check-result.test.js"
   },
   "repository": {
     "type": "git",

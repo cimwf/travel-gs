@@ -124,10 +124,6 @@ page {
   background: #eaf4ff;
 }
 
-.message-trip-avatar {
-  border-radius: 18rpx;
-}
-
 .message-avatar-fallback {
   display: flex;
   align-items: center;
@@ -140,10 +136,6 @@ page {
 .message-avatar-fallback image {
   width: 48rpx;
   height: 48rpx;
-}
-
-.message-trip-fallback {
-  border-radius: 18rpx;
 }
 
 .message-copy {

@@ -201,6 +201,10 @@ test('消息中心使用系统头部并支持全部、行程和互动筛选', ()
     "'/pages/community-detail/community-detail?id='"].forEach((needle) => {
     assert(js.includes(needle), `message-center missing behavior ${needle}`);
   });
+  assert(js.includes("'/images/xing-logo.png'"), 'system notifications should use the product logo');
+  assert(!wxml.includes('message-trip-avatar'), 'trip notification avatars should stay circular');
+  assert(js.includes("message.sourceType === 'comment' || message.sourceType === 'reply'"),
+    'comment notifications should request comment-section focus');
 
   const profileJs = read('miniprogram/pages/profile/profile.js');
   assert(profileJs.includes("auth.navigateIfLoggedIn('/pages/message-center/message-center')"));

@@ -140,6 +140,33 @@ async function resolveAuthorRegions(posts) {
   }
 }
 
+async function resolveCurrentAuthorProfiles(posts) {
+  var authorIds = [];
+  (posts || []).forEach(function (post) {
+    if (post.authorId && authorIds.indexOf(post.authorId) === -1) authorIds.push(post.authorId);
+  });
+  if (authorIds.length === 0) return;
+
+  try {
+    var usersRes = await db.collection('users').where({
+      openid: _.in(authorIds)
+    }).get();
+    var profileMap = {};
+    (usersRes.data || []).forEach(function (user) {
+      if (user.openid) profileMap[user.openid] = user;
+    });
+    posts.forEach(function (post) {
+      var profile = profileMap[post.authorId];
+      if (!profile) return;
+      if (profile.nickname) post.authorName = profile.nickname;
+      if (profile.avatar) post.authorAvatar = profile.avatar;
+      post.authorRegion = profile.region || post.authorRegion || '';
+    });
+  } catch (err) {
+    console.warn('查询社区作者当前资料失败:', err.message || err);
+  }
+}
+
 async function getCommunityFeedAuthorIds(openid, feedType, region) {
   var allowedIds = null;
   if (feedType === 'following') {
@@ -503,6 +530,54 @@ async function communityList(openid, data) {
   } catch (err) {
     console.error('community/list failed:', err);
     return { success: false, error: '获取社区动态失败' };
+  }
+}
+
+// ===================== community/get =====================
+
+async function communityGet(openid, data) {
+  var postId = String(data && data.postId || '').trim();
+  if (!postId) return { success: false, error: '动态 ID 不能为空', errorCode: 'INVALID_POST_ID' };
+
+  try {
+    var postRes = await db.collection('community_posts').doc(postId).get();
+    var post = postRes && postRes.data;
+    if (!post || post.status !== 'active') {
+      return { success: false, error: '该内容已删除或不存在', errorCode: 'POST_UNAVAILABLE' };
+    }
+
+    var isAuthor = !!(openid && post.authorId === openid);
+    if (post.reviewStatus !== 'approved' && !isAuthor) {
+      return { success: false, error: '该内容暂时无法查看', errorCode: 'POST_UNAVAILABLE' };
+    }
+
+    post.isAuthor = isAuthor;
+    post.likeCount = Math.max(0, Number(post.likeCount) || 0);
+    post.commentCount = Math.max(0, Number(post.commentCount) || 0);
+    post.isLiked = false;
+
+    if (openid) {
+      try {
+        var likeRes = await db.collection('community_likes')
+          .doc(getCommunityLikeId(postId, openid))
+          .get();
+        post.isLiked = !!(likeRes && likeRes.data);
+      } catch (likeErr) {
+        if (!isDocumentNotFoundError(likeErr)) {
+          console.warn('查询动态详情点赞状态失败:', likeErr.message || likeErr);
+        }
+      }
+    }
+
+    await resolveCurrentAuthorProfiles([post]);
+    await resolveAvatarUrls([post]);
+    return { success: true, post: post };
+  } catch (err) {
+    if (isDocumentNotFoundError(err)) {
+      return { success: false, error: '该内容已删除或不存在', errorCode: 'POST_UNAVAILABLE' };
+    }
+    console.error('community/get failed:', err);
+    return { success: false, error: '动态加载失败，请重试', errorCode: 'POST_LOAD_FAILED' };
   }
 }
 
@@ -2047,6 +2122,7 @@ async function communityDelete(openid, data) {
 
 module.exports = {
   communityList,
+  communityGet,
   communityMy,
   communityCreateUploadSession,
   communityCreate,

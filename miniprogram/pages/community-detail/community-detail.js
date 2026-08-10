@@ -7,6 +7,7 @@ Page({
     post: null,
     loading: true,
     error: false,
+    errorMessage: '',
     likers: [],
     likersLoading: false,
     comments: [],
@@ -17,13 +18,19 @@ Page({
     commentPlaceholder: '说点什么…',
     replyTarget: null,
     inputFocused: false,
-    submittingComment: false
+    submittingComment: false,
+    scrollIntoView: ''
   },
 
   onLoad: function (options) {
     this._postId = options && options.id ? decodeURIComponent(options.id) : '';
+    this._focusSection = options && options.focus || '';
+    this._focusCommentId = options && options.commentId
+      ? decodeURIComponent(options.commentId)
+      : '';
     this.bindOpenerData();
     this.restoreCachedPost();
+    this.loadPost();
   },
 
   onUnload: function () {
@@ -36,7 +43,7 @@ Page({
     if (!eventChannel || !eventChannel.on) return;
     var self = this;
     eventChannel.on('postData', function (payload) {
-      if (payload && payload.post) self.applyPost(payload.post);
+      if (payload && payload.post) self.applyPost(payload.post, { source: 'opener' });
     });
   },
 
@@ -47,46 +54,123 @@ Page({
     }
     try {
       var cached = wx.getStorageSync('communityDetailPost:' + this._postId);
-      if (cached && cached._id === this._postId) this.applyPost(cached);
+      if (cached && cached._id === this._postId) this.applyPost(cached, { source: 'cache' });
     } catch (cacheErr) {
       console.warn('读取动态详情缓存失败:', cacheErr);
     }
   },
 
-  applyPost: function (post) {
-    var count = (post.images || []).length;
-    var imageUrls = (post.images || []).map(function (image) {
+  loadPost: function () {
+    if (!this._postId || this._loadingPost) return Promise.resolve();
+    this._loadingPost = true;
+    var self = this;
+    return api.communityGet(this._postId).then(function (result) {
+      if (!result.post) throw new Error('动态数据不存在');
+      self.applyPost(result.post, { source: 'server' });
+      self.cachePost();
+    }).catch(function (error) {
+      var errorCode = error && error.result && error.result.errorCode || '';
+      if (errorCode === 'POST_UNAVAILABLE') {
+        try { wx.removeStorageSync('communityDetailPost:' + self._postId); } catch (e) { /* ignore */ }
+        self.setData({
+          post: null,
+          loading: false,
+          error: true,
+          errorMessage: error.message || '该内容已删除或暂不可查看'
+        });
+      } else if (self.data.post) {
+        self.setData({ loading: false, error: false });
+        wx.showToast({ title: '内容刷新失败，已展示缓存', icon: 'none' });
+      } else {
+        self.setData({
+          post: null,
+          loading: false,
+          error: true,
+          errorMessage: error.message || '内容加载失败，请重试'
+        });
+      }
+      console.warn('动态详情加载失败:', error.message || error);
+    }).then(function () {
+      self._loadingPost = false;
+    });
+  },
+
+  focusNotificationTarget: function () {
+    if (this._focusSection !== 'comments' || !this.data.post) return;
+    this._focusSection = '';
+    var self = this;
+    wx.nextTick(function () {
+      self.setData({ scrollIntoView: '' }, function () {
+        self.setData({ scrollIntoView: 'comments-section' });
+      });
+    });
+  },
+
+  onRetryLoad: function () {
+    if (this._loadingPost) return;
+    this.setData({ loading: true, error: false, errorMessage: '' });
+    this.loadPost();
+  },
+
+  applyPost: function (post, options) {
+    options = options || {};
+    var priorityMap = { cache: 1, opener: 2, server: 3 };
+    var priority = priorityMap[options.source] || 2;
+    var currentPost = this.data.post && this.data.post._id === post._id
+      ? this.data.post
+      : null;
+    if (currentPost && priority < (this._postDataPriority || 0)) return;
+
+    var isNewPost = !currentPost;
+    var mergedPost = Object.assign({}, currentPost || {}, post);
+    if (!post.authorAvatar && currentPost && currentPost.authorAvatar) {
+      mergedPost.authorAvatar = currentPost.authorAvatar;
+    }
+    if (!post.authorName && currentPost && currentPost.authorName) {
+      mergedPost.authorName = currentPost.authorName;
+    }
+    this._postDataPriority = priority;
+
+    var count = (mergedPost.images || []).length;
+    var imageUrls = (mergedPost.images || []).map(function (image) {
       return image.url || '';
     }).filter(Boolean);
     var likers = Array.isArray(post.likePreview) ? post.likePreview : [];
 
     var shouldLoadLikers = this._likersPostId !== post._id;
     var shouldLoadComments = this._commentsPostId !== post._id;
-    this.setData({
-      post: Object.assign({}, post, {
-        timeText: post.timeText || this.formatTime(post.createdAt),
-        imageLayout: post.imageLayout || (count === 1 ? 'grid-1' : count === 2 ? 'grid-2' : count >= 3 ? 'grid-3' : ''),
-        imageUrls: post.imageUrls || imageUrls,
-        hasLocation: post.hasLocation !== undefined
-          ? post.hasLocation
-          : !!(post.location && post.location.name),
-        likeCount: Math.max(0, Number(post.likeCount) || 0),
-        commentCount: Math.max(0, Number(post.commentCount) || 0),
-        isLiked: !!post.isLiked
+    if (shouldLoadLikers) this._likersPostId = post._id;
+    if (shouldLoadComments) this._commentsPostId = post._id;
+    var nextData = {
+      post: Object.assign({}, mergedPost, {
+        timeText: mergedPost.timeText || this.formatTime(mergedPost.createdAt),
+        imageLayout: mergedPost.imageLayout || (count === 1 ? 'grid-1' : count === 2 ? 'grid-2' : count >= 3 ? 'grid-3' : ''),
+        imageUrls: mergedPost.imageUrls || imageUrls,
+        hasLocation: mergedPost.hasLocation !== undefined
+          ? mergedPost.hasLocation
+          : !!(mergedPost.location && mergedPost.location.name),
+        likeCount: Math.max(0, Number(mergedPost.likeCount) || 0),
+        commentCount: Math.max(0, Number(mergedPost.commentCount) || 0),
+        isLiked: !!mergedPost.isLiked
       }),
-      likers: likers,
-      comments: Array.isArray(post.commentPreview) ? post.commentPreview : [],
       loading: false,
-      error: false
-    }, function () {
+      error: false,
+      errorMessage: ''
+    };
+    // Likes and comments have their own requests. A later post refresh must
+    // never erase lists that have already finished loading.
+    if (isNewPost) {
+      nextData.likers = likers;
+      nextData.comments = Array.isArray(post.commentPreview) ? post.commentPreview : [];
+    }
+    this.setData(nextData, function () {
       if (shouldLoadLikers) {
-        this._likersPostId = post._id;
         this.loadLikers();
       }
       if (shouldLoadComments) {
-        this._commentsPostId = post._id;
         this.loadComments(true);
       }
+      this.focusNotificationTarget();
     });
   },
 
@@ -99,10 +183,12 @@ Page({
     this._loadingLikers = true;
     this.setData({ likersLoading: true });
     var self = this;
+    var requestPostId = this.data.post._id;
     return api.communityLikeList({
-      postId: this.data.post._id,
+      postId: requestPostId,
       pageSize: 12
     }).then(function (result) {
+      if (!self.data.post || self.data.post._id !== requestPostId) return;
       var nextData = {
         likers: result.likes || [],
         likersLoading: false
@@ -167,6 +253,7 @@ Page({
       postId: this.data.post._id,
       pageSize: 20
     };
+    var requestPostId = request.postId;
     if (!reset && this._commentCursor) {
       request.cursor = this._commentCursor;
       request.cursorId = this._commentCursorId;
@@ -174,6 +261,7 @@ Page({
 
     var self = this;
     return api.communityCommentList(request).then(function (result) {
+      if (!self.data.post || self.data.post._id !== requestPostId) return;
       var incoming = (result.comments || []).map(function (comment) {
         return self.formatComment(comment);
       });

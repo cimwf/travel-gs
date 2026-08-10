@@ -173,6 +173,8 @@ exports.main = async (event, context) => {
       // ========== 社区相关 ==========
       case 'community/list':
         return await community.communityList(openid, data);
+      case 'community/get':
+        return await community.communityGet(openid, data);
       case 'community/my':
         return await community.communityMy(openid, data);
       case 'community/createUploadSession':

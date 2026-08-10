@@ -420,6 +420,13 @@ function communityList(data) {
 }
 
 /**
+ * 根据 ID 获取社区动态详情
+ */
+function communityGet(postId) {
+  return callApi('community/get', { postId });
+}
+
+/**
  * 获取当前用户所有未删除作品（包含审核中和审核未通过）
  */
 function communityMy(data) {
@@ -604,6 +611,7 @@ module.exports = {
 
   // 社区
   communityList,
+  communityGet,
   communityMy,
   communityCreateUploadSession,
   communityCreate,
