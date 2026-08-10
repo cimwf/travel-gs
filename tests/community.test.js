@@ -155,6 +155,7 @@ run('Community detail: approved UI structure and shared interaction icons', func
   ok(detailWxml.indexOf('128人赞过') === -1, 'like heading uses live count');
   ok(detailWxml.indexOf('{{post.likeCount || 0}}人赞过') !== -1, 'like list section rendered');
   ok(detailWxml.indexOf('共{{post.commentCount || 0}}条评论') !== -1, 'comment list section rendered');
+  ok(detailWxml.indexOf('class="comment-like"') === -1, 'comment-level like action stays hidden');
   ok(detailWxml.indexOf('icon-like-heart-active.svg') !== -1, 'detail reuses active heart');
   ok(detailWxml.indexOf('icon-like-heart-gray.svg') !== -1, 'detail reuses inactive heart');
   ok(detailWxml.indexOf('icon-comment-gray.svg') !== -1, 'detail reuses comment icon');

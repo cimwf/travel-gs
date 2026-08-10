@@ -83,10 +83,7 @@
                   data-root-comment-id="{{item._id}}" data-user-name="{{item.authorName}}">回复</text>
               </view>
             </view>
-            <view class="comment-like" catchtap="onCommentLikeTap">
-              <image class="comment-like-icon" src="/images/icon-like-heart-gray.svg" mode="aspectFit"></image>
-              <text>{{item.likeCount || 0}}</text>
-            </view>
+            <!-- 评论点赞暂不开放 -->
           </view>
 
           <view class="reply-list" wx:if="{{item.replies && item.replies.length > 0}}">
