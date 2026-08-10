@@ -53,7 +53,7 @@
               </view>
               <view class="post-meta-row">
                 <text class="post-time">{{item.timeText}}</text>
-                <text class="author-region" wx:if="{{item.authorRegion}}"> · 北京市 · {{item.authorRegion}}</text>
+                <text class="author-region" wx:if="{{item.authorRegion}}"> · {{item.authorRegion}}</text>
               </view>
             </view>
           </view>

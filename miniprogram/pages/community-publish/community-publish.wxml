@@ -57,20 +57,15 @@
     </view>
 
     <!-- Location -->
-    <view class="action-row" bindtap="onChooseLocation">
-      <image class="action-icon" src="/images/icon-location-blue.png" mode="aspectFit"></image>
-      <text class="action-label" wx:if="{{!hasLocation}}">添加位置</text>
-      <text class="action-value" wx:else>{{location.name}}</text>
-      <view class="action-clear" wx:if="{{hasLocation}}" catchtap="onRemoveLocation">
-        <image class="action-clear-icon" src="/images/icon-close-gray.png" mode="aspectFit"></image>
+    <view class="location-wrap">
+      <view class="location-chip {{hasLocation ? 'selected' : ''}}" bindtap="onChooseLocation">
+        <image class="location-icon" src="/images/icon-location-blue.png" mode="aspectFit"></image>
+        <text class="location-label" wx:if="{{!hasLocation}}">添加位置</text>
+        <text class="location-value" wx:else>{{location.name}}</text>
+        <view class="location-clear" wx:if="{{hasLocation}}" catchtap="onRemoveLocation">
+          <image class="location-clear-icon" src="/images/icon-close-gray.png" mode="aspectFit"></image>
+        </view>
       </view>
-    </view>
-
-    <!-- Visibility (fixed) -->
-    <view class="action-row">
-      <image class="action-icon" src="/images/icon-globe-blue.png" mode="aspectFit"></image>
-      <text class="action-label">所有人可见</text>
-      <text class="action-fixed">公开</text>
     </view>
 
     <!-- Bottom submit -->
