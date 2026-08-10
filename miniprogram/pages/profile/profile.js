@@ -189,6 +189,18 @@ Page({
     }
   },
 
+  // 累计获赞说明
+  onTapReceivedLikes: function () {
+    if (!auth.ensureLogin()) return;
+    const count = Math.max(0, Number(this.data.stats.receivedLikes) || 0);
+    wx.showModal({
+      title: '累计获赞',
+      content: '你发布的作品共获得 ' + count + ' 个赞',
+      showCancel: false,
+      confirmText: '知道了'
+    });
+  },
+
   // 上传景点
   onTapUploadSpot: function () {
     auth.navigateIfLoggedIn('/pages/upload-spot/upload-spot');

@@ -268,6 +268,7 @@ test('trip-list 未登录点击发布跳转登录页', () => {
 test('profile 未登录 UI 和入口都指向登录页', () => {
   const pageJson = JSON.parse(read('miniprogram/pages/profile/profile.json'));
   const wxml = read('miniprogram/pages/profile/profile.wxml');
+  const js = read('miniprogram/pages/profile/profile.js');
   assert.strictEqual(pageJson.navigationBarTextStyle, 'black', 'profile should use dark system status-bar icons');
   ['点击登录', '关注', '粉丝', '获赞', '我的行程', '我的作品', '我的互动', '消息中心',
     '行程通知', '上传景点', '提交建议', '关于我们'].forEach((text) => {
@@ -276,8 +277,9 @@ test('profile 未登录 UI 和入口都指向登录页', () => {
   assert(wxml.includes('statusBarHeight + navBarHeight'), 'profile page should reserve capsule-safe height');
   assert(!wxml.includes('profile-nav-title'), 'profile page should not render a custom title');
   assert(wxml.includes('menu-group menu-group-secondary'), 'secondary functions should use the selected tight second group');
-  assert(wxml.includes('class="stat-item stat-item-static"'), 'received likes should be display-only');
-  assert(!wxml.includes('data-type="receivedLikes"'), 'received likes should not expose a dead click target');
+  assert(wxml.includes('bindtap="onTapReceivedLikes"'), 'received likes should open its count dialog');
+  assert(js.includes("title: '累计获赞'") && js.includes("'你发布的作品共获得 ' + count + ' 个赞'"),
+    'received likes dialog should show the current count');
   assert(!wxml.includes('>其他<'), 'profile should not render an extra section heading');
   assert(!wxml.includes('📅') && !wxml.includes('🔔'), 'profile should use real icon assets');
 
