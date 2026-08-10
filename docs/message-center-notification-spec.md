@@ -1,0 +1,85 @@
+# 消息中心真实通知方案
+
+## 当前阶段
+
+消息中心以 `notifications` 集合作为唯一数据源，不再在打开页面时从申请、点赞、
+评论、回复和关注记录临时拼装消息。开发环境的旧消息不迁移。
+
+现有页面 UI 保持不变：顶部为“全部 / 行程 / 互动”，系统通知仅出现在“全部”。
+
+## 已实现接口
+
+| 接口 | 用途 |
+| --- | --- |
+| `notification/list` | 按全部或分类分页读取当前用户通知，同时返回未读数量 |
+| `notification/unreadCount` | 获取“我的”页面消息入口未读数量 |
+| `notification/markRead` | 点击单条消息后标记该条已读 |
+| `notification/markAllRead` | 将当前用户全部有效通知标记为已读 |
+
+列表采用 `createdAt + _id` 降序稳定游标，每页默认 20 条、最多 50 条。打开消息中心
+不会自动已读；点击单条或“全部已读”才修改状态。
+
+互动通知展示时由 `actorName + actionText` 组成主文案，例如“张三 + 评论了你”；
+`title` 用于系统通知或没有触发者时的兜底，避免昵称在主文案中重复。
+
+## 通知分类
+
+- `trip`：行程申请、处理结果、成员变化和行程状态变化。
+- `interaction`：点赞、评论、回复和关注。
+- `system`：作品审核结果和平台处置。
+
+## 已接入的通知事件
+
+| 事件 | 类型 | 接收者 | 撤销规则 |
+| --- | --- | --- | --- |
+| 点赞动态 | `community_like` | 动态作者 | 取消点赞时删除通知 |
+| 评论动态 | `community_comment` | 动态作者 | 评论删除后保留历史通知 |
+| 回复评论或回复 | `community_reply` | 被直接回复的人 | 回复删除后保留历史通知 |
+| 关注用户 | `user_follow` | 被关注的人 | 取消关注时删除通知 |
+| 图片返回 `pass` | `community_review_approved` | 作品作者 | 已发布 |
+| 图片返回 `review` | `community_review_pending` | 作品作者 | 已发布并标记待复核 |
+| 图片返回 `risky` | `community_review_manual` | 作品作者 | 暂不公开，等待人工审核 |
+| 后台人工复核通过 | `community_review_approved` | 作品作者 | 公开展示 |
+| 后台人工复核拒绝 | `community_review_rejected` | 作品作者 | 不公开，前往我的作品查看 |
+| 新的加入申请 | `trip_apply_received` | 行程发起人 | 保留申请历史 |
+| 申请通过 | `trip_apply_accepted` | 申请人 | 不撤销 |
+| 申请拒绝 | `trip_apply_rejected` | 申请人 | 不撤销 |
+| 申请人取消申请 | `trip_apply_cancelled` | 行程发起人 | 不撤销 |
+| 成员退出 | `trip_member_quit` | 行程发起人 | 不撤销 |
+| 成员被移除 | `trip_member_removed` | 被移除成员 | 不撤销 |
+| 行程取消 | `trip_cancelled` | 所有已加入成员 | 不撤销 |
+| 行程删除 | `trip_deleted` | 所有已加入成员 | 不提供已删除详情跳转 |
+| 出发日期或集合时间变化 | `trip_time_changed` | 所有已加入成员 | 不撤销 |
+| 出发地区或集合地点变化 | `trip_location_changed` | 所有已加入成员 | 不撤销 |
+
+自己操作自己的内容不生成通知。通知 ID 由“类型 + 接收者 + 来源记录”确定，事务重试
+或回调重放不会生成重复消息。审核通知只在作品首次进入对应最终状态时创建，多张图片
+并发回调不会重复通知。
+
+## 数据库索引
+
+以下索引均为普通、非唯一索引：
+
+1. `idx_notifications_receiver_time`
+   - `receiverId` 升序
+   - `status` 升序
+   - `createdAt` 降序
+   - `_id` 降序
+2. `idx_notifications_receiver_category_time`
+   - `receiverId` 升序
+   - `status` 升序
+   - `category` 升序
+   - `createdAt` 降序
+   - `_id` 降序
+3. `idx_notifications_receiver_unread`
+   - `receiverId` 升序
+   - `status` 升序
+   - `isRead` 升序
+
+`notifications` 不应配置为所有用户可写。小程序只通过 `api` 云函数读写通知，避免
+客户端伪造“申请通过”“审核通过”等消息。
+
+## 后续接入顺序
+
+1. 后续增加管理员主动下架通知及审核操作日志查询。
+2. 需要时再增加订阅消息与定时行程提醒；站内通知不等于微信订阅消息。

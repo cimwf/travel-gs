@@ -1,10 +1,71 @@
 const cloud = require('wx-server-sdk');
+const crypto = require('crypto');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 const db = cloud.database();
 const VALID_SUGGESTIONS = ['pass', 'review', 'risky'];
 const RECONCILE_MAX_ATTEMPTS = 3;
+
+function getNotificationId(type, receiverId, sourceId) {
+  return crypto.createHash('sha256')
+    .update(String(type) + '\n' + String(receiverId) + '\n' + String(sourceId))
+    .digest('hex')
+    .slice(0, 32);
+}
+
+function getPostThumbnail(post) {
+  const images = post && Array.isArray(post.images) ? post.images : [];
+  const first = images.length > 0 ? images[0] : null;
+  if (typeof first === 'string') return first;
+  return first && (first.url || first.tempFileURL || '') || '';
+}
+
+async function createReviewNotification(transaction, post, decision, now) {
+  if (!post.authorId || decision.reviewStatus === 'reviewing') return;
+  const typeMap = {
+    pass: 'community_review_approved',
+    review: 'community_review_pending',
+    risky: 'community_review_manual'
+  };
+  const titleMap = {
+    pass: '作品审核通过',
+    review: '作品已发布，待复核',
+    risky: '作品正在进一步审核'
+  };
+  const contentMap = {
+    pass: '你的图片作品已通过审核并发布',
+    review: '你的图片作品已发布，后续将进行人工复核',
+    risky: '你的图片作品风险较高，暂不在社区展示'
+  };
+  const type = typeMap[decision.machineSuggest];
+  if (!type) return;
+  const sourceId = post._id + ':' + decision.machineSuggest;
+  const id = getNotificationId(type, post.authorId, sourceId);
+  await transaction.collection('notifications').doc(id).set({
+    data: {
+      receiverId: post.authorId,
+      category: 'system',
+      type,
+      actorId: '',
+      actorName: '',
+      actorAvatar: '',
+      targetType: decision.reviewStatus === 'approved' ? 'community_post' : 'my_works',
+      targetId: post._id,
+      sourceType: 'review',
+      sourceId,
+      title: titleMap[decision.machineSuggest],
+      actionText: '',
+      content: contentMap[decision.machineSuggest],
+      thumbnail: getPostThumbnail(post),
+      isRead: false,
+      readAt: 0,
+      status: 'active',
+      createdAt: now,
+      updatedAt: now
+    }
+  });
+}
 
 function normalizeEvent(event) {
   const result = event && event.result || {};
@@ -16,15 +77,19 @@ function normalizeEvent(event) {
   };
 }
 
-function getReviewStatus(suggestions, expectedCount) {
-  if (suggestions.some((suggest) => suggest === 'risky' || suggest === 'review')) {
-    return 'manual_review';
+function getReviewDecision(suggestions, expectedCount) {
+  if (suggestions.some((suggest) => suggest === 'risky')) {
+    return { reviewStatus: 'manual_review', machineSuggest: 'risky' };
   }
-  if (suggestions.length === expectedCount &&
-      suggestions.every((suggest) => suggest === 'pass')) {
-    return 'approved';
+  const completed = suggestions.length === expectedCount &&
+    suggestions.every((suggest) => VALID_SUGGESTIONS.includes(suggest));
+  if (!completed) {
+    return { reviewStatus: 'reviewing', machineSuggest: 'pending' };
   }
-  return 'reviewing';
+  if (suggestions.some((suggest) => suggest === 'review')) {
+    return { reviewStatus: 'approved', machineSuggest: 'review' };
+  }
+  return { reviewStatus: 'approved', machineSuggest: 'pass' };
 }
 
 function wait(ms) {
@@ -79,21 +144,41 @@ async function reconcilePost(postId) {
       suggestions.push(itemRes.data && itemRes.data.suggest || 'pending');
     }
 
-    const reviewStatus = getReviewStatus(suggestions, traceIds.length);
+    const decision = getReviewDecision(suggestions, traceIds.length);
+    const previousAdminReviewStatus = post.adminReviewStatus || 'not_required';
+    const hasAdminDecision = previousAdminReviewStatus === 'approved' ||
+      previousAdminReviewStatus === 'rejected';
+    const adminReviewStatus = hasAdminDecision
+      ? previousAdminReviewStatus
+      : (decision.machineSuggest === 'review' || decision.machineSuggest === 'risky'
+        ? 'pending'
+        : 'not_required');
+    const reviewStatus = hasAdminDecision
+      ? (previousAdminReviewStatus === 'approved' ? 'approved' : 'rejected')
+      : decision.reviewStatus;
+    const previousReviewStatus = post.reviewStatus;
+    const previousMachineSuggest = post.machineSuggest || 'pending';
     const now = Date.now();
     await postDoc.update({
       data: {
         reviewStatus,
+        machineSuggest: decision.machineSuggest,
+        adminReviewStatus,
         imageAuditStatus: reviewStatus,
         imageAuditUpdatedAt: now,
         updatedAt: now
       }
     });
+    if (reviewStatus !== 'reviewing' &&
+      (previousReviewStatus !== reviewStatus || previousMachineSuggest !== decision.machineSuggest)) {
+      await createReviewNotification(transaction, post, decision, now);
+    }
 
     return {
       ignored: false,
       postId,
-      reviewStatus
+      reviewStatus,
+      machineSuggest: decision.machineSuggest
     };
   });
 }

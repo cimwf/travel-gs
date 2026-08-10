@@ -99,13 +99,15 @@ Page({
     var statusMap = {
       approved: { text: '已发布', className: 'approved' },
       reviewing: { text: '审核中', className: 'reviewing' },
-      manual_review: { text: '人工审核', className: 'manual-review' },
+      manual_review: { text: '待人工审核', className: 'manual-review' },
       rejected: { text: '审核未通过', className: 'rejected' }
     };
-    var status = statusMap[post.reviewStatus] || {
+    var status = post.reviewStatus === 'approved' && post.machineSuggest === 'review'
+      ? { text: '已发布 · 待复核', className: 'pending-review' }
+      : statusMap[post.reviewStatus] || {
       text: '处理中',
       className: 'reviewing'
-    };
+      };
     var urls = (post.images || []).map(function (image) {
       return image.url || '';
     }).filter(Boolean);

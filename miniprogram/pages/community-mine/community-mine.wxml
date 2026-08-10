@@ -59,8 +59,12 @@
         <view class="review-tip" wx:if="{{item.reviewStatus === 'reviewing'}}">
           内容正在等待自动审核结果
         </view>
+        <view class="review-tip pending-review-tip"
+          wx:if="{{item.reviewStatus === 'approved' && item.machineSuggest === 'review'}}">
+          内容已发布，后续将进行人工复核
+        </view>
         <view class="review-tip manual-review-tip" wx:if="{{item.reviewStatus === 'manual_review'}}">
-          自动审核无法确认，内容已进入人工审核
+          自动审核风险较高，暂不在社区展示，等待人工审核
         </view>
         <view class="review-tip rejected-tip" wx:if="{{item.reviewStatus === 'rejected'}}">
           内容未通过安全审核，不会展示在社区

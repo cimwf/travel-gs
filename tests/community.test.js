@@ -434,9 +434,9 @@ run('Image security: mediaCheckAsync + callback function', function () {
   ok(handler.indexOf('mediaType: 2') !== -1, 'uses image media type');
   ok(handler.indexOf('imageAuditTraceIds') !== -1, 'stores audit trace IDs');
   ok(callback.indexOf("['pass', 'review', 'risky']") !== -1, 'validates callback suggestions');
-  ok(callback.indexOf("suggest === 'risky' || suggest === 'review'") !== -1, 'review and risky require manual review');
-  ok(callback.indexOf("return 'manual_review'") !== -1, 'manual review status stored');
-  ok(callback.indexOf("suggestions.every((suggest) => suggest === 'pass')") !== -1, 'all images must pass');
+  ok(callback.indexOf("reviewStatus: 'approved', machineSuggest: 'review'") !== -1, 'review is published with pending-review marker');
+  ok(callback.indexOf("reviewStatus: 'manual_review', machineSuggest: 'risky'") !== -1, 'risky requires manual review');
+  ok(callback.indexOf("reviewStatus: 'approved', machineSuggest: 'pass'") !== -1, 'all-pass result is published normally');
   ok(callback.indexOf('persistAuditResult(payload)') !== -1, 'persists each callback before post reconciliation');
   ok(callback.indexOf('reconcilePostWithRetry') !== -1, 'retries concurrent post reconciliation');
   ok(config.permissions.openapi.indexOf('security.mediaCheckAsync') !== -1, 'cloud call permission configured');
@@ -464,7 +464,7 @@ run('My works: includes every non-deleted review status', function () {
   ok(handler.indexOf("authorId: openid,\n    status: 'active'") !== -1, 'queries current author non-deleted posts');
   ok(handler.indexOf("community/my failed") !== -1, 'my works handler implemented');
   ok(pageJson.navigationStyle !== 'custom' && pageJson.navigationBarTitleText === '我的作品', 'uses system navigation');
-  ok(pageJs.indexOf("text: '已发布'") !== -1 && pageJs.indexOf("text: '审核中'") !== -1 && pageJs.indexOf("text: '人工审核'") !== -1 && pageJs.indexOf("text: '审核未通过'") !== -1, 'shows all review statuses');
+  ok(pageJs.indexOf("text: '已发布'") !== -1 && pageJs.indexOf("text: '已发布 · 待复核'") !== -1 && pageJs.indexOf("text: '审核中'") !== -1 && pageJs.indexOf("text: '待人工审核'") !== -1 && pageJs.indexOf("text: '审核未通过'") !== -1, 'shows all review statuses');
   ok(pageWxml.indexOf('item.authorAvatar') !== -1 && pageWxml.indexOf('item.authorName') !== -1, 'shows author avatar and nickname');
   ok(pageWxml.indexOf('icon-more-gray.png') !== -1 && pageWxml.indexOf('bindtap="onMoreTap"') !== -1, 'uses community-style more button');
   ok(pageWxml.indexOf('bindtap="onDelete"') === -1, 'does not show direct delete button');

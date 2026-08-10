@@ -194,19 +194,29 @@ const commentSchema = {
 // 8. notifications - 通知表
 const notificationSchema = {
   _id: "notify_xxx",
-  userId: "user_xxx",               // 接收者
+  receiverId: "openid_receiver",     // 接收者 openid
+  category: "interaction",           // trip/interaction/system
+  type: "community_comment",         // 具体通知类型
 
-  type: "apply_accepted",           // apply_accepted/apply_new/comment/trip_reminder
-  title: "申请已通过",
-  content: "你申请的东灵山行程已被接受",
+  actorId: "openid_actor",           // 触发者；系统通知为空
+  actorName: "小明",                 // 触发时用户资料快照
+  actorAvatar: "https://...",
 
-  data: {
-    tripId: "trip_xxx",
-    placeName: "东灵山"
-  },
+  targetType: "community_post",      // community_post/user/trip/my_works
+  targetId: "post_xxx",              // 点击目标ID
+  sourceType: "comment",             // like/comment/reply/follow/apply/review
+  sourceId: "comment_xxx",           // 幂等和来源追踪
 
-  read: false,
-  createdAt: 1711123200000
+  title: "评论通知",                 // 系统标题或无触发者时的兜底标题
+  actionText: "评论了你",            // 与触发者昵称拼接展示
+  content: "风景真不错",
+  thumbnail: "https://...",
+
+  isRead: false,
+  readAt: 0,
+  status: "active",                  // active/deleted
+  createdAt: 1711123200000,
+  updatedAt: 1711123200000
 };
 
 // 9. community_posts - 社区动态表
@@ -238,6 +248,8 @@ const communityPostSchema = {
   likeCount: 12,                   // 点赞数，和 community_likes 保持一致
   commentCount: 3,                 // 主评论+回复总数
   reviewStatus: "approved",        // approved/reviewing/manual_review/rejected
+  machineSuggest: "pass",          // pending/pass/review/risky，微信审核聚合原始结论
+  adminReviewStatus: "not_required", // not_required/pending/approved/rejected，人工复核状态
   imageAuditStatus: "approved",    // pending/reviewing/manual_review/approved/rejected
   imageAuditTraceIds: ["trace_xxx"], // 微信 mediaCheckAsync 任务ID
   imageAuditUpdatedAt: 1785100000000,
@@ -406,14 +418,15 @@ comments:
   - createdAt
 
 notifications:
-  - userId
-  - read
-  - createdAt
+  - receiverId + status + createdAt + _id（复合索引，用于全部消息稳定分页）
+  - receiverId + status + category + createdAt + _id（复合索引，用于分类消息稳定分页）
+  - receiverId + status + isRead（复合索引，用于未读数量和全部已读）
 
 community_posts:
   - status + reviewStatus + createdAt + _id（复合索引，用于公共列表稳定游标查询）
   - status + reviewStatus + authorId + createdAt + _id（复合索引，用于关注和地区筛选）
   - authorId + status + createdAt + _id（复合索引，用于“我的作品”列表）
+  - status + adminReviewStatus + machineSuggest + createdAt（复合索引，用于后台人工审核）
   - draftId（唯一索引，防止重复发布）
 
 community_likes:

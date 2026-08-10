@@ -66,6 +66,7 @@ user_follows
 community_posts:
   status + reviewStatus + createdAt(desc) + _id(desc)
   authorId + status + createdAt(desc) + _id(desc)
+  status + adminReviewStatus + machineSuggest + createdAt(desc)
   draftId（唯一）
 
 community_likes:
@@ -154,13 +155,13 @@ https://imagica-images-1436573577.cos.ap-beijing.myqcloud.com
 代码审计发现以下功能仍未闭环：
 
 - 其他用户点击“举报”只提示“举报功能建设中”，并未提交记录。
-- `manual_review` 没有管理页或通过/拒绝接口，会长期停留在人工审核。
+- 社区审核管理页已实现，但正式上线前仍需验证管理员权限、操作通知和审核响应时间。
 - 没有运营端的查看、下架和封禁流程。
 
 正式开放社区前至少需要：
 
 - [ ] 可用的内容举报入口，记录举报人、作品、原因、时间与处理状态。
-- [ ] 管理员可查看作品并执行通过、拒绝/下架。
+- [x] 管理员可查看 `review/risky` 作品并执行通过或拒绝。
 - [ ] 明确 `manual_review` 的处理人和响应时间。
 - [ ] 隐私政策中承诺的举报方式与产品真实能力一致。
 

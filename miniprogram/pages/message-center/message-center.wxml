@@ -78,6 +78,8 @@
         <view class="message-unread-dot" wx:if="{{item.unread}}"></view>
       </view>
     </view>
+    <view class="message-load-more" wx:if="{{loadingMore}}">加载中...</view>
+    <view class="message-load-more" wx:if="{{!loading && !loadingMore && visibleMessages.length > 0 && !hasMore}}">— 没有更多了 —</view>
     <view class="message-safe-bottom"></view>
   </block>
 </view>

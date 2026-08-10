@@ -220,6 +220,13 @@ page {
   right: -2rpx;
 }
 
+.message-load-more {
+  padding: 28rpx 24rpx 8rpx;
+  color: #a0a8b5;
+  font-size: 23rpx;
+  text-align: center;
+}
+
 .message-loading {
   margin: 0 24rpx;
   padding: 26rpx 28rpx;

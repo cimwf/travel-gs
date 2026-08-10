@@ -210,7 +210,8 @@ npm run test:core
 
 - 正文和定位文字调用微信 `msgSecCheck` V2，只有 `pass` 才允许创建；`review`、`risky` 和未知结果均阻止发布。
 - 带图片的动态会把 COS 公网图片地址提交给微信 `mediaCheckAsync`，创建后保持 `reviewing`，审核完成前任何人都不可见。
-- 所有图片均为 `pass` 后动态自动变成 `approved`；任一图片为 `risky` 或 `review` 则变成 `manual_review`，等待后续人工审核明确通过或拒绝。
+- 所有图片均为 `pass` 后动态自动变成 `approved`；存在 `review` 且没有 `risky` 时公开展示并标记待复核；任一图片为 `risky` 时变成 `manual_review`，等待后台人工审核。
+- 后台 `travel-be-gs` 的“社区内容审核”可按 `review/risky` 筛选并通过或拒绝；处理后应向作者生成系统通知，同时保留微信原始 `machineSuggest`。
 - 公共列表只展示 `approved`。
 
 部署后需要在同一云环境的消息推送设置中创建并启用：

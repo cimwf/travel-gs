@@ -16,7 +16,8 @@ const state = {
     reviewStatus: 'approved',
     likeCount: 0
   },
-  likes: {}
+  likes: {},
+  notifications: {}
 };
 
 function documentFor(collectionName, id) {
@@ -40,6 +41,16 @@ function documentFor(collectionName, id) {
       },
       async remove() {
         delete state.likes[id];
+      }
+    };
+  }
+  if (collectionName === 'notifications') {
+    return {
+      async set({ data }) {
+        state.notifications[id] = { _id: id, ...data };
+      },
+      async remove() {
+        delete state.notifications[id];
       }
     };
   }
@@ -139,6 +150,13 @@ async function main() {
   assert.strictEqual(like.userName, '点赞用户');
   assert.strictEqual(like.userAvatar, 'https://example.com/liker.jpg');
   assert(Number.isFinite(like.createdAt));
+  assert.strictEqual(Object.keys(state.notifications).length, 1);
+  const likeNotification = Object.values(state.notifications)[0];
+  assert.strictEqual(likeNotification.receiverId, state.post.authorId);
+  assert.strictEqual(likeNotification.type, 'community_like');
+  assert.strictEqual(likeNotification.actorId, 'openid-liker');
+  assert.strictEqual(likeNotification.targetId, state.post._id);
+  assert.strictEqual(likeNotification.isRead, false);
 
   const listed = await community.communityLikeList('', {
     postId: state.post._id,
@@ -161,6 +179,7 @@ async function main() {
   });
   assert.strictEqual(state.post.likeCount, 0);
   assert.strictEqual(Object.keys(state.likes).length, 0);
+  assert.strictEqual(Object.keys(state.notifications).length, 0);
 
   state.post.reviewStatus = 'reviewing';
   const blocked = await community.communityToggleLike('openid-liker', {

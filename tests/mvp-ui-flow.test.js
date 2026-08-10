@@ -195,8 +195,8 @@ test('消息中心使用系统头部并支持全部、行程和互动筛选', ()
   });
 
   const js = read('miniprogram/pages/message-center/message-center.js');
-  ['api.applyNotifications(1, 50)', 'api.communityNotifications({ pageSize: 50 })',
-    'api.applyMarkRead()', 'api.communityNotificationsMarkRead()',
+  ['api.notificationList({', 'api.notificationMarkRead(message._id)',
+    "api.notificationMarkAllRead('')", 'onReachBottom',
     "'/pages/trip-notifications/trip-notifications'",
     "'/pages/community-detail/community-detail?id='"].forEach((needle) => {
     assert(js.includes(needle), `message-center missing behavior ${needle}`);
@@ -204,6 +204,7 @@ test('消息中心使用系统头部并支持全部、行程和互动筛选', ()
 
   const profileJs = read('miniprogram/pages/profile/profile.js');
   assert(profileJs.includes("auth.navigateIfLoggedIn('/pages/message-center/message-center')"));
+  assert(profileJs.includes('api.notificationUnreadCount()'));
 });
 
 test('trip-list UI 含筛选栏、行程卡片、空状态发布按钮和悬浮发布按钮', () => {
@@ -314,7 +315,7 @@ test('我的作品使用系统头部并展示全部审核状态', () => {
     assert(wxml.includes(needle), `missing ${needle}`);
   });
   assert(!wxml.includes('bindtap="onDelete"'), 'direct delete button should be hidden');
-  ['已发布', '审核中', '人工审核', '审核未通过'].forEach((needle) => {
+  ['已发布', '已发布 · 待复核', '审核中', '待人工审核', '审核未通过'].forEach((needle) => {
     assert(js.includes(needle), `missing ${needle}`);
   });
 });

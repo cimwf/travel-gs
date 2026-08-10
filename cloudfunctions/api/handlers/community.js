@@ -1,5 +1,6 @@
 const { db, _, cloud } = require('../utils/shared');
 const nodeCrypto = require('crypto');
+const { setNotification, removeNotification } = require('./notification');
 
 // COS configuration from environment variables
 const COS_CONFIG = {
@@ -64,6 +65,13 @@ function getCommunityLikeId(postId, openid) {
     .update(String(postId) + '\n' + String(openid))
     .digest('hex')
     .slice(0, 32);
+}
+
+function getPostThumbnail(post) {
+  var images = post && Array.isArray(post.images) ? post.images : [];
+  var first = images.length > 0 ? images[0] : null;
+  if (typeof first === 'string') return first;
+  return first && (first.url || first.tempFileURL || '') || '';
 }
 
 function isDocumentNotFoundError(error) {
@@ -351,19 +359,37 @@ async function reconcileImageAuditStatus(postId, traceIds) {
     }
 
     var suggestions = audits.map(function (audit) { return audit.suggest; });
-    var reviewStatus = suggestions.some(function (suggest) {
-      return suggest === 'risky' || suggest === 'review';
-    })
+    var hasRisky = suggestions.some(function (suggest) { return suggest === 'risky'; });
+    var completed = suggestions.length === traceIds.length && suggestions.every(function (suggest) {
+      return ['pass', 'review', 'risky'].indexOf(suggest) !== -1;
+    });
+    var hasReview = suggestions.some(function (suggest) { return suggest === 'review'; });
+    var reviewStatus = hasRisky
       ? 'manual_review'
-      : suggestions.length === traceIds.length && suggestions.every(function (suggest) {
-        return suggest === 'pass';
-      })
+      : completed
         ? 'approved'
         : 'reviewing';
+    var machineSuggest = hasRisky
+      ? 'risky'
+      : completed
+        ? (hasReview ? 'review' : 'pass')
+        : 'pending';
+
+    var previousAdminReviewStatus = postRes.data.adminReviewStatus || 'not_required';
+    var hasAdminDecision = previousAdminReviewStatus === 'approved' ||
+      previousAdminReviewStatus === 'rejected';
+    var adminReviewStatus = hasAdminDecision
+      ? previousAdminReviewStatus
+      : (machineSuggest === 'review' || machineSuggest === 'risky' ? 'pending' : 'not_required');
+    if (hasAdminDecision) {
+      reviewStatus = previousAdminReviewStatus === 'approved' ? 'approved' : 'rejected';
+    }
 
     await postDoc.update({
       data: {
         reviewStatus: reviewStatus,
+        machineSuggest: machineSuggest,
+        adminReviewStatus: adminReviewStatus,
         imageAuditStatus: reviewStatus,
         imageAuditUpdatedAt: Date.now(),
         updatedAt: Date.now()
@@ -824,6 +850,8 @@ async function communityCreate(openid, data) {
         likeCount: 0,
         commentCount: 0,
         reviewStatus: 'reviewing', // image posts always reviewing until image audit
+        machineSuggest: 'pending', // pass/review/risky；保留微信原始聚合结论供后台筛选
+        adminReviewStatus: 'not_required', // pending/approved/rejected；仅 review/risky 进入人工复核
         imageAuditStatus: 'pending',
         imageAuditTraceIds: [],
         imageAuditRetryCount: 0,
@@ -917,6 +945,8 @@ async function communityCreate(openid, data) {
       likeCount: 0,
       commentCount: 0,
       reviewStatus: 'approved', // text-only posts are approved after msgSecCheck
+      machineSuggest: 'pass',
+      adminReviewStatus: 'not_required',
       status: 'active',
       createdAt: now,
       updatedAt: now,
@@ -968,6 +998,14 @@ async function communityToggleLike(openid, data) {
       var nextCount;
       if (like) {
         await likeDoc.remove();
+        if (post.authorId !== openid) {
+          await removeNotification(
+            transaction,
+            'community_like',
+            post.authorId,
+            likeId
+          );
+        }
         liked = false;
         nextCount = Math.max(0, currentCount - 1);
       } else {
@@ -982,6 +1020,25 @@ async function communityToggleLike(openid, data) {
             updatedAt: now
           }
         });
+        if (post.authorId !== openid) {
+          await setNotification(transaction, {
+            receiverId: post.authorId,
+            category: 'interaction',
+            type: 'community_like',
+            actorId: openid,
+            actorName: user.nickname || '旅行者',
+            actorAvatar: user.avatar || '',
+            targetType: 'community_post',
+            targetId: postId,
+            sourceType: 'like',
+            sourceId: likeId,
+            title: '点赞通知',
+            actionText: '赞了你的动态',
+            content: post.content || '',
+            thumbnail: getPostThumbnail(post),
+            createdAt: now
+          });
+        }
         liked = true;
         nextCount = currentCount + 1;
       }
@@ -1685,6 +1742,29 @@ async function communityCommentCreate(openid, data) {
       } else {
         addRes = await transaction.collection('community_comments').add({
           data: createdData
+        });
+      }
+
+      var notificationReceiverId = isReply
+        ? createdData.replyToUserId
+        : post.authorId;
+      if (notificationReceiverId && notificationReceiverId !== openid) {
+        await setNotification(transaction, {
+          receiverId: notificationReceiverId,
+          category: 'interaction',
+          type: isReply ? 'community_reply' : 'community_comment',
+          actorId: openid,
+          actorName: user.nickname || '旅行者',
+          actorAvatar: user.avatar || '',
+          targetType: 'community_post',
+          targetId: postId,
+          sourceType: isReply ? 'reply' : 'comment',
+          sourceId: addRes._id,
+          title: isReply ? '回复通知' : '评论通知',
+          actionText: isReply ? '回复了你' : '评论了你',
+          content: content,
+          thumbnail: getPostThumbnail(post),
+          createdAt: now
         });
       }
 

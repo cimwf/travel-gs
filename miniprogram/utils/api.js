@@ -304,6 +304,24 @@ function messageRead(messageId) {
   return callApi('message/read', { messageId });
 }
 
+// ========== 通知中心 ==========
+
+function notificationList(data) {
+  return callApi('notification/list', data || {});
+}
+
+function notificationUnreadCount() {
+  return callApi('notification/unreadCount', {});
+}
+
+function notificationMarkRead(notificationId) {
+  return callApi('notification/markRead', { notificationId });
+}
+
+function notificationMarkAllRead(category) {
+  return callApi('notification/markAllRead', { category: category || '' });
+}
+
 // ========== 评论相关 ==========
 
 /**
@@ -552,6 +570,10 @@ module.exports = {
   messageSend,
   messageList,
   messageRead,
+  notificationList,
+  notificationUnreadCount,
+  notificationMarkRead,
+  notificationMarkAllRead,
 
   // 评论
   commentCreate,

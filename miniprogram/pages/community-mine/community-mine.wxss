@@ -145,6 +145,11 @@ page {
   background: #FFF5DE;
 }
 
+.status-pending-review {
+  color: #A66D15;
+  background: #FFF5DE;
+}
+
 .status-manual-review {
   color: #7652A8;
   background: #F1EAFB;
@@ -239,6 +244,10 @@ page {
 
 .manual-review-tip {
   color: #7652A8;
+}
+
+.pending-review-tip {
+  color: #A66D15;
 }
 
 .rejected-tip {

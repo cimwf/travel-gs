@@ -137,17 +137,8 @@ Page({
     if (!openid) return;
 
     try {
-      const results = await Promise.all([
-        api.applyUnreadCount(),
-        api.communityNotifications({ pageSize: 100 })
-      ]);
-      const tripCount = results[0] && results[0].success
-        ? Number(results[0].count) || 0
-        : 0;
-      const interactionCount = results[1] && results[1].success
-        ? Number(results[1].unreadCount) || 0
-        : 0;
-      this.setData({ unreadCount: tripCount + interactionCount });
+      const result = await api.notificationUnreadCount();
+      this.setData({ unreadCount: Number(result.count) || 0 });
     } catch (err) {
       console.warn('加载未读消息数量失败', err);
     }

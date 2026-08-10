@@ -15,6 +15,7 @@ const attractions = require('./handlers/attractions');
 const userSpots = require('./handlers/userSpots');
 const feedback = require('./handlers/feedback');
 const community = require('./handlers/community');
+const notification = require('./handlers/notification');
 
 exports.main = async (event, context) => {
   const { action, data } = event;
@@ -134,6 +135,16 @@ exports.main = async (event, context) => {
         return await message.messageList(openid, data);
       case 'message/read':
         return await message.messageRead(data.messageId);
+
+      // ========== 通知中心 ==========
+      case 'notification/list':
+        return await notification.notificationList(openid, data);
+      case 'notification/unreadCount':
+        return await notification.notificationUnreadCount(openid);
+      case 'notification/markRead':
+        return await notification.notificationMarkRead(openid, data);
+      case 'notification/markAllRead':
+        return await notification.notificationMarkAllRead(openid, data);
 
       // ========== 评论相关 ==========
       case 'comment/create':

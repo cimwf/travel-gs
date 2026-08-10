@@ -1,5 +1,16 @@
 const { db, _, cloud, safeAvatar } = require('../utils/shared');
 const { tripJoin } = require('./trip');
+const { setNotification } = require('./notification');
+
+function getTripTitle(trip, fallback) {
+  return trip && (trip.tripTitle || trip.placeName) || fallback || '行程';
+}
+
+function getTripThumbnail(trip) {
+  if (!trip) return '';
+  return trip.customCoverImage || trip.tripAvatar ||
+    (Array.isArray(trip.coverImages) && trip.coverImages[0]) || trip.tripImage || '';
+}
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
@@ -69,10 +80,12 @@ async function applyCreate(openid, data) {
   }
 
   let placeId = '';
+  let tripData = null;
   try {
     const tripRes = await db.collection('trips').doc(tripId).get();
     if (tripRes.data) {
-      placeId = tripRes.data.placeId || '';
+      tripData = tripRes.data;
+      placeId = tripData.placeId || '';
     }
   } catch (err) {
     console.warn('获取行程placeId失败', err);
@@ -102,8 +115,26 @@ async function applyCreate(openid, data) {
     data: { ...commonData, ownerId: openid, unread: false }
   });
 
-  await db.collection('applies').add({
+  const receivedRes = await db.collection('applies').add({
     data: { ...commonData, ownerId: toUserId, unread: true }
+  });
+
+  await setNotification(db, {
+    receiverId: toUserId,
+    category: 'trip',
+    type: 'trip_apply_received',
+    actorId: openid,
+    actorName: user.nickname || '旅行者',
+    actorAvatar: safeAvatar(user.avatar),
+    targetType: 'trip_apply',
+    targetId: receivedRes._id,
+    sourceType: 'apply',
+    sourceId: groupId,
+    title: '行程申请',
+    actionText: '申请加入你的行程',
+    content: message || getTripTitle(tripData, placeName),
+    thumbnail: getTripThumbnail(tripData),
+    createdAt: now
   });
 
   return { success: true };
@@ -163,6 +194,32 @@ async function applyHandle(openid, data) {
       contactValue: apply.contactValue
     });
   }
+
+  let tripData = null;
+  try {
+    const tripRes = await db.collection('trips').doc(apply.tripId).get();
+    tripData = tripRes && tripRes.data;
+  } catch (err) {
+    console.warn('生成申请处理通知时读取行程失败', err);
+  }
+  const now = Date.now();
+  await setNotification(db, {
+    receiverId: apply.fromUserId,
+    category: 'trip',
+    type: accept ? 'trip_apply_accepted' : 'trip_apply_rejected',
+    actorId: openid,
+    actorName: apply.toUserName || (tripData && tripData.creatorName) || '行程发起人',
+    actorAvatar: tripData && tripData.creatorAvatar || '',
+    targetType: 'trip',
+    targetId: apply.tripId,
+    sourceType: 'apply',
+    sourceId: apply.groupId || apply._id,
+    title: accept ? '申请已通过' : '申请未通过',
+    actionText: accept ? '通过了你的行程申请' : '拒绝了你的行程申请',
+    content: getTripTitle(tripData, apply.placeName),
+    thumbnail: getTripThumbnail(tripData),
+    createdAt: now
+  });
 
   return { success: true };
 }
@@ -514,6 +571,31 @@ async function applyCancel(openid, data) {
       console.warn('同步更新对方记录状态失败', err);
     }
   }
+
+  let tripData = null;
+  try {
+    const tripRes = await db.collection('trips').doc(apply.tripId).get();
+    tripData = tripRes && tripRes.data;
+  } catch (err) {
+    console.warn('生成取消申请通知时读取行程失败', err);
+  }
+  await setNotification(db, {
+    receiverId: apply.toUserId,
+    category: 'trip',
+    type: 'trip_apply_cancelled',
+    actorId: openid,
+    actorName: apply.fromUserName || '旅行者',
+    actorAvatar: apply.fromUserAvatar || '',
+    targetType: 'trip',
+    targetId: apply.tripId,
+    sourceType: 'apply',
+    sourceId: apply.groupId || apply._id,
+    title: '申请已取消',
+    actionText: '取消了加入申请',
+    content: getTripTitle(tripData, apply.placeName),
+    thumbnail: getTripThumbnail(tripData),
+    createdAt: Date.now()
+  });
 
   return { success: true };
 }

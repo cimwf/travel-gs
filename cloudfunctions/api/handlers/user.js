@@ -1,5 +1,6 @@
 const { db, _, cloud, crypto, normalizeAvatarForDb, isLocalTempFilePath } = require('../utils/shared');
 const nodeCrypto = require('crypto');
+const { setNotification, removeNotification } = require('./notification');
 
 const BEIJING_DISTRICTS = [
   '海淀区', '朝阳区', '丰台区', '东城区', '西城区', '石景山区', '门头沟区', '房山区',
@@ -657,6 +658,7 @@ async function userFollowToggle(openid, data) {
       let targetFollowers = Math.max(0, Number(latestTarget.followers) || 0);
       if (follow) {
         await followDoc.remove();
+        await removeNotification(transaction, 'user_follow', target.openid, followId);
         isFollowing = false;
         viewerFollowing = Math.max(0, viewerFollowing - 1);
         targetFollowers = Math.max(0, targetFollowers - 1);
@@ -672,6 +674,22 @@ async function userFollowToggle(openid, data) {
             createdAt: now,
             updatedAt: now
           }
+        });
+        await setNotification(transaction, {
+          receiverId: target.openid,
+          category: 'interaction',
+          type: 'user_follow',
+          actorId: openid,
+          actorName: latestViewer.nickname || '旅行者',
+          actorAvatar: latestViewer.avatar || '',
+          targetType: 'user',
+          targetId: openid,
+          sourceType: 'follow',
+          sourceId: followId,
+          title: '关注通知',
+          actionText: '关注了你',
+          content: '查看对方个人主页',
+          createdAt: now
         });
         isFollowing = true;
         viewerFollowing += 1;

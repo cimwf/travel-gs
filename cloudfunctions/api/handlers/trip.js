@@ -1,5 +1,25 @@
 const { db, _, cloud, safeAvatar } = require('../utils/shared');
 const { recordUserStatEvent } = require('./auth');
+const { setNotification } = require('./notification');
+
+function getTripTitle(trip) {
+  return trip && (trip.tripTitle || trip.placeName) || '行程';
+}
+
+function getTripThumbnail(trip) {
+  if (!trip) return '';
+  return trip.customCoverImage || trip.tripAvatar ||
+    (Array.isArray(trip.coverImages) && trip.coverImages[0]) || trip.tripImage || '';
+}
+
+async function createTripNotification(payload) {
+  return setNotification(db, Object.assign({
+    category: 'trip',
+    targetType: 'trip',
+    sourceType: 'trip',
+    title: '行程通知'
+  }, payload));
+}
 
 async function resolveTripCoverImages(trips = []) {
   const fileIDs = new Set();
@@ -472,7 +492,7 @@ async function tripQuit(openid, data) {
     }
   });
 
-  await db.collection('applies').add({
+  const applyRes = await db.collection('applies').add({
     data: {
       tripId,
       placeId: trip.placeId || '',
@@ -486,6 +506,21 @@ async function tripQuit(openid, data) {
       unread: true,
       createdAt: Date.now()
     }
+  });
+
+  await createTripNotification({
+    receiverId: trip.creatorId,
+    type: 'trip_member_quit',
+    actorId: openid,
+    actorName: quitterName,
+    actorAvatar: quitterAvatar,
+    targetId: tripId,
+    sourceType: 'member_change',
+    sourceId: applyRes._id,
+    actionText: '退出了你的行程',
+    content: getTripTitle(trip),
+    thumbnail: getTripThumbnail(trip),
+    createdAt: Date.now()
   });
 
   return { success: true };
@@ -535,7 +570,7 @@ async function tripRemoveMember(openid, data) {
   const removedMember = trip.participants.find(p => p.userId === memberId);
   const removedName = removedMember ? removedMember.nickname : '旅行者';
 
-  await db.collection('applies').add({
+  const applyRes = await db.collection('applies').add({
     data: {
       tripId,
       placeId: trip.placeId || '',
@@ -549,6 +584,21 @@ async function tripRemoveMember(openid, data) {
       unread: true,
       createdAt: Date.now()
     }
+  });
+
+  await createTripNotification({
+    receiverId: memberId,
+    type: 'trip_member_removed',
+    actorId: openid,
+    actorName: trip.creatorName || '行程发起人',
+    actorAvatar: trip.creatorAvatar || '',
+    targetId: tripId,
+    sourceType: 'member_change',
+    sourceId: applyRes._id,
+    actionText: '将你移出了行程',
+    content: getTripTitle(trip),
+    thumbnail: getTripThumbnail(trip),
+    createdAt: Date.now()
   });
 
   return { success: true };
@@ -603,6 +653,20 @@ async function tripUpdateStatus(openid, data) {
           createdAt: now
         }
       });
+      await createTripNotification({
+        receiverId: p.userId,
+        type: 'trip_cancelled',
+        actorId: openid,
+        actorName: trip.creatorName || '行程发起人',
+        actorAvatar: trip.creatorAvatar || '',
+        targetId: tripId,
+        sourceType: 'trip_status',
+        sourceId: tripId + ':cancelled',
+        actionText: '取消了行程',
+        content: getTripTitle(trip),
+        thumbnail: getTripThumbnail(trip),
+        createdAt: now
+      });
     }
   }
 
@@ -646,6 +710,21 @@ async function tripDelete(openid, data) {
           createdAt: now
         }
       });
+      await createTripNotification({
+        receiverId: p.userId,
+        type: 'trip_deleted',
+        actorId: openid,
+        actorName: trip.creatorName || '行程发起人',
+        actorAvatar: trip.creatorAvatar || '',
+        targetType: '',
+        targetId: '',
+        sourceType: 'trip_status',
+        sourceId: tripId + ':deleted',
+        actionText: '删除了行程',
+        content: getTripTitle(trip),
+        thumbnail: getTripThumbnail(trip),
+        createdAt: now
+      });
     }
   }
 
@@ -679,7 +758,15 @@ async function tripUpdate(openid, data) {
     }
   });
 
-  updateData.updatedAt = Date.now();
+  const now = Date.now();
+  updateData.updatedAt = now;
+
+  const timeChanged =
+    (updateData.date !== undefined && String(updateData.date || '') !== String(trip.date || '')) ||
+    (updateData.meetingTime !== undefined && String(updateData.meetingTime || '') !== String(trip.meetingTime || ''));
+  const locationChanged =
+    (updateData.meetingPlace !== undefined && String(updateData.meetingPlace || '') !== String(trip.meetingPlace || '')) ||
+    (updateData.departure !== undefined && String(updateData.departure || '') !== String(trip.departure || ''));
 
   if (updateData.needCount !== undefined) {
     updateData.totalParticipants = (trip.currentCount || 1) + updateData.needCount;
@@ -688,6 +775,53 @@ async function tripUpdate(openid, data) {
   await db.collection('trips').doc(tripId).update({
     data: updateData
   });
+
+  const members = Array.isArray(trip.participants) ? trip.participants : [];
+  for (const participant of members) {
+    if (!participant.userId || participant.userId === openid) continue;
+    if (timeChanged) {
+      const dateText = updateData.date !== undefined ? updateData.date : trip.date;
+      const meetingTimeText = updateData.meetingTime !== undefined
+        ? updateData.meetingTime
+        : trip.meetingTime;
+      await createTripNotification({
+        receiverId: participant.userId,
+        type: 'trip_time_changed',
+        actorId: openid,
+        actorName: trip.creatorName || '行程发起人',
+        actorAvatar: trip.creatorAvatar || '',
+        targetId: tripId,
+        sourceType: 'trip_update',
+        sourceId: tripId + ':' + now + ':time',
+        actionText: '修改了行程时间',
+        content: [dateText, meetingTimeText].filter(Boolean).join(' ') || getTripTitle(trip),
+        thumbnail: getTripThumbnail(trip),
+        createdAt: now
+      });
+    }
+    if (locationChanged) {
+      const meetingPlaceText = updateData.meetingPlace !== undefined
+        ? updateData.meetingPlace
+        : trip.meetingPlace;
+      const departureText = updateData.departure !== undefined
+        ? updateData.departure
+        : trip.departure;
+      await createTripNotification({
+        receiverId: participant.userId,
+        type: 'trip_location_changed',
+        actorId: openid,
+        actorName: trip.creatorName || '行程发起人',
+        actorAvatar: trip.creatorAvatar || '',
+        targetId: tripId,
+        sourceType: 'trip_update',
+        sourceId: tripId + ':' + now + ':location',
+        actionText: '修改了集合地点',
+        content: [departureText, meetingPlaceText].filter(Boolean).join(' · ') || getTripTitle(trip),
+        thumbnail: getTripThumbnail(trip),
+        createdAt: now
+      });
+    }
+  }
 
   return { success: true };
 }

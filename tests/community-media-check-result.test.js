@@ -20,16 +20,21 @@ const state = {
   posts: {
     'post-1': {
       _id: 'post-1',
+      authorId: 'openid-author',
+      content: '测试图片作品',
+      images: [{ url: 'https://example.com/post.jpg' }],
       reviewStatus: 'reviewing',
       imageAuditTraceIds: ['trace-1', 'trace-2']
     }
   },
+  notifications: {},
   transactionConflictsRemaining: 0
 };
 
 function collectionStore(name) {
   if (name === 'community_image_audits') return state.audits;
   if (name === 'community_posts') return state.posts;
+  if (name === 'notifications') return state.notifications;
   throw new Error(`Unexpected collection: ${name}`);
 }
 
@@ -47,6 +52,9 @@ function makeCollection(name, transactionMode) {
             }
             if (!store[id]) throw new Error(`Missing document: ${name}/${id}`);
             Object.assign(store[id], data);
+          },
+          async set({ data }) {
+            store[id] = { _id: id, ...data };
           }
         };
       }
@@ -109,7 +117,12 @@ async function main() {
   });
   assert.strictEqual(result.success, true);
   assert.strictEqual(result.reviewStatus, 'approved');
+  assert.strictEqual(result.machineSuggest, 'pass');
   assert.strictEqual(state.posts['post-1'].reviewStatus, 'approved');
+  assert.strictEqual(state.posts['post-1'].machineSuggest, 'pass');
+  assert.strictEqual(state.posts['post-1'].adminReviewStatus, 'not_required');
+  assert(Object.values(state.notifications).some((item) =>
+    item.type === 'community_review_approved' && item.receiverId === 'openid-author'));
 
   state.audits['trace-1'].suggest = 'pending';
   state.audits['trace-2'].suggest = 'pending';
@@ -121,19 +134,48 @@ async function main() {
   });
   assert.strictEqual(result.success, true);
   assert.strictEqual(result.reviewStatus, 'manual_review');
+  assert.strictEqual(result.machineSuggest, 'risky');
   assert.strictEqual(state.posts['post-1'].reviewStatus, 'manual_review');
+  assert.strictEqual(state.posts['post-1'].adminReviewStatus, 'pending');
+  assert(Object.values(state.notifications).some((item) =>
+    item.type === 'community_review_manual' && item.receiverId === 'openid-author'));
+
+  state.posts['post-1'].adminReviewStatus = 'approved';
+  state.posts['post-1'].reviewStatus = 'approved';
+  result = await callback.main({
+    trace_id: 'trace-2',
+    result: { suggest: 'pass', label: 100 }
+  });
+  assert.strictEqual(result.reviewStatus, 'approved');
+  assert.strictEqual(state.posts['post-1'].adminReviewStatus, 'approved');
+  assert.strictEqual(state.posts['post-1'].reviewStatus, 'approved');
 
   state.audits['trace-1'].suggest = 'pending';
   state.audits['trace-2'].suggest = 'pending';
   state.posts['post-1'].reviewStatus = 'reviewing';
+  state.posts['post-1'].adminReviewStatus = 'not_required';
 
   result = await callback.main({
     trace_id: 'trace-1',
     result: { suggest: 'review', label: 20002 }
   });
   assert.strictEqual(result.success, true);
-  assert.strictEqual(result.reviewStatus, 'manual_review');
-  assert.strictEqual(state.posts['post-1'].reviewStatus, 'manual_review');
+  assert.strictEqual(result.reviewStatus, 'reviewing');
+  assert.strictEqual(result.machineSuggest, 'pending');
+  assert.strictEqual(state.posts['post-1'].reviewStatus, 'reviewing');
+
+  result = await callback.main({
+    trace_id: 'trace-2',
+    result: { suggest: 'pass', label: 100 }
+  });
+  assert.strictEqual(result.success, true);
+  assert.strictEqual(result.reviewStatus, 'approved');
+  assert.strictEqual(result.machineSuggest, 'review');
+  assert.strictEqual(state.posts['post-1'].reviewStatus, 'approved');
+  assert.strictEqual(state.posts['post-1'].machineSuggest, 'review');
+  assert.strictEqual(state.posts['post-1'].adminReviewStatus, 'pending');
+  assert(Object.values(state.notifications).some((item) =>
+    item.type === 'community_review_pending' && item.receiverId === 'openid-author'));
 
   result = await callback.main({
     trace_id: 'trace-2',

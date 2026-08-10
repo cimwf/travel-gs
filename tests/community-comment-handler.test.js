@@ -18,7 +18,8 @@ const state = {
     commentCount: 0
   },
   comments: [],
-  replies: []
+  replies: [],
+  notifications: {}
 };
 
 function postDocument(id) {
@@ -190,6 +191,17 @@ const db = {
             }
           };
         }
+        if (name === 'notifications') {
+          return {
+            doc(id) {
+              return {
+                async set({ data }) {
+                  state.notifications[id] = { _id: id, ...data };
+                }
+              };
+            }
+          };
+        }
         throw new Error(`Unexpected transaction collection: ${name}`);
       }
     });
@@ -229,6 +241,11 @@ async function main() {
   assert.strictEqual(created.commentCount, 1);
   assert.strictEqual(state.post.commentCount, 1);
   assert.strictEqual(state.comments.length, 1);
+  assert.strictEqual(Object.keys(state.notifications).length, 1);
+  const commentNotification = Object.values(state.notifications)[0];
+  assert.strictEqual(commentNotification.receiverId, 'openid-author');
+  assert.strictEqual(commentNotification.type, 'community_comment');
+  assert.strictEqual(commentNotification.content, '来聊聊这个话题吧');
 
   const listed = await community.communityCommentList('', {
     postId: state.post._id,
@@ -252,6 +269,9 @@ async function main() {
   assert.strictEqual(replyA.comment.replyToUserId, 'openid-commenter');
   assert.strictEqual(state.comments[0].replyCount, 1);
   assert.strictEqual(state.post.commentCount, 2);
+  assert(Object.values(state.notifications).some((item) =>
+    item.type === 'community_reply' && item.receiverId === 'openid-commenter' &&
+    item.actorId === 'openid-a'));
 
   const replyC = await community.communityCommentCreate('openid-c', {
     postId: state.post._id,
@@ -264,6 +284,9 @@ async function main() {
   assert.strictEqual(replyC.comment.replyToUserId, 'openid-a');
   assert.strictEqual(state.comments[0].replyCount, 2);
   assert.strictEqual(state.post.commentCount, 3);
+  assert(Object.values(state.notifications).some((item) =>
+    item.type === 'community_reply' && item.receiverId === 'openid-a' &&
+    item.actorId === 'openid-c'));
 
   const listedWithReplies = await community.communityCommentList('', {
     postId: state.post._id,
