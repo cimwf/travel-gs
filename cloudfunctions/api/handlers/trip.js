@@ -10,8 +10,8 @@ function getTripTitle(trip) {
 
 function getTripThumbnail(trip) {
   if (!trip) return '';
-  return trip.customCoverImage || trip.tripAvatar ||
-    (Array.isArray(trip.coverImages) && trip.coverImages[0]) || trip.tripImage || '';
+  return (Array.isArray(trip.coverImages) && trip.coverImages[0]) ||
+    trip.placeCoverImage || trip.tripImage || '';
 }
 
 async function createTripNotification(payload) {

@@ -104,9 +104,7 @@ Page({
   },
 
   getTripCover: function (trip) {
-    return trip.customCoverImageUrl ||
-      trip.customCoverImage ||
-      (trip.coverImageUrls && trip.coverImageUrls[0]) ||
+    return (trip.coverImageUrls && trip.coverImageUrls[0]) ||
       trip.placeCoverImage ||
       trip.placeImage ||
       (trip.placeId ? this.getPlaceCover(trip.placeId) : '');

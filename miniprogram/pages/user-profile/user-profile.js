@@ -268,9 +268,7 @@ Page({
         return item._id === trip.placeId || item.id === trip.placeId;
       })
       : null;
-    const placeCoverImage = trip.customCoverImageUrl ||
-      trip.customCoverImage ||
-      (trip.coverImageUrls && trip.coverImageUrls[0]) ||
+    const placeCoverImage = (trip.coverImageUrls && trip.coverImageUrls[0]) ||
       trip.placeCoverImage ||
       trip.placeImage ||
       (attraction && attraction.coverImage) ||

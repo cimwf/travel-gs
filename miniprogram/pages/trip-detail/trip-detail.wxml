@@ -395,26 +395,9 @@
   <view class="cover-modal" catchtap>
     <!-- 顶部标题栏 -->
     <view class="cover-modal-header">
-      <text class="cover-modal-title">更换图片</text>
+      <text class="cover-modal-title">更换封面</text>
       <view class="cover-modal-close" bindtap="onCloseCoverModal">
         <text class="cover-modal-close-icon">×</text>
-      </view>
-    </view>
-
-    <!-- 行程头像 -->
-    <view class="cover-section">
-      <view class="cover-section-label">行程头像</view>
-      <view class="cover-avatar-row">
-        <view class="cover-avatar-wrap">
-          <image wx:if="{{pendingAvatar}}" class="cover-avatar-img" src="{{pendingAvatar.url}}" mode="aspectFill"></image>
-          <view wx:else class="cover-avatar-empty">
-            <text class="cover-avatar-empty-icon">🏔️</text>
-          </view>
-        </view>
-        <view class="cover-avatar-btns">
-          <view class="cover-avatar-btn-upload" bindtap="onUploadAvatar">{{pendingAvatar ? '更换头像' : '上传头像'}}</view>
-          <view class="cover-avatar-btn-del" wx:if="{{pendingAvatar}}" bindtap="onRemoveAvatar">删除</view>
-        </view>
       </view>
     </view>
 

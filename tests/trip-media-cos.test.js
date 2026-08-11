@@ -34,7 +34,9 @@ assert(uploadUtil.includes('cosUpload.uploadImage'));
 assert(uploadUtil.includes('maxConcurrency = Math.min(3'));
 assert(detail.includes("purpose: 'log'"));
 assert(detail.includes("purpose: 'cover'"));
-assert(detail.includes("purpose: 'avatar'"));
+assert(!detail.includes("purpose: 'avatar'"));
+assert(!detailWxml.includes('行程头像'));
+assert(!detailWxml.includes('onUploadAvatar'));
 assert(!detail.includes('wx.cloud.uploadFile'));
 
 assert(tripLog.includes('verifyUploadSession'));

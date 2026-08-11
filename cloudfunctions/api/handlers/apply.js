@@ -8,8 +8,7 @@ function getTripTitle(trip, fallback) {
 
 function getTripThumbnail(trip) {
   if (!trip) return '';
-  return trip.customCoverImage || trip.tripAvatar ||
-    (Array.isArray(trip.coverImageUrls) && trip.coverImageUrls[0]) ||
+  return (Array.isArray(trip.coverImageUrls) && trip.coverImageUrls[0]) ||
     (Array.isArray(trip.coverImages) && trip.coverImages[0]) ||
     trip.placeCoverImage || trip.tripImage || '';
 }

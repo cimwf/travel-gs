@@ -53,7 +53,6 @@ Page({
     logMenuLogId: '',
     // 更换封面相关
     showCoverModal: false,
-    pendingAvatar: null,
     pendingImages: [],
     savingCover: false
   },
@@ -1166,41 +1165,17 @@ Page({
     const trip = this.data.trip;
     if (!trip) return;
 
-    const pendingAvatar = trip.customCoverImage
-      ? {
-          url: trip.customCoverImageUrl || trip.customCoverImage || '',
-          fileID: trip.customCoverImage,
-          media: trip.customCoverImageObject || null
-        }
-      : null;
-
     const pendingImages = (trip.coverImages || []).map((fid, i) => ({
       url: (trip.coverImageUrls || [])[i] || '',
       fileID: fid,
       media: (trip.coverImageObjects || [])[i] || null
     }));
 
-    this.setData({ showCoverModal: true, pendingAvatar, pendingImages, savingCover: false });
+    this.setData({ showCoverModal: true, pendingImages, savingCover: false });
   },
 
   onCloseCoverModal: function () {
     this.setData({ showCoverModal: false });
-  },
-
-  onUploadAvatar: function () {
-    wx.chooseMedia({
-      count: 1,
-      mediaType: ['image'],
-      sourceType: ['album', 'camera'],
-      success: (res) => {
-        const file = res.tempFiles[0];
-        this.setData({ pendingAvatar: { url: file.tempFilePath, filePath: file.tempFilePath } });
-      }
-    });
-  },
-
-  onRemoveAvatar: function () {
-    this.setData({ pendingAvatar: null });
   },
 
   onAddCoverImages: function () {
@@ -1232,29 +1207,6 @@ Page({
     this.setData({ savingCover: true });
 
     try {
-      // 上传行程头像（如果是本地新图）
-      let customCoverImageValue = null;
-      let customCoverImageObject;
-      let avatarUploadSessionId = '';
-      const pa = this.data.pendingAvatar;
-      if (pa) {
-        if (pa.filePath) {
-          const avatarUpload = await tripMediaUpload.uploadFiles({
-            tripId: trip._id,
-            purpose: 'avatar',
-            files: [{ filePath: pa.filePath }]
-          });
-          customCoverImageObject = avatarUpload.media[0] || null;
-          customCoverImageValue = customCoverImageObject && customCoverImageObject.url || null;
-          avatarUploadSessionId = avatarUpload.sessionId;
-        } else if (pa.fileID) {
-          customCoverImageValue = pa.fileID;
-          customCoverImageObject = pa.media || undefined;
-        }
-      } else {
-        customCoverImageObject = null;
-      }
-
       // 一次上传全部新增封面，再与保留的旧云文件/COS 图片按原顺序合并。
       const pendingImages = this.data.pendingImages;
       const newCoverItems = pendingImages.filter(img => !!img.filePath);
@@ -1277,17 +1229,12 @@ Page({
 
       await api.tripUpdate({
         tripId: trip._id,
-        customCoverImage: customCoverImageValue,
-        customCoverImageObject,
-        avatarUploadSessionId: avatarUploadSessionId || undefined,
-        tripAvatar: null,
         coverImages: finalImageValues,
         coverImageObjects: finalImageObjects,
         coverUploadSessionId: coverUpload.sessionId || undefined
       });
 
       // 详情头图只展示封面数组，回退到景点封面，不使用列表头像。
-      const avatarDisplayUrl = pa ? pa.url : '';
       const imageDisplayUrls = pendingImages.map(img => img.url);
       const attractionCover = this.getPlaceCover(trip.placeId) ||
         'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop';
@@ -1296,11 +1243,6 @@ Page({
       this.setData({
         showCoverModal: false,
         savingCover: false,
-        'trip.customCoverImage': customCoverImageValue,
-        'trip.customCoverImageObject': customCoverImageObject,
-        'trip.customCoverImageUrl': avatarDisplayUrl,
-        'trip.tripAvatar': null,
-        'trip.tripAvatarUrl': '',
         'trip.coverImages': finalImageValues,
         'trip.coverImageObjects': finalImageObjects,
         'trip.coverImageUrls': imageDisplayUrls,

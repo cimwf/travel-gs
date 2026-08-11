@@ -4,7 +4,7 @@
 
 - 发布行程日志：新图片写入 `miniapp/trip-logs/`。
 - 行程详情更换封面：新图片写入 `miniapp/trip-covers/`。
-- 行程列表头像：新图片写入 `miniapp/trip-avatars/`。
+- 行程头像已从更换封面入口移除，不再从小程序端新增上传。
 - 历史 `cloud://` 文件继续通过微信云存储临时链接展示，不做强制迁移。
 
 ## 上传与存储
@@ -41,9 +41,9 @@ COS 配置复用社区已有环境变量：
 - `trip_logs.images` 新数据保存 `{ provider, key, url, ... }`；旧数据继续支持 `{ fileID, cloudPath }`。
 - `trips.coverImages` 继续保存可直接展示的字符串。旧数据可以是 `cloud://`，新数据为 COS URL。
 - `trips.coverImageObjects` 保存新 COS 封面的对象元数据，用于安全校验和删除。
-- `trips.customCoverImageObject` 保存新 COS 行程头像的对象元数据。
+- `trips.customCoverImageObject` 仅保留对历史行程头像数据的兼容，前端不再修改。
 
-删除日志时会删除对应 COS 图片；更换或移除封面、行程头像时会删除不再使用的 COS 对象。删除失败会写入 `trip_media_cleanup_tasks`，供后续补偿任务重试。
+删除日志时会删除对应 COS 图片；更换或移除封面时会删除不再使用的 COS 对象。历史行程头像字段继续兼容读取，不在更换封面时改动。删除失败会写入 `trip_media_cleanup_tasks`，供后续补偿任务重试。
 
 ## 上线步骤
 
@@ -51,4 +51,4 @@ COS 配置复用社区已有环境变量：
 2. 确认 COS 环境变量与社区上传一致。
 3. 重新部署 `api` 云函数并安装云端依赖。
 4. 上传并体验新版小程序。
-5. 分别测试日志图片、行程封面和行程头像，并在 COS 对应目录确认对象存在。
+5. 分别测试日志图片和行程封面，并在 COS 对应目录确认对象存在。
