@@ -152,6 +152,22 @@ run('Community detail: approved UI structure and shared interaction icons', func
   var detailWxml = readText('miniprogram/pages/community-detail/community-detail.wxml');
   var detailWxss = readText('miniprogram/pages/community-detail/community-detail.wxss');
   ok(detailJson.navigationBarTitleText === '动态详情', 'detail uses system navigation');
+  ok(detailJson.enableShareAppMessage === true, 'system menu enables sharing to friends');
+  ok(detailJson.enableShareTimeline === true, 'system menu enables timeline sharing');
+  ok(detailWxml.indexOf('class="more-btn" bindtap="onPostMoreTap"') !== -1 &&
+    detailWxml.indexOf('class="post-actions-panel"') !== -1 &&
+    detailWxml.indexOf('open-type="share"') !== -1 &&
+    detailWxml.indexOf('删除动态') !== -1,
+  'custom more icon opens share and delete actions');
+  ok(detailWxss.indexOf('.post-action-item') !== -1 &&
+    detailWxss.indexOf('.post-actions-panel') !== -1 &&
+    detailWxss.indexOf('min-width: 750rpx') !== -1 &&
+    detailWxss.indexOf('.post-action-share') !== -1 &&
+    detailWxss.indexOf('width: 750rpx') !== -1,
+  'detail action sheet rows use full-width tap targets');
+  ok(detailJs.indexOf('onShareAppMessage: function ()') !== -1 &&
+    detailJs.indexOf("/pages/community-detail/community-detail?id=") !== -1,
+  'shared card opens the same community detail');
   ok(detailWxml.indexOf('128人赞过') === -1, 'like heading uses live count');
   ok(detailWxml.indexOf('{{post.likeCount || 0}}人赞过') !== -1, 'like list section rendered');
   ok(detailWxml.indexOf('共{{post.commentCount || 0}}条评论') !== -1, 'comment list section rendered');

@@ -19,7 +19,9 @@ Page({
     replyTarget: null,
     inputFocused: false,
     submittingComment: false,
-    scrollIntoView: ''
+    scrollIntoView: '',
+    showPostActions: false,
+    deletingPost: false
   },
 
   onLoad: function (options) {
@@ -602,6 +604,55 @@ Page({
     });
   },
 
+  onPostMoreTap: function () {
+    if (!this.data.post) return;
+    this.setData({ showPostActions: true });
+  },
+
+  onClosePostActions: function () {
+    if (this.data.deletingPost) return;
+    this.setData({ showPostActions: false });
+  },
+
+  onPostActionsPanelTap: function () {},
+
+  onDeletePostTap: function () {
+    if (!this.data.post || !this.data.post.isAuthor || this.data.deletingPost) return;
+    var self = this;
+    this.setData({ showPostActions: false });
+    wx.showModal({
+      title: '删除动态',
+      content: '删除后无法恢复，确定删除吗？',
+      confirmColor: '#FF4D4F',
+      success: function (result) {
+        if (!result.confirm) return;
+        self.deletePost();
+      }
+    });
+  },
+
+  deletePost: function () {
+    if (!this.data.post || this.data.deletingPost) return;
+    var postId = this.data.post._id;
+    this.setData({ deletingPost: true });
+    wx.showLoading({ title: '删除中...', mask: true });
+    var self = this;
+    api.communityDelete(postId).then(function () {
+      try { wx.removeStorageSync('communityDetailPost:' + postId); } catch (e) { /* ignore */ }
+      wx.hideLoading();
+      wx.showToast({ title: '已删除', icon: 'success' });
+      setTimeout(function () {
+        var pages = getCurrentPages();
+        if (pages.length > 1) wx.navigateBack();
+        else wx.switchTab({ url: '/pages/community/community' });
+      }, 500);
+    }).catch(function (error) {
+      wx.hideLoading();
+      self.setData({ deletingPost: false });
+      wx.showToast({ title: error.message || '删除失败，请重试', icon: 'none' });
+    });
+  },
+
   deleteComment: function (commentId, targetType, rootCommentId) {
     if (!this.data.post || !commentId || this._deletingCommentId) return;
     this._deletingCommentId = targetType + ':' + commentId;
@@ -671,5 +722,41 @@ Page({
         commentCount: Math.max(0, Number(this.data.post.commentCount) || 0)
       });
     }
+  },
+
+  getShareTitle: function () {
+    var post = this.data.post || {};
+    var content = String(post.content || '').trim();
+    if (content) return content.length > 28 ? content.slice(0, 28) + '…' : content;
+    return (post.authorName || '旅行者') + '分享了一条社区动态';
+  },
+
+  getShareImageUrl: function () {
+    var images = this.data.post && this.data.post.images || [];
+    var first = images[0];
+    return typeof first === 'string' ? first : first && first.url || '';
+  },
+
+  onShareAppMessage: function () {
+    if (this.data.showPostActions) this.setData({ showPostActions: false });
+    var postId = this.data.post && this.data.post._id || this._postId || '';
+    var result = {
+      title: this.getShareTitle(),
+      path: '/pages/community-detail/community-detail?id=' + encodeURIComponent(postId)
+    };
+    var imageUrl = this.getShareImageUrl();
+    if (imageUrl) result.imageUrl = imageUrl;
+    return result;
+  },
+
+  onShareTimeline: function () {
+    var postId = this.data.post && this.data.post._id || this._postId || '';
+    var result = {
+      title: this.getShareTitle(),
+      query: 'id=' + encodeURIComponent(postId)
+    };
+    var imageUrl = this.getShareImageUrl();
+    if (imageUrl) result.imageUrl = imageUrl;
+    return result;
   }
 });

@@ -22,7 +22,9 @@
             <text class="post-time">{{post.timeText}}</text>
           </view>
         </view>
-        <image class="more-icon" src="/images/icon-more-gray.png" mode="aspectFit"></image>
+        <view class="more-btn" bindtap="onPostMoreTap" aria-label="更多操作">
+          <image class="more-icon" src="/images/icon-more-gray.png" mode="aspectFit"></image>
+        </view>
       </view>
 
       <view class="post-body" wx:if="{{post.content}}">
@@ -152,6 +154,18 @@
     <view class="interaction-action" bindtap="onCommentTap">
       <image class="interaction-icon" src="/images/icon-comment-gray.svg" mode="aspectFit"></image>
       <text class="interaction-count">{{post.commentCount || 0}}</text>
+    </view>
+  </view>
+
+  <view class="post-actions-mask" wx:if="{{showPostActions}}" catchtap="onClosePostActions">
+    <view class="post-actions-panel" catchtap="onPostActionsPanelTap">
+      <button class="post-action-item post-action-share" open-type="share"
+        hover-class="post-action-hover" aria-label="分享动态">分享动态</button>
+      <button class="post-action-item post-action-delete" wx:if="{{post.isAuthor}}"
+        hover-class="post-action-hover" bindtap="onDeletePostTap">删除动态</button>
+      <view class="post-actions-gap"></view>
+      <button class="post-action-item post-action-cancel" hover-class="post-action-hover"
+        bindtap="onClosePostActions">取消</button>
     </view>
   </view>
 </view>

@@ -130,6 +130,15 @@ page {
   height: 40rpx;
 }
 
+.more-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56rpx;
+  height: 56rpx;
+  flex-shrink: 0;
+}
+
 .post-body {
   margin-bottom: 16rpx;
 }
@@ -489,4 +498,87 @@ page {
 
 .liked-count {
   color: var(--liked);
+}
+
+.post-actions-mask {
+  position: fixed;
+  z-index: 300;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(0, 0, 0, .38);
+  box-sizing: border-box;
+}
+
+.post-actions-panel {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 750rpx;
+  min-width: 750rpx;
+  max-width: 750rpx;
+  padding-bottom: env(safe-area-inset-bottom);
+  border-radius: 28rpx 28rpx 0 0;
+  overflow: hidden;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.post-action-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 750rpx;
+  min-width: 750rpx;
+  max-width: 750rpx;
+  height: 104rpx;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  color: var(--text);
+  font-size: 30rpx;
+  font-weight: 400;
+  line-height: normal;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.post-action-share {
+  display: flex;
+  width: 750rpx;
+  min-width: 750rpx;
+  max-width: 750rpx;
+  height: 104rpx;
+}
+
+.post-action-item::after {
+  border: 0;
+}
+
+.post-action-item + .post-action-item {
+  border-top: 1rpx solid var(--border);
+}
+
+.post-action-delete {
+  color: #FF4D4F;
+}
+
+.post-actions-gap {
+  height: 16rpx;
+  background: var(--soft);
+}
+
+.post-action-cancel {
+  color: var(--secondary);
+  font-weight: 500;
+}
+
+.post-action-hover {
+  background: #F4F6F9;
 }
