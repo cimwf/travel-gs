@@ -298,6 +298,15 @@ test('profile 未登录 UI 和入口都指向登录页', () => {
   });
 });
 
+test('我的页面行程数使用真实行程列表，零行程时不展示', () => {
+  const js = read('miniprogram/pages/profile/profile.js');
+  const wxml = read('miniprogram/pages/profile/profile.wxml');
+  assert(js.includes('api.tripMy()'), 'profile should load the real current-user trip list');
+  assert(js.includes('tripResult.trips.length'), 'profile should derive the count from real trips');
+  assert(!js.includes('trips: Math.max(0, Number(userInfo.trips)'), 'profile should ignore the historical cached trip counter');
+  assert(wxml.includes('wx:if="{{stats.trips > 0}}"'), 'zero trip count should stay hidden');
+});
+
 test('我的互动使用系统头部并区分赞过和评论', () => {
   const pageJson = JSON.parse(read('miniprogram/pages/community-interactions/community-interactions.json'));
   const wxml = read('miniprogram/pages/community-interactions/community-interactions.wxml');

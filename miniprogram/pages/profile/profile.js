@@ -73,7 +73,8 @@ Page({
       following: Math.max(0, Number(userInfo.following) || 0),
       followers: Math.max(0, Number(userInfo.followers) || 0),
       receivedLikes: Math.max(0, Number(userInfo.receivedLikes) || 0),
-      trips: Math.max(0, Number(userInfo.trips) || 0),
+      // 行程数必须来自真实行程列表，不能使用用户表中的历史累计字段。
+      trips: 0,
       works: Math.max(0, Number(userInfo.works) || 0)
     };
   },
@@ -121,13 +122,25 @@ Page({
         app.globalData.openid;
       if (!storedUserInfo || !userId) return;
 
-      const result = await api.userGet(userId);
-      const latestUserInfo = { ...storedUserInfo, ...(result.user || {}) };
+      const results = await Promise.all([
+        api.userGet(userId),
+        api.tripMy().catch(function (err) {
+          console.warn('加载真实行程数量失败', err);
+          return { trips: [] };
+        })
+      ]);
+      const result = results[0];
+      const tripResult = results[1];
+      const tripCount = Array.isArray(tripResult.trips) ? tripResult.trips.length : 0;
+      const latestUserInfo = { ...storedUserInfo, ...(result.user || {}), trips: tripCount };
       wx.setStorageSync('userInfo', latestUserInfo);
       app.globalData.userInfo = latestUserInfo;
-      this.setData({ stats: this.getStatsFromUser(latestUserInfo) });
+      const stats = this.getStatsFromUser(latestUserInfo);
+      stats.trips = tripCount;
+      this.setData({ stats: stats });
     } catch (err) {
       console.error('加载统计数据失败', err);
+      this.setData({ 'stats.trips': 0 });
     }
   },
 
