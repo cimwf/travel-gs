@@ -18,6 +18,7 @@ const userSpots = require('./handlers/userSpots');
 const feedback = require('./handlers/feedback');
 const community = require('./handlers/community');
 const notification = require('./handlers/notification');
+const adminCommunity = require('./handlers/adminCommunity');
 const { resolveDataEnvironment } = require('./utils/dataEnvironment');
 
 exports.main = async (event, context) => {
@@ -217,6 +218,12 @@ exports.main = async (event, context) => {
         return await community.communityCommentDelete(openid, data);
       case 'community/delete':
         return await community.communityDelete(openid, data);
+
+      // ========== 后台社区审核 ==========
+      case 'admin/communityReviewList':
+        return await adminCommunity.adminCommunityReviewList(data);
+      case 'admin/communityReviewUpdate':
+        return await adminCommunity.adminCommunityReviewUpdate(data);
 
       default:
         return { success: false, error: '未知操作' };
