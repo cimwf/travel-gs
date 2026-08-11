@@ -359,19 +359,6 @@
   </view>
 </view>
 
-<!-- 申请加入弹窗组件 -->
-<apply-modal
-  show="{{showApplyModal}}"
-  placeName="{{trip.placeName || ''}}"
-  remainCount="{{remainCount || 0}}"
-  tripId="{{trip._id || ''}}"
-  toUserId="{{trip.creatorId || ''}}"
-  toUserName="{{trip.creatorName || ''}}"
-  defaultPhone="{{userInfo.contactPhone || userInfo.phone || ''}}"
-  bind:close="onCloseApplyModal"
-  bind:submit="onSubmitApplySuccess"
-/>
-
 <!-- 成员管理弹窗 -->
 <view class="member-modal-mask" wx:if="{{showMemberModal}}" bindtap="onCloseMemberModal">
   <view class="member-modal" catchtap>

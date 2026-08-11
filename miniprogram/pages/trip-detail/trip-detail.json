@@ -2,8 +2,5 @@
   "navigationBarTitleText": "行程详情",
   "navigationBarBackgroundColor": "#ffffff",
   "navigationBarTextStyle": "black",
-  "enablePullDownRefresh": true,
-  "usingComponents": {
-    "apply-modal": "/components/apply-modal/apply-modal"
-  }
+  "enablePullDownRefresh": true
 }

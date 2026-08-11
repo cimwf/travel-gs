@@ -12,6 +12,7 @@ const rows = [
   { _id: 'notify-4', receiverId: 'me', status: 'active', category: 'system', isRead: false, createdAt: 400 },
   { _id: 'notify-3', receiverId: 'me', status: 'active', category: 'interaction', isRead: false, createdAt: 300 },
   { _id: 'notify-2', receiverId: 'me', status: 'active', category: 'trip', isRead: true, createdAt: 200 },
+  { _id: 'notify-apply', receiverId: 'me', status: 'active', category: 'trip', type: 'trip_apply_received', targetId: 'apply-1', isRead: true, createdAt: 150 },
   { _id: 'notify-1', receiverId: 'other', status: 'active', category: 'interaction', isRead: false, createdAt: 500 },
   { _id: 'notify-deleted', receiverId: 'me', status: 'deleted', category: 'interaction', isRead: false, createdAt: 600 }
 ];
@@ -70,6 +71,18 @@ function makeQuery(initialCondition) {
 
 const db = {
   collection(name) {
+    if (name === 'applies') {
+      return {
+        doc(id) {
+          return {
+            async get() {
+              if (id !== 'apply-1') return { data: null };
+              return { data: { _id: id, ownerId: 'me', toUserId: 'me', tripId: 'trip-1', tripTitle: '周末徒步', status: 'pending' } };
+            }
+          };
+        }
+      };
+    }
     if (name !== 'notifications') throw new Error('Unexpected collection: ' + name);
     return {
       where(condition) {
@@ -120,8 +133,12 @@ async function main() {
     cursor: firstPage.nextCursor,
     cursorId: firstPage.nextCursorId
   });
-  assert.deepStrictEqual(secondPage.notifications.map(item => item._id), ['notify-2']);
+  assert.deepStrictEqual(secondPage.notifications.map(item => item._id), ['notify-2', 'notify-apply']);
   assert.strictEqual(secondPage.hasMore, false);
+  const applicationNotification = secondPage.notifications.find(item => item._id === 'notify-apply');
+  assert.strictEqual(applicationNotification.applyId, 'apply-1');
+  assert.strictEqual(applicationNotification.applyStatus, 'pending');
+  assert.strictEqual(applicationNotification.tripTitle, '周末徒步');
 
   const interactions = await notification.notificationList('me', {
     category: 'interaction',

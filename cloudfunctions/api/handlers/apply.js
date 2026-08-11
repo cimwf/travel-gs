@@ -9,7 +9,9 @@ function getTripTitle(trip, fallback) {
 function getTripThumbnail(trip) {
   if (!trip) return '';
   return trip.customCoverImage || trip.tripAvatar ||
-    (Array.isArray(trip.coverImages) && trip.coverImages[0]) || trip.tripImage || '';
+    (Array.isArray(trip.coverImageUrls) && trip.coverImageUrls[0]) ||
+    (Array.isArray(trip.coverImages) && trip.coverImages[0]) ||
+    trip.placeCoverImage || trip.tripImage || '';
 }
 
 function formatDate(dateStr) {
@@ -67,10 +69,10 @@ async function getTripCardCover(tripData, fallbackCover = '') {
 }
 
 async function applyCreate(openid, data) {
-  const { tripId, placeName, toUserId, toUserName, contactValue, message } = data;
+  const tripId = String(data && data.tripId || '').trim();
 
-  if (!tripId || !toUserId) {
-    return { success: false, error: '参数不完整' };
+  if (!tripId) {
+    return { success: false, error: '行程ID不能为空' };
   }
 
   const userRes = await db.collection('users').where({ openid }).get();
@@ -79,33 +81,54 @@ async function applyCreate(openid, data) {
     return { success: false, error: '用户不存在' };
   }
 
-  let placeId = '';
-  let tripData = null;
+  let tripData;
   try {
     const tripRes = await db.collection('trips').doc(tripId).get();
-    if (tripRes.data) {
-      tripData = tripRes.data;
-      placeId = tripData.placeId || '';
-    }
+    tripData = tripRes && tripRes.data;
   } catch (err) {
-    console.warn('获取行程placeId失败', err);
+    console.warn('获取申请行程失败', err);
+  }
+  if (!tripData) return { success: false, error: '行程不存在' };
+  if (!tripData.creatorId) return { success: false, error: '行程发起人信息不完整' };
+  if (tripData.creatorId === openid) return { success: false, error: '不能申请加入自己的行程' };
+  if (tripData.status !== 'open' || (tripData.tripStage || 'not_started') !== 'not_started') {
+    return { success: false, error: '该行程已无法申请加入' };
+  }
+  if ((Number(tripData.needCount) || 0) <= 0) {
+    return { success: false, error: '行程名额已满' };
+  }
+  if ((Array.isArray(tripData.participants) ? tripData.participants : []).some(item => item.userId === openid)) {
+    return { success: false, error: '您已参与该行程' };
+  }
+
+  // 一键申请防止连点和重复进入产生多条待处理记录。
+  try {
+    const existingRes = await db.collection('applies').where({ ownerId: openid }).get();
+    const existing = (existingRes.data || []).find(item =>
+      item.tripId === tripId && item.fromUserId === openid && item.status === 'pending'
+    );
+    if (existing) return { success: true, alreadyApplied: true };
+  } catch (err) {
+    console.warn('检查重复申请失败', err);
   }
 
   const now = Date.now();
   const groupId = 'group_' + now + '_' + Math.random().toString(36).slice(2, 8);
+  const tripTitle = getTripTitle(tripData);
 
   const commonData = {
     tripId,
-    placeId,
-    placeName: placeName || '',
+    placeId: tripData.placeId || '',
+    placeName: tripData.placeName || '',
+    tripTitle,
     fromUserId: openid,
     fromUserName: user.nickname || '旅行者',
     fromUserAvatar: safeAvatar(user.avatar),
-    toUserId,
-    toUserName: toUserName || '',
-    contactType: 'phone',
-    contactValue: contactValue || '',
-    message: message || '',
+    toUserId: tripData.creatorId,
+    toUserName: tripData.creatorName || '',
+    contactType: '',
+    contactValue: '',
+    message: '',
     status: 'pending',
     groupId,
     createdAt: now
@@ -116,11 +139,11 @@ async function applyCreate(openid, data) {
   });
 
   const receivedRes = await db.collection('applies').add({
-    data: { ...commonData, ownerId: toUserId, unread: true }
+    data: { ...commonData, ownerId: tripData.creatorId, unread: true }
   });
 
   await setNotification(db, {
-    receiverId: toUserId,
+    receiverId: tripData.creatorId,
     category: 'trip',
     type: 'trip_apply_received',
     actorId: openid,
@@ -131,13 +154,13 @@ async function applyCreate(openid, data) {
     sourceType: 'apply',
     sourceId: groupId,
     title: '行程申请',
-    actionText: '申请加入你的行程',
-    content: message || getTripTitle(tripData, placeName),
+    actionText: '申请加入',
+    content: tripTitle,
     thumbnail: getTripThumbnail(tripData),
     createdAt: now
   });
 
-  return { success: true };
+  return { success: true, applyId: receivedRes._id };
 }
 
 async function applyList(openid, data) {
@@ -162,8 +185,28 @@ async function applyHandle(openid, data) {
   const applyRes = await db.collection('applies').doc(applyId).get();
   const apply = applyRes.data;
 
-  if (apply.ownerId !== openid) {
+  if (!apply) return { success: false, error: '申请不存在' };
+
+  if (apply.ownerId !== openid || apply.toUserId !== openid) {
     return { success: false, error: '无权处理该申请' };
+  }
+
+  if (apply.status !== 'pending') {
+    return {
+      success: true,
+      status: apply.status,
+      alreadyHandled: true
+    };
+  }
+
+  if (accept && apply.fromUserId && apply.tripId) {
+    const joinResult = await tripJoin(apply.fromUserId, {
+      tripId: apply.tripId,
+      contactValue: ''
+    });
+    if (!joinResult || !joinResult.success) {
+      return { success: false, error: joinResult && joinResult.error || '加入行程失败' };
+    }
   }
 
   await db.collection('applies').doc(applyId).update({
@@ -180,19 +223,12 @@ async function applyHandle(openid, data) {
         .get();
       for (const peer of peerRes.data || []) {
         await db.collection('applies').doc(peer._id).update({
-          data: { status: accept ? 'accepted' : 'rejected', unread: true }
+          data: { status: accept ? 'accepted' : 'rejected', unread: !!accept }
         });
       }
     } catch (err) {
       console.warn('同步更新对方记录状态失败', err);
     }
-  }
-
-  if (accept && apply.fromUserId && apply.tripId) {
-    await tripJoin(apply.fromUserId, {
-      tripId: apply.tripId,
-      contactValue: apply.contactValue
-    });
   }
 
   let tripData = null;
@@ -202,26 +238,29 @@ async function applyHandle(openid, data) {
   } catch (err) {
     console.warn('生成申请处理通知时读取行程失败', err);
   }
-  const now = Date.now();
-  await setNotification(db, {
-    receiverId: apply.fromUserId,
-    category: 'trip',
-    type: accept ? 'trip_apply_accepted' : 'trip_apply_rejected',
-    actorId: openid,
-    actorName: apply.toUserName || (tripData && tripData.creatorName) || '行程发起人',
-    actorAvatar: tripData && tripData.creatorAvatar || '',
-    targetType: 'trip',
-    targetId: apply.tripId,
-    sourceType: 'apply',
-    sourceId: apply.groupId || apply._id,
-    title: accept ? '申请已通过' : '申请未通过',
-    actionText: accept ? '通过了你的行程申请' : '拒绝了你的行程申请',
-    content: getTripTitle(tripData, apply.placeName),
-    thumbnail: getTripThumbnail(tripData),
-    createdAt: now
-  });
+  // 只在通过时通知申请人；拒绝不发送任何通知。
+  if (accept) {
+    const now = Date.now();
+    await setNotification(db, {
+      receiverId: apply.fromUserId,
+      category: 'trip',
+      type: 'trip_apply_accepted',
+      actorId: openid,
+      actorName: apply.toUserName || (tripData && tripData.creatorName) || '行程发起人',
+      actorAvatar: tripData && tripData.creatorAvatar || '',
+      targetType: 'trip',
+      targetId: apply.tripId,
+      sourceType: 'apply',
+      sourceId: apply.groupId || apply._id,
+      title: getTripTitle(tripData, apply.tripTitle || apply.placeName),
+      actionText: '',
+      content: '恭喜你已通过申请，期待与你一起出发',
+      thumbnail: getTripThumbnail(tripData),
+      createdAt: now
+    });
+  }
 
-  return { success: true };
+  return { success: true, status: accept ? 'accepted' : 'rejected' };
 }
 
 async function applyNotifications(openid, page = 1, pageSize = 5) {

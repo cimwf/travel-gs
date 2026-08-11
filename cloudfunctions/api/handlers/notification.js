@@ -110,6 +110,33 @@ async function getUnreadCounts(openid) {
   };
 }
 
+async function enrichTripApplications(openid, notifications) {
+  const applicationItems = (notifications || []).filter(item =>
+    item.type === 'trip_apply_received' && item.targetId
+  );
+  if (applicationItems.length === 0) return;
+
+  await Promise.all(applicationItems.map(async item => {
+    try {
+      const result = await db.collection('applies').doc(item.targetId).get();
+      const apply = result && result.data;
+      if (!apply || apply.ownerId !== openid || apply.toUserId !== openid) {
+        item.applyId = '';
+        item.applyStatus = 'unavailable';
+        return;
+      }
+      item.applyId = apply._id || item.targetId;
+      item.applyStatus = apply.status || 'pending';
+      item.tripId = apply.tripId || '';
+      item.tripTitle = apply.tripTitle || apply.placeName || item.content || '行程';
+    } catch (err) {
+      console.warn('加载行程申请状态失败:', err.message || err);
+      item.applyId = '';
+      item.applyStatus = 'unavailable';
+    }
+  }));
+}
+
 async function notificationList(openid, data) {
   try {
     if (!openid) return { success: false, error: '请先登录' };
@@ -135,6 +162,7 @@ async function notificationList(openid, data) {
     let notifications = (results[0].data || []).slice();
     const hasMore = notifications.length > pageSize;
     if (hasMore) notifications = notifications.slice(0, pageSize);
+    await enrichTripApplications(openid, notifications);
     const last = notifications.length > 0 ? notifications[notifications.length - 1] : null;
 
     return {

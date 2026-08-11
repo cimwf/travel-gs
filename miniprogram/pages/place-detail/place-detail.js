@@ -12,9 +12,7 @@ Page({
     userInfo: null,
     statusBarHeight: 0,
 
-    // 弹窗相关
-    showApplyModal: false,
-    currentTrip: null
+    applyingTripId: ''
   },
 
   onLoad: function (options) {
@@ -306,7 +304,7 @@ Page({
   },
 
   // 点击申请加入
-  onApplyTap: function (e) {
+  onApplyTap: async function (e) {
     if (!auth.isLoggedIn()) {
       wx.showToast({ title: '请先登录', icon: 'none' });
       return;
@@ -315,13 +313,22 @@ Page({
     const tripId = e.currentTarget.dataset.id;
     const trip = this.data.trips.find(t => t._id === tripId);
 
-    if (trip) {
-      this.setData({
-        currentTrip: trip
-      });
+    if (!trip || trip.applicationSent || this.data.applyingTripId) return;
 
-      // 显示申请加入弹窗
-      this.setData({ showApplyModal: true });
+    this.setData({ applyingTripId: tripId });
+    wx.showLoading({ title: '发送中...', mask: true });
+    try {
+      await api.applyCreate({ tripId });
+      const trips = this.data.trips.map(function (item) {
+        return item._id === tripId ? Object.assign({}, item, { applicationSent: true }) : item;
+      });
+      this.setData({ applyingTripId: '', trips: trips });
+      wx.hideLoading();
+      wx.showToast({ title: '申请已发送', icon: 'success' });
+    } catch (err) {
+      this.setData({ applyingTripId: '' });
+      wx.hideLoading();
+      wx.showToast({ title: err.message || '发送失败，请重试', icon: 'none' });
     }
   },
 
@@ -331,16 +338,6 @@ Page({
     wx.navigateTo({
       url: `/pages/trip-detail/trip-detail?id=${tripId}`
     });
-  },
-
-  // 关闭申请加入弹窗
-  onCloseApplyModal: function () {
-    this.setData({ showApplyModal: false });
-  },
-
-  // 提交申请成功回调
-  onSubmitApplySuccess: function () {
-    this.setData({ showApplyModal: false });
   },
 
   // 分享

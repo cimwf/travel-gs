@@ -17,7 +17,7 @@ Page({
     hasJoined: false,
     isCreator: false,
     maskedPhone: '',
-    showApplyModal: false,
+    applySubmitting: false,
     userInfo: null,
     showMemberModal: false,
     selectedMember: null,
@@ -1025,13 +1025,13 @@ Page({
     });
   },
 
-  onJoinTap: function () {
+  onJoinTap: async function () {
     auth.saveDeepLink(`/pages/trip-detail/trip-detail?id=${this.data.tripId}`);
     if (!auth.ensureLogin()) {
       return;
     }
 
-    if (!this.data.canJoin) {
+    if (!this.data.canJoin || this.data.applySubmitting) {
       return;
     }
 
@@ -1042,15 +1042,22 @@ Page({
       return;
     }
 
-    this.setData({ showApplyModal: true });
-  },
-
-  onCloseApplyModal: function () {
-    this.setData({ showApplyModal: false });
-  },
-
-  onSubmitApplySuccess: function () {
-    this.setData({ showApplyModal: false });
+    this.setData({ applySubmitting: true });
+    wx.showLoading({ title: '发送中...', mask: true });
+    try {
+      await api.applyCreate({ tripId: trip._id });
+      this.setData({
+        applySubmitting: false,
+        canJoin: false,
+        joinBtnText: '申请已发送'
+      });
+      wx.hideLoading();
+      wx.showToast({ title: '申请已发送', icon: 'success' });
+    } catch (err) {
+      this.setData({ applySubmitting: false });
+      wx.hideLoading();
+      wx.showToast({ title: err.message || '发送失败，请重试', icon: 'none' });
+    }
   },
 
   onMemberTap: function (e) {

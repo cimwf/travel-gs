@@ -451,6 +451,11 @@ page {
   color: white;
 }
 
+.action-btn.disabled {
+  background: #aeb8c7;
+  color: #ffffff;
+}
+
 .action-btn.secondary {
   background: var(--bg-color);
   color: var(--text-secondary);

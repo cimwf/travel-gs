@@ -124,13 +124,29 @@ async function main() {
   const received = state.applies.find(item => item.ownerId === 'openid-creator');
   const rejected = await apply.applyHandle('openid-creator', { applyId: received._id, accept: false });
   assert.strictEqual(rejected.success, true);
-  assert(Object.values(state.notifications).some(item =>
+  assert(!Object.values(state.notifications).some(item =>
     item.type === 'trip_apply_rejected' && item.receiverId === 'openid-applicant'));
 
   const createdAgain = await apply.applyCreate('openid-applicant', {
     tripId: 'trip-1', toUserId: 'openid-creator', toUserName: '发起人'
   });
   assert.strictEqual(createdAgain.success, true);
+  const receivedPending = state.applies.filter(item =>
+    item.ownerId === 'openid-creator' && item.status === 'pending').pop();
+  const accepted = await apply.applyHandle('openid-creator', {
+    applyId: receivedPending._id,
+    accept: true
+  });
+  assert.strictEqual(accepted.success, true);
+  const acceptedNotification = Object.values(state.notifications).find(item =>
+    item.type === 'trip_apply_accepted' && item.receiverId === 'openid-applicant');
+  assert(acceptedNotification, 'accepted application should notify applicant');
+  assert.strictEqual(acceptedNotification.content, '恭喜你已通过申请，期待与你一起出发');
+
+  const createdThird = await apply.applyCreate('openid-applicant', {
+    tripId: 'trip-1', toUserId: 'openid-creator', toUserName: '发起人'
+  });
+  assert.strictEqual(createdThird.success, true);
   const sentPending = state.applies.filter(item =>
     item.ownerId === 'openid-applicant' && item.status === 'pending').pop();
   const cancelled = await apply.applyCancel('openid-applicant', { applyId: sentPending._id });
@@ -138,7 +154,7 @@ async function main() {
   assert(Object.values(state.notifications).some(item =>
     item.type === 'trip_apply_cancelled' && item.receiverId === 'openid-creator'));
 
-  console.log('PASS trip application events create unified notifications');
+  console.log('PASS trip application handles direct apply, approval notice and silent rejection');
 }
 
 main().catch(error => {

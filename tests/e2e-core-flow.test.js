@@ -35,17 +35,14 @@ async function main() {
 
     const removeTripId = await publishTrip(miniProgram, '自动化移除流程');
     await applyToTrip(miniProgram, removeTripId);
-    await assertApplicantNotification(miniProgram, 'pending');
     await approveApplication(miniProgram);
     await assertApplicantNotification(miniProgram, 'accepted');
     await removeApplicant(miniProgram, removeTripId);
-    await assertApplicantRemovedNotification(miniProgram);
 
     const quitTripId = await publishTrip(miniProgram, '自动化退出流程');
     await applyToTrip(miniProgram, quitTripId);
     await approveApplication(miniProgram);
     await quitAsApplicant(miniProgram, quitTripId);
-    await assertCreatorQuitNotification(miniProgram);
 
     console.log('\nCore trip flow passed');
   } finally {
@@ -63,7 +60,6 @@ async function connectOrLaunch() {
       cliPath,
       projectPath: root,
       port: autoPort,
-      args: ['--disable-gpu'],
       timeout: 60000,
       trustProject: true
     });
@@ -305,13 +301,48 @@ async function installCoreMock(miniProgram, reset = false) {
           placeName: trip.placeName,
           fromUserId: user.openid,
           fromUserName: user.nickname,
-          toUserId: data.toUserId,
-          toUserName: data.toUserName,
-          contactValue: data.contactValue,
-          message: data.message || '',
+          toUserId: trip.creatorId,
+          toUserName: trip.creatorName,
+          contactValue: '',
+          message: '',
           status: 'pending',
           createdAt: nowText()
         });
+        result = { success: true };
+      } else if (name === 'api' && action === 'notification/list') {
+        const openid = currentOpenid();
+        const notifications = db.applies.filter((apply) => apply.toUserId === openid).map((apply) => {
+          const trip = db.trips[apply.tripId] || {};
+          return {
+            _id: `notify-${apply._id}`,
+            receiverId: openid,
+            category: 'trip',
+            type: 'trip_apply_received',
+            actorId: apply.fromUserId,
+            actorName: apply.fromUserName,
+            actorAvatar: '',
+            targetType: 'trip_apply',
+            targetId: apply._id,
+            sourceType: 'apply',
+            sourceId: apply._id,
+            content: trip.tripTitle || trip.placeName || '行程',
+            isRead: false,
+            createdAt: apply.createdAt,
+            applyId: apply._id,
+            applyStatus: apply.status,
+            tripId: apply.tripId,
+            tripTitle: trip.tripTitle || trip.placeName || '行程'
+          };
+        });
+        result = {
+          success: true,
+          notifications,
+          unreadCounts: { all: notifications.length, trip: notifications.length, interaction: 0 },
+          hasMore: false,
+          nextCursor: 0,
+          nextCursorId: ''
+        };
+      } else if (name === 'api' && action === 'notification/markRead') {
         result = { success: true };
       } else if (name === 'api' && action === 'apply/notifications') {
         result = { success: true, notifications: buildNotifications(currentOpenid()) };
@@ -335,7 +366,7 @@ async function installCoreMock(miniProgram, reset = false) {
               trip.needCount = Math.max(0, trip.needCount - 1);
             }
           }
-          result = { success: true };
+          result = { success: true, status: data.accept ? 'accepted' : 'rejected' };
         }
       } else if (name === 'api' && action === 'trip/removeMember') {
         const trip = db.trips[data.tripId];
@@ -461,18 +492,6 @@ async function applyToTrip(miniProgram, tripId) {
 
   const join = await assertExists(page, '.footer-btn-full', 'join button');
   await join.tap();
-  await page.waitFor(600);
-  assert.strictEqual(await page.data('showApplyModal'), true, 'apply modal should be visible after tapping join');
-
-  const applyModal = await assertExists(page, 'apply-modal', 'apply modal component');
-  const phoneInput = await assertChildExists(applyModal, '.form-input', 'apply phone input');
-  await phoneInput.input(USERS.applicant.contactPhone);
-  const textareas = await applyModal.$$('.form-textarea');
-  if (textareas[0]) {
-    await textareas[0].input('我想参加这个行程');
-  }
-  const submitApply = await assertChildExists(applyModal, '.modal-btn-confirm', 'submit apply button');
-  await submitApply.tap();
   await page.waitFor(1000);
 
   const db = await getMockDb(miniProgram);
@@ -483,26 +502,23 @@ async function applyToTrip(miniProgram, tripId) {
 
 async function assertApplicantNotification(miniProgram, expectedStatus) {
   console.log(`RUN applicant notification: ${expectedStatus}`);
-  await setCurrentUser(miniProgram, 'applicant');
-  await installCoreMock(miniProgram);
-  const page = await miniProgram.reLaunch('/pages/trip-notifications/trip-notifications');
-  await page.waitFor(1500);
-  const notifications = await page.data('notifications');
-  assert(notifications.some((item) => item.type === 'sent' && item.status === expectedStatus), `applicant should see ${expectedStatus} notification`);
+  const db = await getMockDb(miniProgram);
+  assert(db.applies.some((item) => item.fromUserId === USERS.applicant.openid && item.status === expectedStatus),
+    `applicant application should be ${expectedStatus}`);
 }
 
 async function approveApplication(miniProgram) {
   console.log('RUN approve application');
   await setCurrentUser(miniProgram, 'creator');
   await installCoreMock(miniProgram);
-  const page = await miniProgram.reLaunch('/pages/trip-notifications/trip-notifications');
+  const page = await miniProgram.reLaunch('/pages/message-center/message-center');
   await page.waitFor(1500);
 
-  const notifications = await page.data('notifications');
-  const pending = notifications.find((item) => item.type === 'received' && !item.isHandled);
+  const notifications = await page.data('visibleMessages');
+  const pending = notifications.find((item) => item.isTripApply && item.applyStatus === 'pending');
   assert(pending, 'creator should see pending received notification');
 
-  const agree = await assertExists(page, '.action-btn.agree', 'agree button');
+  const agree = await assertExists(page, '.message-apply-agree', 'agree button');
   await agree.tap();
   await page.waitFor(1000);
 
@@ -512,7 +528,7 @@ async function approveApplication(miniProgram) {
   const trip = db.trips[apply.tripId];
   const participant = trip.participants.find((p) => p.userId === USERS.applicant.openid);
   assert(participant, 'applicant should join participants after approval');
-  assert.strictEqual(participant.contactPhone, USERS.applicant.contactPhone, 'approved participant should keep application contact phone');
+  assert.strictEqual(participant.contactPhone, '', 'direct application should not add a contact phone');
 }
 
 async function removeApplicant(miniProgram, tripId) {
@@ -542,16 +558,6 @@ async function removeApplicant(miniProgram, tripId) {
   assert(db.events.some((event) => event.status === 'removed' && event.toUserId === USERS.applicant.openid), 'removed notification event should be created');
 }
 
-async function assertApplicantRemovedNotification(miniProgram) {
-  console.log('RUN applicant removed notification');
-  await setCurrentUser(miniProgram, 'applicant');
-  await installCoreMock(miniProgram);
-  const page = await miniProgram.reLaunch('/pages/trip-notifications/trip-notifications');
-  await page.waitFor(1500);
-  const notifications = await page.data('notifications');
-  assert(notifications.some((item) => item.type === 'received' && item.status === 'removed'), 'applicant should see removed notification');
-}
-
 async function quitAsApplicant(miniProgram, tripId) {
   console.log('RUN applicant quit');
   await setCurrentUser(miniProgram, 'applicant');
@@ -569,16 +575,6 @@ async function quitAsApplicant(miniProgram, tripId) {
   const trip = db.trips[tripId];
   assert(!trip.participants.some((p) => p.userId === USERS.applicant.openid), 'applicant should quit participants');
   assert(db.events.some((event) => event.status === 'quit' && event.toUserId === USERS.creator.openid), 'quit notification event should be created');
-}
-
-async function assertCreatorQuitNotification(miniProgram) {
-  console.log('RUN creator quit notification');
-  await setCurrentUser(miniProgram, 'creator');
-  await installCoreMock(miniProgram);
-  const page = await miniProgram.reLaunch('/pages/trip-notifications/trip-notifications');
-  await page.waitFor(1500);
-  const notifications = await page.data('notifications');
-  assert(notifications.some((item) => item.type === 'received' && item.status === 'quit'), 'creator should see quit notification');
 }
 
 async function getMockDb(miniProgram) {

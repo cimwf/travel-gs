@@ -15,7 +15,6 @@
     "pages/trip-publish-success/trip-publish-success",
     "pages/trip-detail/trip-detail",
     "pages/my-trips/my-trips",
-    "pages/trip-notifications/trip-notifications",
     "pages/profile/profile",
     "pages/followers/followers",
     "pages/edit-profile/edit-profile",

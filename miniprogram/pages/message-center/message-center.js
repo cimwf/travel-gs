@@ -17,7 +17,8 @@ Page({
       all: 0,
       trip: 0,
       interaction: 0
-    }
+    },
+    handlingApplyId: ''
   },
 
   onLoad: function () {
@@ -106,11 +107,17 @@ Page({
   formatNotification: function (item) {
     const category = item.category || 'system';
     const isSystem = category === 'system';
+    const isTripApply = item.type === 'trip_apply_received';
+    const isApplyAccepted = item.type === 'trip_apply_accepted';
     const actorName = item.actorName || '';
-    const title = isSystem ? '系统通知' : (actorName || item.title || '消息通知');
-    const actionText = isSystem
+    const title = isApplyAccepted
+      ? (item.title || '行程申请')
+      : (isSystem ? '系统通知' : (actorName || item.title || '消息通知'));
+    const actionText = isApplyAccepted
+      ? ''
+      : (isSystem
       ? (item.title || '状态已更新')
-      : (item.actionText || item.title || '与你产生了互动');
+      : (item.actionText || item.title || '与你产生了互动'));
     let preview = item.content || '';
     if (preview.length > 42) preview = preview.slice(0, 42) + '…';
 
@@ -124,16 +131,23 @@ Page({
       createdAt: Number(item.createdAt) || 0,
       timeText: this.formatMessageTime(item.createdAt),
       unread: !item.isRead,
-      avatar: isSystem
+      avatar: isApplyAccepted
+        ? (item.thumbnail || item.actorAvatar || '')
+        : (isSystem
         ? '/images/xing-logo.png'
-        : (item.actorAvatar || (category === 'trip' ? item.thumbnail : '')),
+        : (item.actorAvatar || (category === 'trip' ? item.thumbnail : ''))),
       avatarText: isSystem ? '系' : ((actorName || '旅').slice(0, 1)),
       thumbnail: category === 'trip' ? '' : (item.thumbnail || ''),
       targetType: item.targetType || '',
       targetId: item.targetId || '',
       sourceType: item.sourceType || '',
       sourceId: item.sourceId || '',
-      actorId: item.actorId || ''
+      actorId: item.actorId || '',
+      isTripApply: isTripApply,
+      applyId: item.applyId || '',
+      applyStatus: item.applyStatus || '',
+      tripId: item.tripId || '',
+      tripTitle: item.tripTitle || preview || '行程'
     };
   },
 
@@ -184,6 +198,7 @@ Page({
     if (!message) return;
 
     this.markOneRead(message, index);
+    if (message.isTripApply) return;
     this.openMessageTarget(message);
   },
 
@@ -223,10 +238,6 @@ Page({
     }
     if (message.targetType === 'my_works') {
       wx.navigateTo({ url: '/pages/community-mine/community-mine' });
-      return;
-    }
-    if (message.type === 'trip_apply_received') {
-      wx.navigateTo({ url: '/pages/trip-notifications/trip-notifications' });
       return;
     }
     if (message.targetType === 'trip' && message.targetId) {
@@ -272,5 +283,36 @@ Page({
 
   onLogin: function () {
     auth.ensureLogin();
+  },
+
+  onApplyAction: function (event) {
+    const index = Number(event.currentTarget.dataset.index);
+    const accept = event.currentTarget.dataset.accept === true || event.currentTarget.dataset.accept === 'true';
+    const message = this.data.visibleMessages[index];
+    if (!message || !message.isTripApply || message.applyStatus !== 'pending' ||
+      !message.applyId || this.data.handlingApplyId) return;
+
+    this.markOneRead(message, index);
+    this.setData({ handlingApplyId: message.applyId });
+    wx.showLoading({ title: '处理中...', mask: true });
+    const self = this;
+    api.applyHandle(message.applyId, accept).then(function (result) {
+      const nextStatus = result.status || (accept ? 'accepted' : 'rejected');
+      const currentIndex = self.data.visibleMessages.findIndex(function (item) {
+        return item._id === message._id;
+      });
+      const update = {};
+      if (currentIndex >= 0) {
+        update['visibleMessages[' + currentIndex + '].applyStatus'] = nextStatus;
+      }
+      update.handlingApplyId = '';
+      self.setData(update);
+      wx.hideLoading();
+      wx.showToast({ title: accept ? '已同意' : '已拒绝', icon: 'success' });
+    }).catch(function (err) {
+      self.setData({ handlingApplyId: '' });
+      wx.hideLoading();
+      wx.showToast({ title: err.message || '处理失败，请重试', icon: 'none' });
+    });
   }
 });

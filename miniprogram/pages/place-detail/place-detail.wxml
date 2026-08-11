@@ -142,8 +142,8 @@
               -->
             </view>
             <!-- 自己发布的行程显示"查看行程"，别人的行程显示"申请加入" -->
-            <view class="action-btn {{item.isMyTrip ? 'secondary' : 'primary'}}" catchtap="{{item.isMyTrip ? 'onViewTrip' : 'onApplyTap'}}" data-id="{{item._id}}" data-index="{{index}}">
-              {{item.isMyTrip ? '查看行程' : '申请加入'}}
+            <view class="action-btn {{item.isMyTrip ? 'secondary' : 'primary'}} {{item.applicationSent ? 'disabled' : ''}}" catchtap="{{item.isMyTrip ? 'onViewTrip' : 'onApplyTap'}}" data-id="{{item._id}}" data-index="{{index}}">
+              {{item.isMyTrip ? '查看行程' : (item.applicationSent ? '申请已发送' : (applyingTripId === item._id ? '发送中...' : '申请加入'))}}
             </view>
           </view>
 
@@ -198,16 +198,3 @@
     <text>发布我的行程</text>
   </view>
 </view>
-
-<!-- 申请加入弹窗组件 -->
-<apply-modal
-  show="{{showApplyModal}}"
-  placeName="{{place.name || ''}}"
-  remainCount="{{currentTrip.needCount || 0}}"
-  tripId="{{currentTrip._id || ''}}"
-  toUserId="{{currentTrip.creatorId || ''}}"
-  toUserName="{{currentTrip.creatorName || ''}}"
-  defaultPhone="{{userInfo.phone || ''}}"
-  bind:close="onCloseApplyModal"
-  bind:submit="onSubmitApplySuccess"
-/>
