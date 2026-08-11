@@ -24,6 +24,8 @@
 16. user_follows - 用户关注关系表
 17. trip_media_upload_sessions - 行程媒体COS上传会话表
 18. trip_media_cleanup_tasks - 行程媒体COS清理任务表
+19. trip_comments - 行程评论表
+20. trip_comment_replies - 行程评论回复表
 ==========================================
 集合结构说明
 ==========================================
@@ -115,6 +117,7 @@ const tripSchema = {
   
   remark: "早上6点出发，AA制",
   status: "open",                   // open/full/cancelled
+  commentCount: 0,                  // 行程主评论与回复总数
   
   createdAt: 1711123200000
 };
@@ -360,6 +363,47 @@ const tripMediaCleanupTaskSchema = {
   updatedAt: 1786349400000
 };
 
+// 19. trip_comments - 行程评论表
+const tripCommentSchema = {
+  _id: "trip_comment_xxx",
+  tripId: "trip_xxx",
+  tripCreatorId: "openid_creator",
+  authorId: "openid_commenter",
+  authorName: "旅行者",
+  authorAvatar: "https://...",
+  content: "这次行程还有位置吗？",
+  likeCount: 0,
+  replyCount: 1,
+  isReply: false,
+  status: "active",                // active/deleted
+  createdAt: 1785149400000,
+  updatedAt: 1785149400000,
+  deletedAt: 0
+};
+
+// 20. trip_comment_replies - 行程评论回复表
+const tripCommentReplySchema = {
+  _id: "trip_reply_xxx",
+  tripId: "trip_xxx",
+  tripCreatorId: "openid_creator",
+  rootCommentId: "trip_comment_xxx",
+  parentReplyId: "",
+  replyToId: "trip_comment_xxx",
+  replyToType: "comment",          // comment/reply
+  replyToUserId: "openid_a",
+  replyToUserName: "A",
+  authorId: "openid_b",
+  authorName: "B",
+  authorAvatar: "https://...",
+  content: "还有一个位置。",
+  likeCount: 0,
+  isReply: true,
+  status: "active",
+  createdAt: 1785149400000,
+  updatedAt: 1785149400000,
+  deletedAt: 0
+};
+
 // 14. community_comments - 社区评论表
 const communityCommentSchema = {
   _id: "comment_xxx",
@@ -495,6 +539,12 @@ trip_media_upload_sessions:
 
 trip_media_cleanup_tasks:
   - status + createdAt（用于行程图片清理队列处理）
+
+trip_comments:
+  - tripId + status + createdAt + _id（复合索引，供行程主评论稳定分页）
+
+trip_comment_replies:
+  - tripId + rootCommentId + status + createdAt + _id（复合索引，供行程回复稳定分页）
 
 user_follows:
   - followerId + createdAt + _id（复合索引，供“关注”列表稳定分页）

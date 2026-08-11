@@ -27,7 +27,7 @@ Page({
     tripStage: 'not_started',
     isTripDay: false,
     activeTab: 'trip',
-    showTabs: false,
+    showTabs: true,
     canPublishLog: false,
     logGroups: [],
     windowWidth: 375,
@@ -36,6 +36,16 @@ Page({
     publishImages: [],
     publishLocation: null,
     publishSubmitting: false,
+    // 行程评论相关
+    comments: [],
+    commentsLoading: false,
+    commentsError: false,
+    commentsHasMore: true,
+    commentDraft: '',
+    commentPlaceholder: '说点什么…',
+    replyTarget: null,
+    inputFocused: false,
+    submittingComment: false,
     // 日志操作菜单
     showLogMenu: false,
     logMenuGroupIndex: -1,
@@ -53,6 +63,7 @@ Page({
     const windowInfo = wx.getWindowInfo();
     this.setData({
       tripId,
+      activeTab: options.focus === 'comments' ? 'comment' : 'trip',
       windowWidth: windowInfo.windowWidth || 375
     });
 
@@ -118,8 +129,9 @@ Page({
 
       if (res.success && res.trip) {
         await this.processTripData(res.trip);
-        // 加载日志
+        // 加载日志；评论在首次切换到评论 Tab 时加载。
         this.loadLogs(tripId, res.trip);
+        if (this.data.activeTab === 'comment') this.loadComments(true);
         return;
       }
     } catch (err) {
@@ -141,10 +153,9 @@ Page({
       const res = await api.tripLogList(tripId);
       if (res.success) {
         const groups = this.processLogGroups(res.groups || []);
-        const showTabs = groups.length > 0 || tripStage === 'ongoing';
         this.setData({
           logGroups: groups,
-          showTabs,
+          showTabs: true,
           activeTab: this.data.activeTab || 'trip'
         });
       }
@@ -274,12 +285,9 @@ Page({
       isTripDay = tripTime >= todayStart && tripTime <= todayEnd;
     }
 
-    // 是否展示 tabs（已开始或有日志）
-    const logCount = trip.logCount || 0;
-    const showTabs = tripStage === 'ongoing' || tripStage === 'ended' || logCount > 0;
-
-    // 刷新后尽量保持当前 tab，避免在旅途记录里下拉后跳回行程
-    const activeTab = this.data.activeTab === 'log' && showTabs ? 'log' : 'trip';
+    // 三个 Tab 从行程未开始时就固定展示，刷新时保持当前 Tab。
+    const validTabs = ['trip', 'log', 'comment'];
+    const activeTab = validTabs.includes(this.data.activeTab) ? this.data.activeTab : 'trip';
 
     let maskedPhone = '';
     if (trip.contactPhone) {
@@ -301,7 +309,7 @@ Page({
       tripStage: tripStage,
       canPublishLog,
       isTripDay,
-      showTabs,
+      showTabs: true,
       activeTab
     });
 
@@ -354,6 +362,7 @@ Page({
       creatorRating: 98,
       tripStage: 'not_started',
       logCount: 0,
+      commentCount: 0,
       logAuthorizedPublisherIds: []
     };
 
@@ -377,7 +386,7 @@ Page({
       maskedPhone,
       loading: false,
       tripStage: 'not_started',
-      showTabs: false,
+      showTabs: true,
       canPublishLog: false
     });
 
@@ -389,6 +398,9 @@ Page({
   onSwitchTab: function (e) {
     const tab = e.currentTarget.dataset.tab;
     this.setData({ activeTab: tab });
+    if (tab === 'comment' && !this._commentsLoaded && !this.data.commentsLoading) {
+      this.loadComments(true);
+    }
   },
 
   onPullDownRefresh: async function () {
@@ -399,7 +411,9 @@ Page({
     }
 
     try {
-      if (activeTab === 'log') {
+      if (activeTab === 'comment') {
+        await this.loadComments(true);
+      } else if (activeTab === 'log') {
         await this.loadTripDetail(tripId);
       }
     } finally {
@@ -454,6 +468,17 @@ Page({
   },
 
   onPublishLogTap: function () {
+    if (this.data.tripStage !== 'ongoing') {
+      wx.showToast({
+        title: this.data.tripStage === 'not_started' ? '出发后才能发布日志' : '行程已结束，不能发布日志',
+        icon: 'none'
+      });
+      return;
+    }
+    if (!this.data.canPublishLog) {
+      wx.showToast({ title: '暂无发布日志权限', icon: 'none' });
+      return;
+    }
     this.setData({
       showPublishModal: true,
       publishContent: '',
@@ -461,6 +486,254 @@ Page({
       publishLocation: null,
       publishSubmitting: false
     });
+  },
+
+  // ========== 行程评论 ==========
+
+  formatCommentTime: function (timestamp) {
+    if (!timestamp) return '';
+    const diff = Date.now() - Number(timestamp);
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(hours / 24);
+    if (minutes < 1) return '刚刚';
+    if (minutes < 60) return `${minutes}分钟前`;
+    if (hours < 24) return `${hours}小时前`;
+    if (days < 7) return `${days}天前`;
+    const date = new Date(Number(timestamp));
+    return `${date.getMonth() + 1}月${date.getDate()}日`;
+  },
+
+  formatTripReply: function (reply) {
+    const currentUserId = app.globalData.openid || wx.getStorageSync('openid') || '';
+    const tripCreatorId = this.data.trip && this.data.trip.creatorId || '';
+    return {
+      ...reply,
+      timeText: reply.timeText || this.formatCommentTime(reply.createdAt),
+      canDelete: !!currentUserId && (reply.authorId === currentUserId || tripCreatorId === currentUserId)
+    };
+  },
+
+  formatTripComment: function (comment) {
+    const currentUserId = app.globalData.openid || wx.getStorageSync('openid') || '';
+    const tripCreatorId = this.data.trip && this.data.trip.creatorId || '';
+    return {
+      ...comment,
+      timeText: comment.timeText || this.formatCommentTime(comment.createdAt),
+      replyCount: Math.max(0, Number(comment.replyCount) || 0),
+      replies: (comment.replies || []).map(reply => this.formatTripReply(reply)),
+      repliesHasMore: comment.repliesHasMore === true,
+      repliesLoading: false,
+      nextReplyCursor: comment.nextReplyCursor || 0,
+      nextReplyCursorId: comment.nextReplyCursorId || '',
+      canDelete: !!currentUserId && (comment.authorId === currentUserId || tripCreatorId === currentUserId)
+    };
+  },
+
+  loadComments: function (reset) {
+    if (!this.data.trip || this._loadingComments) return Promise.resolve();
+    if (!reset && !this.data.commentsHasMore) return Promise.resolve();
+    if (reset) {
+      this._commentCursor = 0;
+      this._commentCursorId = '';
+    }
+    this._loadingComments = true;
+    this.setData({ commentsLoading: true, commentsError: false });
+    const request = { tripId: this.data.trip._id, pageSize: 20 };
+    if (!reset && this._commentCursor) {
+      request.cursor = this._commentCursor;
+      request.cursorId = this._commentCursorId;
+    }
+    const requestTripId = request.tripId;
+    return api.tripCommentList(request).then(result => {
+      if (!this.data.trip || this.data.trip._id !== requestTripId) return;
+      const incoming = (result.comments || []).map(comment => this.formatTripComment(comment));
+      this._commentCursor = result.nextCursor || 0;
+      this._commentCursorId = result.nextCursorId || '';
+      const nextData = {
+        comments: reset ? incoming : this.data.comments.concat(incoming),
+        commentsHasMore: result.hasMore === true,
+        commentsLoading: false,
+        commentsError: false
+      };
+      if (Number.isFinite(Number(result.commentCount))) {
+        nextData['trip.commentCount'] = Math.max(0, Number(result.commentCount));
+      }
+      this._commentsLoaded = true;
+      this.setData(nextData);
+    }).catch(error => {
+      this.setData({ commentsLoading: false, commentsError: true });
+      if (!reset) wx.showToast({ title: error.message || '评论加载失败', icon: 'none' });
+    }).then(() => {
+      this._loadingComments = false;
+    });
+  },
+
+  onCommentInputTap: function () {
+    this.setData({ replyTarget: null, commentPlaceholder: '说点什么…', inputFocused: true });
+  },
+
+  onReplyTap: function (e) {
+    const { targetId, targetType, rootCommentId, userName } = e.currentTarget.dataset;
+    if (!targetId || ['comment', 'reply'].indexOf(targetType) === -1) return;
+    this.setData({
+      replyTarget: { id: targetId, type: targetType, rootCommentId: rootCommentId || targetId, userName: userName || '旅行者' },
+      commentPlaceholder: `回复给${userName || '旅行者'}`,
+      inputFocused: true
+    });
+  },
+
+  onCommentInput: function (e) {
+    this.setData({ commentDraft: e.detail.value || '' });
+  },
+
+  onCommentFocus: function () {
+    this.setData({ inputFocused: true });
+  },
+
+  onCommentBlur: function () {
+    this.setData({ inputFocused: false });
+  },
+
+  onCommentConfirm: function () {
+    const content = String(this.data.commentDraft || '').trim();
+    if (!content || !this.data.trip || this.data.submittingComment) return;
+    if (!auth.ensureLogin()) {
+      auth.saveDeepLink(`/pages/trip-detail/trip-detail?id=${encodeURIComponent(this.data.trip._id)}`);
+      return;
+    }
+    const replyTarget = this.data.replyTarget;
+    this.setData({ submittingComment: true });
+    wx.showLoading({ title: replyTarget ? '回复中...' : '评论中...', mask: true });
+    api.tripCommentCreate(this.data.trip._id, content, replyTarget).then(result => {
+      const nextComments = this.data.comments.slice();
+      if (result.isReply) {
+        const rootIndex = nextComments.findIndex(item => item._id === result.rootCommentId);
+        if (rootIndex >= 0) {
+          const root = { ...nextComments[rootIndex] };
+          root.replies = (root.replies || []).concat([this.formatTripReply(result.comment || {})]);
+          root.replyCount = Math.max(root.replies.length, Number(result.rootReplyCount) || root.replyCount + 1);
+          nextComments[rootIndex] = root;
+        }
+      } else {
+        nextComments.unshift(this.formatTripComment(result.comment || {}));
+      }
+      this.setData({
+        comments: nextComments,
+        commentDraft: '',
+        commentPlaceholder: '说点什么…',
+        replyTarget: null,
+        inputFocused: false,
+        submittingComment: false,
+        commentsError: false,
+        'trip.commentCount': Math.max(0, Number(result.commentCount) || 0)
+      });
+      wx.hideLoading();
+      wx.showToast({ title: result.isReply ? '回复成功' : '评论成功', icon: 'success' });
+    }).catch(error => {
+      this.setData({ submittingComment: false });
+      wx.hideLoading();
+      wx.showToast({ title: error.message || '评论失败，请重试', icon: 'none' });
+    });
+  },
+
+  onLoadMoreComments: function () {
+    this.loadComments(this.data.comments.length === 0);
+  },
+
+  onLoadMoreReplies: function (e) {
+    const rootCommentId = e.currentTarget.dataset.rootCommentId;
+    const index = this.data.comments.findIndex(comment => comment._id === rootCommentId);
+    if (index < 0 || this.data.comments[index].repliesLoading) return;
+    const root = this.data.comments[index];
+    this.setData({ [`comments[${index}].repliesLoading`]: true });
+    const request = { tripId: this.data.trip._id, rootCommentId, pageSize: 20 };
+    if (root.nextReplyCursor) {
+      request.cursor = root.nextReplyCursor;
+      request.cursorId = root.nextReplyCursorId;
+    }
+    api.tripReplyList(request).then(result => {
+      const currentIndex = this.data.comments.findIndex(comment => comment._id === rootCommentId);
+      if (currentIndex < 0) return;
+      const existing = this.data.comments[currentIndex].replies || [];
+      const seen = new Set(existing.map(reply => reply._id));
+      const incoming = (result.replies || []).map(reply => this.formatTripReply(reply)).filter(reply => !seen.has(reply._id));
+      this.setData({
+        [`comments[${currentIndex}].replies`]: existing.concat(incoming),
+        [`comments[${currentIndex}].replyCount`]: Math.max(0, Number(result.replyCount) || 0),
+        [`comments[${currentIndex}].repliesHasMore`]: result.hasMore === true,
+        [`comments[${currentIndex}].repliesLoading`]: false,
+        [`comments[${currentIndex}].nextReplyCursor`]: result.nextCursor || 0,
+        [`comments[${currentIndex}].nextReplyCursorId`]: result.nextCursorId || ''
+      });
+    }).catch(error => {
+      this.setData({ [`comments[${index}].repliesLoading`]: false });
+      wx.showToast({ title: error.message || '回复加载失败', icon: 'none' });
+    });
+  },
+
+  onCommentLongPress: function (e) {
+    const commentId = e.currentTarget.dataset.commentId;
+    const targetType = e.currentTarget.dataset.targetType || 'comment';
+    const rootCommentId = e.currentTarget.dataset.rootCommentId || commentId;
+    let target;
+    if (targetType === 'reply') {
+      const root = this.data.comments.find(item => item._id === rootCommentId);
+      target = root && (root.replies || []).find(reply => reply._id === commentId);
+    } else {
+      target = this.data.comments.find(item => item._id === commentId);
+    }
+    if (!target || !target.canDelete || this._deletingCommentId) return;
+    wx.showActionSheet({
+      itemList: ['删除'],
+      itemColor: '#FF4D4F',
+      success: result => {
+        if (result.tapIndex === 0) this.deleteComment(commentId, targetType, rootCommentId);
+      }
+    });
+  },
+
+  deleteComment: function (commentId, targetType, rootCommentId) {
+    if (!this.data.trip || !commentId || this._deletingCommentId) return;
+    this._deletingCommentId = `${targetType}:${commentId}`;
+    wx.showLoading({ title: '删除中...', mask: true });
+    api.tripCommentDelete(this.data.trip._id, commentId, targetType).then(result => {
+      let nextComments = this.data.comments.slice();
+      if (targetType === 'reply') {
+        const rootIndex = nextComments.findIndex(comment => comment._id === rootCommentId);
+        if (rootIndex >= 0) {
+          const root = { ...nextComments[rootIndex] };
+          root.replies = (root.replies || []).filter(reply => reply._id !== commentId);
+          root.replyCount = Math.max(0, Number(result.rootReplyCount) || 0);
+          nextComments[rootIndex] = root;
+        }
+      } else {
+        nextComments = nextComments.filter(comment => comment._id !== commentId);
+      }
+      const nextData = {
+        comments: nextComments,
+        'trip.commentCount': Math.max(0, Number(result.commentCount) || 0)
+      };
+      if (this.data.replyTarget && (this.data.replyTarget.id === commentId ||
+        (targetType === 'comment' && this.data.replyTarget.rootCommentId === commentId))) {
+        nextData.replyTarget = null;
+        nextData.commentPlaceholder = '说点什么…';
+      }
+      this.setData(nextData);
+      wx.hideLoading();
+      wx.showToast({ title: '已删除', icon: 'success' });
+    }).catch(error => {
+      wx.hideLoading();
+      wx.showToast({ title: error.message || '删除失败，请重试', icon: 'none' });
+    }).then(() => {
+      this._deletingCommentId = '';
+    });
+  },
+
+  onCommentAuthorTap: function (e) {
+    const userId = e.currentTarget.dataset.userId;
+    if (!userId) return;
+    wx.navigateTo({ url: `/pages/user-profile/user-profile?id=${encodeURIComponent(userId)}` });
   },
 
   onClosePublishModal: function () {

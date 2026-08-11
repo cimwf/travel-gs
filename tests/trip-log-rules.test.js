@@ -217,8 +217,11 @@ test('trip-detail uses tripStage for log UI and authorization entry', () => {
   assertIncludes(wxml, "tripStage === 'not_started'");
   assertIncludes(wxml, "tripStage === 'ongoing'}}\">");
   assertIncludes(js, 'onPullDownRefresh: async function () {');
-  assertIncludes(js, "if (activeTab === 'log')");
-  assertIncludes(js, "const activeTab = this.data.activeTab === 'log' && showTabs ? 'log' : 'trip';");
+  assertIncludes(js, "if (activeTab === 'comment')");
+  assertIncludes(js, "const validTabs = ['trip', 'log', 'comment'];");
+  assertIncludes(js, 'showTabs: true');
+  assertIncludes(wxml, 'data-tab="comment"');
+  assertIncludes(wxml, 'onCommentConfirm');
   assertIncludes(json, '"enablePullDownRefresh": true');
   assertNotIncludes(json, '"navigationStyle": "custom"');
   assertIncludes(json, '"navigationBarTitleText": "行程详情"');

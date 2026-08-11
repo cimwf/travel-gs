@@ -40,6 +40,7 @@
     <view class="detail-v2-tabs" wx:if="{{showTabs}}">
       <view class="detail-v2-tab {{activeTab === 'trip' ? 'detail-v2-tab-active' : ''}}" bindtap="onSwitchTab" data-tab="trip">行程</view>
       <view class="detail-v2-tab {{activeTab === 'log' ? 'detail-v2-tab-active' : ''}}" bindtap="onSwitchTab" data-tab="log">旅途记录</view>
+      <view class="detail-v2-tab {{activeTab === 'comment' ? 'detail-v2-tab-active' : ''}}" bindtap="onSwitchTab" data-tab="comment">评论{{trip.commentCount ? ' ' + trip.commentCount : ''}}</view>
     </view>
 
     <view class="detail-v2-content">
@@ -173,6 +174,73 @@
           </view>
         </view>
       </block>
+
+      <block wx:if="{{activeTab === 'comment'}}">
+        <view class="detail-v2-comment-section">
+          <view class="detail-v2-comment-head">
+            <view class="detail-v2-section-title">全部评论</view>
+            <text>{{trip.commentCount || 0}}条</text>
+          </view>
+
+          <view class="detail-v2-comment-list" wx:if="{{comments.length > 0}}">
+            <view class="detail-v2-comment-thread" wx:for="{{comments}}" wx:key="_id">
+              <view class="detail-v2-comment-item" bindlongpress="onCommentLongPress"
+                data-comment-id="{{item._id}}" data-target-type="comment" data-root-comment-id="{{item._id}}">
+                <image class="detail-v2-comment-avatar" src="{{item.authorAvatar}}" wx:if="{{item.authorAvatar}}"
+                  mode="aspectFill" catchtap="onCommentAuthorTap" data-user-id="{{item.authorId}}"></image>
+                <view class="detail-v2-comment-avatar detail-v2-comment-avatar-text" wx:else
+                  catchtap="onCommentAuthorTap" data-user-id="{{item.authorId}}">{{item.authorName ? item.authorName[0] : '旅'}}</view>
+                <view class="detail-v2-comment-main">
+                  <view class="detail-v2-comment-author" catchtap="onCommentAuthorTap" data-user-id="{{item.authorId}}">{{item.authorName || '旅行者'}}</view>
+                  <view class="detail-v2-comment-content">{{item.content}}</view>
+                  <view class="detail-v2-comment-footer">
+                    <text class="detail-v2-comment-time">{{item.timeText}}</text>
+                    <text class="detail-v2-comment-reply" catchtap="onReplyTap"
+                      data-target-id="{{item._id}}" data-target-type="comment"
+                      data-root-comment-id="{{item._id}}" data-user-name="{{item.authorName}}">回复</text>
+                  </view>
+                </view>
+              </view>
+
+              <view class="detail-v2-reply-list" wx:if="{{item.replies.length > 0}}">
+                <view class="detail-v2-reply-item" wx:for="{{item.replies}}" wx:key="_id" wx:for-item="reply"
+                  bindlongpress="onCommentLongPress" data-comment-id="{{reply._id}}" data-target-type="reply"
+                  data-root-comment-id="{{item._id}}">
+                  <image class="detail-v2-reply-avatar" src="{{reply.authorAvatar}}" wx:if="{{reply.authorAvatar}}"
+                    mode="aspectFill" catchtap="onCommentAuthorTap" data-user-id="{{reply.authorId}}"></image>
+                  <view class="detail-v2-reply-avatar detail-v2-comment-avatar-text" wx:else
+                    catchtap="onCommentAuthorTap" data-user-id="{{reply.authorId}}">{{reply.authorName ? reply.authorName[0] : '旅'}}</view>
+                  <view class="detail-v2-reply-main">
+                    <view class="detail-v2-reply-content">
+                      <text class="detail-v2-reply-author">{{reply.authorName || '旅行者'}}</text>
+                      <text class="detail-v2-reply-word"> 回复 </text>
+                      <text class="detail-v2-reply-target">{{reply.replyToUserName || '旅行者'}}</text>
+                      <text>：{{reply.content}}</text>
+                    </view>
+                    <view class="detail-v2-comment-footer">
+                      <text class="detail-v2-comment-time">{{reply.timeText}}</text>
+                      <text class="detail-v2-comment-reply" catchtap="onReplyTap"
+                        data-target-id="{{reply._id}}" data-target-type="reply"
+                        data-root-comment-id="{{item._id}}" data-user-name="{{reply.authorName}}">回复</text>
+                    </view>
+                  </view>
+                </view>
+              </view>
+              <view class="detail-v2-reply-more" wx:if="{{item.repliesLoading}}">回复加载中...</view>
+              <view class="detail-v2-reply-more" wx:elif="{{item.repliesHasMore || item.replyCount > item.replies.length}}"
+                catchtap="onLoadMoreReplies" data-root-comment-id="{{item._id}}">展开更多回复</view>
+            </view>
+          </view>
+
+          <view class="detail-v2-comments-empty" wx:elif="{{!commentsLoading && !commentsError}}">
+            <view class="detail-v2-comments-empty-title">还没有评论</view>
+            <view class="detail-v2-comments-empty-desc">来聊聊这次出行吧～</view>
+          </view>
+          <view class="detail-v2-comments-status" wx:if="{{commentsLoading}}">评论加载中...</view>
+          <view class="detail-v2-comments-status detail-v2-comments-link" wx:elif="{{commentsError}}" bindtap="onLoadMoreComments">评论加载失败，点击重试</view>
+          <view class="detail-v2-comments-status detail-v2-comments-link" wx:elif="{{commentsHasMore}}" bindtap="onLoadMoreComments">查看更多评论</view>
+        </view>
+      </block>
     </view>
     <view class="detail-v2-safe-bottom"></view>
   </block>
@@ -180,8 +248,21 @@
 
 <!-- 底部按钮区域 -->
 <view class="footer-bar detail-v2-footer" wx:if="{{trip}}">
+  <block wx:if="{{activeTab === 'comment'}}">
+    <input class="detail-v2-comment-input" value="{{commentDraft}}" placeholder="{{commentPlaceholder}}"
+      maxlength="300" confirm-type="send" focus="{{inputFocused}}" disabled="{{submittingComment}}"
+      bindtap="onCommentInputTap" bindinput="onCommentInput" bindfocus="onCommentFocus"
+      bindblur="onCommentBlur" bindconfirm="onCommentConfirm"></input>
+    <view class="detail-v2-footer-log" bindtap="onPublishLogTap">
+      <image src="/images/icon-plus-blue.png" mode="aspectFit"></image>
+      <text>发布日志</text>
+    </view>
+  </block>
+  <block wx:elif="{{activeTab === 'log'}}">
+    <view class="footer-btn-full detail-v2-log-footer-btn" bindtap="onPublishLogTap">发布日志</view>
+  </block>
   <!-- 发起人视角 -->
-  <block wx:if="{{isCreator}}">
+  <block wx:elif="{{isCreator}}">
     <!-- 未开始：编辑行程 + 开始出发（仅行程当天显示） -->
     <block wx:if="{{tripStage === 'not_started'}}">
       <view class="footer-btn-secondary" bindtap="onEditTrip">编辑行程</view>

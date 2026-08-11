@@ -230,8 +230,12 @@ Page({
       return;
     }
     if (message.targetType === 'trip' && message.targetId) {
+      var tripUrl = '/pages/trip-detail/trip-detail?id=' + encodeURIComponent(message.targetId);
+      if (message.sourceType === 'comment' || message.sourceType === 'reply') {
+        tripUrl += '&focus=comments&commentId=' + encodeURIComponent(message.sourceId || '');
+      }
       wx.navigateTo({
-        url: '/pages/trip-detail/trip-detail?id=' + encodeURIComponent(message.targetId),
+        url: tripUrl,
         fail: function () { wx.showToast({ title: '该行程暂时无法查看', icon: 'none' }); }
       });
       return;

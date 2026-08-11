@@ -7,6 +7,7 @@ const place = require('./handlers/place');
 const trip = require('./handlers/trip');
 const tripLog = require('./handlers/tripLog');
 const tripMedia = require('./handlers/tripMedia');
+const tripComment = require('./handlers/tripComment');
 const apply = require('./handlers/apply');
 const want = require('./handlers/want');
 const message = require('./handlers/message');
@@ -108,6 +109,16 @@ exports.main = async (event, context) => {
         return await tripLog.tripLogAuthorize(openid, data);
       case 'tripLog/unauthorize':
         return await tripLog.tripLogUnauthorize(openid, data);
+
+      // ========== 行程评论相关 ==========
+      case 'tripComment/list':
+        return await tripComment.tripCommentList(openid, data);
+      case 'tripComment/replyList':
+        return await tripComment.tripReplyList(openid, data);
+      case 'tripComment/create':
+        return await tripComment.tripCommentCreate(openid, data);
+      case 'tripComment/delete':
+        return await tripComment.tripCommentDelete(openid, data);
 
       // ========== 申请相关 ==========
       case 'apply/create':

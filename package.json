@@ -15,6 +15,7 @@
     "test:e2e": "node tests/e2e-click-flow.test.js",
     "test:core": "node tests/e2e-core-flow.test.js",
     "test:trip-log": "node tests/trip-log-rules.test.js",
+    "test:trip-comment": "node tests/trip-comment.test.js",
     "test:trip-media": "node tests/trip-media-cos.test.js",
     "test:data-env": "node tests/data-environment.test.js",
     "test:account-binding": "node tests/user-account-binding.test.js",

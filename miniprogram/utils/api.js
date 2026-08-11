@@ -220,6 +220,31 @@ function tripMy() {
   return callApi('trip/my', {});
 }
 
+function tripCommentList(data) {
+  return callApi('tripComment/list', data || {});
+}
+
+function tripReplyList(data) {
+  return callApi('tripComment/replyList', data || {});
+}
+
+function tripCommentCreate(tripId, content, replyTarget) {
+  const data = { tripId, content };
+  if (replyTarget && replyTarget.id) {
+    data.replyToId = replyTarget.id;
+    data.replyToType = replyTarget.type;
+  }
+  return callApi('tripComment/create', data);
+}
+
+function tripCommentDelete(tripId, commentId, targetType) {
+  return callApi('tripComment/delete', {
+    tripId,
+    commentId,
+    targetType: targetType || 'comment'
+  });
+}
+
 // ========== 申请相关 ==========
 
 /**
@@ -572,6 +597,10 @@ module.exports = {
   tripMediaCreateUploadSession,
   tripMy,
   tripListByUser,
+  tripCommentList,
+  tripReplyList,
+  tripCommentCreate,
+  tripCommentDelete,
 
   // 申请
   applyCreate,

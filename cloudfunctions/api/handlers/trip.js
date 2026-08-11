@@ -144,6 +144,7 @@ async function tripCreate(openid, data, dataEnvironment = RUNTIME_DEFAULTS.devel
     logMaxCount: tripLogConfig.logMaxCount,
     logAuthorizedPublisherIds: [],
     logCount: 0,
+    commentCount: 0,
     lastLogAt: 0,
     dataEnv: dataEnvironment.writeEnv,
     createdAt: Date.now()
