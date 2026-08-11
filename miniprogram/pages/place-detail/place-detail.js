@@ -8,6 +8,8 @@ Page({
     place: null,
     trips: [],
     loading: true,
+    loadError: false,
+    placeId: '',
     isCollected: false,
     userInfo: null,
     statusBarHeight: 0,
@@ -20,7 +22,12 @@ Page({
     const windowInfo = wx.getWindowInfo();
     this.setData({ statusBarHeight: windowInfo.statusBarHeight });
 
-    const placeId = options.id || 'place_001';
+    const placeId = options.id || '';
+    this.setData({ placeId });
+    if (!placeId) {
+      this.setData({ loading: false, loadError: true });
+      return;
+    }
     this.loadPlaceDetail(placeId);
     this.loadTrips(placeId);
     this.recordView(placeId);
@@ -44,7 +51,7 @@ Page({
 
   // 加载地点详情
   loadPlaceDetail: async function (placeId) {
-    this.setData({ loading: true });
+    this.setData({ loading: true, loadError: false, place: null });
 
     // 尝试使用云开发
     if (wx.cloud) {
@@ -59,53 +66,16 @@ Page({
           return;
         }
       } catch (err) {
-        console.warn('云开发加载失败，使用本地数据', err);
+        console.warn('地点详情加载失败', err);
       }
     }
 
-    // 使用mock数据
-    this.loadMockPlaceDetail(placeId);
+    this.setData({ place: null, loading: false, loadError: true });
   },
 
-  // 加载模拟数据
-  loadMockPlaceDetail: function (placeId) {
-    const mockPlaces = {
-      'place_001': {
-        _id: 'place_001',
-        name: '东灵山',
-        images: [
-          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=800&h=600&fit=crop'
-        ],
-        description: '东灵山位于北京市门头沟区清水镇，是北京最高峰，海拔2303米，被誉为"京西珠穆朗玛"。山顶有广阔的高山草甸，夏季野花遍地，色彩斑斓；秋季层林尽染，美不胜收。\n\n这里是北京驴友必打卡之地，也是观赏日出、云海的绝佳地点。山顶气温较低，夏季凉爽宜人，是避暑胜地；秋冬季节则可欣赏壮观的日出和云海奇观。',
-        category: '爬山',
-        location: { distance: 120, address: '北京市门头沟区' },
-        difficulty: '困难',
-        bestSeason: '春夏秋',
-        duration: '1天',
-        altitude: '2303m',
-        openTime: '全天开放',
-        tags: ['日出', '云海', '露营', '高山草甸'],
-        wantCount: 256,
-        tipsList: [
-          '山顶气温较低，建议携带保暖衣物，即使是夏季也要准备外套',
-          '建议凌晨出发看日出，需要提前查看天气情况',
-          '山区信号较弱，建议提前下载离线地图',
-          '带足饮用水和食物，山上没有补给点',
-          '注意保护环境，带走自己的垃圾'
-        ]
-      }
-    };
-
-    const place = mockPlaces[placeId] || mockPlaces['place_001'];
-
-    // 检查是否已收藏
-    const collections = wx.getStorageSync('collections') || [];
-    const isCollected = collections.includes(place._id);
-
-    this.setData({ place, isCollected, loading: false });
+  onRetryPlaceDetail: function () {
+    if (!this.data.placeId) return;
+    this.loadPlaceDetail(this.data.placeId);
   },
 
   // 加载该地点的行程列表

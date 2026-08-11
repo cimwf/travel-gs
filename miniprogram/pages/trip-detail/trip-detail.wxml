@@ -244,6 +244,12 @@
     </view>
     <view class="detail-v2-safe-bottom"></view>
   </block>
+  <view class="detail-load-error" wx:elif="{{loadError}}">
+    <image class="detail-load-error-icon" src="/images/icon-profile-info.svg" mode="aspectFit"></image>
+    <view class="detail-load-error-title">行程加载失败</view>
+    <view class="detail-load-error-desc">请检查网络后重新尝试</view>
+    <view class="detail-load-error-btn" bindtap="onRetryTripDetail">重新加载</view>
+  </view>
 </view>
 
 <!-- 底部按钮区域 -->

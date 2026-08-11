@@ -56,6 +56,50 @@ page {
   to { transform: rotate(360deg); }
 }
 
+.detail-load-error {
+  min-height: 72vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 48rpx;
+  box-sizing: border-box;
+}
+
+.detail-load-error-icon {
+  width: 92rpx;
+  height: 92rpx;
+  margin-bottom: 28rpx;
+  opacity: .55;
+}
+
+.detail-load-error-title {
+  color: var(--text-primary);
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.detail-load-error-desc {
+  margin-top: 14rpx;
+  color: var(--text-hint);
+  font-size: 26rpx;
+}
+
+.detail-load-error-btn {
+  min-width: 196rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 36rpx;
+  padding: 0 32rpx;
+  border-radius: 38rpx;
+  background: var(--primary-color);
+  color: #ffffff;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
 /* ========== 顶部图片区域 ========== */
 .header {
   position: relative;

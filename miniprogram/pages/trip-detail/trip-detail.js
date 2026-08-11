@@ -14,6 +14,7 @@ Page({
     joinBtnText: '申请加入',
     canJoin: true,
     loading: true,
+    loadError: false,
     hasJoined: false,
     isCreator: false,
     maskedPhone: '',
@@ -121,6 +122,7 @@ Page({
   },
 
   loadTripDetail: async function (tripId) {
+    this.setData({ loading: true, loadError: false, trip: null });
     wx.showLoading({ title: '加载中...', mask: true });
 
     try {
@@ -137,7 +139,8 @@ Page({
       console.warn('加载行程详情失败', err);
     }
 
-    this.loadMockTripDetail();
+    wx.hideLoading();
+    this.setData({ loading: false, loadError: true, trip: null });
   },
 
   loadLogs: async function (tripId, trip) {
@@ -331,65 +334,9 @@ Page({
     return highlights[placeName] || '北京周边';
   },
 
-  loadMockTripDetail: function () {
-    const mockTrip = {
-      _id: 'trip_001',
-      tripTitle: '周六灵山徒步',
-      placeName: '东灵山',
-      placeHighlight: '北京最高峰',
-      placeCoverImage: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
-      placeCoverImages: ['https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop'],
-      date: '2026-04-12',
-      dateText: '2026-04-12 周六',
-      departure: '海淀区',
-      meetingPlace: '海淀黄庄地铁站B口',
-      meetingTime: '08:00',
-      currentCount: 2,
-      totalCount: 4,
-      needCount: 2,
-      hasCar: true,
-      carSeats: '5',
-      carModel: 'SUV',
-      price: '150',
-      contactPhone: '13800138000',
-      status: 'open',
-      remark: '周六早上8点在海淀黄庄地铁站B口集合，自驾前往灵山，预计10:30到达。下午4点返程。费用AA，油费+门票约150元/人。',
-      creatorId: 'user_001',
-      creatorName: '张伟',
-      creatorAvatar: 'https://i.pravatar.cc/100?img=1',
-      creatorTripCount: 5,
-      creatorRating: 98,
-      tripStage: 'not_started',
-      logCount: 0,
-      commentCount: 0,
-      logAuthorizedPublisherIds: []
-    };
-
-    const mockParticipants = [
-      { userId: 'p1', nickname: '张伟', avatar: 'https://i.pravatar.cc/100?img=1' },
-      { userId: 'p2', nickname: '李明', avatar: 'https://i.pravatar.cc/100?img=5' }
-    ];
-
-    let maskedPhone = '';
-    if (mockTrip.contactPhone) {
-      maskedPhone = mockTrip.contactPhone.substring(0, 3) + '****' + mockTrip.contactPhone.substring(7);
-    }
-
-    this.setData({
-      trip: mockTrip,
-      participants: mockParticipants,
-      statusText: '招募中',
-      remainCount: 2,
-      canJoin: true,
-      joinBtnText: '申请加入',
-      maskedPhone,
-      loading: false,
-      tripStage: 'not_started',
-      showTabs: true,
-      canPublishLog: false
-    });
-
-    wx.hideLoading();
+  onRetryTripDetail: function () {
+    if (!this.data.tripId) return;
+    this.loadTripDetail(this.data.tripId);
   },
 
   // ========== Tab 切换 ==========

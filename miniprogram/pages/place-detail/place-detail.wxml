@@ -1,5 +1,12 @@
 <!--pages/place-detail/place-detail.wxml-->
 <view class="container">
+  <view class="place-load-error" wx:if="{{loadError}}">
+    <image class="place-load-error-icon" src="/images/icon-profile-info.svg" mode="aspectFit"></image>
+    <view class="place-load-error-title">地点加载失败</view>
+    <view class="place-load-error-desc">请检查网络后重新尝试</view>
+    <view class="place-load-error-btn" bindtap="onRetryPlaceDetail">重新加载</view>
+  </view>
+  <block wx:elif="{{place}}">
   <!-- 顶部轮播图区域 -->
   <view class="header">
     <swiper
@@ -185,10 +192,12 @@
     <!-- 底部安全区 -->
     <view class="safe-bottom"></view>
   </view>
+  </block>
+  <view class="place-loading" wx:else>加载中...</view>
 </view>
 
 <!-- 底部操作栏 -->
-<view class="footer-bar">
+<view class="footer-bar" wx:if="{{place}}">
   <!-- <view class="collect-btn {{isCollected ? 'collected' : ''}}" bindtap="onCollectTap">
     <text class="collect-icon">{{isCollected ? '❤️' : '🤍'}}</text>
     <text class="collect-text">{{isCollected ? '已收藏' : '收藏'}}</text>

@@ -570,6 +570,20 @@ test('申请加入行程直接发送，不再填写手机号和备注', () => {
   assert(!appJson.includes('pages/trip-notifications/trip-notifications'), 'old trip notification page should be removed');
 });
 
+test('行程和地点详情加载失败时不展示模拟数据', () => {
+  const tripJs = read('miniprogram/pages/trip-detail/trip-detail.js');
+  const tripWxml = read('miniprogram/pages/trip-detail/trip-detail.wxml');
+  const placeJs = read('miniprogram/pages/place-detail/place-detail.js');
+  const placeWxml = read('miniprogram/pages/place-detail/place-detail.wxml');
+
+  assert(!tripJs.includes('loadMockTripDetail'), 'trip detail should not fall back to a fake trip');
+  assert(!tripJs.includes("_id: 'trip_001'"), 'fake trip data should be removed');
+  assert(tripWxml.includes('bindtap="onRetryTripDetail"'), 'trip detail should provide a retry state');
+  assert(!placeJs.includes('loadMockPlaceDetail'), 'place detail should not fall back to a fake place');
+  assert(!placeJs.includes("'place_001': {"), 'fake place data should be removed');
+  assert(placeWxml.includes('bindtap="onRetryPlaceDetail"'), 'place detail should provide a retry state');
+});
+
 test('trip-publish UI 含必填项、发布按钮和出发地弹窗', () => {
   const wxml = read('miniprogram/pages/trip-publish/trip-publish.wxml');
   ['目的地<text class="required">*</text>', '出发地<text class="required">*</text>', '出行日期<text class="required">*</text>', '招募人数<text class="required">*</text>', '手机号<text class="required">*</text>', '发布行程', '选择出发地'].forEach((needle) => {
