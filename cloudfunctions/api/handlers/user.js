@@ -1,11 +1,35 @@
 const { db, _, cloud, crypto, normalizeAvatarForDb, isLocalTempFilePath } = require('../utils/shared');
 const nodeCrypto = require('crypto');
 const { setNotification, removeNotification } = require('./notification');
+const tripMedia = require('./tripMedia');
 
 const BEIJING_DISTRICTS = [
   '海淀区', '朝阳区', '丰台区', '东城区', '西城区', '石景山区', '门头沟区', '房山区',
   '通州区', '顺义区', '昌平区', '大兴区', '怀柔区', '平谷区', '密云区', '延庆区'
 ];
+
+async function verifyUserAvatarUpload(openid, data) {
+  const sessionId = String(data && data.avatarUploadSessionId || '');
+  const media = data && data.avatarMedia;
+  if (!sessionId && !media) return null;
+  if (!sessionId || !media) throw new Error('头像上传会话无效');
+  const verified = await tripMedia.verifyUploadSession(openid, {
+    sessionId,
+    tripId: '',
+    purpose: 'user_avatar',
+    media: [media]
+  });
+  return { sessionId, media: verified.media[0] };
+}
+
+async function finishUserAvatarUpload(upload, oldAvatarObject) {
+  if (!upload) return;
+  await tripMedia.consumeUploadSession(upload.sessionId);
+  const oldAvatar = tripMedia.normalizeMediaObject(oldAvatarObject);
+  if (oldAvatar && oldAvatar.key !== upload.media.key) {
+    await tripMedia.cleanupCosMedia([oldAvatar], { reason: 'user_avatar_replaced' });
+  }
+}
 
 function getFollowId(followerId, followingId) {
   return nodeCrypto.createHash('sha256')
@@ -246,7 +270,8 @@ async function userRegister(openid, data) {
 }
 
 async function userLogin(openid, data) {
-  const avatarForDb = normalizeAvatarForDb(data.avatar);
+  const avatarUpload = await verifyUserAvatarUpload(openid, data);
+  const avatarForDb = avatarUpload ? avatarUpload.media.url : normalizeAvatarForDb(data.avatar);
 
   const userRes = await db.collection('users').where({ openid }).limit(2).get();
 
@@ -255,16 +280,23 @@ async function userLogin(openid, data) {
   }
 
   if (userRes.data.length > 0) {
+    const updateData = { lastActiveAt: Date.now() };
+    if (avatarUpload) {
+      updateData.avatar = avatarUpload.media.url;
+      updateData.avatarObject = avatarUpload.media;
+    }
     await db.collection('users').doc(userRes.data[0]._id).update({
-      data: { lastActiveAt: Date.now() }
+      data: updateData
     });
-    return { success: true, user: userRes.data[0] };
+    await finishUserAvatarUpload(avatarUpload, userRes.data[0].avatarObject);
+    return { success: true, user: { ...userRes.data[0], ...updateData } };
   }
 
   const newUser = {
     openid,
     nickname: data.nickname || '旅行者',
     avatar: avatarForDb,
+    avatarObject: avatarUpload ? avatarUpload.media : null,
     gender: data.gender || 0,
     bio: '',
     phone: '',
@@ -280,6 +312,7 @@ async function userLogin(openid, data) {
 
   const res = await db.collection('users').add({ data: newUser });
   newUser._id = res._id;
+  await finishUserAvatarUpload(avatarUpload, null);
 
   return { success: true, user: newUser, isNew: true };
 }
@@ -388,7 +421,8 @@ async function userLoginPassword(data) {
 
 async function userLoginByPhone(openid, data) {
   const { phone, nickname, avatar } = data;
-  const avatarForDb = normalizeAvatarForDb(avatar);
+  const avatarUpload = await verifyUserAvatarUpload(openid, data);
+  const avatarForDb = avatarUpload ? avatarUpload.media.url : normalizeAvatarForDb(avatar);
 
   if (!phone) {
     return { success: false, error: '手机号不能为空' };
@@ -416,12 +450,16 @@ async function userLoginByPhone(openid, data) {
     if (nickname && (!user.nickname || user.nickname.startsWith('用户'))) {
       updateData.nickname = nickname;
     }
-    if (avatarForDb && (!user.avatar || isLocalTempFilePath(user.avatar))) {
+    if (avatarUpload) {
+      updateData.avatar = avatarUpload.media.url;
+      updateData.avatarObject = avatarUpload.media;
+    } else if (avatarForDb && (!user.avatar || isLocalTempFilePath(user.avatar))) {
       updateData.avatar = avatarForDb;
     } else if (!avatarForDb && isLocalTempFilePath(user.avatar)) {
       updateData.avatar = '';
     }
     await db.collection('users').doc(user._id).update({ data: updateData });
+    await finishUserAvatarUpload(avatarUpload, user.avatarObject);
 
     const safeUser = { ...user, openid: openid, ...updateData };
     delete safeUser.password;
@@ -447,10 +485,14 @@ async function userLoginByPhone(openid, data) {
     if (nickname && (!boundUser.nickname || boundUser.nickname.startsWith('用户'))) {
       updateData.nickname = nickname;
     }
-    if (avatarForDb && (!boundUser.avatar || isLocalTempFilePath(boundUser.avatar))) {
+    if (avatarUpload) {
+      updateData.avatar = avatarUpload.media.url;
+      updateData.avatarObject = avatarUpload.media;
+    } else if (avatarForDb && (!boundUser.avatar || isLocalTempFilePath(boundUser.avatar))) {
       updateData.avatar = avatarForDb;
     }
     await db.collection('users').doc(boundUser._id).update({ data: updateData });
+    await finishUserAvatarUpload(avatarUpload, boundUser.avatarObject);
     const safeUser = { ...boundUser, ...updateData };
     delete safeUser.password;
     return { success: true, user: safeUser, isNew: false };
@@ -472,6 +514,7 @@ async function userLoginByPhone(openid, data) {
     password: '',
     nickname: (nickname || '用户' + phone.slice(-4)).trim(),
     avatar: avatarForDb,
+    avatarObject: avatarUpload ? avatarUpload.media : null,
     gender: 0,
     bio: '',
     following: 0,
@@ -488,6 +531,7 @@ async function userLoginByPhone(openid, data) {
 
   const res = await db.collection('users').add({ data: newUser });
   newUser._id = res._id;
+  await finishUserAvatarUpload(avatarUpload, null);
 
   const safeUser = { ...newUser };
   delete safeUser.password;
@@ -508,6 +552,7 @@ async function userUpdate(openid, data) {
     if (data._id && data._id !== user._id) {
       return { success: false, error: '无权修改其他用户资料' };
     }
+    const avatarUpload = await verifyUserAvatarUpload(openid, data);
 
     const updateData = {};
     if (data.nickname !== undefined) {
@@ -516,7 +561,10 @@ async function userUpdate(openid, data) {
       if (nickname.length > 12) return { success: false, error: '昵称不能超过12个字' };
       updateData.nickname = nickname;
     }
-    if (data.avatar !== undefined) {
+    if (avatarUpload) {
+      updateData.avatar = avatarUpload.media.url;
+      updateData.avatarObject = avatarUpload.media;
+    } else if (data.avatar !== undefined) {
       const avatar = normalizeAvatarForDb(data.avatar);
       if (data.avatar && !avatar) return { success: false, error: '头像尚未上传完成' };
       updateData.avatar = avatar;
@@ -572,6 +620,7 @@ async function userUpdate(openid, data) {
     updateData.lastActiveAt = now;
     updateData.updatedAt = now;
     await db.collection('users').doc(user._id).update({ data: updateData });
+    await finishUserAvatarUpload(avatarUpload, user.avatarObject);
 
     const safeUser = { ...user, ...updateData };
     delete safeUser.password;

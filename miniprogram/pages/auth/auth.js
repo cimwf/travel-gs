@@ -3,6 +3,7 @@ const app = getApp();
 const auth = require('../../utils/auth.js');
 const api = require('../../utils/api.js');
 const nav = require('../../utils/nav.js');
+const userAvatarUpload = require('../../utils/user-avatar-upload.js');
 
 Page({
   data: {
@@ -136,8 +137,14 @@ Page({
     this.setData({ loading: true });
 
     try {
-      const avatar = await this.uploadAvatarIfNeeded(avatarUrl);
-      await this.loginByPhone({ phone, nickname, avatar }, { forceComplete: true });
+      const avatarUpload = await this.uploadAvatarIfNeeded(avatarUrl);
+      await this.loginByPhone({
+        phone,
+        nickname,
+        avatar: avatarUpload.url,
+        avatarUploadSessionId: avatarUpload.sessionId,
+        avatarMedia: avatarUpload.media
+      }, { forceComplete: true });
     } catch (err) {
       console.error('手机号登录失败:', err);
       wx.showToast({ title: err.message || '登录失败，请重试', icon: 'none' });
@@ -200,36 +207,11 @@ Page({
     );
   },
 
-  getAvatarSuffix(path) {
-    const cleanPath = (path || '').split('?')[0];
-    const match = cleanPath.match(/\.([a-zA-Z0-9]+)$/);
-    const suffix = match ? match[1].toLowerCase() : 'jpg';
-    return ['jpg', 'jpeg', 'png', 'webp'].includes(suffix) ? suffix : 'jpg';
-  },
-
   async uploadAvatarIfNeeded(avatarUrl) {
     if (!avatarUrl || !this.isLocalAvatarPath(avatarUrl)) {
-      return avatarUrl || '';
+      return { url: avatarUrl || '', sessionId: '', media: null };
     }
-
-    if (!wx.cloud || !wx.cloud.uploadFile) {
-      return '';
-    }
-
-    const openid = this.data.openid || app.globalData.openid || wx.getStorageSync('openid') || 'anonymous';
-    const suffix = this.getAvatarSuffix(avatarUrl);
-    const cloudPath = `avatars/${openid}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${suffix}`;
-
-    try {
-      const uploadRes = await wx.cloud.uploadFile({
-        cloudPath,
-        filePath: avatarUrl
-      });
-      return uploadRes.fileID || '';
-    } catch (err) {
-      console.warn('头像上传失败，将不保存临时头像', err);
-      return '';
-    }
+    return userAvatarUpload.uploadAvatar(avatarUrl);
   },
 
   async handleLoginSuccess(user) {

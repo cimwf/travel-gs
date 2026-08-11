@@ -37,7 +37,12 @@ const userSchema = {
   userId: "BJ143052A7F3",           // 用户唯一标识：前缀 + 时间戳后6位 + 4位随机数
   openid: "xxx",                    // 微信openid
   nickname: "旅行达人",              // 昵称
-  avatar: "https://...",            // 头像
+  avatar: "https://...",            // 头像展示URL（新上传使用COS）
+  avatarObject: {                    // COS头像对象，用于替换时清理旧文件
+    provider: "cos",
+    key: "miniapp/user-avatars/2026/08/trip_media_xxx/img_xxx.jpg",
+    url: "https://imagica-images-1436573577.cos.ap-beijing.myqcloud.com/miniapp/user-avatars/...jpg"
+  },
   gender: 1,                        // 性别 0未知 1男 2女
   bio: "热爱户外",                   // 简介
   phone: "138****8888",             // 手机号（脱敏）
@@ -330,12 +335,12 @@ const communityCleanupTaskSchema = {
   updatedAt: 1711123200000
 };
 
-// 17. trip_media_upload_sessions - 行程日志/封面/头像上传会话表
+// 17. trip_media_upload_sessions - 行程媒体及用户头像上传会话表
 const tripMediaUploadSessionSchema = {
   _id: "trip_media_xxx",
   ownerId: "openid_xxx",
   tripId: "trip_xxx",
-  purpose: "log",                // log/cover/avatar
+  purpose: "log",                // log/cover/avatar/user_avatar
   status: "uploading",           // uploading/consumed/expired
   uploadItems: [{
     index: 0,

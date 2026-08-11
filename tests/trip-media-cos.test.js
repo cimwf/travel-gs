@@ -15,6 +15,11 @@ const detail = read('miniprogram/pages/trip-detail/trip-detail.js');
 const detailWxml = read('miniprogram/pages/trip-detail/trip-detail.wxml');
 const api = read('miniprogram/utils/api.js');
 const uploadUtil = read('miniprogram/utils/trip-media-upload.js');
+const avatarUploadUtil = read('miniprogram/utils/user-avatar-upload.js');
+const authPage = read('miniprogram/pages/auth/auth.js');
+const editProfile = read('miniprogram/pages/edit-profile/edit-profile.js');
+const loginModal = read('miniprogram/components/login-modal/login-modal.js');
+const userHandler = read('cloudfunctions/api/handlers/user.js');
 const schema = read('database/schema.js');
 
 assert(index.includes("require('./handlers/tripMedia')"));
@@ -24,6 +29,7 @@ assert(api.includes('tripMediaCreateUploadSession'));
 ['trip-logs', 'trip-covers', 'trip-avatars'].forEach(directory => {
   assert(tripMedia.includes(directory), `missing COS directory ${directory}`);
 });
+assert(tripMedia.includes("user_avatar: { directory: 'user-avatars', maxFiles: 1 }"));
 assert(tripMedia.includes("process.env.TRIP_COS_PREFIX || 'miniapp/'"));
 assert(tripMedia.includes("collection('trip_media_upload_sessions')"));
 assert(tripMedia.includes('headObject'));
@@ -32,6 +38,18 @@ assert(tripMedia.includes("collection('trip_media_cleanup_tasks')"));
 
 assert(uploadUtil.includes('cosUpload.uploadImage'));
 assert(uploadUtil.includes('maxConcurrency = Math.min(3'));
+assert(avatarUploadUtil.includes("purpose: 'user_avatar'"));
+assert(avatarUploadUtil.includes('tripMediaUpload.uploadFiles'));
+assert(authPage.includes("require('../../utils/user-avatar-upload.js')"));
+assert(editProfile.includes("require('../../utils/user-avatar-upload.js')"));
+assert(loginModal.includes("require('../../utils/user-avatar-upload.js')"));
+[authPage, editProfile, loginModal].forEach(source => {
+  assert(!source.includes('wx.cloud.uploadFile'), 'profile avatar must not use CloudBase storage');
+});
+assert(userHandler.includes("purpose: 'user_avatar'"));
+assert(userHandler.includes('verifyUserAvatarUpload'));
+assert(userHandler.includes('consumeUploadSession'));
+assert(userHandler.includes("reason: 'user_avatar_replaced'"));
 assert(detail.includes("purpose: 'log'"));
 assert(detail.includes("purpose: 'cover'"));
 assert(!detail.includes("purpose: 'avatar'"));
@@ -55,4 +73,4 @@ assert(trip.includes("reason: 'trip_media_replaced'"));
 assert(schema.includes('trip_media_upload_sessions'));
 assert(schema.includes('trip_media_cleanup_tasks'));
 
-console.log('PASS trip logs and trip cover media use verified COS uploads with legacy cloud compatibility');
+console.log('PASS trip media and user avatars use verified COS uploads with legacy cloud compatibility');

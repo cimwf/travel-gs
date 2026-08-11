@@ -1,6 +1,7 @@
 // components/login-modal/login-modal.js
 const app = getApp();
 const auth = require('../../utils/auth.js');
+const userAvatarUpload = require('../../utils/user-avatar-upload.js');
 
 Component({
   properties: {
@@ -91,23 +92,17 @@ Component({
 
         const openid = loginRes.result.openid;
 
-        // 上传头像到云存储
+        // 通过后端签发的临时凭证上传头像到 COS。
+        let avatarUpload = null;
         let avatarCloudUrl = avatarUrl;
-        if (avatarUrl && (avatarUrl.startsWith('http://tmp') || avatarUrl.startsWith('wxfile://'))) {
-          try {
-            const uploadRes = await new Promise((resolve, reject) => {
-              wx.cloud.uploadFile({
-                cloudPath: `avatars/${openid}_${Date.now()}.jpg`,
-                filePath: avatarUrl,
-                success: resolve,
-                fail: reject
-              });
-            });
-            avatarCloudUrl = uploadRes.fileID;
-          } catch (uploadErr) {
-            console.warn('头像上传失败，使用默认头像', uploadErr);
-            avatarCloudUrl = '';
-          }
+        if (avatarUrl && (
+          avatarUrl.startsWith('http://tmp') ||
+          avatarUrl.startsWith('https://tmp') ||
+          avatarUrl.startsWith('wxfile://') ||
+          avatarUrl.startsWith('tmp/')
+        )) {
+          avatarUpload = await userAvatarUpload.uploadAvatar(avatarUrl);
+          avatarCloudUrl = avatarUpload.url;
         }
 
         // 调用API保存用户信息
@@ -119,6 +114,8 @@ Component({
               data: {
                 nickname: nickname.trim(),
                 avatar: avatarCloudUrl,
+                avatarUploadSessionId: avatarUpload ? avatarUpload.sessionId : '',
+                avatarMedia: avatarUpload ? avatarUpload.media : null,
                 gender
               }
             },

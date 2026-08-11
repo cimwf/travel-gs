@@ -1,6 +1,7 @@
 // pages/edit-profile/edit-profile.js
 const app = getApp();
 const api = require('../../utils/api.js');
+const userAvatarUpload = require('../../utils/user-avatar-upload.js');
 
 Page({
   data: {
@@ -11,6 +12,8 @@ Page({
       _id: '',
       avatar: '',
       avatarFileID: '',
+      avatarUploadSessionId: '',
+      avatarMedia: null,
       nickname: '',
       gender: '',
       age: '',
@@ -64,6 +67,8 @@ Page({
         _id: existing._id || wx.getStorageSync('userId') || '',
         avatar,
         avatarFileID: existing.avatarFileID || (avatar.startsWith('cloud://') ? avatar : ''),
+        avatarUploadSessionId: '',
+        avatarMedia: null,
         nickname: existing.nickname || existing.nickName || '',
         gender: this.normalizeGender(existing.gender),
         age: existing.age === undefined || existing.age === null ? '' : String(existing.age),
@@ -100,38 +105,8 @@ Page({
     );
   },
 
-  getImageSuffix: function (path) {
-    const cleanPath = (path || '').split('?')[0];
-    const match = cleanPath.match(/\.([a-zA-Z0-9]+)$/);
-    const suffix = match ? match[1].toLowerCase() : 'jpg';
-    return ['jpg', 'jpeg', 'png', 'webp'].includes(suffix) ? suffix : 'jpg';
-  },
-
-  getCloudPathName: function (value) {
-    return String(value || 'anonymous')
-      .replace(/[^a-zA-Z0-9_-]/g, '_')
-      .slice(0, 64) || 'anonymous';
-  },
-
   uploadAvatar: async function (tempFilePath) {
-    if (!wx.cloud || !wx.cloud.uploadFile) return null;
-    const openid = this.getCloudPathName(
-      app.globalData.openid || wx.getStorageSync('openid') || this.data.userInfo._id
-    );
-    const cloudPath = `avatars/${openid}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${this.getImageSuffix(tempFilePath)}`;
-    const uploadRes = await wx.cloud.uploadFile({ cloudPath, filePath: tempFilePath });
-    if (!uploadRes.fileID) return null;
-
-    let displayUrl = uploadRes.fileID;
-    if (wx.cloud.getTempFileURL) {
-      try {
-        const res = await wx.cloud.getTempFileURL({ fileList: [uploadRes.fileID] });
-        displayUrl = (res.fileList && res.fileList[0] && res.fileList[0].tempFileURL) || displayUrl;
-      } catch (err) {
-        console.warn('获取头像展示链接失败', err);
-      }
-    }
-    return { fileID: uploadRes.fileID, displayUrl };
+    return userAvatarUpload.uploadAvatar(tempFilePath);
   },
 
   onChooseAvatar: function (event) {
@@ -143,7 +118,11 @@ Page({
     if (!avatarUrl) return;
     this.setData({ 'userInfo.avatar': avatarUrl });
     if (!this.isLocalAvatarPath(avatarUrl)) {
-      this.setData({ 'userInfo.avatarFileID': '' });
+      this.setData({
+        'userInfo.avatarFileID': '',
+        'userInfo.avatarUploadSessionId': '',
+        'userInfo.avatarMedia': null
+      });
       return;
     }
 
@@ -152,15 +131,19 @@ Page({
       const uploaded = await this.uploadAvatar(avatarUrl);
       if (!uploaded) throw new Error('头像上传失败');
       this.setData({
-        'userInfo.avatar': uploaded.displayUrl,
-        'userInfo.avatarFileID': uploaded.fileID
+        'userInfo.avatar': uploaded.url,
+        'userInfo.avatarFileID': '',
+        'userInfo.avatarUploadSessionId': uploaded.sessionId,
+        'userInfo.avatarMedia': uploaded.media
       });
     } catch (err) {
       console.warn('头像上传失败', err);
       wx.showToast({ title: '头像上传失败', icon: 'none' });
       this.setData({
         'userInfo.avatar': this.data.originalUserInfo.avatar || '',
-        'userInfo.avatarFileID': this.data.originalUserInfo.avatarFileID || ''
+        'userInfo.avatarFileID': this.data.originalUserInfo.avatarFileID || '',
+        'userInfo.avatarUploadSessionId': '',
+        'userInfo.avatarMedia': null
       });
     } finally {
       wx.hideLoading();
@@ -238,6 +221,8 @@ Page({
       _id: info._id || undefined,
       nickname: String(info.nickname || '').trim(),
       avatar: avatarForDb,
+      avatarUploadSessionId: info.avatarUploadSessionId,
+      avatarMedia: info.avatarMedia,
       gender: info.gender,
       age: info.age,
       region: info.region,
@@ -253,6 +238,7 @@ Page({
         ...this.data.originalUserInfo,
         ...savedUser,
         avatar: persistedAvatar,
+        avatarObject: savedUser.avatarObject || info.avatarMedia || this.data.originalUserInfo.avatarObject || null,
         avatarFileID: persistedAvatar.startsWith('cloud://') ? persistedAvatar : '',
         updatedAt: savedUser.updatedAt || Date.now()
       };
