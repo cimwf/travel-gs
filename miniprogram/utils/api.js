@@ -1,4 +1,5 @@
 // api.js - 云函数调用封装
+const env = require('./env.js');
 
 /**
  * 统一调用云函数
@@ -10,7 +11,12 @@ function callApi(action, data = {}) {
   return new Promise((resolve, reject) => {
     wx.cloud.callFunction({
       name: 'api',
-      data: { action, data }
+      data: {
+        action,
+        data,
+        runtimeEnv: env.runtimeEnv,
+        dataEnvironment: env.dataEnvironment
+      }
     }).then(res => {
       if (res.result.success) {
         resolve(res.result);

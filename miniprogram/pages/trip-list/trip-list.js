@@ -1,6 +1,7 @@
 // pages/trip-list/trip-list.js
 const app = getApp();
 const auth = require('../../utils/auth.js');
+const api = require('../../utils/api.js');
 
 Page({
   data: {
@@ -135,16 +136,8 @@ Page({
         reqData.page = 1;
       }
 
-      // 从云函数获取行程列表
-      const res = await wx.cloud.callFunction({
-        name: 'api',
-        data: {
-          action: 'trip/list',
-          data: reqData
-        }
-      });
-
-      const tripRes = res.result;
+      // 通过统一 API 调用，自动携带当前业务数据环境配置。
+      const tripRes = await api.tripList(reqData);
       if (!tripRes || !tripRes.success) {
         throw new Error('获取行程列表失败');
       }

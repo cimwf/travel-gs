@@ -75,12 +75,16 @@ async function run() {
   const tripListCall = cloudCalls.find((call) => call.name === 'api' && call.data.action === 'trip/list');
   assert(tripListCall, 'trip/list should be called');
   assert.strictEqual(tripListCall.data.data.openid, 'metric-openid');
+  assert.strictEqual(tripListCall.data.runtimeEnv, 'develop');
+  assert.deepStrictEqual(tripListCall.data.dataEnvironment, {
+    writeEnv: 'dev',
+    readEnvs: ['dev']
+  });
 
-  console.log('PASS trip-list request carries openid for conversion metrics');
+  console.log('PASS trip-list request carries openid and business data environment');
 }
 
 run().catch((err) => {
   console.error(err.stack || err.message);
   process.exit(1);
 });
-

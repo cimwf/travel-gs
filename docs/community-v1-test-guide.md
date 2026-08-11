@@ -241,7 +241,7 @@ npm run test:core
 包不能据此直接上线。必须逐项执行
 `docs/community-v1-release-checklist.md`，尤其注意：
 
-- release 环境目前仍指向占位值 `prod-demo`。
-- 正式环境的云函数变量、集合、索引和消息推送需要单独核验。
+- release、trial 和 develop 已统一连接现有云环境，业务数据通过 `dataEnv` 隔离。
+- 共享云环境的云函数变量、集合、索引和消息推送仍需在上线前核验。
 - 举报与人工审核处置尚未闭环。
 - COS 删除失败队列和废弃草稿暂时没有自动清理执行器。

@@ -8,6 +8,8 @@ App({
     openid: null,
     isLoggedIn: false,
     cloudEnv: env.cloudEnv,
+    runtimeEnv: env.runtimeEnv,
+    dataEnvironment: env.dataEnvironment,
     attractions: [],
     attractionsLoaded: false,
     notificationsCache: null

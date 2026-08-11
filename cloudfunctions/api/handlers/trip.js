@@ -2,6 +2,7 @@ const { db, _, cloud, safeAvatar } = require('../utils/shared');
 const { recordUserStatEvent } = require('./auth');
 const { setNotification } = require('./notification');
 const tripMedia = require('./tripMedia');
+const { createReadCondition, RUNTIME_DEFAULTS } = require('../utils/dataEnvironment');
 
 function getTripTitle(trip) {
   return trip && (trip.tripTitle || trip.placeName) || '行程';
@@ -76,7 +77,7 @@ async function resolveTripCoverImages(trips = []) {
   });
 }
 
-async function tripCreate(openid, data) {
+async function tripCreate(openid, data, dataEnvironment = RUNTIME_DEFAULTS.develop) {
   const userRes = await db.collection('users').where({ openid }).get();
   const user = userRes.data[0];
 
@@ -144,6 +145,7 @@ async function tripCreate(openid, data) {
     logAuthorizedPublisherIds: [],
     logCount: 0,
     lastLogAt: 0,
+    dataEnv: dataEnvironment.writeEnv,
     createdAt: Date.now()
   };
 
@@ -157,7 +159,7 @@ async function tripCreate(openid, data) {
   return { success: true, trip: newTrip, tripImage };
 }
 
-async function tripList(openid, data) {
+async function tripList(openid, data, dataEnvironment = RUNTIME_DEFAULTS.develop) {
   const { placeId, status, date, excludeStatus, page = 1, pageSize = 8, cursor } = data;
 
   if (openid) {
@@ -173,9 +175,10 @@ async function tripList(openid, data) {
   if (excludeStatus) conditions.status = _.neq(excludeStatus);
   if (cursor) conditions.createdAt = _.lt(cursor);
 
-  if (Object.keys(conditions).length > 0) {
-    query = query.where(conditions);
-  }
+  const dataEnvCondition = createReadCondition(_, dataEnvironment.readEnvs);
+  query = Object.keys(conditions).length > 0
+    ? query.where(_.and([conditions, dataEnvCondition]))
+    : query.where(dataEnvCondition);
 
   const res = await query
     .orderBy('createdAt', 'desc')

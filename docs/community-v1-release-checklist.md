@@ -10,18 +10,16 @@
 
 ## 1. P0：正式环境与部署
 
-- [ ] 修改 `miniprogram/utils/env.js`：`prod.cloudEnv` 目前仍是 `prod-demo`。
-  若本次不拆分生产环境，应明确改为当前实际环境
-  `cloud1-d2gel5jl093988c07`；若拆分环境，则填写真实生产环境 ID。
-- [ ] 同步修改 `package.json` 的 `deploy:prod`，它目前仍执行
-  `cloudbase deploy --env prod-demo`。
+- [x] `miniprogram/utils/env.js` 已将开发版、体验版和正式版统一连接
+  `cloud1-d2gel5jl093988c07`，业务数据使用 `dataEnv` 隔离。
+- [x] `package.json` 的 `deploy:prod` 已同步指向共享云环境。
 - [ ] 核对 `cloudbaserc.json` 的目标环境、云函数运行时和超时设置。不要在没有
   验证目标环境的情况下执行批量部署。
 - [ ] 在目标环境部署 `api` 和 `community-media-check-result`，确认
   `cloudfunctions/api/config.json` 中的 `security.msgSecCheck` 与
   `security.mediaCheckAsync` 调用权限生效。
-- [ ] 使用正式版/体验版分别验证 `wx.cloud.init` 实际连接的环境，避免开发工具
-  正常而 release 包连接错误环境。
+- [ ] 使用正式版/体验版分别验证 `wx.cloud.init` 均连接共享云环境，并验证首页
+  只展示各自 `readEnvs` 允许的数据。
 
 ## 2. P0：云函数环境变量与密钥
 

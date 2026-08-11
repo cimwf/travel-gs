@@ -88,6 +88,7 @@ const placeSchema = {
 // 3. trips - 行程表
 const tripSchema = {
   _id: "trip_xxx",
+  dataEnv: "dev",                  // dev/test/prod；缺失时仅按dev数据处理
   placeId: "place_xxx",
   placeName: "东灵山",
   
@@ -224,6 +225,7 @@ const notificationSchema = {
 // 9. community_posts - 社区动态表
 const communityPostSchema = {
   _id: "post_xxx",
+  dataEnv: "dev",                 // dev/test/prod；缺失时仅按dev数据处理
   draftId: "post_draft_8f31",      // 关联上传草稿ID
   authorId: "openid_xxx",          // 作者openid
   authorName: "小鹿在路上",         // 作者昵称（服务端从users读取，不可信客户端）
@@ -428,10 +430,10 @@ places:
   - wantCount
 
 trips:
-  - placeId
-  - creatorId
-  - date
-  - status
+  - dataEnv + createdAt（复合索引，用于首页按业务环境分页）
+  - dataEnv + placeId + createdAt（复合索引，用于按地点筛选）
+  - dataEnv + status + createdAt（复合索引，用于按状态筛选）
+  - dataEnv + date + createdAt（复合索引，用于按日期筛选）
 
 applies:
   - tripId
@@ -458,9 +460,9 @@ notifications:
   - receiverId + status + isRead（复合索引，用于未读数量和全部已读）
 
 community_posts:
-  - status + reviewStatus + createdAt + _id（复合索引，用于公共列表稳定游标查询）
-  - status + reviewStatus + authorId + createdAt + _id（复合索引，用于关注和地区筛选）
-  - authorId + status + createdAt + _id（复合索引，用于“我的作品”列表）
+  - dataEnv + status + reviewStatus + createdAt + _id（复合索引，用于公共列表按业务环境稳定游标查询）
+  - dataEnv + status + reviewStatus + authorId + createdAt + _id（复合索引，用于关注、地区及个人主页筛选）
+  - authorId + status + createdAt + _id（复合索引，用于“我的作品”列表，暂不按环境隔离）
   - status + adminReviewStatus + machineSuggest + createdAt（复合索引，用于后台人工审核）
   - draftId（唯一索引，防止重复发布）
 

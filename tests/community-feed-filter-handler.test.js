@@ -18,18 +18,30 @@ const follows = [
   { _id: 'follow-2', followerId: 'viewer', followingId: 'author-2' }
 ];
 const posts = [
+  { _id: 'post-prod', authorId: 'author-1', status: 'active', reviewStatus: 'approved', dataEnv: 'prod', createdAt: 400 },
   { _id: 'post-1', authorId: 'author-1', status: 'active', reviewStatus: 'approved', createdAt: 300 },
   { _id: 'post-2', authorId: 'author-2', status: 'active', reviewStatus: 'approved', createdAt: 200 },
   { _id: 'post-3', authorId: 'author-3', status: 'active', reviewStatus: 'approved', createdAt: 100 }
 ];
 
 function matches(value, expected) {
-  if (expected && expected.$in) return expected.$in.includes(value);
+  if (expected && expected.$op === 'in') return expected.values.includes(value);
+  if (expected && expected.$op === 'exists') return expected.value ? value !== undefined : value === undefined;
   return value === expected;
 }
 
+function matchesCondition(row, condition) {
+  if (condition && condition.$op === 'and') {
+    return condition.conditions.every(item => matchesCondition(row, item));
+  }
+  if (condition && condition.$op === 'or') {
+    return condition.conditions.some(item => matchesCondition(row, item));
+  }
+  return Object.keys(condition || {}).every(key => matches(row[key], condition[key]));
+}
+
 function filterRows(rows, condition) {
-  return rows.filter(row => Object.keys(condition || {}).every(key => matches(row[key], condition[key])));
+  return rows.filter(row => matchesCondition(row, condition));
 }
 
 function queryFor(rows, condition) {
@@ -69,7 +81,16 @@ const db = {
 
 const command = {
   in(values) {
-    return { $in: values };
+    return { $op: 'in', values };
+  },
+  exists(value) {
+    return { $op: 'exists', value };
+  },
+  and(conditions) {
+    return { $op: 'and', conditions };
+  },
+  or(conditions) {
+    return { $op: 'or', conditions };
   }
 };
 
@@ -121,6 +142,13 @@ async function main() {
     region: '上海市'
   });
   assert.strictEqual(invalidRegion.success, false);
+
+  const production = await community.communityList('viewer', { pageSize: 10 }, {
+    writeEnv: 'prod',
+    readEnvs: ['prod']
+  });
+  assert.strictEqual(production.success, true);
+  assert.deepStrictEqual(production.posts.map(post => post._id), ['post-prod']);
 
   console.log('PASS community feed filters by follows and current profile region');
 }

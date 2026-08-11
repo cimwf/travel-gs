@@ -17,11 +17,13 @@ const userSpots = require('./handlers/userSpots');
 const feedback = require('./handlers/feedback');
 const community = require('./handlers/community');
 const notification = require('./handlers/notification');
+const { resolveDataEnvironment } = require('./utils/dataEnvironment');
 
 exports.main = async (event, context) => {
   const { action, data } = event;
   const wxContext = cloud.getWXContext();
   const openid = wxContext.OPENID;
+  const dataEnvironment = resolveDataEnvironment(event);
 
   try {
     switch (action) {
@@ -65,9 +67,9 @@ exports.main = async (event, context) => {
 
       // ========== 行程相关 ==========
       case 'trip/create':
-        return await trip.tripCreate(openid, data);
+        return await trip.tripCreate(openid, data, dataEnvironment);
       case 'trip/list':
-        return await trip.tripList(openid, data);
+        return await trip.tripList(openid, data, dataEnvironment);
       case 'trip/get':
         return await trip.tripGet(data.tripId);
       case 'trip/view':
@@ -175,7 +177,7 @@ exports.main = async (event, context) => {
 
       // ========== 社区相关 ==========
       case 'community/list':
-        return await community.communityList(openid, data);
+        return await community.communityList(openid, data, dataEnvironment);
       case 'community/get':
         return await community.communityGet(openid, data);
       case 'community/my':
@@ -183,7 +185,7 @@ exports.main = async (event, context) => {
       case 'community/createUploadSession':
         return await community.communityCreateUploadSession(openid, data);
       case 'community/create':
-        return await community.communityCreate(openid, data);
+        return await community.communityCreate(openid, data, dataEnvironment);
       case 'community/toggleLike':
         return await community.communityToggleLike(openid, data);
       case 'community/likeList':

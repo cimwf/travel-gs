@@ -1,6 +1,7 @@
 const { db, _, cloud } = require('../utils/shared');
 const nodeCrypto = require('crypto');
 const { setNotification, removeNotification } = require('./notification');
+const { createReadCondition, RUNTIME_DEFAULTS } = require('../utils/dataEnvironment');
 
 // COS configuration from environment variables
 const COS_CONFIG = {
@@ -428,7 +429,7 @@ async function reconcileImageAuditStatus(postId, traceIds) {
 
 // ===================== community/list =====================
 
-async function communityList(openid, data) {
+async function communityList(openid, data, dataEnvironment = RUNTIME_DEFAULTS.develop) {
   var requestedPageSize = Number(data && data.pageSize) || 10;
   var pageSize = Math.max(1, Math.min(requestedPageSize, 20));
   var cursor = Number(data && data.cursor) || 0;
@@ -461,6 +462,11 @@ async function communityList(openid, data) {
       return { success: false, error: filterErr.message || '社区筛选失败' };
     }
   }
+
+  listCondition = _.and([
+    listCondition,
+    createReadCondition(_, dataEnvironment.readEnvs)
+  ]);
 
   if (cursor > 0) {
     var cursorCondition = cursorId
@@ -767,7 +773,7 @@ async function communityCreateUploadSession(openid, data) {
 
 // ===================== community/create =====================
 
-async function communityCreate(openid, data) {
+async function communityCreate(openid, data, dataEnvironment = RUNTIME_DEFAULTS.develop) {
   try {
     var user = await getCurrentUser(openid);
     var draftId = data && data.draftId;
@@ -933,6 +939,7 @@ async function communityCreate(openid, data) {
         imageAuditRetryAt: 0,
         imageAuditLastError: '',
         status: 'active',
+        dataEnv: dataEnvironment.writeEnv,
         createdAt: now,
         updatedAt: now,
         deletedAt: 0
@@ -1023,6 +1030,7 @@ async function communityCreate(openid, data) {
       machineSuggest: 'pass',
       adminReviewStatus: 'not_required',
       status: 'active',
+      dataEnv: dataEnvironment.writeEnv,
       createdAt: now,
       updatedAt: now,
       deletedAt: 0

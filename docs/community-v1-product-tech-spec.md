@@ -589,10 +589,11 @@ COMMUNITY_COS_PREFIX=miniapp/community/
 完整、可勾选的上线步骤见 `docs/community-v1-release-checklist.md`。其中当前代码
 审计已确认的 P0 项包括：
 
-1. `miniprogram/utils/env.js` 的正式环境仍是占位值 `prod-demo`，必须替换。
-2. `package.json` 的 `deploy:prod` 同样仍指向 `prod-demo`，不能直接执行。
-3. 正式云环境必须重新配置 COS 密钥、四个社区集合、索引、云函数和
-   `wxa_media_check` 消息推送。
+1. 开发版、体验版和正式版统一连接 `cloud1-d2gel5jl093988c07`，行程和社区首页
+   通过 `dataEnv` 进行业务数据隔离。
+2. `package.json` 的 `deploy:prod` 已指向上述共享云环境，执行前仍需核对目标。
+3. 共享云环境必须确认 COS 密钥、社区集合、索引、云函数和
+   `wxa_media_check` 消息推送配置完整。
 4. CAM 权限需要包含 `DeleteObject`，因为删除作品会立即删除 COS 对象。
 5. 微信合法域名、COS CORS、定位与图片隐私用途必须在正式版重新核验。
 6. 举报入口和人工审核处置目前未形成闭环，正式开放社区前必须补齐或形成可执行
