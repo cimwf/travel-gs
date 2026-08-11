@@ -22,6 +22,8 @@
 14. community_comments - 社区评论表
 15. community_comment_replies - 社区评论回复表
 16. user_follows - 用户关注关系表
+17. trip_media_upload_sessions - 行程媒体COS上传会话表
+18. trip_media_cleanup_tasks - 行程媒体COS清理任务表
 ==========================================
 集合结构说明
 ==========================================
@@ -323,6 +325,39 @@ const communityCleanupTaskSchema = {
   updatedAt: 1711123200000
 };
 
+// 17. trip_media_upload_sessions - 行程日志/封面/头像上传会话表
+const tripMediaUploadSessionSchema = {
+  _id: "trip_media_xxx",
+  ownerId: "openid_xxx",
+  tripId: "trip_xxx",
+  purpose: "log",                // log/cover/avatar
+  status: "uploading",           // uploading/consumed/expired
+  uploadItems: [{
+    index: 0,
+    cosKey: "miniapp/trip-logs/trip_xxx/2026/08/trip_media_xxx/img_xxx.jpg",
+    maxSize: 10485760,
+    allowedMime: "image/jpeg"
+  }],
+  expiresAt: 1786350000000,
+  createdAt: 1786349400000,
+  consumedAt: 0
+};
+
+// 18. trip_media_cleanup_tasks - 行程COS图片清理失败重试表
+const tripMediaCleanupTaskSchema = {
+  _id: "trip_cleanup_xxx",
+  tripId: "trip_xxx",
+  logId: "log_xxx",
+  reason: "trip_log_deleted",
+  provider: "cos",
+  key: "miniapp/trip-logs/trip_xxx/2026/08/trip_media_xxx/img_xxx.jpg",
+  status: "pending",
+  retryCount: 0,
+  lastError: "",
+  createdAt: 1786349400000,
+  updatedAt: 1786349400000
+};
+
 // 14. community_comments - 社区评论表
 const communityCommentSchema = {
   _id: "comment_xxx",
@@ -451,6 +486,13 @@ community_upload_drafts:
 
 community_cleanup_tasks:
   - status + createdAt（用于清理队列处理）
+
+trip_media_upload_sessions:
+  - ownerId + tripId + status（复合索引，供上传会话校验）
+  - expiresAt（TTL索引或定时清理依据）
+
+trip_media_cleanup_tasks:
+  - status + createdAt（用于行程图片清理队列处理）
 
 user_follows:
   - followerId + createdAt + _id（复合索引，供“关注”列表稳定分页）

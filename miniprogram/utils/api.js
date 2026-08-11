@@ -201,6 +201,13 @@ function tripUpdate(data) {
 }
 
 /**
+ * 创建行程日志、封面或头像的 COS 上传会话。
+ */
+function tripMediaCreateUploadSession(data) {
+  return callApi('tripMedia/createUploadSession', data || {});
+}
+
+/**
  * 获取我的行程
  */
 function tripMy() {
@@ -556,6 +563,7 @@ module.exports = {
   tripUpdateStatus,
   tripDelete,
   tripUpdate,
+  tripMediaCreateUploadSession,
   tripMy,
   tripListByUser,
 

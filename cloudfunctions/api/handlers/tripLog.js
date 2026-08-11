@@ -1,4 +1,5 @@
 const { db, _, cloud, safeAvatar } = require('../utils/shared');
+const tripMedia = require('./tripMedia');
 
 async function tripLogStart(openid, data) {
   const { tripId } = data;
@@ -64,7 +65,7 @@ async function tripLogList(data) {
   logs.forEach(log => {
     if (log.images && log.images.length > 0) {
       log.images.forEach(img => {
-        if (img.fileID) fileIDs.push(img.fileID);
+        if (img.fileID && String(img.fileID).startsWith('cloud://')) fileIDs.push(img.fileID);
       });
     }
   });
@@ -87,7 +88,7 @@ async function tripLogList(data) {
     if (log.images && log.images.length > 0) {
       log.images = log.images.map(img => ({
         ...img,
-        tempFileURL: fileUrlMap[img.fileID] || ''
+        tempFileURL: img.url || fileUrlMap[img.fileID] || ''
       }));
     }
   });
@@ -113,7 +114,7 @@ async function tripLogList(data) {
 }
 
 async function tripLogCreate(openid, data) {
-  const { tripId, content, images = [], weatherLabel = '', location = null } = data;
+  const { tripId, content, images = [], uploadSessionId = '', weatherLabel = '', location = null } = data;
   if (!tripId) return { success: false, error: '行程ID不能为空' };
 
   const tripRes = await db.collection('trips').doc(tripId).get();
@@ -152,6 +153,20 @@ async function tripLogCreate(openid, data) {
     return { success: false, error: '内容、图片和定位不能同时为空' };
   }
 
+  let normalizedImages = images;
+  let verifiedUploadSessionId = '';
+  if (images.some(image => image && image.provider === 'cos')) {
+    if (!uploadSessionId) return { success: false, error: '图片上传会话无效' };
+    const verified = await tripMedia.verifyUploadSession(openid, {
+      sessionId: uploadSessionId,
+      tripId,
+      purpose: 'log',
+      media: images
+    });
+    normalizedImages = verified.media;
+    verifiedUploadSessionId = uploadSessionId;
+  }
+
   const userRes = await db.collection('users').where({ openid }).get();
   const user = userRes.data[0] || {};
 
@@ -179,8 +194,8 @@ async function tripLogCreate(openid, data) {
     publisherAvatar: safeAvatar(user.avatar),
     publisherRole: isCreator ? 'creator' : 'authorized_member',
     content: trimmedContent,
-    images,
-    imageCount: images.length,
+    images: normalizedImages,
+    imageCount: normalizedImages.length,
     location: hasValidLocation ? normalizedLocation : null,
     dayLabel,
     tripDayIndex,
@@ -196,6 +211,14 @@ async function tripLogCreate(openid, data) {
   await db.collection('trips').doc(tripId).update({
     data: { logCount: logCount + 1, lastLogAt: now, updatedAt: now }
   });
+
+  if (verifiedUploadSessionId) {
+    try {
+      await tripMedia.consumeUploadSession(verifiedUploadSessionId);
+    } catch (err) {
+      console.error('标记行程日志上传会话失败:', err);
+    }
+  }
 
   return { success: true, log: newLog };
 }
@@ -223,6 +246,12 @@ async function tripLogDelete(openid, data) {
   const currentLogCount = trip.logCount || 0;
   await db.collection('trips').doc(tripId).update({
     data: { logCount: Math.max(currentLogCount - 1, 0), updatedAt: now }
+  });
+
+  await tripMedia.cleanupCosMedia(log.images || [], {
+    tripId,
+    logId,
+    reason: 'trip_log_deleted'
   });
 
   return { success: true };

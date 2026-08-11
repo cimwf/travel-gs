@@ -157,12 +157,12 @@
             <view wx:if="{{log.images && log.images.length > 0}}">
               <view class="photo-grid {{log.imageGridClass}}">
                 <block wx:if="{{log.imageCount === 1}}">
-                  <view class="photo-single-wrap" bindtap="onPreviewImage" data-urls="{{log.imageUrls}}" data-current="{{log.images[0].tempFileURL || log.images[0].fileID}}">
-                    <image class="photo-item-single" src="{{log.images[0].tempFileURL || log.images[0].fileID}}" mode="widthFix"></image>
+                  <view class="photo-single-wrap" bindtap="onPreviewImage" data-urls="{{log.imageUrls}}" data-current="{{log.images[0].url || log.images[0].tempFileURL || log.images[0].fileID}}">
+                    <image class="photo-item-single" src="{{log.images[0].url || log.images[0].tempFileURL || log.images[0].fileID}}" mode="widthFix"></image>
                   </view>
                 </block>
                 <block wx:else>
-                  <image class="photo-item" wx:for="{{log.renderImages}}" wx:key="sort" src="{{item.tempFileURL || item.fileID}}" mode="aspectFill" bindtap="onPreviewImage" data-urls="{{log.imageUrls}}" data-current="{{item.tempFileURL || item.fileID}}"></image>
+                  <image class="photo-item" wx:for="{{log.renderImages}}" wx:key="sort" src="{{item.url || item.tempFileURL || item.fileID}}" mode="aspectFill" bindtap="onPreviewImage" data-urls="{{log.imageUrls}}" data-current="{{item.url || item.tempFileURL || item.fileID}}"></image>
                 </block>
               </view>
             </view>

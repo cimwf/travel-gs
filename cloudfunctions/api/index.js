@@ -6,6 +6,7 @@ const user = require('./handlers/user');
 const place = require('./handlers/place');
 const trip = require('./handlers/trip');
 const tripLog = require('./handlers/tripLog');
+const tripMedia = require('./handlers/tripMedia');
 const apply = require('./handlers/apply');
 const want = require('./handlers/want');
 const message = require('./handlers/message');
@@ -87,6 +88,8 @@ exports.main = async (event, context) => {
         return await trip.tripMy(openid);
       case 'trip/listByUser':
         return await trip.tripListByUser(data);
+      case 'tripMedia/createUploadSession':
+        return await tripMedia.tripMediaCreateUploadSession(openid, data);
 
       // ========== 行程日志相关 ==========
       case 'tripLog/start':

@@ -2,6 +2,7 @@
 const app = getApp();
 const api = require('../../utils/api.js');
 const auth = require('../../utils/auth.js');
+const tripMediaUpload = require('../../utils/trip-media-upload.js');
 
 Page({
   data: {
@@ -160,7 +161,7 @@ Page({
         renderImages: (log.images || []).slice(0, 9),
         imageGridClass: this.getLogImageGridClass(log.imageCount || ((log.images || []).length)),
         timeText: this.formatLogTime(log.createdAt),
-        imageUrls: (log.images || []).map(img => img.tempFileURL || img.fileID),
+        imageUrls: (log.images || []).map(img => img.url || img.tempFileURL || img.fileID).filter(Boolean),
         locationText: this.getLogLocationText(log.location)
       }))
     }));
@@ -577,30 +578,19 @@ Page({
     this.setData({ publishSubmitting: true });
 
     try {
-      // 上传图片
-      const uploadedImages = [];
-      for (let i = 0; i < images.length; i++) {
-        const img = images[i];
-        const ts = Date.now();
-        const cloudPath = `trip-logs/${trip._id}/${app.globalData.openid}/${ts}_${i}.jpg`;
-        console.log('[发布日志] 上传图片', i, cloudPath);
-        const uploadRes = await wx.cloud.uploadFile({
-          cloudPath,
-          filePath: img.tempFilePath
-        });
-        console.log('[发布日志] 图片上传成功', uploadRes.fileID);
-        uploadedImages.push({
-          fileID: uploadRes.fileID,
-          cloudPath,
-          sort: i
-        });
-      }
+      const uploadResult = await tripMediaUpload.uploadFiles({
+        tripId: trip._id,
+        purpose: 'log',
+        files: images.map(img => ({ filePath: img.tempFilePath }))
+      });
+      const uploadedImages = uploadResult.media;
 
       console.log('[发布日志] 调用 tripLogCreate', { tripId: trip._id, content, images: uploadedImages, location });
       const res = await api.tripLogCreate({
         tripId: trip._id,
         content,
         images: uploadedImages,
+        uploadSessionId: uploadResult.sessionId || undefined,
         location
       });
       console.log('[发布日志] 发布成功', res);
@@ -899,13 +889,15 @@ Page({
     const pendingAvatar = trip.customCoverImage
       ? {
           url: trip.customCoverImageUrl || trip.customCoverImage || '',
-          fileID: trip.customCoverImage
+          fileID: trip.customCoverImage,
+          media: trip.customCoverImageObject || null
         }
       : null;
 
     const pendingImages = (trip.coverImages || []).map((fid, i) => ({
       url: (trip.coverImageUrls || [])[i] || '',
-      fileID: fid
+      fileID: fid,
+      media: (trip.coverImageObjects || [])[i] || null
     }));
 
     this.setData({ showCoverModal: true, pendingAvatar, pendingImages, savingCover: false });
@@ -960,42 +952,58 @@ Page({
     this.setData({ savingCover: true });
 
     try {
-      const openid = app.globalData.openid;
-      const ts = Date.now();
-      const getExt = p => ((p.match(/\.([a-zA-Z0-9]+)$/) || [])[1] || 'jpg').toLowerCase();
-
-      // 上传头像（如果是本地新图）
-      let customCoverImageFileID = null;
+      // 上传行程头像（如果是本地新图）
+      let customCoverImageValue = null;
+      let customCoverImageObject;
+      let avatarUploadSessionId = '';
       const pa = this.data.pendingAvatar;
       if (pa) {
         if (pa.filePath) {
-          const cloudPath = `trip-avatars/${trip._id}/${openid}/${ts}.${getExt(pa.filePath)}`;
-          const res = await wx.cloud.uploadFile({ cloudPath, filePath: pa.filePath });
-          customCoverImageFileID = res.fileID;
+          const avatarUpload = await tripMediaUpload.uploadFiles({
+            tripId: trip._id,
+            purpose: 'avatar',
+            files: [{ filePath: pa.filePath }]
+          });
+          customCoverImageObject = avatarUpload.media[0] || null;
+          customCoverImageValue = customCoverImageObject && customCoverImageObject.url || null;
+          avatarUploadSessionId = avatarUpload.sessionId;
         } else if (pa.fileID) {
-          customCoverImageFileID = pa.fileID;
+          customCoverImageValue = pa.fileID;
+          customCoverImageObject = pa.media || undefined;
         }
+      } else {
+        customCoverImageObject = null;
       }
 
-      // 上传封面图（本地新图才上传，已有 fileID 的保留）
-      const finalImageFileIDs = [];
+      // 一次上传全部新增封面，再与保留的旧云文件/COS 图片按原顺序合并。
       const pendingImages = this.data.pendingImages;
-      for (let i = 0; i < pendingImages.length; i++) {
-        const img = pendingImages[i];
+      const newCoverItems = pendingImages.filter(img => !!img.filePath);
+      const coverUpload = await tripMediaUpload.uploadFiles({
+        tripId: trip._id,
+        purpose: 'cover',
+        files: newCoverItems.map(img => ({ filePath: img.filePath }))
+      });
+      let newCoverIndex = 0;
+      const finalImageObjects = [];
+      const finalImageValues = pendingImages.map(img => {
         if (img.filePath) {
-          const cloudPath = `trip-covers/${trip._id}/${openid}/${ts}_${i}.${getExt(img.filePath)}`;
-          const res = await wx.cloud.uploadFile({ cloudPath, filePath: img.filePath });
-          finalImageFileIDs.push(res.fileID);
-        } else if (img.fileID) {
-          finalImageFileIDs.push(img.fileID);
+          const media = coverUpload.media[newCoverIndex++] || null;
+          finalImageObjects.push(media);
+          return media && media.url || '';
         }
-      }
+        finalImageObjects.push(img.media || null);
+        return img.fileID || img.url || '';
+      }).filter(Boolean);
 
       await api.tripUpdate({
         tripId: trip._id,
-        customCoverImage: customCoverImageFileID,
+        customCoverImage: customCoverImageValue,
+        customCoverImageObject,
+        avatarUploadSessionId: avatarUploadSessionId || undefined,
         tripAvatar: null,
-        coverImages: finalImageFileIDs
+        coverImages: finalImageValues,
+        coverImageObjects: finalImageObjects,
+        coverUploadSessionId: coverUpload.sessionId || undefined
       });
 
       // 详情头图只展示封面数组，回退到景点封面，不使用列表头像。
@@ -1008,11 +1016,13 @@ Page({
       this.setData({
         showCoverModal: false,
         savingCover: false,
-        'trip.customCoverImage': customCoverImageFileID,
+        'trip.customCoverImage': customCoverImageValue,
+        'trip.customCoverImageObject': customCoverImageObject,
         'trip.customCoverImageUrl': avatarDisplayUrl,
         'trip.tripAvatar': null,
         'trip.tripAvatarUrl': '',
-        'trip.coverImages': finalImageFileIDs,
+        'trip.coverImages': finalImageValues,
+        'trip.coverImageObjects': finalImageObjects,
         'trip.coverImageUrls': imageDisplayUrls,
         'trip.placeCoverImage': newCoverUrl,
         'trip.placeCoverImages': imageDisplayUrls.length > 0 ? imageDisplayUrls : [newCoverUrl]

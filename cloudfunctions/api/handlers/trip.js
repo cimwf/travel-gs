@@ -1,6 +1,7 @@
 const { db, _, cloud, safeAvatar } = require('../utils/shared');
 const { recordUserStatEvent } = require('./auth');
 const { setNotification } = require('./notification');
+const tripMedia = require('./tripMedia');
 
 function getTripTitle(trip) {
   return trip && (trip.tripTitle || trip.placeName) || '行程';
@@ -734,7 +735,12 @@ async function tripDelete(openid, data) {
 }
 
 async function tripUpdate(openid, data) {
-  const { tripId, ...updateFields } = data;
+  const {
+    tripId,
+    avatarUploadSessionId = '',
+    coverUploadSessionId = '',
+    ...updateFields
+  } = data;
 
   if (!tripId) {
     return { success: false, error: '行程ID不能为空' };
@@ -749,6 +755,72 @@ async function tripUpdate(openid, data) {
 
   if (trip.creatorId !== openid) {
     return { success: false, error: '无权更新' };
+  }
+
+  const oldAvatarObject = tripMedia.normalizeMediaObject(trip.customCoverImageObject);
+  const oldCoverObjects = Array.isArray(trip.coverImageObjects)
+    ? trip.coverImageObjects.map(tripMedia.normalizeMediaObject).filter(Boolean)
+    : [];
+  const oldObjectMap = {};
+  if (oldAvatarObject) oldObjectMap[oldAvatarObject.key] = oldAvatarObject;
+  oldCoverObjects.forEach(item => { oldObjectMap[item.key] = item; });
+  const avatarMediaTouched = Object.prototype.hasOwnProperty.call(updateFields, 'customCoverImageObject');
+
+  let verifiedAvatarObject = null;
+  let verifiedAvatarSessionId = '';
+  if (updateFields.customCoverImageObject) {
+    const requestedAvatar = tripMedia.normalizeMediaObject(updateFields.customCoverImageObject);
+    if (!requestedAvatar) return { success: false, error: '行程头像信息无效' };
+    if (oldObjectMap[requestedAvatar.key]) {
+      verifiedAvatarObject = oldObjectMap[requestedAvatar.key];
+    } else {
+      if (!avatarUploadSessionId) return { success: false, error: '行程头像上传会话无效' };
+      const verified = await tripMedia.verifyUploadSession(openid, {
+        sessionId: avatarUploadSessionId,
+        tripId,
+        purpose: 'avatar',
+        media: [requestedAvatar]
+      });
+      verifiedAvatarObject = verified.media[0];
+      verifiedAvatarSessionId = avatarUploadSessionId;
+    }
+    updateFields.customCoverImageObject = verifiedAvatarObject;
+    updateFields.customCoverImage = verifiedAvatarObject.url;
+  } else if (updateFields.customCoverImageObject === null) {
+    updateFields.customCoverImage = null;
+  }
+
+  let normalizedCoverObjects = null;
+  let verifiedCoverSessionId = '';
+  if (Array.isArray(updateFields.coverImageObjects)) {
+    const requestedObjects = updateFields.coverImageObjects.map(item =>
+      item ? tripMedia.normalizeMediaObject(item) : null
+    );
+    if (requestedObjects.some((item, index) => updateFields.coverImageObjects[index] && !item)) {
+      return { success: false, error: '行程封面信息无效' };
+    }
+    const newObjects = requestedObjects.filter(item => item && !oldObjectMap[item.key]);
+    const verifiedNewMap = {};
+    if (newObjects.length > 0) {
+      if (!coverUploadSessionId) return { success: false, error: '行程封面上传会话无效' };
+      const verified = await tripMedia.verifyUploadSession(openid, {
+        sessionId: coverUploadSessionId,
+        tripId,
+        purpose: 'cover',
+        media: newObjects
+      });
+      verified.media.forEach(item => { verifiedNewMap[item.key] = item; });
+      verifiedCoverSessionId = coverUploadSessionId;
+    }
+    normalizedCoverObjects = requestedObjects.map(item =>
+      item ? (oldObjectMap[item.key] || verifiedNewMap[item.key]) : null
+    );
+    updateFields.coverImageObjects = normalizedCoverObjects;
+    if (Array.isArray(updateFields.coverImages)) {
+      updateFields.coverImages = updateFields.coverImages.map((value, index) =>
+        normalizedCoverObjects[index] ? normalizedCoverObjects[index].url : value
+      );
+    }
   }
 
   const updateData = {};
@@ -775,6 +847,24 @@ async function tripUpdate(openid, data) {
   await db.collection('trips').doc(tripId).update({
     data: updateData
   });
+
+  if (verifiedAvatarSessionId) {
+    try { await tripMedia.consumeUploadSession(verifiedAvatarSessionId); } catch (err) {
+      console.error('标记行程头像上传会话失败:', err);
+    }
+  }
+  if (verifiedCoverSessionId) {
+    try { await tripMedia.consumeUploadSession(verifiedCoverSessionId); } catch (err) {
+      console.error('标记行程封面上传会话失败:', err);
+    }
+  }
+
+  const retainedKeys = {};
+  const retainedAvatarObject = avatarMediaTouched ? verifiedAvatarObject : oldAvatarObject;
+  if (retainedAvatarObject) retainedKeys[retainedAvatarObject.key] = true;
+  (normalizedCoverObjects || oldCoverObjects).filter(Boolean).forEach(item => { retainedKeys[item.key] = true; });
+  const removedMedia = [oldAvatarObject].concat(oldCoverObjects).filter(item => item && !retainedKeys[item.key]);
+  await tripMedia.cleanupCosMedia(removedMedia, { tripId, reason: 'trip_media_replaced' });
 
   const members = Array.isArray(trip.participants) ? trip.participants : [];
   for (const participant of members) {
@@ -984,10 +1074,12 @@ async function tripListByUser(data) {
       placeId: trip.placeId || '',
       customCoverImage: trip.customCoverImage || '',
       customCoverImageUrl: trip.customCoverImageUrl || '',
+      customCoverImageObject: trip.customCoverImageObject || null,
       tripAvatar: trip.tripAvatar || '',
       tripAvatarUrl: trip.tripAvatarUrl || '',
       coverImages: trip.coverImages || [],
       coverImageUrls: trip.coverImageUrls || [],
+      coverImageObjects: trip.coverImageObjects || [],
       placeImage: placeImage,
       date: trip.date,
       duration: trip.duration || '1天',
