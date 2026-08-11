@@ -474,10 +474,10 @@ places:
   - wantCount
 
 trips:
-  - dataEnv + createdAt（复合索引，用于首页按业务环境分页）
-  - dataEnv + placeId + createdAt（复合索引，用于按地点筛选）
-  - dataEnv + status + createdAt（复合索引，用于按状态筛选）
-  - dataEnv + date + createdAt（复合索引，用于按日期筛选）
+  - dataEnv + createdAt + _id（复合索引，用于首页稳定游标分页）
+  - dataEnv + placeId + createdAt + _id（复合索引，用于按地点筛选）
+  - dataEnv + status + createdAt + _id（复合索引，用于按状态筛选）
+  - dataEnv + date + createdAt + _id（复合索引，用于按日期筛选）
 
 applies:
   - tripId

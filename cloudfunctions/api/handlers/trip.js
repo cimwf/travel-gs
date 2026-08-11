@@ -161,7 +161,10 @@ async function tripCreate(openid, data, dataEnvironment = RUNTIME_DEFAULTS.devel
 }
 
 async function tripList(openid, data, dataEnvironment = RUNTIME_DEFAULTS.develop) {
-  const { placeId, status, date, excludeStatus, page = 1, pageSize = 8, cursor } = data;
+  const { placeId, status, date, excludeStatus, page = 1 } = data;
+  const pageSize = Math.max(1, Math.min(Number(data.pageSize) || 10, 20));
+  const cursor = Number(data.cursor) || 0;
+  const cursorId = String(data.cursorId || '');
 
   if (openid) {
     recordUserStatEvent('tripListVisit', openid, { page, pageSize }).catch(() => {});
@@ -174,20 +177,33 @@ async function tripList(openid, data, dataEnvironment = RUNTIME_DEFAULTS.develop
   if (status) conditions.status = status;
   if (date) conditions.date = date;
   if (excludeStatus) conditions.status = _.neq(excludeStatus);
-  if (cursor) conditions.createdAt = _.lt(cursor);
-
   const dataEnvCondition = createReadCondition(_, dataEnvironment.readEnvs);
-  query = Object.keys(conditions).length > 0
-    ? query.where(_.and([conditions, dataEnvCondition]))
-    : query.where(dataEnvCondition);
+  const baseCondition = Object.keys(conditions).length > 0
+    ? _.and([conditions, dataEnvCondition])
+    : dataEnvCondition;
+  const listCondition = cursor
+    ? _.and([
+      baseCondition,
+      cursorId
+        ? _.or([
+          { createdAt: _.lt(cursor) },
+          { createdAt: _.eq(cursor), _id: _.lt(cursorId) }
+        ])
+        : { createdAt: _.lt(cursor) }
+    ])
+    : baseCondition;
+  query = query.where(listCondition);
 
   const res = await query
     .orderBy('createdAt', 'desc')
+    .orderBy('_id', 'desc')
     .skip(cursor ? 0 : (page - 1) * pageSize)
-    .limit(pageSize)
+    .limit(pageSize + 1)
     .get();
 
-  const trips = res.data || [];
+  let trips = res.data || [];
+  const hasMore = trips.length > pageSize;
+  if (hasMore) trips = trips.slice(0, pageSize);
 
   const userIds = new Set();
   trips.forEach(trip => {
@@ -278,7 +294,14 @@ async function tripList(openid, data, dataEnvironment = RUNTIME_DEFAULTS.develop
 
   await resolveTripCoverImages(trips);
 
-  return { success: true, trips };
+  const last = trips.length > 0 ? trips[trips.length - 1] : null;
+  return {
+    success: true,
+    trips,
+    hasMore,
+    nextCursor: hasMore && last ? Number(last.createdAt) || 0 : 0,
+    nextCursorId: hasMore && last ? String(last._id || '') : ''
+  };
 }
 
 async function tripGet(tripId) {

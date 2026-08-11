@@ -60,7 +60,12 @@ Page({
     return api.communityList(req).then(function (res) {
       if (loadVersion !== self._loadVersion) return;
       var posts = (res.posts || []).map(function (p) { return self.formatPost(p); });
-      var all = reset ? posts : self.data.posts.concat(posts);
+      var existing = reset ? {} : self.data.posts.reduce(function (map, item) {
+        map[item._id] = true;
+        return map;
+      }, {});
+      var uniquePosts = posts.filter(function (item) { return !existing[item._id]; });
+      var all = reset ? uniquePosts : self.data.posts.concat(uniquePosts);
       self._cursor = res.nextCursor || 0;
       self._cursorId = res.nextCursorId || '';
       self.setData({ posts: all, hasMore: res.hasMore !== false, loading: false, error: false });

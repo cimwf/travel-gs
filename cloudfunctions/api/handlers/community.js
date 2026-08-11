@@ -482,7 +482,7 @@ async function communityList(openid, data, dataEnvironment = RUNTIME_DEFAULTS.de
     // Author profiles reuse the existing authorId + status + createdAt + _id
     // index. Fetch a wider private batch, then filter before returning so
     // reviewing/rejected posts never leak through a public profile.
-    var queryLimit = authorId ? 100 : pageSize;
+    var queryLimit = authorId ? 100 : pageSize + 1;
     var postsRes = await db.collection('community_posts')
       .where(listCondition)
       .orderBy('createdAt', 'desc')
@@ -494,6 +494,8 @@ async function communityList(openid, data, dataEnvironment = RUNTIME_DEFAULTS.de
       posts = posts.filter(function (post) {
         return post.reviewStatus === 'approved';
       }).slice(0, pageSize);
+    } else if (posts.length > pageSize) {
+      posts = posts.slice(0, pageSize);
     }
 
     posts.forEach(function (p) {
@@ -527,7 +529,7 @@ async function communityList(openid, data, dataEnvironment = RUNTIME_DEFAULTS.de
       resolveAuthorRegions(posts)
     ]);
 
-    var hasMore = posts.length >= pageSize;
+    var hasMore = authorId ? posts.length >= pageSize : (postsRes.data || []).length > pageSize;
     var last = posts.length > 0 ? posts[posts.length - 1] : null;
     var nextCursor = hasMore && last ? last.createdAt : 0;
     var nextCursorId = hasMore && last ? last._id : '';

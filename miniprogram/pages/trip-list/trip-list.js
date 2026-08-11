@@ -11,7 +11,7 @@ Page({
     refreshing: false,
     hasMore: true,
     page: 0,
-    pageSize: 8,
+    pageSize: 10,
 
     // 筛选相关
     activeFilter: '',
@@ -77,6 +77,8 @@ Page({
   },
 
   onLoad: async function () {
+    // 小程序首次进入会依次触发 onLoad 和 onShow，避免首页列表重复请求。
+    this._skipNextOnShowRefresh = true;
     // 两个请求并行发出，互不依赖
     await Promise.all([
       app.getAttractions(),
@@ -85,6 +87,10 @@ Page({
   },
 
   onShow: function () {
+    if (this._skipNextOnShowRefresh) {
+      this._skipNextOnShowRefresh = false;
+      return;
+    }
     // 静默刷新（不显示 loading）
     // 景点数据有全局缓存，不需要 await，后台更新即可
     app.getAttractions();
@@ -112,10 +118,14 @@ Page({
 
   // 加载行程列表
   loadTrips: async function (reset = true, silent = false) {
+    if (this._activeTripsRequest && !reset) return this._activeTripsRequest;
+    if (reset) this._tripLoadVersion = (this._tripLoadVersion || 0) + 1;
+    const loadVersion = this._tripLoadVersion || 0;
     const openid = await this.ensureOpenid();
 
     if (reset) {
       this._cursor = 0;
+      this._cursorId = '';
     }
     if (reset && !silent) {
       this.setData({ loading: true, page: 0 });
@@ -123,19 +133,22 @@ Page({
       this.setData({ page: 0 });
     }
 
-    try {
-      const { page, pageSize } = this.data;
+    const request = (async () => {
+      try {
+        const { page, pageSize } = this.data;
 
-      const reqData = { openid, pageSize, excludeStatus: 'cancelled' };
-      // 翻页时用游标，首次加载和刷新始终拿第 1 页
-      if (!reset && this._cursor) {
-        reqData.cursor = this._cursor;
-      } else {
-        reqData.page = 1;
-      }
+        const reqData = { openid, pageSize, excludeStatus: 'cancelled' };
+        // 翻页时用游标，首次加载和刷新始终拿第 1 页
+        if (!reset && this._cursor) {
+          reqData.cursor = this._cursor;
+          reqData.cursorId = this._cursorId || '';
+        } else {
+          reqData.page = 1;
+        }
 
       // 通过统一 API 调用，自动携带当前业务数据环境配置。
       const tripRes = await api.tripList(reqData);
+      if (loadVersion !== this._tripLoadVersion) return;
       if (!tripRes || !tripRes.success) {
         throw new Error('获取行程列表失败');
       }
@@ -262,21 +275,28 @@ Page({
           });
         }
 
-        const allTrips = reset ? trips : [...this.data.allTrips, ...trips];
+        const existingIds = reset
+          ? {}
+          : this.data.allTrips.reduce((map, item) => {
+            map[item._id] = true;
+            return map;
+          }, {});
+        const uniqueTrips = trips.filter(item => !existingIds[item._id]);
+        const allTrips = reset ? uniqueTrips : [...this.data.allTrips, ...uniqueTrips];
 
         // 提取筛选选项
         const destinations = [...new Set(allTrips.map(t => t.placeName).filter(Boolean))];
         const departures = [...new Set(allTrips.map(t => t.departure).filter(Boolean))];
 
-        // 用最后一条原始数据的 createdAt 更新游标，供下次翻页使用
-        this._cursor = tripsData[tripsData.length - 1].createdAt || 0;
+        this._cursor = tripRes.nextCursor || 0;
+        this._cursorId = tripRes.nextCursorId || '';
 
         this.setData({
           allTrips,
           trips: this.filterTrips(allTrips),
           destinationOptions: destinations,
           departureOptions: departures,
-          hasMore: tripsData.length >= pageSize,
+          hasMore: !!tripRes.hasMore,
           loading: false,
           page: page + 1
         });
@@ -284,13 +304,25 @@ Page({
         this.setData({
           loading: false,
           hasMore: false,
-          trips: reset ? [] : this.data.trips
+          allTrips: reset ? [] : this.data.allTrips,
+          trips: reset ? [] : this.data.trips,
+          destinationOptions: reset ? [] : this.data.destinationOptions,
+          departureOptions: reset ? [] : this.data.departureOptions
         });
       }
-    } catch (err) {
-      console.error('加载行程失败', err);
-      this.setData({ loading: false });
+      } catch (err) {
+        if (loadVersion !== this._tripLoadVersion) return;
+        console.error('加载行程失败', err);
+        this.setData({ loading: false });
+      }
+    })();
+    this._activeTripsRequest = request;
+    try {
+      await request;
+    } finally {
+      if (this._activeTripsRequest === request) this._activeTripsRequest = null;
     }
+    return request;
   },
 
   // 确保行程列表请求带上 openid，方便云端做访问人数和登录转化统计。
