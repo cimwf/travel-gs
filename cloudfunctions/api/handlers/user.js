@@ -8,6 +8,42 @@ const BEIJING_DISTRICTS = [
   '通州区', '顺义区', '昌平区', '大兴区', '怀柔区', '平谷区', '密云区', '延庆区'
 ];
 
+const PUBLIC_PROFILE_FIELDS = [
+  'nickname', 'avatar', 'region', 'bio', 'background',
+  'following', 'followers', 'receivedLikes'
+];
+const SELF_PROFILE_FIELDS = PUBLIC_PROFILE_FIELDS.concat([
+  '_id', 'userId', 'gender', 'age', 'contactPhone', 'photos',
+  'trips', 'places', 'tags', 'carOwner', 'createdAt'
+]);
+
+function pickUserFields(user, fields) {
+  const result = {};
+  fields.forEach(field => {
+    if (user[field] !== undefined) result[field] = user[field];
+  });
+  return result;
+}
+
+function sanitizeUserSession(user) {
+  const result = { ...(user || {}) };
+  [
+    'password', 'loginAttempts', 'lockedUntil', 'avatarObject',
+    'phone', 'phoneMask'
+  ].forEach(field => { delete result[field]; });
+  return result;
+}
+
+function serializeUserProfile(user, isCurrentUser) {
+  const result = pickUserFields(user, isCurrentUser ? SELF_PROFILE_FIELDS : PUBLIC_PROFILE_FIELDS);
+  if (isCurrentUser && !result.contactPhone && user.phone) result.contactPhone = user.phone;
+  // The public profile id is an opaque routing identifier. Do not expose the
+  // database binding field name or the user's raw login/account fields.
+  result.profileId = user.openid || user.userId || user._id || '';
+  result.isCurrentUser = !!isCurrentUser;
+  return result;
+}
+
 async function verifyUserAvatarUpload(openid, data) {
   const sessionId = String(data && data.avatarUploadSessionId || '');
   const media = data && data.avatarMedia;
@@ -172,20 +208,6 @@ async function resolveFollowAvatarUrls(users) {
   }
 }
 
-async function userCheck(phone) {
-  if (!phone) {
-    return { success: false, error: '手机号不能为空' };
-  }
-
-  const userRes = await db.collection('users').where({ phone }).get();
-
-  if (userRes.data.length > 0) {
-    return { success: true, exists: true, user: userRes.data[0] };
-  }
-
-  return { success: true, exists: false };
-}
-
 async function userRegister(openid, data) {
   const { phone, password, encryptedPassword, key, iv, keyId, nickname, avatar, gender } = data;
   const avatarForDb = normalizeAvatarForDb(avatar);
@@ -264,8 +286,7 @@ async function userRegister(openid, data) {
   const res = await db.collection('users').add({ data: newUser });
   newUser._id = res._id;
 
-  const safeUser = { ...newUser };
-  delete safeUser.password;
+  const safeUser = sanitizeUserSession(newUser);
   return { success: true, user: safeUser };
 }
 
@@ -289,7 +310,7 @@ async function userLogin(openid, data) {
       data: updateData
     });
     await finishUserAvatarUpload(avatarUpload, userRes.data[0].avatarObject);
-    return { success: true, user: { ...userRes.data[0], ...updateData } };
+    return { success: true, user: sanitizeUserSession({ ...userRes.data[0], ...updateData }) };
   }
 
   const newUser = {
@@ -314,7 +335,7 @@ async function userLogin(openid, data) {
   newUser._id = res._id;
   await finishUserAvatarUpload(avatarUpload, null);
 
-  return { success: true, user: newUser, isNew: true };
+  return { success: true, user: sanitizeUserSession(newUser), isNew: true };
 }
 
 async function userLoginPassword(data) {
@@ -414,8 +435,7 @@ async function userLoginPassword(data) {
     data: updateData
   });
 
-  const safeUser = { ...user, ...updateData, openid: user.openid || currentOpenid };
-  delete safeUser.password;
+  const safeUser = sanitizeUserSession({ ...user, ...updateData, openid: user.openid || currentOpenid });
   return { success: true, user: safeUser };
 }
 
@@ -461,8 +481,7 @@ async function userLoginByPhone(openid, data) {
     await db.collection('users').doc(user._id).update({ data: updateData });
     await finishUserAvatarUpload(avatarUpload, user.avatarObject);
 
-    const safeUser = { ...user, openid: openid, ...updateData };
-    delete safeUser.password;
+    const safeUser = sanitizeUserSession({ ...user, openid: openid, ...updateData });
     return { success: true, user: safeUser, isNew: false };
   }
 
@@ -493,8 +512,7 @@ async function userLoginByPhone(openid, data) {
     }
     await db.collection('users').doc(boundUser._id).update({ data: updateData });
     await finishUserAvatarUpload(avatarUpload, boundUser.avatarObject);
-    const safeUser = { ...boundUser, ...updateData };
-    delete safeUser.password;
+    const safeUser = sanitizeUserSession({ ...boundUser, ...updateData });
     return { success: true, user: safeUser, isNew: false };
   }
 
@@ -533,8 +551,7 @@ async function userLoginByPhone(openid, data) {
   newUser._id = res._id;
   await finishUserAvatarUpload(avatarUpload, null);
 
-  const safeUser = { ...newUser };
-  delete safeUser.password;
+  const safeUser = sanitizeUserSession(newUser);
   return { success: true, user: safeUser, isNew: true };
 }
 
@@ -622,8 +639,7 @@ async function userUpdate(openid, data) {
     await db.collection('users').doc(user._id).update({ data: updateData });
     await finishUserAvatarUpload(avatarUpload, user.avatarObject);
 
-    const safeUser = { ...user, ...updateData };
-    delete safeUser.password;
+    const safeUser = sanitizeUserSession({ ...user, ...updateData });
     return { success: true, user: safeUser };
   } catch (err) {
     console.error('user/update failed:', err);
@@ -631,14 +647,18 @@ async function userUpdate(openid, data) {
   }
 }
 
-async function userGet(userId) {
+async function userGet(openid, userId) {
   if (!userId) {
     return { success: false, error: '用户ID不能为空' };
   }
 
   const user = await getUserByAnyId(userId);
   if (!user) return { success: false, error: '用户不存在' };
-  return { success: true, user: await refreshReceivedLikes(user) };
+  const refreshedUser = await refreshReceivedLikes(user);
+  return {
+    success: true,
+    user: serializeUserProfile(refreshedUser, !!openid && refreshedUser.openid === openid)
+  };
 }
 
 async function userFollowStatus(openid, data) {
@@ -859,7 +879,6 @@ async function userFollowList(openid, data) {
 }
 
 module.exports = {
-  userCheck,
   userRegister,
   userLogin,
   userLoginPassword,
@@ -868,5 +887,7 @@ module.exports = {
   userGet,
   userFollowStatus,
   userFollowToggle,
-  userFollowList
+  userFollowList,
+  sanitizeUserSession,
+  serializeUserProfile
 };

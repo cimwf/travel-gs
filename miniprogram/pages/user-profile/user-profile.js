@@ -88,7 +88,7 @@ Page({
       const userData = this.data.isCurrentUser
         ? { ...res.user, ...localUserInfo }
         : res.user;
-      const authorId = userData.openid || userId;
+      const authorId = userData.profileId || userId;
       const avatar = await this.resolveCloudUrl(userData.avatar || userData.avatarUrl || '');
 
       this.setData({

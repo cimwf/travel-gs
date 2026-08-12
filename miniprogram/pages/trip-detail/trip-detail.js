@@ -17,7 +17,6 @@ Page({
     loadError: false,
     hasJoined: false,
     isCreator: false,
-    maskedPhone: '',
     applySubmitting: false,
     userInfo: null,
     showMemberModal: false,
@@ -298,12 +297,6 @@ Page({
     const validTabs = ['trip', 'log', 'comment'];
     const activeTab = validTabs.includes(this.data.activeTab) ? this.data.activeTab : 'trip';
 
-    let maskedPhone = '';
-    if (trip.contactPhone) {
-      const phone = trip.contactPhone;
-      maskedPhone = phone.substring(0, 3) + '****' + phone.substring(7);
-    }
-
     this.setData({
       trip: processedTrip,
       participants,
@@ -313,7 +306,6 @@ Page({
       joinBtnText,
       hasJoined,
       isCreator,
-      maskedPhone,
       loading: false,
       tripStage: tripStage,
       canPublishLog,
@@ -922,23 +914,6 @@ Page({
       wx.hideLoading();
       wx.showToast({ title: err.message || '操作失败', icon: 'none' });
     }
-  },
-
-  onCopyPhone: function () {
-    const { selectedMember } = this.data;
-    const phone = selectedMember && selectedMember.contactPhone;
-
-    if (!phone) {
-      wx.showToast({ title: '暂无联系方式', icon: 'none' });
-      return;
-    }
-
-    wx.setClipboardData({
-      data: phone,
-      success: () => {
-        wx.showToast({ title: '已复制联系方式', icon: 'success' });
-      }
-    });
   },
 
   onEditTrip: function () {

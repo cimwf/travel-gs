@@ -115,10 +115,21 @@ async function main() {
   assert.strictEqual(normalLogin.success, true);
   assert.strictEqual(normalLogin.user._id, 'user-a');
 
-  const profile = await user.userGet('wx-a');
+  const profile = await user.userGet('wx-a', 'wx-a');
   assert.strictEqual(profile.success, true);
   assert.strictEqual(profile.user.receivedLikes, 2);
+  assert.strictEqual(profile.user.contactPhone, '13800000001');
+  assert.strictEqual(profile.user.password, undefined);
+  assert.strictEqual(profile.user.phone, undefined);
+  assert.strictEqual(profile.user.openid, undefined);
   assert.strictEqual(state.users.find(item => item._id === 'user-a').receivedLikes, 2);
+
+  const publicProfile = await user.userGet('wx-b', 'wx-a');
+  assert.strictEqual(publicProfile.success, true);
+  assert.strictEqual(publicProfile.user.profileId, 'wx-a');
+  assert.strictEqual(publicProfile.user.contactPhone, undefined);
+  assert.strictEqual(publicProfile.user.password, undefined);
+  assert.strictEqual(publicProfile.user.openid, undefined);
 
   const updatedProfile = await user.userUpdate('wx-a', {
     _id: 'user-a',

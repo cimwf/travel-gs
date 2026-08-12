@@ -39,8 +39,6 @@ exports.main = async (event, context) => {
         return await auth.authTrackEvent(data);
 
       // ========== 用户相关 ==========
-      case 'user/check':
-        return await user.userCheck(data.phone);
       case 'user/register':
         return await user.userRegister(openid, data);
       case 'user/login':
@@ -52,7 +50,7 @@ exports.main = async (event, context) => {
       case 'user/update':
         return await user.userUpdate(openid, data);
       case 'user/get':
-        return await user.userGet(data.userId || openid);
+        return await user.userGet(openid, data.userId || openid);
       case 'user/followStatus':
         return await user.userFollowStatus(openid, data);
       case 'user/followToggle':
