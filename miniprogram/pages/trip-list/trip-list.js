@@ -726,7 +726,7 @@ Page({
   // 分享
   onShareAppMessage: function () {
     return {
-      title: '近期行程 - 北上周边行',
+      title: '近期行程 - 周末约行',
       path: '/pages/trip-list/trip-list'
     };
   }

@@ -321,6 +321,6 @@ Page({
   },
 
   onShareAppMessage: function () {
-    return { title: '社区 - 北上周边行', path: '/pages/community/community' };
+    return { title: '社区 - 周末约行', path: '/pages/community/community' };
   }
 });

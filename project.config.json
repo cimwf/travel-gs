@@ -48,7 +48,7 @@
   },
   "appid": "wx5d9d6bbbc7538c04",
   "projectname": "beijing-travel",
-  "description": "北上周边行 - 旅游社交小程序",
+  "description": "周末约行 - 旅游社交小程序",
   "cloudfunctionTemplateRoot": "cloudfunctionTemplate/",
   "condition": {},
   "editorSetting": {

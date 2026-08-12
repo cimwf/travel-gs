@@ -599,7 +599,7 @@ Page({
       };
     }
     return {
-      title: '我的行程 - 北上周边行',
+      title: '我的行程 - 周末约行',
       path: '/pages/my-trips/my-trips'
     };
   }
