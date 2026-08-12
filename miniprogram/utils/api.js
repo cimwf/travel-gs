@@ -31,6 +31,10 @@ function callApi(action, data = {}) {
   });
 }
 
+function reportCreate(data) {
+  return callApi('report/create', data);
+}
+
 /**
  * 记录用户行为事件（用于转化率统计）
  * @param {string} eventType 事件类型
@@ -568,6 +572,7 @@ function communityDelete(postId) {
 }
 
 module.exports = {
+  reportCreate,
   // 用户
   userLogin,
   userLoginByPhone,

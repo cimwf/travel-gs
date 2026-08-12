@@ -616,6 +616,15 @@ Page({
 
   onPostActionsPanelTap: function () {},
 
+  onReportPostTap: function () {
+    if (!this.data.post || this.data.post.isAuthor) return;
+    var postId = this.data.post._id;
+    this.setData({ showPostActions: false });
+    wx.navigateTo({
+      url: '/pages/report/report?type=community_post&id=' + encodeURIComponent(postId)
+    });
+  },
+
   onDeletePostTap: function () {
     if (!this.data.post || !this.data.post.isAuthor || this.data.deletingPost) return;
     var self = this;

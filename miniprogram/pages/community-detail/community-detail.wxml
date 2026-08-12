@@ -161,6 +161,8 @@
     <view class="post-actions-panel" catchtap="onPostActionsPanelTap">
       <button class="post-action-item post-action-share" open-type="share"
         hover-class="post-action-hover" aria-label="分享动态">分享动态</button>
+      <button class="post-action-item post-action-report" wx:if="{{!post.isAuthor}}"
+        hover-class="post-action-hover" bindtap="onReportPostTap">举报</button>
       <button class="post-action-item post-action-delete" wx:if="{{post.isAuthor}}"
         hover-class="post-action-hover" bindtap="onDeletePostTap">删除动态</button>
       <view class="post-actions-gap"></view>

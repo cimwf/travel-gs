@@ -6,6 +6,7 @@
     "pages/community-detail/community-detail",
     "pages/community-likes/community-likes",
     "pages/community-publish/community-publish",
+    "pages/report/report",
     "pages/community-mine/community-mine",
     "pages/community-interactions/community-interactions",
     "pages/auth/auth",

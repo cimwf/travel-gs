@@ -16,11 +16,13 @@ const banner = require('./handlers/banner');
 const attractions = require('./handlers/attractions');
 const userSpots = require('./handlers/userSpots');
 const feedback = require('./handlers/feedback');
+const report = require('./handlers/report');
 const community = require('./handlers/community');
 const notification = require('./handlers/notification');
 const adminCommunity = require('./handlers/adminCommunity');
 const adminTrip = require('./handlers/adminTrip');
 const adminTripLog = require('./handlers/adminTripLog');
+const adminReport = require('./handlers/adminReport');
 const adminData = require('./handlers/adminData');
 const { resolveDataEnvironment } = require('./utils/dataEnvironment');
 
@@ -178,6 +180,10 @@ exports.main = async (event, context) => {
       case 'feedback/create':
         return await feedback.feedbackCreate(openid, data);
 
+      // ========== 举报相关 ==========
+      case 'report/create':
+        return await report.reportCreate(openid, data);
+
       // ========== 景点相关 ==========
       case 'attractions/list':
         return await attractions.attractionsList();
@@ -233,6 +239,10 @@ exports.main = async (event, context) => {
         return await adminTripLog.adminTripLogReviewList(data);
       case 'admin/tripLogReviewUpdate':
         return await adminTripLog.adminTripLogReviewUpdate(data);
+      case 'admin/reportList':
+        return await adminReport.adminReportList(data);
+      case 'admin/reportUpdate':
+        return await adminReport.adminReportUpdate(data);
       case 'admin/dataList':
         return await adminData.adminDataList(data);
       case 'admin/login':

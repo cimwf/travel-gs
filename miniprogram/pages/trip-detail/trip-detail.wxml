@@ -153,7 +153,7 @@
                   <text class="detail-v2-log-review-status" wx:if="{{log.isPublisher && log.reviewStatusText}}">· {{log.reviewStatusText}}</text>
                 </view>
               </view>
-              <view class="detail-v2-log-menu" wx:if="{{isCreator}}" catchtap="onLogMenuTap" data-group-index="{{groupIndex}}" data-log-index="{{logIndex}}" data-log-id="{{log._id}}">
+              <view class="detail-v2-log-menu" wx:if="{{isCreator || !log.isPublisher}}" catchtap="onLogMenuTap" data-group-index="{{groupIndex}}" data-log-index="{{logIndex}}" data-log-id="{{log._id}}" data-can-delete="{{isCreator}}" data-is-publisher="{{log.isPublisher}}">
                 <image src="/images/icon-more-gray.png" mode="aspectFit"></image>
               </view>
             </view>
@@ -452,7 +452,8 @@
 <view class="log-menu-mask" wx:if="{{showLogMenu}}" bindtap="onCloseLogMenu">
   <view class="log-menu-sheet" catchtap>
     <view class="log-menu-group">
-      <view class="log-menu-item log-menu-item-danger" bindtap="onLogMenuDelete">删除日志</view>
+      <view class="log-menu-item" wx:if="{{logMenuCanReport}}" bindtap="onLogMenuReport">举报</view>
+      <view class="log-menu-item log-menu-item-danger" wx:if="{{logMenuCanDelete}}" bindtap="onLogMenuDelete">删除日志</view>
     </view>
     <view class="log-menu-item log-menu-cancel" bindtap="onCloseLogMenu">取消</view>
   </view>

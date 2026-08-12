@@ -1,0 +1,55 @@
+<view class="report-page">
+  <scroll-view class="report-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="report-content">
+      <view class="report-tip">请选择举报原因，我们会尽快核实处理</view>
+
+      <view class="section-title">举报原因</view>
+      <view class="reason-list">
+        <view class="reason-row" wx:for="{{reasons}}" wx:key="*this"
+          bindtap="onReasonTap" data-reason="{{item}}">
+          <text>{{item}}</text>
+          <view class="radio {{reason === item ? 'selected' : ''}}">
+            <view class="radio-dot" wx:if="{{reason === item}}"></view>
+          </view>
+        </view>
+      </view>
+
+      <view class="field-head">
+        <text class="section-title">补充说明（选填）</text>
+      </view>
+      <view class="description-box">
+        <textarea value="{{description}}" maxlength="200"
+          placeholder="请补充说明具体情况，帮助我们快速核实"
+          placeholder-style="color:#A2ABBB" bindinput="onDescriptionInput"></textarea>
+        <text class="counter">{{description.length}}/200</text>
+      </view>
+
+      <view class="field-head evidence-head">
+        <text class="section-title">图片凭证（选填）</text>
+        <text class="field-hint">最多3张</text>
+      </view>
+      <view class="image-grid">
+        <view class="image-item" wx:for="{{images}}" wx:key="path">
+          <image class="preview-image" src="{{item.path}}" mode="aspectFill"
+            bindtap="onPreviewImage" data-index="{{index}}"></image>
+          <image class="image-delete" src="/images/icon-close-white.png" mode="aspectFit"
+            catchtap="onDeleteImage" data-index="{{index}}"></image>
+        </view>
+        <view class="image-item image-add" wx:if="{{images.length < 3}}" bindtap="onChooseImages">
+          <image src="/images/icon-camera-blue.png" mode="aspectFit"></image>
+          <text>添加图片</text>
+        </view>
+        <view class="image-item image-placeholder" wx:for="{{placeholderSlots}}" wx:key="*this"></view>
+      </view>
+      <view class="scroll-spacer"></view>
+    </view>
+  </scroll-view>
+
+  <view class="submit-area">
+    <view class="privacy-note">举报信息仅用于平台核实</view>
+    <button class="submit-button {{!reason || submitting ? 'disabled' : ''}}"
+      disabled="{{!reason || submitting}}" bindtap="onSubmit">
+      {{submitting ? '提交中...' : '提交举报'}}
+    </button>
+  </view>
+</view>

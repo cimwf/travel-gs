@@ -18,7 +18,8 @@ const PURPOSE_CONFIG = {
   log: { directory: 'trip-logs', maxFiles: 9 },
   cover: { directory: 'trip-covers', maxFiles: 9 },
   avatar: { directory: 'trip-avatars', maxFiles: 1 },
-  user_avatar: { directory: 'user-avatars', maxFiles: 1 }
+  user_avatar: { directory: 'user-avatars', maxFiles: 1 },
+  report: { directory: 'reports', maxFiles: 3 }
 };
 
 function isCosConfigured() {
@@ -101,7 +102,7 @@ async function tripMediaCreateUploadSession(openid, data) {
     const purposeConfig = PURPOSE_CONFIG[purpose];
     if (!purposeConfig) return { success: false, error: '不支持的图片用途' };
     const tripId = String(data && data.tripId || '');
-    if (purpose === 'user_avatar') {
+    if (purpose === 'user_avatar' || purpose === 'report') {
       if (!openid) return { success: false, error: '请先登录' };
     } else {
       await getTripForUpload(openid, tripId, purpose);
@@ -126,7 +127,7 @@ async function tripMediaCreateUploadSession(openid, data) {
     });
 
     const sessionId = generateId('trip_media');
-    const resourcePath = purpose === 'user_avatar' ? '' : tripId + '/';
+    const resourcePath = purpose === 'user_avatar' || purpose === 'report' ? '' : tripId + '/';
     const pathPrefix = getBasePrefix() + purposeConfig.directory + '/' + resourcePath + getDatePrefix() + '/' + sessionId + '/';
     const bucketMatch = COS_CONFIG.bucket.match(/(\d+)$/);
     const appId = bucketMatch ? bucketMatch[1] : '';

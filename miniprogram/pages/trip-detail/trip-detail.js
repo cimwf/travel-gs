@@ -51,6 +51,8 @@ Page({
     logMenuGroupIndex: -1,
     logMenuLogIndex: -1,
     logMenuLogId: '',
+    logMenuCanDelete: false,
+    logMenuCanReport: false,
     // 更换封面相关
     showCoverModal: false,
     pendingImages: [],
@@ -836,12 +838,23 @@ Page({
   },
 
   onLogMenuTap: function (e) {
-    const { groupIndex, logIndex, logId } = e.currentTarget.dataset;
+    const { groupIndex, logIndex, logId, canDelete, isPublisher } = e.currentTarget.dataset;
     this.setData({
       showLogMenu: true,
       logMenuGroupIndex: groupIndex,
       logMenuLogIndex: logIndex,
-      logMenuLogId: logId
+      logMenuLogId: logId,
+      logMenuCanDelete: !!canDelete,
+      logMenuCanReport: !isPublisher
+    });
+  },
+
+  onLogMenuReport: function () {
+    const logId = this.data.logMenuLogId;
+    if (!logId || !this.data.logMenuCanReport) return;
+    this.setData({ showLogMenu: false });
+    wx.navigateTo({
+      url: '/pages/report/report?type=trip_log&id=' + encodeURIComponent(logId)
     });
   },
 

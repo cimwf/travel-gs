@@ -279,9 +279,19 @@ Page({
       success: function (res) {
         if (res.tapIndex === 0) {
           if (isAuthor) { self.deletePost(postId); }
-          else { wx.showToast({ title: '举报功能建设中', icon: 'none' }); }
+          else { self.openReport('community_post', postId); }
         }
       }
+    });
+  },
+
+  openReport: function (targetType, targetId) {
+    if (!auth.ensureLogin()) {
+      auth.saveDeepLink('/pages/community/community');
+      return;
+    }
+    wx.navigateTo({
+      url: '/pages/report/report?type=' + targetType + '&id=' + encodeURIComponent(targetId)
     });
   },
 
