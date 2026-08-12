@@ -3,7 +3,7 @@
  */
 
 // 首页路径
-const HOME_PAGE = '/pages/trip-list/trip-list';
+const HOME_PAGE = '/pages/community/community';
 
 /**
  * 返回上一页，如果没有上一页则跳转到首页

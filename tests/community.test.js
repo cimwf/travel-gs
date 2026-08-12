@@ -54,8 +54,8 @@ console.log('========================================');
 run('app.json: 3 tabs, community pages registered', function () {
   var j = readJson('miniprogram/app.json');
   assert.strictEqual(j.tabBar.list.length, 3);
-  assert.strictEqual(j.tabBar.list[0].text, '行程'); // 行程
-  assert.strictEqual(j.tabBar.list[1].text, '社区'); // 社区
+  assert.strictEqual(j.tabBar.list[0].text, '社区'); // 社区
+  assert.strictEqual(j.tabBar.list[1].text, '行程'); // 行程
   assert.strictEqual(j.tabBar.list[2].text, '我的'); // 我的
   ok(j.pages.indexOf('pages/community/community') !== -1, 'community page registered');
   ok(j.pages.indexOf('pages/community-detail/community-detail') !== -1, 'detail page registered');

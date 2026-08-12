@@ -1,8 +1,8 @@
 {
   "pages": [
+    "pages/community/community",
     "pages/trip-list/trip-list",
     "pages/message-center/message-center",
-    "pages/community/community",
     "pages/community-detail/community-detail",
     "pages/community-likes/community-likes",
     "pages/community-publish/community-publish",
@@ -37,16 +37,16 @@
     "borderStyle": "black",
     "list": [
       {
-        "pagePath": "pages/trip-list/trip-list",
-        "text": "行程",
-        "iconPath": "images/tab-trip.png",
-        "selectedIconPath": "images/tab-trip-active.png"
-      },
-      {
         "pagePath": "pages/community/community",
         "text": "社区",
         "iconPath": "images/tab-community.png",
         "selectedIconPath": "images/tab-community-active.png"
+      },
+      {
+        "pagePath": "pages/trip-list/trip-list",
+        "text": "行程",
+        "iconPath": "images/tab-trip.png",
+        "selectedIconPath": "images/tab-trip-active.png"
       },
       {
         "pagePath": "pages/profile/profile",

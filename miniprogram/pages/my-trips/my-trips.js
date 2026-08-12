@@ -569,14 +569,14 @@ Page({
   // 发现周边好去处
   onExploreTap: function () {
     wx.switchTab({
-      url: '/pages/index/index'
+      url: '/pages/trip-list/trip-list'
     });
   },
 
   // 发布新行程
   onPublishTap: function () {
     wx.switchTab({
-      url: '/pages/index/index'
+      url: '/pages/trip-list/trip-list'
     });
   },
 

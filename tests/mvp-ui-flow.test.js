@@ -172,15 +172,19 @@ function test(name, fn) {
   tests.push({ name, fn });
 }
 
-test('app.json 默认首页是 trip-list，tabBar 含行程和我的', () => {
+test('app.json 默认首页是社区，tabBar 顺序为社区、行程、我的', () => {
   const appJson = JSON.parse(read('miniprogram/app.json'));
-  assert.strictEqual(appJson.pages[0], 'pages/trip-list/trip-list');
+  const navJs = read('miniprogram/utils/nav.js');
+  const settingsJs = read('miniprogram/pages/settings/settings.js');
+  assert.strictEqual(appJson.pages[0], 'pages/community/community');
   assert(appJson.pages.includes('pages/message-center/message-center'));
   assert.deepStrictEqual(appJson.tabBar.list.map((item) => item.pagePath), [
-    'pages/trip-list/trip-list',
     'pages/community/community',
+    'pages/trip-list/trip-list',
     'pages/profile/profile'
   ]);
+  assert(navJs.includes("const HOME_PAGE = '/pages/community/community'"));
+  assert(settingsJs.includes('nav.goHome()'), '退出登录应返回社区首页');
 });
 
 test('消息中心使用系统头部并支持全部、行程和互动筛选', () => {

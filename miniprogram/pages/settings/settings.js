@@ -1,6 +1,7 @@
 // pages/settings/settings.js
 const app = getApp();
 const auth = require('../../utils/auth.js');
+const nav = require('../../utils/nav.js');
 
 Page({
   data: {
@@ -158,9 +159,7 @@ Page({
 
           // 返回上一页或跳转到首页
           setTimeout(() => {
-            wx.switchTab({
-              url: '/pages/index/index'
-            });
+            nav.goHome();
           }, 1500);
         }
       }
