@@ -4,16 +4,14 @@
   <view class="content">
     <!-- Logo卡片 -->
     <view class="logo-card">
-      <view class="logo-icon">
-        <text class="logo-emoji">🏔️</text>
-      </view>
+      <image class="logo-icon" src="/images/xing-logo.png" mode="aspectFill"></image>
       <view class="app-name">周末约行</view>
       <view class="app-version">版本 1.0.0</view>
     </view>
 
     <!-- 简介 -->
     <view class="intro-card">
-      <view class="intro-text">周末约行是一款专注于周末短途出行的小程序，帮助用户发现好玩的地方、规划行程、结伴出行。</view>
+      <view class="intro-text">周末约行是一款面向北京地区的周末出行与兴趣社交小程序。你可以发现周边目的地、发布或加入行程、记录旅途，也可以在社区分享内容、关注和互动。</view>
     </view>
 
     <!-- 链接列表 -->

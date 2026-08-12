@@ -41,17 +41,10 @@ page {
 .logo-icon {
   width: 160rpx;
   height: 160rpx;
-  background: linear-gradient(135deg, var(--primary-color), #667eea);
-  border-radius: 40rpx;
+  display: block;
+  border-radius: 36rpx;
   margin: 0 auto 32rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   box-shadow: 0 8rpx 32rpx rgba(74, 144, 226, 0.3);
-}
-
-.logo-emoji {
-  font-size: 80rpx;
 }
 
 .app-name {

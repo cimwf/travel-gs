@@ -133,10 +133,8 @@ Page({
 
   // 关于我们
   goToAbout: function () {
-    wx.showModal({
-      title: '关于我们',
-      content: '周末约行\n版本：v' + this.data.version + '\n\n发现周末好去处，找旅行伙伴，一起出发！',
-      showCancel: false
+    wx.navigateTo({
+      url: '/pages/about/about'
     });
   },
 
