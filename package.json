@@ -17,6 +17,7 @@
     "test:trip-log": "node tests/trip-log-rules.test.js",
     "test:trip-comment": "node tests/trip-comment.test.js",
     "test:trip-media": "node tests/trip-media-cos.test.js",
+    "test:trip-review": "node tests/trip-review-handler.test.js",
     "test:data-env": "node tests/data-environment.test.js",
     "test:account-binding": "node tests/user-account-binding.test.js",
     "test:notification": "node tests/notification-handler.test.js && node tests/follow-notification-handler.test.js && node tests/apply-notification-handler.test.js && node tests/trip-notification-handler.test.js",

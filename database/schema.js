@@ -122,6 +122,10 @@ const tripSchema = {
   
   remark: "早上6点出发，AA制",
   status: "open",                   // open/full/cancelled
+  reviewStatus: "approved",         // approved/rejected；发布默认通过，后台可停止展示
+  adminReviewedAt: 0,
+  adminReviewerName: "",
+  adminReviewRemark: "",
   commentCount: 0,                  // 行程主评论与回复总数
   
   createdAt: 1711123200000
@@ -479,10 +483,12 @@ places:
   - wantCount
 
 trips:
-  - dataEnv + createdAt + _id（复合索引，用于首页稳定游标分页）
-  - dataEnv + placeId + createdAt + _id（复合索引，用于按地点筛选）
-  - dataEnv + status + createdAt + _id（复合索引，用于按状态筛选）
-  - dataEnv + date + createdAt + _id（复合索引，用于按日期筛选）
+  - dataEnv + reviewStatus + createdAt + _id（复合索引，用于首页公开行程稳定游标分页）
+  - dataEnv + reviewStatus + placeId + createdAt + _id（复合索引，用于按地点筛选）
+  - dataEnv + reviewStatus + status + createdAt + _id（复合索引，用于按状态筛选）
+  - dataEnv + reviewStatus + date + createdAt + _id（复合索引，用于按日期筛选）
+  - creatorId + reviewStatus + createdAt（复合索引，用于他人主页公开行程）
+  - reviewStatus + createdAt（复合索引，用于后台行程审核）
 
 applies:
   - tripId

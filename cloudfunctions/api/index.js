@@ -19,6 +19,7 @@ const feedback = require('./handlers/feedback');
 const community = require('./handlers/community');
 const notification = require('./handlers/notification');
 const adminCommunity = require('./handlers/adminCommunity');
+const adminTrip = require('./handlers/adminTrip');
 const { resolveDataEnvironment } = require('./utils/dataEnvironment');
 
 exports.main = async (event, context) => {
@@ -73,7 +74,7 @@ exports.main = async (event, context) => {
       case 'trip/list':
         return await trip.tripList(openid, data, dataEnvironment);
       case 'trip/get':
-        return await trip.tripGet(data.tripId);
+        return await trip.tripGet(openid, data.tripId);
       case 'trip/view':
         return await trip.tripView(data.tripId);
       case 'trip/join':
@@ -91,7 +92,7 @@ exports.main = async (event, context) => {
       case 'trip/my':
         return await trip.tripMy(openid);
       case 'trip/listByUser':
-        return await trip.tripListByUser(data);
+        return await trip.tripListByUser(openid, data);
       case 'tripMedia/createUploadSession':
         return await tripMedia.tripMediaCreateUploadSession(openid, data);
 
@@ -224,6 +225,10 @@ exports.main = async (event, context) => {
         return await adminCommunity.adminCommunityReviewList(data);
       case 'admin/communityReviewUpdate':
         return await adminCommunity.adminCommunityReviewUpdate(data);
+      case 'admin/tripReviewList':
+        return await adminTrip.adminTripReviewList(data);
+      case 'admin/tripReviewUpdate':
+        return await adminTrip.adminTripReviewUpdate(data);
 
       default:
         return { success: false, error: '未知操作' };

@@ -137,6 +137,10 @@ async function tripCreate(openid, data, dataEnvironment = RUNTIME_DEFAULTS.devel
       avatar: safeAvatar(user.avatar)
     }],
     status: data.status || 'open',
+    reviewStatus: 'approved',
+    adminReviewedAt: 0,
+    adminReviewerName: '',
+    adminReviewRemark: '',
     tripStage: 'not_started',
     logStartedAt: 0,
     logEndedAt: 0,
@@ -178,9 +182,13 @@ async function tripList(openid, data, dataEnvironment = RUNTIME_DEFAULTS.develop
   if (date) conditions.date = date;
   if (excludeStatus) conditions.status = _.neq(excludeStatus);
   const dataEnvCondition = createReadCondition(_, dataEnvironment.readEnvs);
+  const reviewCondition = _.or([
+    { reviewStatus: 'approved' },
+    { reviewStatus: _.exists(false) }
+  ]);
   const baseCondition = Object.keys(conditions).length > 0
-    ? _.and([conditions, dataEnvCondition])
-    : dataEnvCondition;
+    ? _.and([conditions, dataEnvCondition, reviewCondition])
+    : _.and([dataEnvCondition, reviewCondition]);
   const listCondition = cursor
     ? _.and([
       baseCondition,
@@ -304,7 +312,7 @@ async function tripList(openid, data, dataEnvironment = RUNTIME_DEFAULTS.develop
   };
 }
 
-async function tripGet(tripId) {
+async function tripGet(openid, tripId) {
   if (!tripId) {
     return { success: false, error: '行程ID不能为空' };
   }
@@ -314,6 +322,9 @@ async function tripGet(tripId) {
 
   if (!trip) {
     return { success: false, error: '行程不存在' };
+  }
+  if (trip.reviewStatus === 'rejected' && trip.creatorId !== openid) {
+    return { success: false, error: '该行程暂不可查看' };
   }
 
   const userIds = new Set();
@@ -436,6 +447,10 @@ async function tripJoin(openid, data) {
 
   const tripRes = await db.collection('trips').doc(tripId).get();
   const trip = tripRes.data;
+
+  if (!trip || trip.reviewStatus === 'rejected') {
+    return { success: false, error: '该行程暂无法加入' };
+  }
 
   if (trip.status !== 'open') {
     return { success: false, error: '行程已满或已取消' };
@@ -768,6 +783,10 @@ async function tripUpdate(openid, data) {
     coverUploadSessionId = '',
     ...updateFields
   } = data;
+  delete updateFields.reviewStatus;
+  delete updateFields.adminReviewedAt;
+  delete updateFields.adminReviewerName;
+  delete updateFields.adminReviewRemark;
 
   if (!tripId) {
     return { success: false, error: '行程ID不能为空' };
@@ -952,7 +971,9 @@ async function tripMy(openid) {
     .limit(50)
     .get();
 
-  const trips = res.data || [];
+  const trips = (res.data || []).filter(trip =>
+    trip.reviewStatus !== 'rejected' || trip.creatorId === openid
+  );
 
   const userIds = new Set();
   trips.forEach(trip => {
@@ -1046,17 +1067,24 @@ async function tripMy(openid) {
   return { success: true, trips };
 }
 
-async function tripListByUser(data) {
+async function tripListByUser(openid, data) {
   const { userId, page = 1, pageSize = 10 } = data;
 
   if (!userId) {
     return { success: false, error: '用户ID不能为空' };
   }
 
+  const condition = userId === openid
+    ? { creatorId: userId }
+    : _.and([
+      { creatorId: userId },
+      _.or([
+        { reviewStatus: 'approved' },
+        { reviewStatus: _.exists(false) }
+      ])
+    ]);
   const tripRes = await db.collection('trips')
-    .where({
-      creatorId: userId
-    })
+    .where(condition)
     .orderBy('createdAt', 'desc')
     .skip((page - 1) * pageSize)
     .limit(pageSize)

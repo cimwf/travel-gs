@@ -88,6 +88,7 @@ async function applyCreate(openid, data) {
     console.warn('获取申请行程失败', err);
   }
   if (!tripData) return { success: false, error: '行程不存在' };
+  if (tripData.reviewStatus === 'rejected') return { success: false, error: '该行程暂无法申请加入' };
   if (!tripData.creatorId) return { success: false, error: '行程发起人信息不完整' };
   if (tripData.creatorId === openid) return { success: false, error: '不能申请加入自己的行程' };
   if (tripData.status !== 'open' || (tripData.tripStage || 'not_started') !== 'not_started') {

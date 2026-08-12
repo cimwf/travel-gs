@@ -27,6 +27,15 @@
         </view>
 
         <view class="trip-card-body">
+          <view class="trip-review-rejected" wx:if="{{item.reviewRejected}}">
+            <view class="trip-review-rejected-title-row">
+              <text class="trip-review-rejected-title">审核不通过</text>
+              <text class="trip-review-rejected-tip">仅自己可见</text>
+            </view>
+            <text class="trip-review-rejected-reason" wx:if="{{item.reviewRemark}}">原因：{{item.reviewRemark}}</text>
+            <text class="trip-review-rejected-reason" wx:else>该行程暂未通过平台审核，可修改后联系管理员复核</text>
+          </view>
+
           <view class="trip-card-title-row">
             <text class="trip-card-title">{{item.displayTitle || item.placeName}}</text>
             <text class="trip-status status-{{item.statusClass}}">{{item.statusText}}</text>

@@ -44,10 +44,10 @@ trial: {
 
 ### `trips`
 
-- `dataEnv` 升序、`createdAt` 降序、`_id` 降序
-- `dataEnv` 升序、`placeId` 升序、`createdAt` 降序、`_id` 降序
-- `dataEnv` 升序、`status` 升序、`createdAt` 降序、`_id` 降序
-- `dataEnv` 升序、`date` 升序、`createdAt` 降序、`_id` 降序
+- `dataEnv` 升序、`reviewStatus` 升序、`createdAt` 降序、`_id` 降序
+- `dataEnv` 升序、`reviewStatus` 升序、`placeId` 升序、`createdAt` 降序、`_id` 降序
+- `dataEnv` 升序、`reviewStatus` 升序、`status` 升序、`createdAt` 降序、`_id` 降序
+- `dataEnv` 升序、`reviewStatus` 升序、`date` 升序、`createdAt` 降序、`_id` 降序
 
 ### `community_posts`
 

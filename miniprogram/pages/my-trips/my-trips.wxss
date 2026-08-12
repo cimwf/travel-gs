@@ -617,6 +617,39 @@ page {
   padding: 22rpx 24rpx 24rpx;
 }
 
+.trip-review-rejected {
+  margin-bottom: 20rpx;
+  padding: 18rpx 20rpx;
+  border: 1rpx solid #ffd8d6;
+  border-radius: 16rpx;
+  background: #fff5f5;
+}
+
+.trip-review-rejected-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.trip-review-rejected-title {
+  color: #d9363e;
+  font-size: 25rpx;
+  font-weight: 600;
+}
+
+.trip-review-rejected-tip {
+  color: #b68b8e;
+  font-size: 21rpx;
+}
+
+.trip-review-rejected-reason {
+  display: block;
+  margin-top: 8rpx;
+  color: #8f5559;
+  font-size: 23rpx;
+  line-height: 1.5;
+}
+
 .trip-card-title-row {
   display: flex;
   align-items: center;

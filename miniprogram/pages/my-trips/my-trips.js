@@ -178,6 +178,9 @@ Page({
             creatorAvatar,
             creatorInitial: creatorName.slice(0, 1),
             publishTime: this.formatPublishTime(item.createdAt),
+            reviewStatus: item.reviewStatus || 'approved',
+            reviewRejected: isCreator && item.reviewStatus === 'rejected',
+            reviewRemark: item.adminReviewRemark || '',
             rawStatus: status
           });
         }
