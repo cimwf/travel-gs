@@ -175,7 +175,14 @@ Page({
         imageGridClass: this.getLogImageGridClass(log.imageCount || ((log.images || []).length)),
         timeText: this.formatLogTime(log.createdAt),
         imageUrls: (log.images || []).map(img => img.url || img.tempFileURL || img.fileID).filter(Boolean),
-        locationText: this.getLogLocationText(log.location)
+        locationText: this.getLogLocationText(log.location),
+        reviewStatusText: log.adminReviewStatus === 'pending' && log.machineSuggest === 'review'
+          ? '已发布 · 待复核'
+          : (log.reviewStatus === 'reviewing'
+          ? '审核中'
+          : (log.reviewStatus === 'manual_review'
+            ? '待人工审核'
+            : (log.reviewStatus === 'rejected' ? '审核不通过' : '')))
       }))
     }));
   },
@@ -821,7 +828,10 @@ Page({
         publishImages: [],
         publishLocation: null
       });
-      wx.showToast({ title: '发布成功', icon: 'success' });
+      wx.showToast({
+        title: res.log && res.log.reviewStatus === 'reviewing' ? '已提交审核' : '发布成功',
+        icon: 'success'
+      });
 
       // 切到旅途记录 tab 并刷新日志
       this.setData({ activeTab: 'log' });

@@ -28,6 +28,8 @@ const state = {
     }
   },
   notifications: {},
+  tripLogAudits: {},
+  tripLogs: {},
   transactionConflictsRemaining: 0
 };
 
@@ -35,6 +37,8 @@ function collectionStore(name) {
   if (name === 'community_image_audits') return state.audits;
   if (name === 'community_posts') return state.posts;
   if (name === 'notifications') return state.notifications;
+  if (name === 'trip_log_image_audits') return state.tripLogAudits;
+  if (name === 'trip_logs') return state.tripLogs;
   throw new Error(`Unexpected collection: ${name}`);
 }
 
@@ -208,7 +212,30 @@ async function main() {
   assert.strictEqual(state.audits['trace-2'].suggest, 'pass');
   assert.strictEqual(state.posts['post-1'].reviewStatus, 'approved');
 
-  console.log('PASS media check callback handles sequential and concurrent image results');
+  state.tripLogAudits['trip-trace-1'] = {
+    traceId: 'trip-trace-1', logId: 'log-1', suggest: 'pending'
+  };
+  state.tripLogAudits['trip-trace-2'] = {
+    traceId: 'trip-trace-2', logId: 'log-1', suggest: 'pending'
+  };
+  state.tripLogs['log-1'] = {
+    _id: 'log-1', tripId: 'trip-1', publisherId: 'openid-author',
+    images: [{ url: 'https://example.com/log.jpg' }],
+    reviewStatus: 'reviewing', adminReviewStatus: 'not_required',
+    imageAuditTraceIds: ['trip-trace-1', 'trip-trace-2']
+  };
+  const tripResults = await Promise.all([
+    callback.main({ trace_id: 'trip-trace-1', result: { suggest: 'review', label: 20002 } }),
+    callback.main({ trace_id: 'trip-trace-2', result: { suggest: 'pass', label: 100 } })
+  ]);
+  assert.ok(tripResults.every(item => item.success === true));
+  assert.strictEqual(state.tripLogs['log-1'].reviewStatus, 'approved');
+  assert.strictEqual(state.tripLogs['log-1'].machineSuggest, 'review');
+  assert.strictEqual(state.tripLogs['log-1'].adminReviewStatus, 'pending');
+  assert(Object.values(state.notifications).some(item =>
+    item.type === 'trip_log_review_pending' && item.receiverId === 'openid-author'));
+
+  console.log('PASS media check callback handles community and trip-log image results');
 }
 
 main().catch((error) => {

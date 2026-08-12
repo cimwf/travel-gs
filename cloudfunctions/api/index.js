@@ -20,6 +20,7 @@ const community = require('./handlers/community');
 const notification = require('./handlers/notification');
 const adminCommunity = require('./handlers/adminCommunity');
 const adminTrip = require('./handlers/adminTrip');
+const adminTripLog = require('./handlers/adminTripLog');
 const adminData = require('./handlers/adminData');
 const { resolveDataEnvironment } = require('./utils/dataEnvironment');
 
@@ -103,7 +104,7 @@ exports.main = async (event, context) => {
       case 'tripLog/end':
         return await tripLog.tripLogEnd(openid, data);
       case 'tripLog/list':
-        return await tripLog.tripLogList(data);
+        return await tripLog.tripLogList(openid, data);
       case 'tripLog/create':
         return await tripLog.tripLogCreate(openid, data);
       case 'tripLog/delete':
@@ -230,6 +231,10 @@ exports.main = async (event, context) => {
         return await adminTrip.adminTripReviewList(data);
       case 'admin/tripReviewUpdate':
         return await adminTrip.adminTripReviewUpdate(data);
+      case 'admin/tripLogReviewList':
+        return await adminTripLog.adminTripLogReviewList(data);
+      case 'admin/tripLogReviewUpdate':
+        return await adminTripLog.adminTripLogReviewUpdate(data);
       case 'admin/dataList':
         return await adminData.adminDataList(data);
       case 'admin/login':

@@ -21,6 +21,13 @@ function getPostThumbnail(post) {
   return first && (first.url || first.tempFileURL || '') || '';
 }
 
+function getTripLogThumbnail(log) {
+  const images = log && Array.isArray(log.images) ? log.images : [];
+  const first = images.length > 0 ? images[0] : null;
+  if (typeof first === 'string') return first;
+  return first && (first.url || first.tempFileURL || '') || '';
+}
+
 async function createReviewNotification(transaction, post, decision, now) {
   if (!post.authorId || decision.reviewStatus === 'reviewing') return;
   const typeMap = {
@@ -67,6 +74,52 @@ async function createReviewNotification(transaction, post, decision, now) {
   });
 }
 
+async function createTripLogReviewNotification(transaction, log, decision, now) {
+  if (!log.publisherId || decision.reviewStatus === 'reviewing') return;
+  const typeMap = {
+    pass: 'trip_log_review_approved',
+    review: 'trip_log_review_pending',
+    risky: 'trip_log_review_manual'
+  };
+  const titleMap = {
+    pass: '旅行记录审核通过',
+    review: '旅行记录已发布，待复核',
+    risky: '旅行记录正在进一步审核'
+  };
+  const contentMap = {
+    pass: '你的图片旅行记录已通过审核并发布',
+    review: '你的图片旅行记录已发布，后续将进行人工复核',
+    risky: '你的图片旅行记录风险较高，暂不公开展示'
+  };
+  const type = typeMap[decision.machineSuggest];
+  if (!type) return;
+  const sourceId = log._id + ':' + decision.machineSuggest;
+  const id = getNotificationId(type, log.publisherId, sourceId);
+  await transaction.collection('notifications').doc(id).set({
+    data: {
+      receiverId: log.publisherId,
+      category: 'system',
+      type,
+      actorId: '',
+      actorName: '',
+      actorAvatar: '',
+      targetType: 'trip',
+      targetId: log.tripId || '',
+      sourceType: 'trip_log_review',
+      sourceId,
+      title: titleMap[decision.machineSuggest],
+      actionText: '',
+      content: contentMap[decision.machineSuggest],
+      thumbnail: getTripLogThumbnail(log),
+      isRead: false,
+      readAt: 0,
+      status: 'active',
+      createdAt: now,
+      updatedAt: now
+    }
+  });
+}
+
 function normalizeEvent(event) {
   const result = event && event.result || {};
   return {
@@ -97,30 +150,44 @@ function wait(ms) {
 }
 
 async function persistAuditResult(payload) {
-  const auditDoc = db.collection('community_image_audits').doc(payload.traceId);
-  const auditRes = await auditDoc.get();
-  const audit = auditRes.data;
-  if (!audit || !audit.postId) {
-    return null;
+  const candidates = [
+    { collection: 'community_image_audits', targetType: 'community_post', targetField: 'postId' },
+    { collection: 'trip_log_image_audits', targetType: 'trip_log', targetField: 'logId' }
+  ];
+  let mapping = null;
+  for (const candidate of candidates) {
+    try {
+      const doc = db.collection(candidate.collection).doc(payload.traceId);
+      const result = await doc.get();
+      const audit = result.data;
+      if (audit && audit[candidate.targetField]) {
+        mapping = { ...candidate, doc, audit, targetId: audit[candidate.targetField] };
+        break;
+      }
+    } catch (error) {
+      // Try the next supported audit collection.
+    }
   }
+  if (!mapping) return null;
 
   const now = Date.now();
-  await auditDoc.update({
+  await mapping.doc.update({
     data: {
       status: 'completed',
       suggest: payload.suggest,
       label: payload.label,
       detail: payload.detail,
       updatedAt: now,
-      completedAt: audit.completedAt || now
+      completedAt: mapping.audit.completedAt || now
     }
   });
   console.log('[community/image-audit-callback] audit-saved', JSON.stringify({
-    postId: audit.postId,
+    targetType: mapping.targetType,
+    targetId: mapping.targetId,
     traceId: payload.traceId,
     suggest: payload.suggest
   }));
-  return audit;
+  return { ...mapping.audit, targetType: mapping.targetType, targetId: mapping.targetId };
 }
 
 async function reconcilePost(postId) {
@@ -203,6 +270,65 @@ async function reconcilePostWithRetry(postId) {
   throw lastError;
 }
 
+async function reconcileTripLog(logId) {
+  return db.runTransaction(async transaction => {
+    const logDoc = transaction.collection('trip_logs').doc(logId);
+    const logRes = await logDoc.get();
+    const log = logRes.data;
+    if (!log) return { ignored: true, reason: 'TRIP_LOG_NOT_FOUND' };
+
+    const traceIds = Array.isArray(log.imageAuditTraceIds) ? log.imageAuditTraceIds : [];
+    const suggestions = [];
+    for (const traceId of traceIds) {
+      const itemRes = await transaction.collection('trip_log_image_audits').doc(traceId).get();
+      suggestions.push(itemRes.data && itemRes.data.suggest || 'pending');
+    }
+    const decision = getReviewDecision(suggestions, traceIds.length);
+    const previousAdminReviewStatus = log.adminReviewStatus || 'not_required';
+    const hasAdminDecision = ['approved', 'rejected'].includes(previousAdminReviewStatus);
+    const adminReviewStatus = hasAdminDecision
+      ? previousAdminReviewStatus
+      : (['review', 'risky'].includes(decision.machineSuggest) ? 'pending' : 'not_required');
+    const reviewStatus = hasAdminDecision
+      ? (previousAdminReviewStatus === 'approved' ? 'approved' : 'rejected')
+      : decision.reviewStatus;
+    const previousReviewStatus = log.reviewStatus;
+    const previousMachineSuggest = log.machineSuggest || 'pending';
+    const now = Date.now();
+    await logDoc.update({ data: {
+      reviewStatus,
+      machineSuggest: decision.machineSuggest,
+      adminReviewStatus,
+      imageAuditStatus: reviewStatus,
+      imageAuditUpdatedAt: now,
+      updatedAt: now
+    } });
+    if (reviewStatus !== 'reviewing' &&
+      (previousReviewStatus !== reviewStatus || previousMachineSuggest !== decision.machineSuggest)) {
+      await createTripLogReviewNotification(transaction, log, decision, now);
+    }
+    return { ignored: false, targetType: 'trip_log', logId, reviewStatus, machineSuggest: decision.machineSuggest };
+  });
+}
+
+async function reconcileTripLogWithRetry(logId) {
+  let lastError;
+  for (let attempt = 1; attempt <= RECONCILE_MAX_ATTEMPTS; attempt++) {
+    try {
+      return await reconcileTripLog(logId);
+    } catch (error) {
+      lastError = error;
+      console.warn('[trip-log/image-audit-callback] reconcile-conflict', JSON.stringify({
+        logId,
+        attempt,
+        error: error.message || String(error)
+      }));
+      if (attempt < RECONCILE_MAX_ATTEMPTS) await wait(25 * attempt);
+    }
+  }
+  throw lastError;
+}
+
 exports.main = async (event) => {
   const payload = normalizeEvent(event);
   console.log('[community/image-audit-callback] received', JSON.stringify({
@@ -222,7 +348,9 @@ exports.main = async (event) => {
       return { success: true, ignored: true, reason: 'AUDIT_MAPPING_NOT_FOUND' };
     }
 
-    const result = await reconcilePostWithRetry(audit.postId);
+    const result = audit.targetType === 'trip_log'
+      ? await reconcileTripLogWithRetry(audit.targetId)
+      : await reconcilePostWithRetry(audit.targetId);
     console.log('[community/image-audit-callback] completed', JSON.stringify(result));
     return { success: true, ...result };
   } catch (error) {

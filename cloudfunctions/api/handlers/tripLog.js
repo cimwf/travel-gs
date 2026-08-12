@@ -1,6 +1,116 @@
 const { db, _, cloud, safeAvatar } = require('../utils/shared');
 const tripMedia = require('./tripMedia');
 
+const TRIP_LOGS_COLLECTION = 'trip_logs';
+const TRIP_LOG_AUDITS_COLLECTION = 'trip_log_image_audits';
+const VALID_IMAGE_SUGGESTIONS = ['pass', 'review', 'risky'];
+
+async function securityCheck(openid, text) {
+  if (!text || !String(text).trim()) return { ok: true, suggest: 'pass' };
+  try {
+    const result = await cloud.openapi.security.msgSecCheck({
+      version: 2,
+      scene: 4,
+      openid,
+      content: String(text).trim()
+    });
+    const checkResult = result && result.result;
+    const suggest = checkResult && checkResult.suggest;
+    return suggest === 'pass'
+      ? { ok: true, suggest }
+      : { ok: false, suggest: suggest || 'unknown' };
+  } catch (error) {
+    console.warn('[trip-log/text-audit] failed:', error.message || error);
+    return {
+      ok: false,
+      unavailable: error && error.errCode === -604101
+    };
+  }
+}
+
+async function submitImageAudits(openid, logId, images) {
+  return Promise.all(images.map(async image => {
+    const response = await cloud.openapi.security.mediaCheckAsync({
+      version: 2,
+      scene: 4,
+      openid,
+      mediaType: 2,
+      mediaUrl: image.url
+    });
+    const traceId = response && (response.traceId || response.trace_id);
+    if (!traceId) throw new Error('图片安全检测未返回 traceId');
+    const now = Date.now();
+    await db.collection(TRIP_LOG_AUDITS_COLLECTION).doc(traceId).set({
+      data: {
+        traceId,
+        logId,
+        imageKey: image.key || '',
+        imageUrl: image.url,
+        status: 'pending',
+        suggest: 'pending',
+        label: 0,
+        createdAt: now,
+        updatedAt: now,
+        expiresAt: now + 7 * 24 * 60 * 60 * 1000
+      }
+    });
+    console.log('[trip-log/image-audit] submitted', JSON.stringify({ logId, traceId }));
+    return { traceId };
+  }));
+}
+
+function getImageReviewDecision(suggestions, expectedCount) {
+  if (suggestions.some(item => item === 'risky')) {
+    return { reviewStatus: 'manual_review', machineSuggest: 'risky' };
+  }
+  const completed = suggestions.length === expectedCount &&
+    suggestions.every(item => VALID_IMAGE_SUGGESTIONS.includes(item));
+  if (!completed) return { reviewStatus: 'reviewing', machineSuggest: 'pending' };
+  if (suggestions.some(item => item === 'review')) {
+    return { reviewStatus: 'approved', machineSuggest: 'review' };
+  }
+  return { reviewStatus: 'approved', machineSuggest: 'pass' };
+}
+
+async function reconcileImageAuditStatus(logId, traceIds) {
+  const suggestions = [];
+  for (const traceId of traceIds || []) {
+    try {
+      const result = await db.collection(TRIP_LOG_AUDITS_COLLECTION).doc(traceId).get();
+      suggestions.push(result.data && result.data.suggest || 'pending');
+    } catch (error) {
+      suggestions.push('pending');
+    }
+  }
+  const decision = getImageReviewDecision(suggestions, (traceIds || []).length);
+  let log;
+  try {
+    const result = await db.collection(TRIP_LOGS_COLLECTION).doc(logId).get();
+    log = result && result.data;
+  } catch (error) {
+    return decision;
+  }
+  if (!log) return decision;
+  const hasAdminDecision = ['approved', 'rejected'].includes(log.adminReviewStatus);
+  const reviewStatus = hasAdminDecision
+    ? (log.adminReviewStatus === 'approved' ? 'approved' : 'rejected')
+    : decision.reviewStatus;
+  const adminReviewStatus = hasAdminDecision
+    ? log.adminReviewStatus
+    : (['review', 'risky'].includes(decision.machineSuggest) ? 'pending' : 'not_required');
+  await db.collection(TRIP_LOGS_COLLECTION).doc(logId).update({
+    data: {
+      reviewStatus,
+      machineSuggest: decision.machineSuggest,
+      adminReviewStatus,
+      imageAuditStatus: reviewStatus,
+      imageAuditUpdatedAt: Date.now(),
+      updatedAt: Date.now()
+    }
+  });
+  return { reviewStatus, machineSuggest: decision.machineSuggest, adminReviewStatus };
+}
+
 async function tripLogStart(openid, data) {
   const { tripId } = data;
   if (!tripId) return { success: false, error: '行程ID不能为空' };
@@ -43,7 +153,7 @@ async function tripLogEnd(openid, data) {
   return { success: true, trip: { ...trip, tripStage: 'ended', logEndedAt: now } };
 }
 
-async function tripLogList(data) {
+async function tripLogList(openid, data) {
   const { tripId, page = 1, pageSize = 20 } = data;
   if (!tripId) return { success: false, error: '行程ID不能为空' };
 
@@ -51,15 +161,26 @@ async function tripLogList(data) {
   const trip = tripRes.data;
   if (!trip) return { success: false, error: '行程不存在' };
 
-  const skip = (page - 1) * pageSize;
-  const logsRes = await db.collection('trip_logs')
+  const normalizedPage = Math.max(1, Number(page) || 1);
+  const normalizedPageSize = Math.max(1, Math.min(Number(pageSize) || 20, 50));
+  // A trip snapshots logMaxCount when it is created (default 15). Reading the
+  // small bounded set first prevents hidden reviewing rows from consuming page
+  // slots in an OR query, then visibility is enforced in the cloud function.
+  const fetchLimit = Math.max(15, Math.min(Number(trip.logMaxCount) || 15, 100));
+  const logsRes = await db.collection(TRIP_LOGS_COLLECTION)
     .where({ tripId, status: 'active' })
     .orderBy('createdAt', 'asc')
-    .skip(skip)
-    .limit(pageSize)
+    .limit(fetchLimit)
     .get();
 
-  const logs = logsRes.data || [];
+  const visibleLogs = (logsRes.data || []).filter(log =>
+    !log.reviewStatus || log.reviewStatus === 'approved' || (!!openid && log.publisherId === openid)
+  );
+  const skip = (normalizedPage - 1) * normalizedPageSize;
+  const logs = visibleLogs.slice(skip, skip + normalizedPageSize);
+  logs.forEach(log => {
+    log.isPublisher = !!openid && log.publisherId === openid;
+  });
 
   const fileIDs = [];
   logs.forEach(log => {
@@ -110,7 +231,7 @@ async function tripLogList(data) {
   });
 
   const groups = groupOrder.map(k => groupMap[k]);
-  return { success: true, logs, groups, logCount: logs.length };
+  return { success: true, logs, groups, logCount: visibleLogs.length };
 }
 
 async function tripLogCreate(openid, data) {
@@ -153,6 +274,24 @@ async function tripLogCreate(openid, data) {
     return { success: false, error: '内容、图片和定位不能同时为空' };
   }
 
+  const securityTexts = [
+    trimmedContent,
+    normalizedLocation && normalizedLocation.name,
+    normalizedLocation && normalizedLocation.address,
+    weatherLabel
+  ].filter(Boolean);
+  for (const text of securityTexts) {
+    const result = await securityCheck(openid, text);
+    if (!result.ok) {
+      return {
+        success: false,
+        error: result.unavailable
+          ? '内容安全检测服务暂不可用，请稍后重试'
+          : '内容未通过安全检测，请修改后重试'
+      };
+    }
+  }
+
   let normalizedImages = images;
   let verifiedUploadSessionId = '';
   if (images.some(image => image && image.provider === 'cos')) {
@@ -185,6 +324,22 @@ async function tripLogCreate(openid, data) {
     dayLabel = `${month}月${day}日`;
   }
 
+  const logId = 'trip_log_' + now.toString(36) + '_' + Math.random().toString(36).slice(2, 14);
+  let imageAudits = [];
+  if (normalizedImages.length > 0) {
+    try {
+      imageAudits = await submitImageAudits(openid, logId, normalizedImages);
+    } catch (error) {
+      console.error('[trip-log/image-audit] submit failed:', error);
+      return {
+        success: false,
+        error: '图片安全检测服务暂不可用，请稍后重试',
+        errorCode: 'IMAGE_SECURITY_CHECK_FAILED'
+      };
+    }
+  }
+
+  const hasImages = normalizedImages.length > 0;
   const newLog = {
     tripId,
     placeId: trip.placeId || '',
@@ -201,12 +356,17 @@ async function tripLogCreate(openid, data) {
     tripDayIndex,
     weatherLabel,
     status: 'active',
+    reviewStatus: hasImages ? 'reviewing' : 'approved',
+    machineSuggest: hasImages ? 'pending' : 'pass',
+    adminReviewStatus: 'not_required',
+    imageAuditStatus: hasImages ? 'pending' : 'not_required',
+    imageAuditTraceIds: imageAudits.map(item => item.traceId),
     createdAt: now,
     updatedAt: now
   };
 
-  const res = await db.collection('trip_logs').add({ data: newLog });
-  newLog._id = res._id;
+  await db.collection(TRIP_LOGS_COLLECTION).doc(logId).set({ data: newLog });
+  newLog._id = logId;
 
   await db.collection('trips').doc(tripId).update({
     data: { logCount: logCount + 1, lastLogAt: now, updatedAt: now }
@@ -217,6 +377,15 @@ async function tripLogCreate(openid, data) {
       await tripMedia.consumeUploadSession(verifiedUploadSessionId);
     } catch (err) {
       console.error('标记行程日志上传会话失败:', err);
+    }
+  }
+
+  if (hasImages) {
+    try {
+      const decision = await reconcileImageAuditStatus(logId, newLog.imageAuditTraceIds);
+      Object.assign(newLog, decision);
+    } catch (error) {
+      console.warn('[trip-log/image-audit] initial reconcile failed:', error.message || error);
     }
   }
 
@@ -309,5 +478,9 @@ module.exports = {
   tripLogCreate,
   tripLogDelete,
   tripLogAuthorize,
-  tripLogUnauthorize
+  tripLogUnauthorize,
+  securityCheck,
+  submitImageAudits,
+  getImageReviewDecision,
+  reconcileImageAuditStatus
 };

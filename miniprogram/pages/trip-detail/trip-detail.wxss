@@ -2048,10 +2048,21 @@ page {
   line-height: 38rpx;
 }
 
-.detail-v2-log-author text {
-  display: block;
+.detail-v2-log-time-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.detail-v2-log-time-row text {
   color: #9aa4b2;
   font-size: 23rpx;
+}
+
+.detail-v2-log-review-status {
+  flex: none;
 }
 
 .detail-v2-log-menu {

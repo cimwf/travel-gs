@@ -148,7 +148,10 @@
               <view class="detail-v2-log-avatar detail-v2-log-avatar-text" wx:else>{{log.publisherName ? log.publisherName[0] : '旅'}}</view>
               <view class="detail-v2-log-author">
                 <view>{{log.publisherName || '旅行者'}}</view>
-                <text>{{log.timeText}}</text>
+                <view class="detail-v2-log-time-row">
+                  <text>{{log.timeText}}</text>
+                  <text class="detail-v2-log-review-status" wx:if="{{log.isPublisher && log.reviewStatusText}}">· {{log.reviewStatusText}}</text>
+                </view>
               </view>
               <view class="detail-v2-log-menu" wx:if="{{isCreator}}" catchtap="onLogMenuTap" data-group-index="{{groupIndex}}" data-log-index="{{logIndex}}" data-log-id="{{log._id}}">
                 <image src="/images/icon-more-gray.png" mode="aspectFit"></image>
