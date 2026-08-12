@@ -20,6 +20,7 @@ const community = require('./handlers/community');
 const notification = require('./handlers/notification');
 const adminCommunity = require('./handlers/adminCommunity');
 const adminTrip = require('./handlers/adminTrip');
+const adminData = require('./handlers/adminData');
 const { resolveDataEnvironment } = require('./utils/dataEnvironment');
 
 exports.main = async (event, context) => {
@@ -229,6 +230,24 @@ exports.main = async (event, context) => {
         return await adminTrip.adminTripReviewList(data);
       case 'admin/tripReviewUpdate':
         return await adminTrip.adminTripReviewUpdate(data);
+      case 'admin/dataList':
+        return await adminData.adminDataList(data);
+      case 'admin/login':
+        return await adminData.adminLogin(data);
+      case 'admin/register':
+        return await adminData.adminRegister(data);
+      case 'admin/dataGet':
+        return await adminData.adminDataGet(data);
+      case 'admin/dataCreate':
+        return await adminData.adminDataCreate(data);
+      case 'admin/dataUpdate':
+        return await adminData.adminDataUpdate(data);
+      case 'admin/dataDelete':
+        return await adminData.adminDataDelete(data);
+      case 'admin/dataBatchCreate':
+        return await adminData.adminDataBatchCreate(data);
+      case 'admin/spotPublish':
+        return await adminData.adminSpotPublish(data);
 
       default:
         return { success: false, error: '未知操作' };
