@@ -7,6 +7,7 @@ const root = path.resolve(__dirname, '..');
 const apiRoot = path.join(root, 'cloudfunctions', 'api');
 const sharedPath = path.join(apiRoot, 'utils', 'shared.js');
 const handlerPath = path.join(apiRoot, 'handlers', 'user.js');
+const tripMediaPath = path.join(apiRoot, 'handlers', 'tripMedia.js');
 
 const state = {
   users: [
@@ -55,7 +56,13 @@ function collection(name) {
         async update({ data }) {
           const user = state.users.find(item => item._id === id);
           if (!user) throw new Error('user not found');
-          Object.assign(user, data);
+          Object.keys(data).forEach(key => {
+            const value = data[key];
+            if (key === 'avatarObject' && user.avatarObject === null && !(value && value.__wholeFieldSet)) {
+              throw new Error("Cannot create field 'provider' in element {avatarObject: null}");
+            }
+            user[key] = value && value.__wholeFieldSet ? value.value : value;
+          });
         },
         async get() {
           return { data: state.users.find(item => item._id === id) || null };
@@ -88,7 +95,11 @@ require.cache[sharedPath] = {
   loaded: true,
   exports: {
     db: { collection },
-    _: {},
+    _: {
+      set(value) {
+        return { __wholeFieldSet: true, value };
+      }
+    },
     cloud: {
       getWXContext: () => ({ OPENID: 'wx-a' }),
       openapi: {
@@ -100,6 +111,21 @@ require.cache[sharedPath] = {
     crypto,
     normalizeAvatarForDb: value => value || '',
     isLocalTempFilePath: () => false
+  }
+};
+
+require.cache[tripMediaPath] = {
+  id: tripMediaPath,
+  filename: tripMediaPath,
+  loaded: true,
+  exports: {
+    async verifyUploadSession(openid, options) {
+      assert.strictEqual(openid, 'wx-c');
+      return { media: options.media };
+    },
+    async consumeUploadSession() {},
+    async cleanupCosMedia() {},
+    normalizeMediaObject(value) { return value || null; }
   }
 };
 
@@ -185,6 +211,27 @@ async function main() {
   assert.strictEqual(newAccount.success, true);
   assert.strictEqual(newAccount.user.openid, 'wx-c');
   assert.strictEqual(state.users.length, 3);
+  assert.strictEqual(state.users[2].avatarObject, undefined);
+
+  // First-login records created before the fix can contain avatarObject: null.
+  // Completing the profile must replace that field as one object, not expand
+  // it into avatarObject.* paths below the null parent.
+  state.users[2].avatarObject = null;
+  const avatarMedia = {
+    provider: 'cos',
+    key: 'miniapp/user-avatars/avatar.jpg',
+    url: 'https://example.com/avatar.jpg'
+  };
+  const completedProfile = await user.userLoginByPhone('wx-c', {
+    phone: '13800000003',
+    nickname: '账号C完成',
+    avatar: avatarMedia.url,
+    avatarUploadSessionId: 'session-avatar-c',
+    avatarMedia
+  });
+  assert.strictEqual(completedProfile.success, true);
+  assert.deepStrictEqual(state.users[2].avatarObject, avatarMedia);
+  assert.deepStrictEqual(completedProfile.user.avatarObject, undefined);
 
   console.log('PASS one WeChat identity can bind only one account');
 }

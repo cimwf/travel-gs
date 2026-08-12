@@ -34,6 +34,17 @@ function sanitizeUserSession(user) {
   return result;
 }
 
+function prepareUserUpdateData(updateData) {
+  const dbUpdateData = { ...updateData };
+  if (dbUpdateData.avatarObject) {
+    // CloudBase otherwise flattens a plain object into avatarObject.* updates.
+    // Existing first-login records may contain avatarObject: null, and MongoDB
+    // cannot create nested fields below a null parent. Force a whole-field set.
+    dbUpdateData.avatarObject = _.set(dbUpdateData.avatarObject);
+  }
+  return dbUpdateData;
+}
+
 function serializeUserProfile(user, isCurrentUser) {
   const result = pickUserFields(user, isCurrentUser ? SELF_PROFILE_FIELDS : PUBLIC_PROFILE_FIELDS);
   if (isCurrentUser && !result.contactPhone && user.phone) result.contactPhone = user.phone;
@@ -307,7 +318,7 @@ async function userLogin(openid, data) {
       updateData.avatarObject = avatarUpload.media;
     }
     await db.collection('users').doc(userRes.data[0]._id).update({
-      data: updateData
+      data: prepareUserUpdateData(updateData)
     });
     await finishUserAvatarUpload(avatarUpload, userRes.data[0].avatarObject);
     return { success: true, user: sanitizeUserSession({ ...userRes.data[0], ...updateData }) };
@@ -317,7 +328,6 @@ async function userLogin(openid, data) {
     openid,
     nickname: data.nickname || '旅行者',
     avatar: avatarForDb,
-    avatarObject: avatarUpload ? avatarUpload.media : null,
     gender: data.gender || 0,
     bio: '',
     phone: '',
@@ -330,6 +340,7 @@ async function userLogin(openid, data) {
     createdAt: Date.now(),
     lastActiveAt: Date.now()
   };
+  if (avatarUpload) newUser.avatarObject = avatarUpload.media;
 
   const res = await db.collection('users').add({ data: newUser });
   newUser._id = res._id;
@@ -478,7 +489,7 @@ async function userLoginByPhone(openid, data) {
     } else if (!avatarForDb && isLocalTempFilePath(user.avatar)) {
       updateData.avatar = '';
     }
-    await db.collection('users').doc(user._id).update({ data: updateData });
+    await db.collection('users').doc(user._id).update({ data: prepareUserUpdateData(updateData) });
     await finishUserAvatarUpload(avatarUpload, user.avatarObject);
 
     const safeUser = sanitizeUserSession({ ...user, openid: openid, ...updateData });
@@ -510,7 +521,7 @@ async function userLoginByPhone(openid, data) {
     } else if (avatarForDb && (!boundUser.avatar || isLocalTempFilePath(boundUser.avatar))) {
       updateData.avatar = avatarForDb;
     }
-    await db.collection('users').doc(boundUser._id).update({ data: updateData });
+    await db.collection('users').doc(boundUser._id).update({ data: prepareUserUpdateData(updateData) });
     await finishUserAvatarUpload(avatarUpload, boundUser.avatarObject);
     const safeUser = sanitizeUserSession({ ...boundUser, ...updateData });
     return { success: true, user: safeUser, isNew: false };
@@ -532,7 +543,6 @@ async function userLoginByPhone(openid, data) {
     password: '',
     nickname: (nickname || '用户' + phone.slice(-4)).trim(),
     avatar: avatarForDb,
-    avatarObject: avatarUpload ? avatarUpload.media : null,
     gender: 0,
     bio: '',
     following: 0,
@@ -546,6 +556,7 @@ async function userLoginByPhone(openid, data) {
     createdAt: Date.now(),
     lastActiveAt: Date.now()
   };
+  if (avatarUpload) newUser.avatarObject = avatarUpload.media;
 
   const res = await db.collection('users').add({ data: newUser });
   newUser._id = res._id;
@@ -636,7 +647,7 @@ async function userUpdate(openid, data) {
     const now = Date.now();
     updateData.lastActiveAt = now;
     updateData.updatedAt = now;
-    await db.collection('users').doc(user._id).update({ data: updateData });
+    await db.collection('users').doc(user._id).update({ data: prepareUserUpdateData(updateData) });
     await finishUserAvatarUpload(avatarUpload, user.avatarObject);
 
     const safeUser = sanitizeUserSession({ ...user, ...updateData });
