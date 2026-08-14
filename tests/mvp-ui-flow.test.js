@@ -72,6 +72,8 @@ function resetRuntime() {
     getMenuButtonBoundingClientRect: () => ({ top: 28, left: 290, width: 88, height: 32 }),
     canIUse: () => false,
     getFileSystemManager: () => ({}),
+    getFileInfo: ({ success }) => success({ size: 1024 }),
+    getImageInfo: ({ success }) => success({ width: 200, height: 200, type: 'jpeg' }),
     setNavigationBarTitle: () => {},
     navigateTo: (options) => { wxCalls.navigateTo.push(options); },
     switchTab: (options) => { wxCalls.switchTab.push(options); },
@@ -97,6 +99,19 @@ function resetRuntime() {
           return { result: { openid: 'openid-test' } };
         }
         if (name === 'api') {
+          if (data.action === 'tripMedia/createUploadSession') {
+            return {
+              result: {
+                success: true,
+                sessionId: 'avatar-session-1',
+                bucket: 'test-bucket-1234567890',
+                region: 'ap-beijing',
+                baseUrl: 'https://cos.example.com',
+                uploadItems: [{ index: 0, cosKey: 'miniapp/user-avatars/test-avatar.jpg', allowedMime: 'image/jpeg' }],
+                credentials: { tmpSecretId: 'tmp-id', tmpSecretKey: 'tmp-key', sessionToken: 'token', startTime: 1, expiredTime: 2 }
+              }
+            };
+          }
           if (data.action === 'user/loginByPhone') {
             return {
               result: {
@@ -164,6 +179,16 @@ function valueEvent(value) {
 
 function latestToast() {
   return wxCalls.showToast[wxCalls.showToast.length - 1] || {};
+}
+
+function mockCosUpload() {
+  const cosUpload = require(path.join(miniRoot, 'utils/cos-upload.js'));
+  cosUpload.uploadImage = async (filePath, uploadItem, session, onProgress) => {
+    if (onProgress) onProgress(100);
+    wxCalls.cosUploads = wxCalls.cosUploads || [];
+    wxCalls.cosUploads.push({ filePath, key: uploadItem.cosKey });
+    return { key: uploadItem.cosKey, url: `${session.baseUrl}/${uploadItem.cosKey}` };
+  };
 }
 
 const tests = [];
@@ -408,8 +433,9 @@ test('auth 新用户点击暂不填写可以跳过资料', async () => {
   assert.strictEqual(app.globalData.isLoggedIn, true);
 });
 
-test('auth 完成登录会先上传 wxfile 头像并保存云存储 fileID', async () => {
+test('auth 完成登录会先上传 wxfile 头像到 COS 并提交上传会话', async () => {
   const page = loadPage('pages/auth/auth.js');
+  mockCosUpload();
   wxCalls.loginByPhoneIsNew = true;
   page.onAgreeChange();
   await page.onGetPhoneNumber({ detail: { code: 'phone-code' } });
@@ -418,7 +444,7 @@ test('auth 完成登录会先上传 wxfile 头像并保存云存储 fileID', asy
   page.onChooseAvatar({ detail: { avatarUrl: 'wxfile://tmp_755cd2900a1262da09d2da57cea295b8.jpg' } });
   await page.onCompleteLogin();
 
-  const uploadCall = wxCalls.uploadFile && wxCalls.uploadFile[0];
+  const uploadCall = wxCalls.cosUploads && wxCalls.cosUploads[0];
   assert(uploadCall, 'wxfile avatar should be uploaded before login');
   assert.strictEqual(uploadCall.filePath, 'wxfile://tmp_755cd2900a1262da09d2da57cea295b8.jpg');
 
@@ -428,10 +454,12 @@ test('auth 完成登录会先上传 wxfile 头像并保存云存储 fileID', asy
     call.data.data.avatar
   ));
   assert(loginCall, 'user/loginByPhone should be called');
-  assert(loginCall.data.data.avatar.startsWith('cloud://test-env.avatars/'), 'login avatar should be cloud fileID');
+  assert(loginCall.data.data.avatar.startsWith('https://cos.example.com/'), 'login avatar should be COS URL');
+  assert.strictEqual(loginCall.data.data.avatarUploadSessionId, 'avatar-session-1');
+  assert.strictEqual(loginCall.data.data.avatarMedia.key, 'miniapp/user-avatars/test-avatar.jpg');
 });
 
-test('edit-profile UI 支持微信头像并上传云存储头像', async () => {
+test('edit-profile UI 支持微信头像并上传 COS 头像', async () => {
   const wxml = read('miniprogram/pages/edit-profile/edit-profile.wxml');
   assert(wxml.includes('class="avatar-picker"'), 'edit-profile should render the native avatar picker');
   assert(wxml.includes('open-type="chooseAvatar"'), 'the avatar area should directly use WeChat chooseAvatar');
@@ -449,6 +477,7 @@ test('edit-profile UI 支持微信头像并上传云存储头像', async () => {
   assert(wxml.includes('bindtap="onSave"'), 'edit-profile should provide an explicit save action');
 
   const page = loadPage('pages/edit-profile/edit-profile.js');
+  mockCosUpload();
 
   storage.userInfo = {
     _id: 'user-doc-id',
@@ -467,18 +496,19 @@ test('edit-profile UI 支持微信头像并上传云存储头像', async () => {
   assert(page.data.userInfo.avatar.includes('existing-avatar.jpg'), 'existing avatar should still be displayed');
   await page.onChooseAvatar({ detail: { avatarUrl: 'wxfile://tmp_profile_avatar.jpg' } });
 
-  const uploadCall = wxCalls.uploadFile && wxCalls.uploadFile[0];
+  const uploadCall = wxCalls.cosUploads && wxCalls.cosUploads[0];
   assert(uploadCall, 'edit-profile wxfile avatar should be uploaded');
   assert.strictEqual(uploadCall.filePath, 'wxfile://tmp_profile_avatar.jpg');
-  assert(page.data.userInfo.avatarFileID.startsWith('cloud://test-env.avatars/'), 'avatarFileID should be cloud fileID');
+  assert(page.data.userInfo.avatar.startsWith('https://cos.example.com/'), 'avatar should use COS URL');
 
   page.onSelectDistrict({ currentTarget: { dataset: { district: '朝阳区' } } });
   await page.onSave();
   const updateCall = wxCalls.cloudCalls.find((call) => call.name === 'api' && call.data.action === 'user/update');
   assert(updateCall, 'edit-profile should sync avatar to database after save');
-  assert(updateCall.data.data.avatar.startsWith('cloud://test-env.avatars/'), 'database avatar should be cloud fileID');
+  assert(updateCall.data.data.avatar.startsWith('https://cos.example.com/'), 'database avatar should be COS URL');
+  assert.strictEqual(updateCall.data.data.avatarUploadSessionId, 'avatar-session-1');
   assert.strictEqual(updateCall.data.data.region, '朝阳区', 'selected region should be sent to the backend');
-  assert(storage.userInfo.avatar.startsWith('cloud://test-env.avatars/'), 'local profile should keep the durable avatar fileID');
+  assert(storage.userInfo.avatar.startsWith('https://cos.example.com/'), 'local profile should keep the durable COS URL');
 });
 
 test('user-profile UI 支持作品动态流和行程切换', () => {

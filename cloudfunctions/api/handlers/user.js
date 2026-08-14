@@ -10,7 +10,7 @@ const BEIJING_DISTRICTS = [
 
 const PUBLIC_PROFILE_FIELDS = [
   'nickname', 'avatar', 'region', 'bio', 'background',
-  'following', 'followers', 'receivedLikes'
+  'following', 'followers', 'receivedLikes', 'accountType', 'isOfficial'
 ];
 const SELF_PROFILE_FIELDS = PUBLIC_PROFILE_FIELDS.concat([
   '_id', 'userId', 'gender', 'age', 'contactPhone', 'photos',

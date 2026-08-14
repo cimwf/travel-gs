@@ -26,6 +26,7 @@
 18. trip_media_cleanup_tasks - 行程媒体COS清理任务表
 19. trip_comments - 行程评论表
 20. trip_comment_replies - 行程评论回复表
+21. official_upload_sessions - 后台官方内容 COS 上传会话表
 ==========================================
 集合结构说明
 ==========================================
@@ -38,6 +39,8 @@ const userSchema = {
   openid: "xxx",                    // 微信openid
   nickname: "旅行达人",              // 昵称
   avatar: "https://...",            // 头像展示URL（新上传使用COS）
+  accountType: "user",              // user/official；官方运营账号复用用户主页和关注能力
+  isOfficial: false,                 // 是否展示“官方”标识
   avatarObject: {                    // COS头像对象，用于替换时清理旧文件
     provider: "cos",
     key: "miniapp/user-avatars/2026/08/trip_media_xxx/img_xxx.jpg",
@@ -242,6 +245,8 @@ const communityPostSchema = {
   authorId: "openid_xxx",          // 作者openid
   authorName: "小鹿在路上",         // 作者昵称（服务端从users读取，不可信客户端）
   authorAvatar: "https://...",     // 作者头像（服务端从users读取）
+  authorType: "user",              // user/official
+  isOfficial: false,                // 官方动态为true
   content: "周末去了京西古道，风比想象中温柔。",
   images: [{
     provider: "cos",
@@ -324,6 +329,26 @@ const communityDraftSchema = {
   expiresAt: 1785150000000,        // 24小时后过期
   createdAt: 1785149400000,
   completedAt: 0
+};
+
+// 21. official_upload_sessions - 后台官方内容 COS 上传会话表
+const officialUploadSessionSchema = {
+  _id: "official_upload_xxx",
+  ownerId: "admin_xxx",
+  purpose: "post",                 // avatar/post
+  status: "uploading",             // uploading/completed
+  maxFiles: 9,
+  uploadItems: [{
+    index: 0,
+    cosKey: "miniapp/community/official/2026/08/official_upload_xxx/image.jpg",
+    maxSize: 10485760,
+    allowedMime: "image/jpeg"
+  }],
+  expiresAt: 1785150000000,
+  createdAt: 1785149400000,
+  updatedAt: 1785149400000,
+  completedAt: 0,
+  targetId: "post_xxx"
 };
 
 // 13. community_cleanup_tasks - COS清理任务表
@@ -520,6 +545,10 @@ community_posts:
   - authorId + status + createdAt + _id（复合索引，用于“我的作品”列表，暂不按环境隔离）
   - status + adminReviewStatus + machineSuggest + createdAt（复合索引，用于后台人工审核）
   - draftId（唯一索引，防止重复发布）
+  - authorType + createdAt（复合索引，用于后台官方动态分页）
+
+users:
+  - accountType + createdAt（复合索引，用于后台官方账号列表）
 
 community_likes:
   - postId + createdAt + _id（复合索引，供点赞列表稳定分页）
@@ -538,6 +567,10 @@ community_image_audits:
   - expiresAt
 
 community_upload_drafts:
+  - ownerId + status + createdAt（复合索引）
+  - expiresAt（TTL索引或定时清理依据）
+
+official_upload_sessions:
   - ownerId + status + createdAt（复合索引）
   - expiresAt（TTL索引或定时清理依据）
 

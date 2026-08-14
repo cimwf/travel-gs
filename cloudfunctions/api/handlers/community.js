@@ -118,29 +118,6 @@ async function resolveAvatarUrls(posts, avatarField) {
   } catch (e) { /* ignore */ }
 }
 
-async function resolveAuthorRegions(posts) {
-  var authorIds = [];
-  (posts || []).forEach(function (post) {
-    if (post.authorId && authorIds.indexOf(post.authorId) === -1) authorIds.push(post.authorId);
-  });
-  if (authorIds.length === 0) return;
-  try {
-    var usersRes = await db.collection('users').where({
-      openid: _.in(authorIds)
-    }).get();
-    var regionMap = {};
-    (usersRes.data || []).forEach(function (user) {
-      if (user.openid && user.region) regionMap[user.openid] = user.region;
-    });
-    posts.forEach(function (post) {
-      post.authorRegion = regionMap[post.authorId] || '';
-    });
-  } catch (err) {
-    console.warn('查询社区作者地区失败:', err.message || err);
-    posts.forEach(function (post) { post.authorRegion = ''; });
-  }
-}
-
 async function resolveCurrentAuthorProfiles(posts) {
   var authorIds = [];
   (posts || []).forEach(function (post) {
@@ -162,6 +139,8 @@ async function resolveCurrentAuthorProfiles(posts) {
       if (profile.nickname) post.authorName = profile.nickname;
       if (profile.avatar) post.authorAvatar = profile.avatar;
       post.authorRegion = profile.region || post.authorRegion || '';
+      post.isOfficial = profile.accountType === 'official' || profile.isOfficial === true;
+      post.authorType = post.isOfficial ? 'official' : (post.authorType || 'user');
     });
   } catch (err) {
     console.warn('查询社区作者当前资料失败:', err.message || err);
@@ -524,10 +503,8 @@ async function communityList(openid, data, dataEnvironment = RUNTIME_DEFAULTS.de
       }
     }
 
-    await Promise.all([
-      resolveAvatarUrls(posts),
-      resolveAuthorRegions(posts)
-    ]);
+    await resolveCurrentAuthorProfiles(posts);
+    await resolveAvatarUrls(posts);
 
     var hasMore = authorId ? posts.length >= pageSize : (postsRes.data || []).length > pageSize;
     var last = posts.length > 0 ? posts[posts.length - 1] : null;

@@ -109,6 +109,24 @@ page {
   flex-direction: column;
 }
 
+.author-name-row {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.official-badge {
+  flex-shrink: 0;
+  padding: 2rpx 9rpx;
+  border-radius: 6rpx;
+  background: #EAF3FF;
+  color: #4A90E2;
+  font-size: 19rpx;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
 .author-name {
   max-width: 430rpx;
   overflow: hidden;

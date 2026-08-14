@@ -546,3 +546,17 @@ page {
   color: var(--profile-secondary);
   font-size: 24rpx;
 }
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.profile-official-badge {
+  padding: 3rpx 10rpx;
+  border-radius: 7rpx;
+  background: #EAF3FF;
+  color: #4A90E2;
+  font-size: 20rpx;
+  font-weight: 500;
+}

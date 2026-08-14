@@ -14,7 +14,8 @@ Page({
       nickname: '',
       avatar: '',
       bio: '',
-      region: ''
+      region: '',
+      isOfficial: false
     },
     stats: {
       following: 0,
@@ -97,7 +98,8 @@ Page({
           nickname: userData.nickname || userData.nickName || '旅行者',
           avatar,
           bio: userData.bio || '去山野，也记录沿途的人',
-          region: userData.region || ''
+          region: userData.region || '',
+          isOfficial: userData.accountType === 'official' || userData.isOfficial === true
         },
         stats: {
           following: Math.max(0, Number(userData.following) || 0),

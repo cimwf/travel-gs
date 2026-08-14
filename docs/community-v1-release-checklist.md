@@ -56,6 +56,7 @@ community_image_audits
 community_upload_drafts
 community_cleanup_tasks
 user_follows
+official_upload_sessions
 ```
 
 建议索引：
@@ -66,6 +67,10 @@ community_posts:
   authorId + status + createdAt(desc) + _id(desc)
   status + adminReviewStatus + machineSuggest + createdAt(desc)
   draftId（唯一）
+  authorType + createdAt(desc)
+
+users:
+  accountType + createdAt(desc)
 
 community_likes:
   postId + createdAt(desc) + _id(desc)
@@ -93,7 +98,16 @@ community_cleanup_tasks:
 user_follows:
   followerId + createdAt(desc) + _id(desc)
   followingId + createdAt(desc) + _id(desc)
+
+official_upload_sessions:
+  ownerId + status + createdAt(desc)
+  expiresAt
 ```
+
+后台“社区运营”说明：官方账号存放在 `users`，使用 `accountType=official` 和
+`isOfficial=true` 标识，不绑定真实微信账号；官方动态仍写入 `community_posts`，
+默认由管理员审核通过。后台每次发布都必须手动选择 `prod` 或 `dev`，不设置默认值；
+云函数会拒绝未选择环境的请求，线上内容应选择 `prod`。
 
 - [ ] 数据库权限设为客户端不可直接读写；社区数据统一经云函数访问。
 - [ ] 用真实分页数据验证复合索引字段顺序与排序方向，不能只验证空集合。

@@ -18,7 +18,10 @@
           <image class="avatar" src="{{post.authorAvatar || '/images/logo.png'}}" mode="aspectFill"
             catchtap="onOpenUserProfile" data-user-id="{{post.authorId}}"></image>
           <view class="author-meta">
-            <text class="author-name">{{post.authorName || '旅行者'}}</text>
+            <view class="author-name-row">
+              <text class="author-name">{{post.authorName || '旅行者'}}</text>
+              <text class="official-badge" wx:if="{{post.isOfficial}}">官方</text>
+            </view>
             <text class="post-time">{{post.timeText}}</text>
           </view>
         </view>

@@ -37,6 +37,7 @@ page { background: #fff; }
 .author-meta { display: flex; flex-direction: column; }
 .author-row { display: flex; align-items: center; gap: 8rpx; }
 .author-name { font-size: 28rpx; font-weight: 500; color: var(--text); }
+.official-badge { padding: 2rpx 9rpx; border-radius: 6rpx; background: #EAF3FF; color: var(--primary); font-size: 19rpx; font-weight: 500; line-height: 1.45; }
 .post-meta-row { display: flex; align-items: center; }
 .post-time { font-size: 22rpx; color: var(--hint); }
 .author-region { font-size: 22rpx; color: var(--hint); }

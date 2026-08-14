@@ -50,6 +50,7 @@
             <view class="author-meta">
               <view class="author-row">
                 <text class="author-name">{{item.authorName}}</text>
+                <text class="official-badge" wx:if="{{item.isOfficial}}">官方</text>
               </view>
               <view class="post-meta-row">
                 <text class="post-time">{{item.timeText}}</text>

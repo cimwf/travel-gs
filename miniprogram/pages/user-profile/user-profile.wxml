@@ -10,7 +10,10 @@
       <view class="identity-row">
         <image class="user-avatar" src="{{userInfo.avatar || '/images/logo.png'}}" mode="aspectFill"></image>
         <view class="identity-copy">
-          <text class="user-name">{{userInfo.nickname}}</text>
+          <view class="profile-name-row">
+            <text class="user-name">{{userInfo.nickname}}</text>
+            <text class="profile-official-badge" wx:if="{{userInfo.isOfficial}}">官方</text>
+          </view>
           <view class="region-row">
             <image class="region-icon" src="/images/icon-location-blue.png" mode="aspectFit"></image>
             <text>{{userInfo.region ? '北京市 · ' + userInfo.region : '北京市'}}</text>

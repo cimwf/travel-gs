@@ -24,6 +24,7 @@ const adminTrip = require('./handlers/adminTrip');
 const adminTripLog = require('./handlers/adminTripLog');
 const adminReport = require('./handlers/adminReport');
 const adminData = require('./handlers/adminData');
+const adminOfficialCommunity = require('./handlers/adminOfficialCommunity');
 const { resolveDataEnvironment } = require('./utils/dataEnvironment');
 
 exports.main = async (event, context) => {
@@ -231,6 +232,18 @@ exports.main = async (event, context) => {
         return await adminCommunity.adminCommunityReviewList(data);
       case 'admin/communityReviewUpdate':
         return await adminCommunity.adminCommunityReviewUpdate(data);
+      case 'admin/officialAccountList':
+        return await adminOfficialCommunity.adminOfficialAccountList(data);
+      case 'admin/officialAccountSave':
+        return await adminOfficialCommunity.adminOfficialAccountSave(data);
+      case 'admin/officialUploadSession':
+        return await adminOfficialCommunity.adminOfficialUploadSession(data);
+      case 'admin/officialPostList':
+        return await adminOfficialCommunity.adminOfficialPostList(data);
+      case 'admin/officialPostCreate':
+        return await adminOfficialCommunity.adminOfficialPostCreate(data);
+      case 'admin/officialPostUpdate':
+        return await adminOfficialCommunity.adminOfficialPostUpdate(data);
       case 'admin/tripReviewList':
         return await adminTrip.adminTripReviewList(data);
       case 'admin/tripReviewUpdate':

@@ -140,7 +140,7 @@ run('Community likes: future-ready snapshots + feed interaction', function () {
   ok(pageWxml.indexOf('wx:if="{{item.authorRegion}}"') !== -1, 'feed only shows profile region when configured');
   ok(pageWxml.indexOf(' · {{item.authorRegion}}') !== -1, 'profile region displays district only');
   ok(pageWxml.indexOf('北京市{{item.authorRegion}}') === -1, 'profile region omits city prefix');
-  ok(handler.indexOf('resolveAuthorRegions(posts)') !== -1, 'feed resolves current author profile regions');
+  ok(handler.indexOf('resolveCurrentAuthorProfiles(posts)') !== -1, 'feed resolves current author profile and region');
   ok(pageJs.indexOf('/pages/user-profile/user-profile?id=') !== -1, 'feed routes to existing user profile');
   ok(readText('miniprogram/pages/community/community.wxss').indexOf('justify-content: flex-end') !== -1, 'actions align right');
   ok(schema.indexOf('communityLikeSchema') !== -1, 'like schema documented');
