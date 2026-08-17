@@ -45,7 +45,7 @@
     <view class="form-row tappable" bindtap="onOpenRegionModal">
       <text class="form-label">地区</text>
       <view class="row-value">
-        <text class="{{userInfo.region ? '' : 'placeholder'}}">{{userInfo.region ? '北京市 · ' + userInfo.region : '请选择'}}</text>
+        <text class="{{userInfo.region ? '' : 'placeholder'}}">{{userInfo.region || '请选择'}}</text>
         <image src="/images/icon-profile-chevron.svg" mode="aspectFit"></image>
       </view>
     </view>
