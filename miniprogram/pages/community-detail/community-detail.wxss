@@ -320,6 +320,33 @@ page {
   word-break: break-all;
 }
 
+.comment-images {
+  width: 100%;
+  margin-top: 12rpx;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.comment-image {
+  width: 176rpx;
+  height: 176rpx;
+  flex-shrink: 0;
+  border-radius: 12rpx;
+  background: var(--soft);
+}
+
+.comment-images.count-1 .comment-image {
+  width: 260rpx;
+  height: 260rpx;
+}
+
+.reply-images .comment-image,
+.reply-images.count-1 .comment-image {
+  width: 148rpx;
+  height: 148rpx;
+}
+
 .comment-footer,
 .reply-footer {
   margin-top: 8rpx;
@@ -328,6 +355,11 @@ page {
 }
 
 .comment-time {
+  color: var(--hint);
+  font-size: 22rpx;
+}
+
+.comment-region {
   color: var(--hint);
   font-size: 22rpx;
 }
@@ -456,6 +488,50 @@ page {
   height: 24rpx;
 }
 
+.comment-draft-images {
+  position: relative;
+  z-index: 101;
+  width: 100%;
+  padding: 14rpx 28rpx 4rpx;
+  flex-shrink: 0;
+  display: flex;
+  gap: 14rpx;
+  border-top: 1rpx solid var(--border);
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.comment-draft-image-wrap {
+  position: relative;
+  width: 112rpx;
+  height: 112rpx;
+}
+
+.comment-draft-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 12rpx;
+  background: var(--soft);
+}
+
+.comment-draft-remove {
+  position: absolute;
+  top: -10rpx;
+  right: -10rpx;
+  width: 34rpx;
+  height: 34rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(17, 24, 39, .72);
+}
+
+.comment-draft-remove image {
+  width: 20rpx;
+  height: 20rpx;
+}
+
 .interaction-bar {
   position: relative;
   z-index: 100;
@@ -465,10 +541,24 @@ page {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 22rpx;
+  gap: 14rpx;
   border-top: 1rpx solid var(--border);
   background: #fff;
   box-sizing: border-box;
+}
+
+.comment-media-button {
+  width: 56rpx;
+  height: 56rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.comment-media-button image {
+  width: 42rpx;
+  height: 42rpx;
 }
 
 .comment-input {
@@ -488,7 +578,7 @@ page {
 }
 
 .interaction-action {
-  min-width: 80rpx;
+  min-width: 70rpx;
   height: 64rpx;
   display: inline-flex;
   align-items: center;

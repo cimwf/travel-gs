@@ -544,11 +544,15 @@ function communityReplyList(data) {
 /**
  * 发布社区动态评论
  */
-function communityCommentCreate(postId, content, replyTarget) {
+function communityCommentCreate(postId, content, replyTarget, media) {
   var data = { postId, content };
   if (replyTarget && replyTarget.id) {
     data.replyToId = replyTarget.id;
     data.replyToType = replyTarget.type;
+  }
+  if (media && Array.isArray(media.images) && media.images.length > 0) {
+    data.images = media.images;
+    data.draftId = media.draftId || '';
   }
   return callApi('community/commentCreate', data);
 }

@@ -152,6 +152,7 @@ function wait(ms) {
 async function persistAuditResult(payload) {
   const candidates = [
     { collection: 'community_image_audits', targetType: 'community_post', targetField: 'postId' },
+    { collection: 'community_image_audits', targetType: 'community_comment', targetField: 'commentId' },
     { collection: 'trip_log_image_audits', targetType: 'trip_log', targetField: 'logId' }
   ];
   let mapping = null;
@@ -188,6 +189,94 @@ async function persistAuditResult(payload) {
     suggest: payload.suggest
   }));
   return { ...mapping.audit, targetType: mapping.targetType, targetId: mapping.targetId };
+}
+
+async function reconcileComment(commentId, commentTargetType) {
+  const isReply = commentTargetType === 'reply';
+  const collectionName = isReply ? 'community_comment_replies' : 'community_comments';
+  return db.runTransaction(async transaction => {
+    const itemDoc = transaction.collection(collectionName).doc(commentId);
+    const itemRes = await itemDoc.get();
+    const item = itemRes.data;
+    if (!item) return { ignored: true, reason: 'COMMENT_NOT_FOUND' };
+
+    const traceIds = Array.isArray(item.imageAuditTraceIds) ? item.imageAuditTraceIds : [];
+    const suggestions = [];
+    for (const traceId of traceIds) {
+      const auditRes = await transaction.collection('community_image_audits').doc(traceId).get();
+      suggestions.push(auditRes.data && auditRes.data.suggest || 'pending');
+    }
+    const decision = getReviewDecision(suggestions, traceIds.length);
+    const rejected = decision.machineSuggest === 'risky';
+    const now = Date.now();
+    const wasActive = item.status === 'active';
+    await itemDoc.update({ data: {
+      status: rejected ? 'rejected' : item.status,
+      reviewStatus: rejected ? 'rejected' : (decision.reviewStatus === 'approved' ? 'approved' : 'reviewing'),
+      machineSuggest: decision.machineSuggest,
+      imageAuditStatus: rejected ? 'rejected' : decision.reviewStatus,
+      rejectedAt: rejected ? (item.rejectedAt || now) : (item.rejectedAt || 0),
+      updatedAt: now
+    } });
+
+    if (rejected && wasActive) {
+      const postDoc = transaction.collection('community_posts').doc(item.postId);
+      const postRes = await postDoc.get();
+      const post = postRes.data;
+      if (post) {
+        let removedCount = 1;
+        if (isReply) {
+          const rootDoc = transaction.collection('community_comments').doc(item.rootCommentId);
+          const rootRes = await rootDoc.get();
+          const root = rootRes.data;
+          if (root && root.status === 'active') {
+            await rootDoc.update({ data: {
+              replyCount: Math.max(0, (Number(root.replyCount) || 0) - 1),
+              updatedAt: now
+            } });
+          } else {
+            // A rejected/deleted root already removed its whole thread from
+            // the public count; do not decrement the post a second time.
+            removedCount = 0;
+          }
+        } else {
+          removedCount += Math.max(0, Number(item.replyCount) || 0);
+        }
+        if (removedCount > 0) {
+          await postDoc.update({ data: {
+            commentCount: Math.max(0, (Number(post.commentCount) || 0) - removedCount),
+            updatedAt: now
+          } });
+        }
+      }
+    }
+
+    return {
+      ignored: false,
+      targetType: isReply ? 'community_reply' : 'community_comment',
+      commentId,
+      reviewStatus: rejected ? 'rejected' : decision.reviewStatus,
+      machineSuggest: decision.machineSuggest
+    };
+  });
+}
+
+async function reconcileCommentWithRetry(commentId, commentTargetType) {
+  let lastError;
+  for (let attempt = 1; attempt <= RECONCILE_MAX_ATTEMPTS; attempt++) {
+    try {
+      const result = await reconcileComment(commentId, commentTargetType);
+      if (result && result.reason === 'COMMENT_NOT_FOUND' && attempt < RECONCILE_MAX_ATTEMPTS) {
+        await wait(50 * attempt);
+        continue;
+      }
+      return result;
+    } catch (error) {
+      lastError = error;
+      if (attempt < RECONCILE_MAX_ATTEMPTS) await wait(25 * attempt);
+    }
+  }
+  throw lastError;
 }
 
 async function reconcilePost(postId) {
@@ -350,7 +439,9 @@ exports.main = async (event) => {
 
     const result = audit.targetType === 'trip_log'
       ? await reconcileTripLogWithRetry(audit.targetId)
-      : await reconcilePostWithRetry(audit.targetId);
+      : audit.targetType === 'community_comment'
+        ? await reconcileCommentWithRetry(audit.targetId, audit.commentTargetType)
+        : await reconcilePostWithRetry(audit.targetId);
     console.log('[community/image-audit-callback] completed', JSON.stringify(result));
     return { success: true, ...result };
   } catch (error) {

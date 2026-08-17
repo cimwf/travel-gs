@@ -58,7 +58,8 @@ const db = {
                 data: [{
                   openid: query.openid,
                   nickname: '评论用户',
-                  avatar: 'https://example.com/commenter.jpg'
+                  avatar: 'https://example.com/commenter.jpg',
+                  region: '顺义区'
                 }]
               };
             }
@@ -238,6 +239,7 @@ async function main() {
   assert.strictEqual(created.comment.authorId, 'openid-commenter');
   assert.strictEqual(created.comment.authorName, '评论用户');
   assert.strictEqual(created.comment.authorAvatar, 'https://example.com/commenter.jpg');
+  assert.strictEqual(created.comment.authorRegion, '顺义区');
   assert.strictEqual(created.commentCount, 1);
   assert.strictEqual(state.post.commentCount, 1);
   assert.strictEqual(state.comments.length, 1);

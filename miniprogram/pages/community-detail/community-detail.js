@@ -1,6 +1,16 @@
 var app = getApp();
 var auth = require('../../utils/auth.js');
 var api = require('../../utils/api.js');
+var cosUpload = require('../../utils/cos-upload.js');
+
+function normalizeMimeType(type) {
+  var normalized = String(type || '').toLowerCase();
+  if (normalized === 'jpg' || normalized === 'jpeg' || normalized === 'image/jpg') return 'image/jpeg';
+  if (normalized === 'png') return 'image/png';
+  if (normalized === 'webp') return 'image/webp';
+  if (['image/jpeg', 'image/png', 'image/webp'].indexOf(normalized) !== -1) return normalized;
+  return '';
+}
 
 Page({
   data: {
@@ -15,6 +25,7 @@ Page({
     commentsError: false,
     commentsHasMore: false,
     commentDraft: '',
+    commentImages: [],
     commentPlaceholder: '说点什么…',
     replyTarget: null,
     inputFocused: false,
@@ -215,6 +226,8 @@ Page({
     var postAuthorId = this.data.post && this.data.post.authorId || '';
     var self = this;
     return Object.assign({}, comment, {
+      authorRegion: this.formatRegion(comment.authorRegion),
+      imageUrls: (comment.images || []).map(function (image) { return image.url || ''; }).filter(Boolean),
       timeText: comment.timeText || this.formatTime(comment.createdAt),
       likeCount: Math.max(0, Number(comment.likeCount) || 0),
       replyCount: Math.max(0, Number(comment.replyCount) || 0),
@@ -234,6 +247,8 @@ Page({
     var currentUserId = app.globalData.openid || wx.getStorageSync('openid') || '';
     var postAuthorId = this.data.post && this.data.post.authorId || '';
     return Object.assign({}, reply, {
+      authorRegion: this.formatRegion(reply.authorRegion),
+      imageUrls: (reply.images || []).map(function (image) { return image.url || ''; }).filter(Boolean),
       timeText: reply.timeText || this.formatTime(reply.createdAt),
       likeCount: Math.max(0, Number(reply.likeCount) || 0),
       canDelete: !!currentUserId &&
@@ -304,6 +319,13 @@ Page({
     if (days < 7) return days + '天前';
     var date = new Date(timestamp);
     return (date.getMonth() + 1) + '月' + date.getDate() + '日';
+  },
+
+  formatRegion: function (region) {
+    return String(region || '')
+      .replace(/^北京市[·\s-]*/, '')
+      .replace(/^北京[·\s-]*/, '')
+      .trim();
   },
 
   onPreviewImage: function (event) {
@@ -451,9 +473,111 @@ Page({
     this.setData({ inputFocused: false });
   },
 
+  onChooseCommentImages: function () {
+    if (this.data.submittingComment) return;
+    if (!auth.ensureLogin()) {
+      auth.saveDeepLink('/pages/community-detail/community-detail?id=' + encodeURIComponent(this.data.post._id));
+      return;
+    }
+    var remaining = 3 - this.data.commentImages.length;
+    if (remaining <= 0) {
+      wx.showToast({ title: '最多选择3张图片', icon: 'none' });
+      return;
+    }
+    var self = this;
+    wx.chooseMedia({
+      count: remaining,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      sizeType: ['compressed'],
+      success: function (result) {
+        var selected = (result.tempFiles || []).map(function (file, index) {
+          return {
+            id: 'comment_img_' + Date.now() + '_' + index,
+            path: file.tempFilePath,
+            size: Number(file.size) || 0,
+            width: Number(file.width) || 0,
+            height: Number(file.height) || 0,
+            mimeType: normalizeMimeType(file.fileType || file.type || '')
+          };
+        });
+        Promise.all(selected.map(function (image) {
+          return new Promise(function (resolve) {
+            wx.getImageInfo({
+              src: image.path,
+              success: function (info) {
+                image.width = Number(info.width) || image.width;
+                image.height = Number(info.height) || image.height;
+                image.mimeType = normalizeMimeType(info.type) || image.mimeType || 'image/jpeg';
+                wx.getFileInfo({
+                  filePath: image.path,
+                  success: function (fileInfo) {
+                    image.size = Number(fileInfo.size) || image.size;
+                    resolve(image);
+                  },
+                  fail: function () { resolve(image); }
+                });
+              },
+              fail: function () { resolve(image); }
+            });
+          });
+        })).then(function (images) {
+          var valid = images.filter(function (image) {
+            return image.mimeType && image.size > 0 && image.size <= 10 * 1024 * 1024;
+          });
+          if (valid.length !== images.length) {
+            wx.showToast({ title: '仅支持10MB以内的JPG、PNG或WebP图片', icon: 'none' });
+          }
+          self.setData({
+            commentImages: self.data.commentImages.concat(valid).slice(0, 3),
+            inputFocused: true
+          });
+        });
+      }
+    });
+  },
+
+  onRemoveCommentImage: function (event) {
+    if (this.data.submittingComment) return;
+    var id = event.currentTarget.dataset.id;
+    this.setData({
+      commentImages: this.data.commentImages.filter(function (image) { return image.id !== id; })
+    });
+  },
+
+  onPreviewCommentDraftImage: function (event) {
+    var urls = this.data.commentImages.map(function (image) { return image.path; });
+    if (urls.length > 0) wx.previewImage({ urls: urls, current: event.currentTarget.dataset.current || urls[0] });
+  },
+
+  uploadCommentImages: function () {
+    var images = this.data.commentImages;
+    if (!images.length) return Promise.resolve({ images: [], draftId: '' });
+    var files = images.map(function (image) {
+      return { mimeType: image.mimeType, size: image.size };
+    });
+    return api.communityCreateUploadSession({ files: files, purpose: 'comment' }).then(function (session) {
+      return Promise.all(images.map(function (image, index) {
+        return cosUpload.uploadImage(image.path, session.uploadItems[index], session).then(function (uploaded) {
+          return {
+            key: uploaded.key,
+            url: uploaded.url,
+            width: image.width,
+            height: image.height,
+            size: image.size,
+            mimeType: image.mimeType
+          };
+        });
+      })).then(function (uploadedImages) {
+        return { images: uploadedImages, draftId: session.draftId };
+      });
+    });
+  },
+
   onCommentConfirm: function () {
     var content = String(this.data.commentDraft || '').trim();
-    if (!content || !this.data.post || this.data.submittingComment) return;
+    var hasImages = this.data.commentImages.length > 0;
+    if ((!content && !hasImages) || !this.data.post || this.data.submittingComment) return;
     if (!auth.ensureLogin()) {
       auth.saveDeepLink('/pages/community-detail/community-detail?id=' +
         encodeURIComponent(this.data.post._id));
@@ -464,7 +588,9 @@ Page({
     var replyTarget = this.data.replyTarget;
     wx.showLoading({ title: replyTarget ? '回复中...' : '评论中...', mask: true });
     var self = this;
-    api.communityCommentCreate(this.data.post._id, content, replyTarget).then(function (result) {
+    this.uploadCommentImages().then(function (media) {
+      return api.communityCommentCreate(self.data.post._id, content, replyTarget, media);
+    }).then(function (result) {
       var comment = self.formatComment(result.comment || {});
       var commentCount = Math.max(
         0,
@@ -491,6 +617,7 @@ Page({
       self.setData({
         comments: nextComments,
         commentDraft: '',
+        commentImages: [],
         commentPlaceholder: '说点什么…',
         replyTarget: null,
         inputFocused: false,

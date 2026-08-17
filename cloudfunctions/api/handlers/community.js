@@ -9,12 +9,14 @@ const COS_CONFIG = {
   region: process.env.COMMUNITY_COS_REGION || 'ap-beijing',
   baseUrl: process.env.COMMUNITY_COS_BASE_URL || 'https://imagica-images-1436573577.cos.ap-beijing.myqcloud.com',
   prefix: process.env.COMMUNITY_COS_PREFIX || 'miniapp/community/',
+  commentPrefix: process.env.COMMUNITY_COMMENT_COS_PREFIX || 'miniapp/community-comments/',
   secretId: process.env.COS_SECRET_ID || '',
   secretKey: process.env.COS_SECRET_KEY || ''
 };
 
 const MAX_CONTENT_LENGTH = 300;
 const MAX_COMMENT_LENGTH = 300;
+const MAX_COMMENT_IMAGES = 3;
 const MAX_IMAGES = 9;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -252,6 +254,92 @@ async function submitImageAudits(openid, postId, images) {
   }));
 
   return auditResults;
+}
+
+async function submitCommentImageAudits(openid, commentId, targetType, images) {
+  return Promise.all(images.map(async function (image) {
+    var response = await cloud.openapi.security.mediaCheckAsync({
+      version: 2,
+      scene: 4,
+      openid: openid,
+      mediaType: 2,
+      mediaUrl: image.url
+    });
+    var traceId = response && (response.traceId || response.trace_id);
+    if (!traceId) throw new Error('评论图片安全检测未返回 traceId');
+
+    var now = Date.now();
+    await db.collection('community_image_audits').doc(traceId).set({
+      data: {
+        traceId: traceId,
+        commentId: commentId,
+        commentTargetType: targetType,
+        imageKey: image.key,
+        imageUrl: image.url,
+        status: 'pending',
+        suggest: 'pending',
+        label: 0,
+        createdAt: now,
+        updatedAt: now,
+        expiresAt: now + 7 * 24 * 60 * 60 * 1000
+      }
+    });
+    return { traceId: traceId, imageKey: image.key };
+  }));
+}
+
+async function validateCommentImages(openid, draftId, images) {
+  if (!Array.isArray(images) || images.length === 0) return [];
+  if (images.length > MAX_COMMENT_IMAGES) throw new Error('评论图片不能超过 3 张');
+  if (!draftId) throw new Error('评论图片缺少上传草稿');
+
+  var draftRes = await db.collection('community_upload_drafts').doc(draftId).get();
+  var draft = draftRes.data;
+  if (!draft || draft.ownerId !== openid) throw new Error('无权使用该上传草稿');
+  if (draft.purpose !== 'comment') throw new Error('上传草稿类型不正确');
+  if (draft.status !== 'uploading') throw new Error('该上传草稿已使用或不可用');
+  if (draft.expiresAt < Date.now()) throw new Error('上传草稿已过期');
+
+  var uploadItems = draft.uploadItems || [];
+  var allowedKeys = uploadItems.map(function (item) { return item.cosKey; });
+  var submittedKeys = {};
+  var cos = getCosSdk();
+  if (!cos) throw new Error('COS 服务组件不可用');
+  var validated = [];
+
+  for (var i = 0; i < images.length; i++) {
+    var image = images[i] || {};
+    if (!image.key || allowedKeys.indexOf(image.key) === -1 || submittedKeys[image.key]) {
+      throw new Error('存在未授权或重复的评论图片');
+    }
+    submittedKeys[image.key] = true;
+    var uploadItem = uploadItems.find(function (item) { return item.cosKey === image.key; });
+    var headResult = await new Promise(function (resolve, reject) {
+      cos.headObject({
+        Bucket: COS_CONFIG.bucket,
+        Region: COS_CONFIG.region,
+        Key: image.key
+      }, function (error, result) { error ? reject(error) : resolve(result); });
+    });
+    var size = parseInt(headResult.headers && headResult.headers['content-length'] || '0', 10);
+    var mimeType = String(headResult.headers && headResult.headers['content-type'] || '')
+      .toLowerCase().split(';')[0].trim();
+    if (!size || size > MAX_FILE_SIZE) throw new Error('评论图片为空或超过 10MB');
+    if (ALLOWED_MIME_TYPES.indexOf(mimeType) === -1 || mimeType !== uploadItem.allowedMime) {
+      throw new Error('评论图片格式不受支持');
+    }
+    validated.push({
+      provider: 'cos',
+      key: image.key,
+      url: COS_CONFIG.baseUrl + '/' + image.key,
+      width: Number(image.width) || 0,
+      height: Number(image.height) || 0,
+      size: size,
+      mimeType: mimeType,
+      sort: i
+    });
+  }
+  return validated;
 }
 
 async function claimStaleImageAuditRetry(openid, postId) {
@@ -646,9 +734,14 @@ async function communityCreateUploadSession(openid, data) {
     }
 
     // Accept and validate metadata for every selected image.
+    var purpose = String(data && data.purpose || 'post').trim();
+    if (['post', 'comment'].indexOf(purpose) === -1) {
+      return { success: false, error: '图片上传用途无效' };
+    }
+    var maxFiles = purpose === 'comment' ? MAX_COMMENT_IMAGES : MAX_IMAGES;
     var fileMetas = (data && data.files) || [];
-    if (!Array.isArray(fileMetas) || fileMetas.length < 1 || fileMetas.length > MAX_IMAGES) {
-      return { success: false, error: '图片数量必须为 1 至 9 张' };
+    if (!Array.isArray(fileMetas) || fileMetas.length < 1 || fileMetas.length > maxFiles) {
+      return { success: false, error: purpose === 'comment' ? '评论图片数量必须为 1 至 3 张' : '图片数量必须为 1 至 9 张' };
     }
     for (var metaIndex = 0; metaIndex < fileMetas.length; metaIndex++) {
       var meta = fileMetas[metaIndex] || {};
@@ -665,7 +758,8 @@ async function communityCreateUploadSession(openid, data) {
     var now = Date.now();
     var draftId = 'draft_' + now.toString(36) + '_' + Math.random().toString(36).slice(2, 8);
     var datePrefix = getDatePrefix();
-    var allowedPrefix = COS_CONFIG.prefix + datePrefix + '/' + draftId + '/';
+    var storagePrefix = purpose === 'comment' ? COS_CONFIG.commentPrefix : COS_CONFIG.prefix;
+    var allowedPrefix = storagePrefix + datePrefix + '/' + draftId + '/';
     var bucketMatch = COS_CONFIG.bucket.match(/(\d+)$/);
     var appId = bucketMatch ? bucketMatch[1] : '';
 
@@ -713,6 +807,7 @@ async function communityCreateUploadSession(openid, data) {
       data: {
         _id: draftId,
         ownerId: openid,
+        purpose: purpose,
         status: 'uploading',
         maxFiles: fileCount,
         uploadedKeys: [],
@@ -1679,13 +1774,18 @@ async function communityCommentCreate(openid, data) {
     if (!openid) return { success: false, error: '请先登录' };
     var postId = String(data && data.postId || '').trim();
     var content = String(data && data.content || '').trim();
+    var draftId = String(data && data.draftId || '').trim();
+    var images = Array.isArray(data && data.images) ? data.images : [];
     var replyToId = String(data && data.replyToId || '').trim();
     var replyToType = String(data && data.replyToType || '').trim();
     var isReply = !!replyToId;
     if (!postId) return { success: false, error: '动态 ID 不能为空' };
-    if (!content) return { success: false, error: '评论内容不能为空' };
+    if (!content && images.length === 0) return { success: false, error: '评论内容不能为空，或请选择图片' };
     if (content.length > MAX_COMMENT_LENGTH) {
       return { success: false, error: '评论不能超过 300 字' };
+    }
+    if (images.length > MAX_COMMENT_IMAGES) {
+      return { success: false, error: '评论图片不能超过 3 张' };
     }
     if (isReply && ['comment', 'reply'].indexOf(replyToType) === -1) {
       return { success: false, error: '回复目标无效' };
@@ -1700,23 +1800,52 @@ async function communityCommentCreate(openid, data) {
       return { success: false, error: '动态不存在或暂不可评论' };
     }
 
-    var secResult = await securityCheck(openid, content);
-    if (!secResult.ok) {
-      if (secResult.label === 'security_api_unavailable') {
-        return { success: false, error: '内容安全检测服务暂不可用，请稍后重试' };
+    if (content) {
+      var secResult = await securityCheck(openid, content);
+      if (!secResult.ok) {
+        if (secResult.label === 'security_api_unavailable') {
+          return { success: false, error: '内容安全检测服务暂不可用，请稍后重试' };
+        }
+        return { success: false, error: '评论未通过安全检测，请修改后重试' };
       }
-      return { success: false, error: '评论未通过安全检测，请修改后重试' };
     }
 
     var user = await getCurrentUser(openid);
     var now = Date.now();
+    var validatedImages = await validateCommentImages(openid, draftId, images);
+    var fixedCommentId = (isReply ? 'reply_' : 'comment_') + now.toString(36) + '_' + generateUuid().slice(0, 12);
+    var imageAudits = [];
+    if (validatedImages.length > 0) {
+      try {
+        imageAudits = await submitCommentImageAudits(
+          openid,
+          fixedCommentId,
+          isReply ? 'reply' : 'comment',
+          validatedImages
+        );
+      } catch (auditError) {
+        console.error('提交评论图片安全检测失败:', auditError);
+        return {
+          success: false,
+          error: '图片安全检测服务暂不可用，请稍后重试',
+          errorCode: 'IMAGE_SECURITY_CHECK_FAILED'
+        };
+      }
+    }
     var commentData = {
       postId: postId,
       postAuthorId: existingPost.authorId,
       authorId: openid,
       authorName: user.nickname || '旅行者',
       authorAvatar: user.avatar || '',
+      authorRegion: user.region || '',
       content: content,
+      images: validatedImages,
+      imageCount: validatedImages.length,
+      imageAuditTraceIds: imageAudits.map(function (audit) { return audit.traceId; }),
+      imageAuditStatus: validatedImages.length > 0 ? 'pending' : 'not_required',
+      machineSuggest: validatedImages.length > 0 ? 'pending' : 'pass',
+      reviewStatus: 'approved',
       likeCount: 0,
       replyCount: 0,
       isReply: false,
@@ -1732,6 +1861,18 @@ async function communityCommentCreate(openid, data) {
       var post = postRes && postRes.data;
       if (!post || post.status !== 'active' || post.reviewStatus !== 'approved') {
         throw new Error('动态不存在或暂不可评论');
+      }
+
+      var commentDraftDoc = null;
+      if (validatedImages.length > 0) {
+        commentDraftDoc = transaction.collection('community_upload_drafts').doc(draftId);
+        var latestCommentDraftRes = await commentDraftDoc.get();
+        var latestCommentDraft = latestCommentDraftRes && latestCommentDraftRes.data;
+        if (!latestCommentDraft || latestCommentDraft.ownerId !== openid ||
+          latestCommentDraft.purpose !== 'comment' || latestCommentDraft.status !== 'uploading') {
+          throw new Error('该评论图片草稿已经使用或不可用');
+        }
+        if (latestCommentDraft.expiresAt < Date.now()) throw new Error('上传草稿已过期');
       }
 
       var addRes;
@@ -1783,7 +1924,14 @@ async function communityCommentCreate(openid, data) {
           authorId: openid,
           authorName: user.nickname || '旅行者',
           authorAvatar: user.avatar || '',
+          authorRegion: user.region || '',
           content: content,
+          images: validatedImages,
+          imageCount: validatedImages.length,
+          imageAuditTraceIds: imageAudits.map(function (audit) { return audit.traceId; }),
+          imageAuditStatus: validatedImages.length > 0 ? 'pending' : 'not_required',
+          machineSuggest: validatedImages.length > 0 ? 'pending' : 'pass',
+          reviewStatus: 'approved',
           likeCount: 0,
           isReply: true,
           status: 'active',
@@ -1791,9 +1939,12 @@ async function communityCommentCreate(openid, data) {
           updatedAt: now,
           deletedAt: 0
         };
-        addRes = await transaction.collection('community_comment_replies').add({
-          data: createdData
-        });
+        if (validatedImages.length > 0) {
+          await transaction.collection('community_comment_replies').doc(fixedCommentId).set({ data: createdData });
+          addRes = { _id: fixedCommentId };
+        } else {
+          addRes = await transaction.collection('community_comment_replies').add({ data: createdData });
+        }
         rootReplyCount = Math.max(0, Number(root.replyCount) || 0) + 1;
         await rootDoc.update({
           data: {
@@ -1802,8 +1953,22 @@ async function communityCommentCreate(openid, data) {
           }
         });
       } else {
-        addRes = await transaction.collection('community_comments').add({
-          data: createdData
+        if (validatedImages.length > 0) {
+          await transaction.collection('community_comments').doc(fixedCommentId).set({ data: createdData });
+          addRes = { _id: fixedCommentId };
+        } else {
+          addRes = await transaction.collection('community_comments').add({ data: createdData });
+        }
+      }
+
+      if (validatedImages.length > 0) {
+        await commentDraftDoc.update({
+          data: {
+            status: 'completed',
+            completedAt: now,
+            commentId: addRes._id,
+            commentTargetType: isReply ? 'reply' : 'comment'
+          }
         });
       }
 
@@ -1824,7 +1989,7 @@ async function communityCommentCreate(openid, data) {
           sourceId: addRes._id,
           title: isReply ? '回复通知' : '评论通知',
           actionText: isReply ? '回复了你' : '评论了你',
-          content: content,
+          content: content || '[图片]',
           thumbnail: getPostThumbnail(post),
           createdAt: now
         });
