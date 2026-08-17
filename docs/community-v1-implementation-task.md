@@ -165,12 +165,11 @@ COS_NOT_CONFIGURED
   - 使用 `cos-nodejs-sdk-v5` 的 `headObject` 验证对象存在、大小、Content-Type。
 - 作者昵称和头像从 `users` 集合读取，不能信任客户端提交。
 - 使用数据库事务或等价的幂等保护，保证同一草稿只能发布一次。
-- 纯文字和定位文字执行微信 `msgSecCheck`，仅 `pass` 可创建。
+- 纯文字和定位文字执行微信 `msgSecCheck`，`pass/review/risky` 均可创建，后两者进入人工复核。
 - 图片调用微信 `mediaCheckAsync`，由消息推送事件 `wxa_media_check` 触发
   `community-media-check-result` 汇总审核结果。
-- 图片动态默认 `reviewStatus=reviewing`；公共列表不展示，我的作品可查看状态。
-- 所有图片 `pass` 自动变为 `approved`；`review` 或 `risky` 变为
-  `manual_review`。
+- 图片动态默认 `reviewStatus=approved` 并立即公开。
+- 所有图片 `pass` 不改变业务状态；`review/risky` 写入 `adminReviewStatus=pending`，人工拒绝后才隐藏。
 - 返回新动态。
 
 ### 5.4 `community/delete`

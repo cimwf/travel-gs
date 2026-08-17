@@ -123,7 +123,7 @@ async function adminCommunityReviewList(data = {}) {
 
     const condition = { status: 'active' };
     if (reviewStatus === 'approved') {
-      condition.reviewStatus = 'approved';
+      condition.adminReviewStatus = _.in(['not_required', 'approved']);
     } else {
       condition.adminReviewStatus = reviewStatus;
     }

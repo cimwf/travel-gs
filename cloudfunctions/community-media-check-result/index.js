@@ -1,124 +1,10 @@
 const cloud = require('wx-server-sdk');
-const crypto = require('crypto');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 const db = cloud.database();
 const VALID_SUGGESTIONS = ['pass', 'review', 'risky'];
 const RECONCILE_MAX_ATTEMPTS = 3;
-
-function getNotificationId(type, receiverId, sourceId) {
-  return crypto.createHash('sha256')
-    .update(String(type) + '\n' + String(receiverId) + '\n' + String(sourceId))
-    .digest('hex')
-    .slice(0, 32);
-}
-
-function getPostThumbnail(post) {
-  const images = post && Array.isArray(post.images) ? post.images : [];
-  const first = images.length > 0 ? images[0] : null;
-  if (typeof first === 'string') return first;
-  return first && (first.url || first.tempFileURL || '') || '';
-}
-
-function getTripLogThumbnail(log) {
-  const images = log && Array.isArray(log.images) ? log.images : [];
-  const first = images.length > 0 ? images[0] : null;
-  if (typeof first === 'string') return first;
-  return first && (first.url || first.tempFileURL || '') || '';
-}
-
-async function createReviewNotification(transaction, post, decision, now) {
-  if (!post.authorId || decision.reviewStatus === 'reviewing') return;
-  const typeMap = {
-    pass: 'community_review_approved',
-    review: 'community_review_pending',
-    risky: 'community_review_manual'
-  };
-  const titleMap = {
-    pass: '作品审核通过',
-    review: '作品已发布，待复核',
-    risky: '作品正在进一步审核'
-  };
-  const contentMap = {
-    pass: '你的图片作品已通过审核并发布',
-    review: '你的图片作品已发布，后续将进行人工复核',
-    risky: '你的图片作品风险较高，暂不在社区展示'
-  };
-  const type = typeMap[decision.machineSuggest];
-  if (!type) return;
-  const sourceId = post._id + ':' + decision.machineSuggest;
-  const id = getNotificationId(type, post.authorId, sourceId);
-  await transaction.collection('notifications').doc(id).set({
-    data: {
-      receiverId: post.authorId,
-      category: 'system',
-      type,
-      actorId: '',
-      actorName: '',
-      actorAvatar: '',
-      targetType: decision.reviewStatus === 'approved' ? 'community_post' : 'my_works',
-      targetId: post._id,
-      sourceType: 'review',
-      sourceId,
-      title: titleMap[decision.machineSuggest],
-      actionText: '',
-      content: contentMap[decision.machineSuggest],
-      thumbnail: getPostThumbnail(post),
-      isRead: false,
-      readAt: 0,
-      status: 'active',
-      createdAt: now,
-      updatedAt: now
-    }
-  });
-}
-
-async function createTripLogReviewNotification(transaction, log, decision, now) {
-  if (!log.publisherId || decision.reviewStatus === 'reviewing') return;
-  const typeMap = {
-    pass: 'trip_log_review_approved',
-    review: 'trip_log_review_pending',
-    risky: 'trip_log_review_manual'
-  };
-  const titleMap = {
-    pass: '旅行记录审核通过',
-    review: '旅行记录已发布，待复核',
-    risky: '旅行记录正在进一步审核'
-  };
-  const contentMap = {
-    pass: '你的图片旅行记录已通过审核并发布',
-    review: '你的图片旅行记录已发布，后续将进行人工复核',
-    risky: '你的图片旅行记录风险较高，暂不公开展示'
-  };
-  const type = typeMap[decision.machineSuggest];
-  if (!type) return;
-  const sourceId = log._id + ':' + decision.machineSuggest;
-  const id = getNotificationId(type, log.publisherId, sourceId);
-  await transaction.collection('notifications').doc(id).set({
-    data: {
-      receiverId: log.publisherId,
-      category: 'system',
-      type,
-      actorId: '',
-      actorName: '',
-      actorAvatar: '',
-      targetType: 'trip',
-      targetId: log.tripId || '',
-      sourceType: 'trip_log_review',
-      sourceId,
-      title: titleMap[decision.machineSuggest],
-      actionText: '',
-      content: contentMap[decision.machineSuggest],
-      thumbnail: getTripLogThumbnail(log),
-      isRead: false,
-      readAt: 0,
-      status: 'active',
-      createdAt: now,
-      updatedAt: now
-    }
-  });
-}
 
 function normalizeEvent(event) {
   const result = event && event.result || {};
@@ -143,6 +29,13 @@ function getReviewDecision(suggestions, expectedCount) {
     return { reviewStatus: 'approved', machineSuggest: 'review' };
   }
   return { reviewStatus: 'approved', machineSuggest: 'pass' };
+}
+
+function mergeMachineSuggestions(suggestions) {
+  if ((suggestions || []).includes('risky')) return 'risky';
+  if ((suggestions || []).includes('review')) return 'review';
+  if ((suggestions || []).includes('pending')) return 'pending';
+  return 'pass';
 }
 
 function wait(ms) {
@@ -300,41 +193,37 @@ async function reconcilePost(postId) {
       suggestions.push(itemRes.data && itemRes.data.suggest || 'pending');
     }
 
-    const decision = getReviewDecision(suggestions, traceIds.length);
+    const imageDecision = getReviewDecision(suggestions, traceIds.length);
+    const machineSuggest = mergeMachineSuggestions([
+      post.textMachineSuggest || 'pass',
+      imageDecision.machineSuggest
+    ]);
     const previousAdminReviewStatus = post.adminReviewStatus || 'not_required';
     const hasAdminDecision = previousAdminReviewStatus === 'approved' ||
       previousAdminReviewStatus === 'rejected';
     const adminReviewStatus = hasAdminDecision
       ? previousAdminReviewStatus
-      : (decision.machineSuggest === 'review' || decision.machineSuggest === 'risky'
+      : (machineSuggest === 'review' || machineSuggest === 'risky'
         ? 'pending'
         : 'not_required');
-    const reviewStatus = hasAdminDecision
-      ? (previousAdminReviewStatus === 'approved' ? 'approved' : 'rejected')
-      : decision.reviewStatus;
-    const previousReviewStatus = post.reviewStatus;
-    const previousMachineSuggest = post.machineSuggest || 'pending';
+    const reviewStatus = previousAdminReviewStatus === 'rejected' ? 'rejected' : 'approved';
     const now = Date.now();
     await postDoc.update({
       data: {
         reviewStatus,
-        machineSuggest: decision.machineSuggest,
+        machineSuggest,
         adminReviewStatus,
-        imageAuditStatus: reviewStatus,
+        imageAuditStatus: imageDecision.machineSuggest === 'pending' ? 'pending' : 'completed',
         imageAuditUpdatedAt: now,
         updatedAt: now
       }
     });
-    if (reviewStatus !== 'reviewing' &&
-      (previousReviewStatus !== reviewStatus || previousMachineSuggest !== decision.machineSuggest)) {
-      await createReviewNotification(transaction, post, decision, now);
-    }
-
     return {
       ignored: false,
       postId,
       reviewStatus,
-      machineSuggest: decision.machineSuggest
+      machineSuggest,
+      adminReviewStatus
     };
   });
 }
@@ -372,31 +261,27 @@ async function reconcileTripLog(logId) {
       const itemRes = await transaction.collection('trip_log_image_audits').doc(traceId).get();
       suggestions.push(itemRes.data && itemRes.data.suggest || 'pending');
     }
-    const decision = getReviewDecision(suggestions, traceIds.length);
+    const imageDecision = getReviewDecision(suggestions, traceIds.length);
+    const machineSuggest = mergeMachineSuggestions([
+      log.textMachineSuggest || 'pass',
+      imageDecision.machineSuggest
+    ]);
     const previousAdminReviewStatus = log.adminReviewStatus || 'not_required';
     const hasAdminDecision = ['approved', 'rejected'].includes(previousAdminReviewStatus);
     const adminReviewStatus = hasAdminDecision
       ? previousAdminReviewStatus
-      : (['review', 'risky'].includes(decision.machineSuggest) ? 'pending' : 'not_required');
-    const reviewStatus = hasAdminDecision
-      ? (previousAdminReviewStatus === 'approved' ? 'approved' : 'rejected')
-      : decision.reviewStatus;
-    const previousReviewStatus = log.reviewStatus;
-    const previousMachineSuggest = log.machineSuggest || 'pending';
+      : (['review', 'risky'].includes(machineSuggest) ? 'pending' : 'not_required');
+    const reviewStatus = previousAdminReviewStatus === 'rejected' ? 'rejected' : 'approved';
     const now = Date.now();
     await logDoc.update({ data: {
       reviewStatus,
-      machineSuggest: decision.machineSuggest,
+      machineSuggest,
       adminReviewStatus,
-      imageAuditStatus: reviewStatus,
+      imageAuditStatus: imageDecision.machineSuggest === 'pending' ? 'pending' : 'completed',
       imageAuditUpdatedAt: now,
       updatedAt: now
     } });
-    if (reviewStatus !== 'reviewing' &&
-      (previousReviewStatus !== reviewStatus || previousMachineSuggest !== decision.machineSuggest)) {
-      await createTripLogReviewNotification(transaction, log, decision, now);
-    }
-    return { ignored: false, targetType: 'trip_log', logId, reviewStatus, machineSuggest: decision.machineSuggest };
+    return { ignored: false, targetType: 'trip_log', logId, reviewStatus, machineSuggest, adminReviewStatus };
   });
 }
 

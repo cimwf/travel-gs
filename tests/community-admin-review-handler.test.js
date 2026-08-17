@@ -11,7 +11,7 @@ const handlerPath = path.join(apiRoot, 'handlers', 'adminCommunity.js');
 const posts = [
   { _id: 'post-3', authorId: 'user-3', authorAvatar: '', status: 'active', reviewStatus: 'approved', adminReviewStatus: 'not_required', machineSuggest: 'pass', createdAt: 300, images: [] },
   { _id: 'post-2', authorId: 'user-2', status: 'active', reviewStatus: 'approved', adminReviewStatus: 'pending', machineSuggest: 'review', createdAt: 200, images: [] },
-  { _id: 'post-1', authorId: 'user-1', status: 'active', reviewStatus: 'rejected', adminReviewStatus: 'pending', machineSuggest: 'risky', createdAt: 100, images: [] }
+  { _id: 'post-1', authorId: 'user-1', status: 'active', reviewStatus: 'approved', adminReviewStatus: 'pending', machineSuggest: 'risky', createdAt: 100, images: [] }
 ];
 const notifications = [];
 
@@ -126,7 +126,7 @@ async function main() {
     reviewStatus: 'approved',
     machineSuggest: 'all'
   });
-  assert.deepStrictEqual(approved.posts.map(post => post._id), ['post-3', 'post-2']);
+  assert.deepStrictEqual(approved.posts.map(post => post._id), ['post-3']);
   assert.strictEqual(approved.posts[0].authorName, '新昵称');
   assert.strictEqual(approved.posts[0].authorAvatar, 'https://temp.example/avatar.jpg');
 

@@ -446,7 +446,7 @@ Page({
     return api.communityCreate(postData).then(function () {
       app.globalData._communityPublishSuccess = true;
       self.hidePublishLoading();
-      wx.showToast({ title: hasImages ? '已提交审核' : '发布成功', icon: 'success' });
+      wx.showToast({ title: '发布成功', icon: 'success' });
       setTimeout(function () { wx.navigateBack(); }, 800);
     });
   },

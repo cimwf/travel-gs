@@ -83,7 +83,7 @@ Page({
     this.clearReviewTimer();
     if (!this._pageVisible) return;
     var hasReviewing = this.data.posts.some(function (post) {
-      return post.reviewStatus === 'reviewing';
+      return post.imageAuditStatus === 'pending';
     });
     if (!hasReviewing) return;
 
@@ -102,7 +102,7 @@ Page({
       manual_review: { text: '待人工审核', className: 'manual-review' },
       rejected: { text: '审核未通过', className: 'rejected' }
     };
-    var status = post.reviewStatus === 'approved' && post.machineSuggest === 'review'
+    var status = post.reviewStatus === 'approved' && post.adminReviewStatus === 'pending'
       ? { text: '已发布 · 待复核', className: 'pending-review' }
       : statusMap[post.reviewStatus] || {
       text: '处理中',

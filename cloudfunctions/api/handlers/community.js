@@ -29,6 +29,7 @@ const BEIJING_DISTRICTS = [
   '海淀区', '朝阳区', '丰台区', '东城区', '西城区', '石景山区', '门头沟区', '房山区',
   '通州区', '顺义区', '昌平区', '大兴区', '怀柔区', '平谷区', '密云区', '延庆区'
 ];
+const VALID_SECURITY_SUGGESTIONS = ['pass', 'review', 'risky'];
 
 // ========== helpers ==========
 
@@ -187,7 +188,7 @@ async function getCommunityFeedAuthorIds(openid, feedType, region) {
  * scene: 4 = social / timeline post
  */
 async function securityCheck(openid, text) {
-  if (!text || !text.trim()) return { ok: true };
+  if (!text || !text.trim()) return { ok: true, suggest: 'pass' };
   try {
     var result = await cloud.openapi.security.msgSecCheck({
       version: 2,
@@ -197,15 +198,12 @@ async function securityCheck(openid, text) {
     });
     var checkResult = result && result.result;
     var suggest = checkResult && checkResult.suggest;
-    // V2 returns pass / review / risky. Fail closed: only pass may publish.
-    if (suggest !== 'pass') {
-      return {
-        ok: false,
-        suggest: suggest || 'unknown',
-        label: checkResult && checkResult.label || 'violation'
-      };
+    // Machine review only marks content for human review. It never hides a
+    // successfully published post; only an explicit admin rejection does.
+    if (VALID_SECURITY_SUGGESTIONS.indexOf(suggest) !== -1) {
+      return { ok: true, suggest: suggest, label: checkResult && checkResult.label || 0 };
     }
-    return { ok: true, suggest: 'pass' };
+    return { ok: false, suggest: suggest || 'unknown', label: 'security_invalid_result' };
   } catch (e) {
     if (e.errCode === -604101) {
       return { ok: false, label: 'security_api_unavailable' };
@@ -214,6 +212,14 @@ async function securityCheck(openid, text) {
     console.warn('msgSecCheck failed:', e.message || e);
     return { ok: false, label: 'security_check_error' };
   }
+}
+
+function mergeMachineSuggestions(suggestions, includePending) {
+  suggestions = (suggestions || []).filter(Boolean);
+  if (suggestions.indexOf('risky') !== -1) return 'risky';
+  if (suggestions.indexOf('review') !== -1) return 'review';
+  if (includePending && suggestions.indexOf('pending') !== -1) return 'pending';
+  return 'pass';
 }
 
 async function submitImageAudits(openid, postId, images) {
@@ -349,7 +355,7 @@ async function claimStaleImageAuditRetry(openid, postId) {
     var postRes = await postDoc.get();
     var post = postRes.data;
     if (!post || post.authorId !== openid || post.status !== 'active' ||
-        post.reviewStatus !== 'reviewing' || !Array.isArray(post.images) ||
+        post.imageAuditStatus !== 'pending' || !Array.isArray(post.images) ||
         post.images.length === 0) {
       return null;
     }
@@ -440,12 +446,12 @@ async function retryStaleImageAudit(openid, postId) {
 }
 
 async function reconcileImageAuditStatus(postId, traceIds) {
-  if (!postId || !Array.isArray(traceIds) || traceIds.length === 0) return 'reviewing';
+  if (!postId || !Array.isArray(traceIds) || traceIds.length === 0) return 'approved';
 
   return db.runTransaction(async function (transaction) {
     var postDoc = transaction.collection('community_posts').doc(postId);
     var postRes = await postDoc.get();
-    if (!postRes.data) return 'reviewing';
+    if (!postRes.data) return 'approved';
 
     var audits = [];
     for (var i = 0; i < traceIds.length; i++) {
@@ -459,16 +465,15 @@ async function reconcileImageAuditStatus(postId, traceIds) {
       return ['pass', 'review', 'risky'].indexOf(suggest) !== -1;
     });
     var hasReview = suggestions.some(function (suggest) { return suggest === 'review'; });
-    var reviewStatus = hasRisky
-      ? 'manual_review'
-      : completed
-        ? 'approved'
-        : 'reviewing';
-    var machineSuggest = hasRisky
+    var imageMachineSuggest = hasRisky
       ? 'risky'
       : completed
         ? (hasReview ? 'review' : 'pass')
         : 'pending';
+    var machineSuggest = mergeMachineSuggestions([
+      postRes.data.textMachineSuggest || 'pass',
+      imageMachineSuggest
+    ], true);
 
     var previousAdminReviewStatus = postRes.data.adminReviewStatus || 'not_required';
     var hasAdminDecision = previousAdminReviewStatus === 'approved' ||
@@ -476,16 +481,14 @@ async function reconcileImageAuditStatus(postId, traceIds) {
     var adminReviewStatus = hasAdminDecision
       ? previousAdminReviewStatus
       : (machineSuggest === 'review' || machineSuggest === 'risky' ? 'pending' : 'not_required');
-    if (hasAdminDecision) {
-      reviewStatus = previousAdminReviewStatus === 'approved' ? 'approved' : 'rejected';
-    }
+    var reviewStatus = previousAdminReviewStatus === 'rejected' ? 'rejected' : 'approved';
 
     await postDoc.update({
       data: {
         reviewStatus: reviewStatus,
         machineSuggest: machineSuggest,
         adminReviewStatus: adminReviewStatus,
-        imageAuditStatus: reviewStatus,
+        imageAuditStatus: completed ? 'completed' : 'pending',
         imageAuditUpdatedAt: Date.now(),
         updatedAt: Date.now()
       }
@@ -878,15 +881,18 @@ async function communityCreate(openid, data, dataEnvironment = RUNTIME_DEFAULTS.
     if (location && location.name) secTexts.push(location.name);
     if (location && location.address) secTexts.push(location.address);
 
+    var textSuggestions = [];
     for (var si = 0; si < secTexts.length; si++) {
       var secResult = await securityCheck(openid, secTexts[si]);
       if (!secResult.ok) {
         if (secResult.label === 'security_api_unavailable') {
           return { success: false, error: '内容安全检测服务暂不可用，请稍后重试' };
         }
-        return { success: false, error: '内容未通过安全检测，请修改后重试' };
+        return { success: false, error: '内容安全检测失败，请稍后重试' };
       }
+      textSuggestions.push(secResult.suggest || 'pass');
     }
+    var textMachineSuggest = mergeMachineSuggestions(textSuggestions, false);
 
     var now = Date.now();
     var validatedImages = [];
@@ -1004,9 +1010,10 @@ async function communityCreate(openid, data, dataEnvironment = RUNTIME_DEFAULTS.
         visibility: 'public',
         likeCount: 0,
         commentCount: 0,
-        reviewStatus: 'reviewing', // image posts always reviewing until image audit
-        machineSuggest: 'pending', // pass/review/risky；保留微信原始聚合结论供后台筛选
-        adminReviewStatus: 'not_required', // pending/approved/rejected；仅 review/risky 进入人工复核
+        reviewStatus: 'approved', // 发布即展示，只有人工审核不通过才改为 rejected
+        textMachineSuggest: textMachineSuggest,
+        machineSuggest: textMachineSuggest === 'pass' ? 'pending' : textMachineSuggest,
+        adminReviewStatus: textMachineSuggest === 'pass' ? 'not_required' : 'pending',
         imageAuditStatus: 'pending',
         imageAuditTraceIds: [],
         imageAuditRetryCount: 0,
@@ -1100,9 +1107,10 @@ async function communityCreate(openid, data, dataEnvironment = RUNTIME_DEFAULTS.
       visibility: 'public',
       likeCount: 0,
       commentCount: 0,
-      reviewStatus: 'approved', // text-only posts are approved after msgSecCheck
-      machineSuggest: 'pass',
-      adminReviewStatus: 'not_required',
+      reviewStatus: 'approved',
+      textMachineSuggest: textMachineSuggest,
+      machineSuggest: textMachineSuggest,
+      adminReviewStatus: textMachineSuggest === 'pass' ? 'not_required' : 'pending',
       status: 'active',
       dataEnv: dataEnvironment.writeEnv,
       createdAt: now,
@@ -1802,7 +1810,7 @@ async function communityCommentCreate(openid, data) {
 
     if (content) {
       var secResult = await securityCheck(openid, content);
-      if (!secResult.ok) {
+      if (!secResult.ok || secResult.suggest !== 'pass') {
         if (secResult.label === 'security_api_unavailable') {
           return { success: false, error: '内容安全检测服务暂不可用，请稍后重试' };
         }

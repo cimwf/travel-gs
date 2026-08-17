@@ -176,17 +176,23 @@ async function testRejectsInvalidUploadMetadata() {
   assert(result.error.includes('不支持'));
 }
 
-async function testTextSecurityFailsClosed() {
-  for (const suggest of ['review', 'risky', 'unknown']) {
+async function testTextSecurityMarksHumanReviewWithoutHiding() {
+  for (const suggest of ['review', 'risky']) {
     state.securitySuggest = suggest;
-    const previousPostCount = state.posts.length;
     const result = await community.communityCreate('openid-test', {
       content: `security-${suggest}`
     });
-    assert.strictEqual(result.success, false);
-    assert(result.error.includes('安全检测'));
-    assert.strictEqual(state.posts.length, previousPostCount);
+    assert.strictEqual(result.success, true);
+    assert.strictEqual(result.post.reviewStatus, 'approved');
+    assert.strictEqual(result.post.machineSuggest, suggest);
+    assert.strictEqual(result.post.adminReviewStatus, 'pending');
   }
+  state.securitySuggest = 'unknown';
+  const previousPostCount = state.posts.length;
+  const invalid = await community.communityCreate('openid-test', { content: 'security-unknown' });
+  assert.strictEqual(invalid.success, false);
+  assert(invalid.error.includes('安全检测'));
+  assert.strictEqual(state.posts.length, previousPostCount);
   state.securitySuggest = 'pass';
 }
 
@@ -197,8 +203,8 @@ async function main() {
   console.log('PASS text/location post skips COS and uses msgSecCheck v2');
   await testRejectsInvalidUploadMetadata();
   console.log('PASS upload session rejects unsupported image metadata');
-  await testTextSecurityFailsClosed();
-  console.log('PASS text security only accepts pass');
+  await testTextSecurityMarksHumanReviewWithoutHiding();
+  console.log('PASS text review/risky stays published and enters human review');
 }
 
 main().catch((error) => {

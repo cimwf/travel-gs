@@ -177,7 +177,7 @@ Page({
         timeText: this.formatLogTime(log.createdAt),
         imageUrls: (log.images || []).map(img => img.url || img.tempFileURL || img.fileID).filter(Boolean),
         locationText: this.getLogLocationText(log.location),
-        reviewStatusText: log.adminReviewStatus === 'pending' && log.machineSuggest === 'review'
+        reviewStatusText: log.adminReviewStatus === 'pending'
           ? '已发布 · 待复核'
           : (log.reviewStatus === 'reviewing'
           ? '审核中'
@@ -823,7 +823,7 @@ Page({
         publishLocation: null
       });
       wx.showToast({
-        title: res.log && res.log.reviewStatus === 'reviewing' ? '已提交审核' : '发布成功',
+        title: '发布成功',
         icon: 'success'
       });
 

@@ -331,14 +331,15 @@ run('Content security: msgSecCheck V2 with version/scene/openid', function () {
   // Location text also checked
   var secIdx = s.indexOf('securityCheck(');
   ok(secIdx !== -1, 'securityCheck function called for content');
-  ok(s.indexOf("suggest !== 'pass'") !== -1, 'only pass is accepted');
+  ok(s.indexOf('VALID_SECURITY_SUGGESTIONS.indexOf(suggest)') !== -1, 'pass/review/risky are persisted');
 });
 
 // ---- 13: reviewing posts hidden ----
-run('List: reviewing posts are hidden from everyone', function () {
+run('List: only an explicit rejected status hides a post', function () {
   var s = readText('cloudfunctions/api/handlers/community.js');
-  ok(s.indexOf("reviewStatus: 'reviewing',\n      authorId: openid") === -1, 'does not fetch author reviewing posts');
-  ok(s.indexOf('including the author') !== -1, 'documents hidden reviewing behavior');
+  ok(s.indexOf("reviewStatus: 'approved', // 发布即展示") !== -1, 'image posts publish immediately');
+  ok(s.indexOf("previousAdminReviewStatus === 'rejected' ? 'rejected' : 'approved'") !== -1,
+    'machine results cannot hide content');
 });
 
 // ---- 14: atomic draft completion ----
@@ -463,9 +464,9 @@ run('Image security: mediaCheckAsync + callback function', function () {
   ok(handler.indexOf('mediaType: 2') !== -1, 'uses image media type');
   ok(handler.indexOf('imageAuditTraceIds') !== -1, 'stores audit trace IDs');
   ok(callback.indexOf("['pass', 'review', 'risky']") !== -1, 'validates callback suggestions');
-  ok(callback.indexOf("reviewStatus: 'approved', machineSuggest: 'review'") !== -1, 'review is published with pending-review marker');
-  ok(callback.indexOf("reviewStatus: 'manual_review', machineSuggest: 'risky'") !== -1, 'risky requires manual review');
-  ok(callback.indexOf("reviewStatus: 'approved', machineSuggest: 'pass'") !== -1, 'all-pass result is published normally');
+  ok(callback.indexOf("previousAdminReviewStatus === 'rejected' ? 'rejected' : 'approved'") !== -1,
+    'review/risky stay visible until admin rejection');
+  ok(callback.indexOf("? 'pending'\n        : 'not_required'") !== -1, 'review/risky enter the human review queue');
   ok(callback.indexOf('persistAuditResult(payload)') !== -1, 'persists each callback before post reconciliation');
   ok(callback.indexOf('reconcilePostWithRetry') !== -1, 'retries concurrent post reconciliation');
   ok(config.permissions.openapi.indexOf('security.mediaCheckAsync') !== -1, 'cloud call permission configured');

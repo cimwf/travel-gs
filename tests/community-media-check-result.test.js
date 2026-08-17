@@ -23,7 +23,10 @@ const state = {
       authorId: 'openid-author',
       content: '测试图片作品',
       images: [{ url: 'https://example.com/post.jpg' }],
-      reviewStatus: 'reviewing',
+      reviewStatus: 'approved',
+      textMachineSuggest: 'pass',
+      adminReviewStatus: 'not_required',
+      imageAuditStatus: 'pending',
       imageAuditTraceIds: ['trace-1', 'trace-2']
     }
   },
@@ -116,8 +119,9 @@ async function main() {
     result: { suggest: 'pass', label: 100 }
   });
   assert.strictEqual(result.success, true);
-  assert.strictEqual(result.reviewStatus, 'reviewing');
-  assert.strictEqual(state.posts['post-1'].reviewStatus, 'reviewing');
+  assert.strictEqual(result.reviewStatus, 'approved');
+  assert.strictEqual(result.machineSuggest, 'pending');
+  assert.strictEqual(state.posts['post-1'].reviewStatus, 'approved');
 
   result = await callback.main({
     trace_id: 'trace-2',
@@ -129,24 +133,22 @@ async function main() {
   assert.strictEqual(state.posts['post-1'].reviewStatus, 'approved');
   assert.strictEqual(state.posts['post-1'].machineSuggest, 'pass');
   assert.strictEqual(state.posts['post-1'].adminReviewStatus, 'not_required');
-  assert(Object.values(state.notifications).some((item) =>
-    item.type === 'community_review_approved' && item.receiverId === 'openid-author'));
+  assert.strictEqual(Object.keys(state.notifications).length, 0);
 
   state.audits['trace-1'].suggest = 'pending';
   state.audits['trace-2'].suggest = 'pending';
-  state.posts['post-1'].reviewStatus = 'reviewing';
+  state.posts['post-1'].reviewStatus = 'approved';
 
   result = await callback.main({
     trace_id: 'trace-1',
     result: { suggest: 'risky', label: 20001 }
   });
   assert.strictEqual(result.success, true);
-  assert.strictEqual(result.reviewStatus, 'manual_review');
+  assert.strictEqual(result.reviewStatus, 'approved');
   assert.strictEqual(result.machineSuggest, 'risky');
-  assert.strictEqual(state.posts['post-1'].reviewStatus, 'manual_review');
+  assert.strictEqual(state.posts['post-1'].reviewStatus, 'approved');
   assert.strictEqual(state.posts['post-1'].adminReviewStatus, 'pending');
-  assert(Object.values(state.notifications).some((item) =>
-    item.type === 'community_review_manual' && item.receiverId === 'openid-author'));
+  assert.strictEqual(Object.keys(state.notifications).length, 0);
 
   state.posts['post-1'].adminReviewStatus = 'approved';
   state.posts['post-1'].reviewStatus = 'approved';
@@ -158,9 +160,17 @@ async function main() {
   assert.strictEqual(state.posts['post-1'].adminReviewStatus, 'approved');
   assert.strictEqual(state.posts['post-1'].reviewStatus, 'approved');
 
+  state.posts['post-1'].adminReviewStatus = 'rejected';
+  result = await callback.main({
+    trace_id: 'trace-2',
+    result: { suggest: 'pass', label: 100 }
+  });
+  assert.strictEqual(result.reviewStatus, 'rejected');
+  assert.strictEqual(state.posts['post-1'].reviewStatus, 'rejected');
+
   state.audits['trace-1'].suggest = 'pending';
   state.audits['trace-2'].suggest = 'pending';
-  state.posts['post-1'].reviewStatus = 'reviewing';
+  state.posts['post-1'].reviewStatus = 'approved';
   state.posts['post-1'].adminReviewStatus = 'not_required';
 
   result = await callback.main({
@@ -168,9 +178,9 @@ async function main() {
     result: { suggest: 'review', label: 20002 }
   });
   assert.strictEqual(result.success, true);
-  assert.strictEqual(result.reviewStatus, 'reviewing');
+  assert.strictEqual(result.reviewStatus, 'approved');
   assert.strictEqual(result.machineSuggest, 'pending');
-  assert.strictEqual(state.posts['post-1'].reviewStatus, 'reviewing');
+  assert.strictEqual(state.posts['post-1'].reviewStatus, 'approved');
 
   result = await callback.main({
     trace_id: 'trace-2',
@@ -182,8 +192,7 @@ async function main() {
   assert.strictEqual(state.posts['post-1'].reviewStatus, 'approved');
   assert.strictEqual(state.posts['post-1'].machineSuggest, 'review');
   assert.strictEqual(state.posts['post-1'].adminReviewStatus, 'pending');
-  assert(Object.values(state.notifications).some((item) =>
-    item.type === 'community_review_pending' && item.receiverId === 'openid-author'));
+  assert.strictEqual(Object.keys(state.notifications).length, 0);
 
   result = await callback.main({
     trace_id: 'trace-2',
@@ -195,8 +204,8 @@ async function main() {
   state.audits['trace-1'].status = 'pending';
   state.audits['trace-2'].suggest = 'pending';
   state.audits['trace-2'].status = 'pending';
-  state.posts['post-1'].reviewStatus = 'reviewing';
-  state.posts['post-1'].imageAuditStatus = 'reviewing';
+  state.posts['post-1'].reviewStatus = 'approved';
+  state.posts['post-1'].imageAuditStatus = 'pending';
   state.transactionConflictsRemaining = 1;
 
   const concurrentResults = await Promise.all([
@@ -225,7 +234,7 @@ async function main() {
   state.tripLogs['log-1'] = {
     _id: 'log-1', tripId: 'trip-1', publisherId: 'openid-author',
     images: [{ url: 'https://example.com/log.jpg' }],
-    reviewStatus: 'reviewing', adminReviewStatus: 'not_required',
+    reviewStatus: 'approved', textMachineSuggest: 'pass', adminReviewStatus: 'not_required',
     imageAuditTraceIds: ['trip-trace-1', 'trip-trace-2']
   };
   const tripResults = await Promise.all([
@@ -236,8 +245,7 @@ async function main() {
   assert.strictEqual(state.tripLogs['log-1'].reviewStatus, 'approved');
   assert.strictEqual(state.tripLogs['log-1'].machineSuggest, 'review');
   assert.strictEqual(state.tripLogs['log-1'].adminReviewStatus, 'pending');
-  assert(Object.values(state.notifications).some(item =>
-    item.type === 'trip_log_review_pending' && item.receiverId === 'openid-author'));
+  assert.strictEqual(Object.keys(state.notifications).length, 0);
 
   state.audits['comment-trace-1'] = {
     traceId: 'comment-trace-1', commentId: 'comment-1', commentTargetType: 'comment', suggest: 'pending'

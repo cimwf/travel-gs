@@ -16,7 +16,7 @@ async function securityCheck(openid, text) {
     });
     const checkResult = result && result.result;
     const suggest = checkResult && checkResult.suggest;
-    return suggest === 'pass'
+    return VALID_IMAGE_SUGGESTIONS.includes(suggest)
       ? { ok: true, suggest }
       : { ok: false, suggest: suggest || 'unknown' };
   } catch (error) {
@@ -26,6 +26,13 @@ async function securityCheck(openid, text) {
       unavailable: error && error.errCode === -604101
     };
   }
+}
+
+function mergeMachineSuggestions(suggestions, includePending = true) {
+  if ((suggestions || []).includes('risky')) return 'risky';
+  if ((suggestions || []).includes('review')) return 'review';
+  if (includePending && (suggestions || []).includes('pending')) return 'pending';
+  return 'pass';
 }
 
 async function submitImageAudits(openid, logId, images) {
@@ -92,23 +99,25 @@ async function reconcileImageAuditStatus(logId, traceIds) {
   }
   if (!log) return decision;
   const hasAdminDecision = ['approved', 'rejected'].includes(log.adminReviewStatus);
-  const reviewStatus = hasAdminDecision
-    ? (log.adminReviewStatus === 'approved' ? 'approved' : 'rejected')
-    : decision.reviewStatus;
+  const machineSuggest = mergeMachineSuggestions([
+    log.textMachineSuggest || 'pass',
+    decision.machineSuggest
+  ]);
+  const reviewStatus = log.adminReviewStatus === 'rejected' ? 'rejected' : 'approved';
   const adminReviewStatus = hasAdminDecision
     ? log.adminReviewStatus
-    : (['review', 'risky'].includes(decision.machineSuggest) ? 'pending' : 'not_required');
+    : (['review', 'risky'].includes(machineSuggest) ? 'pending' : 'not_required');
   await db.collection(TRIP_LOGS_COLLECTION).doc(logId).update({
     data: {
       reviewStatus,
-      machineSuggest: decision.machineSuggest,
+      machineSuggest,
       adminReviewStatus,
-      imageAuditStatus: reviewStatus,
+      imageAuditStatus: decision.machineSuggest === 'pending' ? 'pending' : 'completed',
       imageAuditUpdatedAt: Date.now(),
       updatedAt: Date.now()
     }
   });
-  return { reviewStatus, machineSuggest: decision.machineSuggest, adminReviewStatus };
+  return { reviewStatus, machineSuggest, adminReviewStatus };
 }
 
 async function tripLogStart(openid, data) {
@@ -280,6 +289,7 @@ async function tripLogCreate(openid, data) {
     normalizedLocation && normalizedLocation.address,
     weatherLabel
   ].filter(Boolean);
+  const textSuggestions = [];
   for (const text of securityTexts) {
     const result = await securityCheck(openid, text);
     if (!result.ok) {
@@ -287,10 +297,12 @@ async function tripLogCreate(openid, data) {
         success: false,
         error: result.unavailable
           ? '内容安全检测服务暂不可用，请稍后重试'
-          : '内容未通过安全检测，请修改后重试'
+          : '内容安全检测失败，请稍后重试'
       };
     }
+    textSuggestions.push(result.suggest || 'pass');
   }
+  const textMachineSuggest = mergeMachineSuggestions(textSuggestions, false);
 
   let normalizedImages = images;
   let verifiedUploadSessionId = '';
@@ -356,9 +368,10 @@ async function tripLogCreate(openid, data) {
     tripDayIndex,
     weatherLabel,
     status: 'active',
-    reviewStatus: hasImages ? 'reviewing' : 'approved',
-    machineSuggest: hasImages ? 'pending' : 'pass',
-    adminReviewStatus: 'not_required',
+    reviewStatus: 'approved',
+    textMachineSuggest,
+    machineSuggest: hasImages && textMachineSuggest === 'pass' ? 'pending' : textMachineSuggest,
+    adminReviewStatus: textMachineSuggest === 'pass' ? 'not_required' : 'pending',
     imageAuditStatus: hasImages ? 'pending' : 'not_required',
     imageAuditTraceIds: imageAudits.map(item => item.traceId),
     createdAt: now,

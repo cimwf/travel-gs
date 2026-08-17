@@ -481,29 +481,24 @@ uploading → expired
 - 用户举报入口。
 - 后台查看和下架能力。
 
-已实现的作品审核状态：
+作品公开状态只由人工结论最终控制：
 
 ```text
-reviewing
 approved
-manual_review
 rejected
 ```
 
-- 纯文字/定位先通过 `msgSecCheck`，通过后直接为 `approved`。
+- 纯文字/定位执行 `msgSecCheck`，`pass/review/risky` 均直接发布；后两者进入人工复核。
 - 图片通过微信 `mediaCheckAsync` 异步审核。
 - 消息推送事件 `wxa_media_check` 由
   `community-media-check-result` 云函数接收。
 - 多张图片的回调可能同时到达。回调函数先独立保存每张图片的审核结果，再用事务
   汇总作品状态；汇总冲突会自动重试最多 3 次，避免单张图片结果丢失。
-- 所有图片均返回 `pass` 后自动变为 `approved`。
-- 所有图片完成审核后，只要没有 `risky`，`review` 作品也会变为 `approved`，并以
-  `machineSuggest=review` 标记为“已发布 · 待复核”。
-- 任一图片返回 `risky` 后变为 `manual_review`，不会进入公共社区，等待后续人工处理。
-- `review/risky` 同时保存 `adminReviewStatus=pending`，后台处理后改为
-  `approved/rejected`；微信原始 `machineSuggest` 不被覆盖。
-- 公共社区只展示 `approved`；我的作品展示所有未删除状态。
-- 我的作品页每 5 秒刷新一次审核中的作品。回调丢失时，作品超过 10 分钟会在
+- 创建成功时直接写入 `reviewStatus=approved` 并进入公共社区。
+- 机器返回 `pass` 时不改变业务状态；`review/risky` 只写入
+  `adminReviewStatus=pending`，作品继续公开。
+- 后台人工拒绝才写入 `reviewStatus=rejected` 并下架；人工通过保持 `approved`。
+- 我的作品页可展示“已发布 · 待复核”。回调丢失时，图片审核超过 10 分钟会在
   作者打开我的作品时补提审核，最多 3 次。
 
 开发环境验证记录（2026-07-28）：多图真实发布后的审核能够正常结束；并发自动化
@@ -511,7 +506,7 @@ rejected
 
 同级后台项目 `travel-be-gs` 已加入“社区内容审核”：支持按处理状态及
 `review/risky` 筛选、查看正文和图片、填写备注并通过或拒绝。人工结果会同步修改
-作品公开状态并向作者写入系统通知。
+作品公开状态并向作者写入人工审核结果通知；机器审核不发送通知。
 
 ## 9. 环境变量
 

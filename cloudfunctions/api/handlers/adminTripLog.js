@@ -66,7 +66,7 @@ async function saveResultNotification(log, decision) {
     sourceId,
     title: decision === 'approved' ? '旅行记录复核通过' : '旅行记录复核未通过',
     actionText: '',
-    content: decision === 'approved' ? '你的旅行记录已恢复公开展示' : '你的旅行记录未通过人工复核',
+    content: decision === 'approved' ? '你的旅行记录已通过人工复核并继续公开展示' : '你的旅行记录未通过人工复核',
     thumbnail: getThumbnail(log),
     isRead: false, readAt: 0, status: 'active', createdAt: now, updatedAt: now
   };
@@ -90,7 +90,7 @@ async function adminTripLogReviewList(data = {}) {
     const machineSuggest = data.machineSuggest === 'all' || MACHINE_SUGGESTS.includes(data.machineSuggest)
       ? data.machineSuggest : 'all';
     const condition = { status: 'active' };
-    if (reviewStatus === 'approved') condition.reviewStatus = 'approved';
+    if (reviewStatus === 'approved') condition.adminReviewStatus = _.in(['not_required', 'approved']);
     else condition.adminReviewStatus = reviewStatus;
     condition.machineSuggest = machineSuggest === 'all' ? _.in(MACHINE_SUGGESTS) : machineSuggest;
     const query = db.collection(LOGS_COLLECTION).where(condition);
