@@ -303,10 +303,6 @@ async function adminOfficialPostCreate(data = {}) {
       images = await verifyUpload(adminId, String(data.uploadSessionId || ''), data.images, 'post');
     }
     if (!content && !images.length) throw new Error('正文和图片不能同时为空');
-    const dataEnv = String(data.dataEnv || '').trim();
-    if (dataEnv !== 'dev' && dataEnv !== 'prod') {
-      throw new Error('请选择发布环境');
-    }
     const now = Date.now();
     const postId = id('post');
     await db.collection(POST_COLLECTION).add({ data: {
@@ -331,14 +327,15 @@ async function adminOfficialPostCreate(data = {}) {
       adminReviewerName: admin.nickname || admin.username || '管理员',
       adminReviewedAt: now,
       status: 'active',
-      dataEnv,
+      dataEnv: 'dev',
+      preparedAt: now,
       createdAt: now,
       updatedAt: now
     }});
     await consumeUpload(String(data.uploadSessionId || ''), postId);
-    return { success: true, postId, message: '官方动态已发布' };
+    return { success: true, postId, message: '官方动态已保存到测试环境' };
   } catch (error) {
-    return { success: false, error: error.message || '官方动态发布失败' };
+    return { success: false, error: error.message || '官方动态保存失败' };
   }
 }
 
@@ -350,13 +347,23 @@ async function adminOfficialPostUpdate(data = {}) {
     if (!postId) throw new Error('作品 ID 不能为空');
     const post = await getOfficialPost(postId);
 
+    if (data.mode === 'publish') {
+      if (post.status !== 'active') throw new Error('请先恢复该动态再发布');
+      if (post.dataEnv === 'prod') return { success: true, message: '该动态已经发布到生产环境' };
+      const now = Date.now();
+      await db.collection(POST_COLLECTION).doc(postId).update({ data: {
+        dataEnv: 'prod',
+        publishedAt: now,
+        createdAt: now,
+        updatedAt: now
+      }});
+      return { success: true, message: '官方动态已发布到生产环境' };
+    }
+
     if (data.mode === 'edit') {
       const account = await getOfficialAccount(String(data.accountId || ''), true);
       const content = String(data.content || '').trim();
       if (content.length > 300) throw new Error('正文不能超过 300 字');
-      const dataEnv = String(data.dataEnv || '').trim();
-      if (dataEnv !== 'dev' && dataEnv !== 'prod') throw new Error('请选择发布环境');
-
       const originalMedia = new Map();
       (Array.isArray(post.images) ? post.images : []).forEach((item) => {
         const identity = mediaIdentity(item);
@@ -383,7 +390,6 @@ async function adminOfficialPostUpdate(data = {}) {
         content,
         images,
         imageCount: images.length,
-        dataEnv,
         updatedAt: Date.now()
       }});
       await consumeUpload(String(data.uploadSessionId || ''), postId);

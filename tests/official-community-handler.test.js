@@ -85,13 +85,7 @@ async function main() {
   assert.strictEqual(published.success, true);
   assert.strictEqual(data.community_posts[0].authorId, account.openid);
   assert.strictEqual(data.community_posts[0].reviewStatus, 'approved');
-  assert.strictEqual(data.community_posts[0].dataEnv, 'prod');
-
-  const missingEnvironment = await handler.adminOfficialPostCreate({
-    adminId: 'admin-1', accountId: created.accountId, content: '这条内容不能发布。'
-  });
-  assert.strictEqual(missingEnvironment.success, false);
-  assert.strictEqual(missingEnvironment.error, '请选择发布环境');
+  assert.strictEqual(data.community_posts[0].dataEnv, 'dev');
 
   const listed = await handler.adminOfficialPostList({ adminId: 'admin-1', page: 1, pageSize: 10 });
   assert.strictEqual(listed.success, true);
@@ -102,26 +96,22 @@ async function main() {
     postId: published.postId,
     mode: 'edit',
     accountId: created.accountId,
-    content: '这条内容已切换到开发环境。',
-    dataEnv: 'dev',
+    content: '这条内容仍然保留在测试环境。',
+    dataEnv: 'prod',
     existingImages: []
   });
   assert.strictEqual(edited.success, true);
-  assert.strictEqual(data.community_posts[0].content, '这条内容已切换到开发环境。');
+  assert.strictEqual(data.community_posts[0].content, '这条内容仍然保留在测试环境。');
   assert.strictEqual(data.community_posts[0].dataEnv, 'dev');
-  assert.strictEqual(data.community_posts[0].createdAt > 0, true);
 
-  const invalidEnvironment = await handler.adminOfficialPostUpdate({
-    adminId: 'admin-1',
-    postId: published.postId,
-    mode: 'edit',
-    accountId: created.accountId,
-    content: '不能保存到未知环境。',
-    dataEnv: 'trial',
-    existingImages: []
+  data.community_posts[0].createdAt = 1000;
+  const promoted = await handler.adminOfficialPostUpdate({
+    adminId: 'admin-1', postId: published.postId, mode: 'publish'
   });
-  assert.strictEqual(invalidEnvironment.success, false);
-  assert.strictEqual(invalidEnvironment.error, '请选择发布环境');
+  assert.strictEqual(promoted.success, true);
+  assert.strictEqual(data.community_posts[0].dataEnv, 'prod');
+  assert.strictEqual(data.community_posts[0].createdAt > 1000, true);
+  assert.strictEqual(data.community_posts[0].publishedAt, data.community_posts[0].createdAt);
 
   const removed = await handler.adminOfficialPostUpdate({ adminId: 'admin-1', postId: published.postId, status: 'deleted' });
   assert.strictEqual(removed.success, true);
