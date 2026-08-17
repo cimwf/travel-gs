@@ -149,6 +149,7 @@ Page({
     const logCount = trip.logCount || 0;
 
     if (tripStage === 'not_started' || logCount === 0) {
+      this.setData({ logGroups: [] });
       return;
     }
 
