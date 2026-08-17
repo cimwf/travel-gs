@@ -250,12 +250,20 @@ Page({
   onChooseDestLocation: function () {
     wx.chooseLocation({
       success: (res) => {
+        const name = String(res.name || '').trim();
+        const address = String(res.address || '').trim();
+        const latitude = Number(res.latitude);
+        const longitude = Number(res.longitude);
+        if ((!name && !address) || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+          wx.showToast({ title: '定位信息无效，请重新选择', icon: 'none' });
+          return;
+        }
         this.setData({
           destLocation: {
-            name: res.name,
-            address: res.address,
-            latitude: res.latitude,
-            longitude: res.longitude
+            name,
+            address,
+            latitude,
+            longitude
           }
         });
       }
@@ -369,7 +377,7 @@ Page({
     } catch (err) {
       wx.hideLoading();
       console.error('发布失败', err);
-      wx.showToast({ title: '发布失败，请重试', icon: 'none' });
+      wx.showToast({ title: err.message || '发布失败，请重试', icon: 'none' });
     }
   },
 
@@ -421,7 +429,7 @@ Page({
     } catch (err) {
       wx.hideLoading();
       console.error('更新失败', err);
-      wx.showToast({ title: '保存失败，请重试', icon: 'none' });
+      wx.showToast({ title: err.message || '保存失败，请重试', icon: 'none' });
     }
   }
 });

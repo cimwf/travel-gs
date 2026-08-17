@@ -79,6 +79,33 @@ delete require.cache[handlerPath];
 const trip = require(handlerPath);
 
 async function main() {
+  assert.deepStrictEqual(trip.normalizeDestinationLocation({
+    name: undefined,
+    address: '  北京市门头沟区潭柘寺  ',
+    latitude: '39.9023',
+    longitude: '116.0254'
+  }), {
+    name: '',
+    address: '北京市门头沟区潭柘寺',
+    latitude: 39.9023,
+    longitude: 116.0254
+  });
+  assert.throws(() => trip.normalizeDestinationLocation({
+    name: '无效定位', address: '', latitude: undefined, longitude: 116
+  }), /定位坐标无效/);
+
+  resetTrip();
+  const locationUpdated = await trip.tripUpdate('openid-creator', {
+    tripId: 'trip-1',
+    destLocation: {
+      name: '潭柘寺', address: '北京市门头沟区潭柘寺镇', latitude: '39.9023', longitude: '116.0254'
+    }
+  });
+  assert.strictEqual(locationUpdated.success, true);
+  assert.deepStrictEqual(state.trip.destLocation, {
+    name: '潭柘寺', address: '北京市门头沟区潭柘寺镇', latitude: 39.9023, longitude: 116.0254
+  });
+
   resetTrip();
   const updated = await trip.tripUpdate('openid-creator', {
     tripId: 'trip-1', date: '2026-08-21', meetingPlace: '地铁站B口'

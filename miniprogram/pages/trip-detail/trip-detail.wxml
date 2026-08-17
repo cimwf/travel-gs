@@ -65,6 +65,13 @@
               <text class="detail-v2-info-label">集合地点</text>
               <text class="detail-v2-info-value">{{trip.meetingPlace}}</text>
             </view>
+            <view class="detail-v2-info-row detail-v2-info-row-link" wx:if="{{trip.destLocation}}" bindtap="onOpenDestLocation">
+              <text class="detail-v2-info-label">目的地定位</text>
+              <view class="detail-v2-info-value detail-v2-location-value">
+                <text>{{trip.destLocation.name || trip.destLocation.address}}</text>
+                <text class="detail-v2-chevron">›</text>
+              </view>
+            </view>
             <view class="detail-v2-info-row" wx:if="{{trip.meetingTime}}">
               <text class="detail-v2-info-label">集合时间</text>
               <text class="detail-v2-info-value">{{trip.meetingTime}}</text>
@@ -84,13 +91,6 @@
             <view class="detail-v2-info-row" wx:if="{{trip.price}}">
               <text class="detail-v2-info-label">人均费用</text>
               <text class="detail-v2-info-value detail-v2-price">{{trip.price}}元/人</text>
-            </view>
-            <view class="detail-v2-info-row detail-v2-info-row-link" wx:if="{{trip.destLocation}}" bindtap="onOpenDestLocation">
-              <text class="detail-v2-info-label">目的定位</text>
-              <view class="detail-v2-info-value detail-v2-location-value">
-                <text>{{trip.destLocation.name || trip.destLocation.address}}</text>
-                <text class="detail-v2-chevron">›</text>
-              </view>
             </view>
             <view class="detail-v2-info-row">
               <text class="detail-v2-info-label">招募人数</text>

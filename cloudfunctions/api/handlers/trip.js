@@ -4,6 +4,28 @@ const { setNotification } = require('./notification');
 const tripMedia = require('./tripMedia');
 const { createReadCondition, RUNTIME_DEFAULTS } = require('../utils/dataEnvironment');
 
+function normalizeDestinationLocation(value) {
+  if (value === null || value === undefined || value === '') return null;
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('目的地定位信息无效，请重新选择');
+  }
+
+  const name = String(value.name || '').trim().slice(0, 100);
+  const address = String(value.address || '').trim().slice(0, 200);
+  const latitudeMissing = value.latitude === null || value.latitude === undefined || value.latitude === '';
+  const longitudeMissing = value.longitude === null || value.longitude === undefined || value.longitude === '';
+  const latitude = Number(value.latitude);
+  const longitude = Number(value.longitude);
+
+  if (!name && !address) throw new Error('目的地定位名称无效，请重新选择');
+  if (latitudeMissing || longitudeMissing || !Number.isFinite(latitude) || !Number.isFinite(longitude) ||
+    latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+    throw new Error('目的地定位坐标无效，请重新选择');
+  }
+
+  return { name, address, latitude, longitude };
+}
+
 function getTripTitle(trip) {
   return trip && (trip.tripTitle || trip.placeName) || '行程';
 }
@@ -127,7 +149,7 @@ async function tripCreate(openid, data, dataEnvironment = RUNTIME_DEFAULTS.devel
     travelDesc: data.travelDesc || '',
     price: data.price || '',
     remark: data.remark || '',
-    destLocation: data.destLocation || null,
+    destLocation: normalizeDestinationLocation(data.destLocation),
     creatorId: openid,
     creatorName: user.nickname,
     creatorAvatar: safeAvatar(user.avatar),
@@ -787,6 +809,13 @@ async function tripUpdate(openid, data) {
   delete updateFields.adminReviewedAt;
   delete updateFields.adminReviewerName;
   delete updateFields.adminReviewRemark;
+  if (Object.prototype.hasOwnProperty.call(updateFields, 'destLocation')) {
+    try {
+      updateFields.destLocation = normalizeDestinationLocation(updateFields.destLocation);
+    } catch (error) {
+      return { success: false, error: error.message || '目的地定位信息无效，请重新选择' };
+    }
+  }
 
   if (!tripId) {
     return { success: false, error: '行程ID不能为空' };
@@ -1166,6 +1195,7 @@ async function tripListByUser(openid, data) {
 }
 
 module.exports = {
+  normalizeDestinationLocation,
   tripCreate,
   tripList,
   tripGet,
