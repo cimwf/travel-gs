@@ -144,11 +144,11 @@ Page({
     this.setData({ loading: false, loadError: true, trip: null });
   },
 
-  loadLogs: async function (tripId, trip) {
+  loadLogs: async function (tripId, trip, options = {}) {
     const tripStage = trip.tripStage || 'not_started';
     const logCount = trip.logCount || 0;
 
-    if (tripStage === 'not_started' || logCount === 0) {
+    if (!options.force && (tripStage === 'not_started' || logCount === 0)) {
       this.setData({ logGroups: [] });
       return;
     }
@@ -157,11 +157,18 @@ Page({
       const res = await api.tripLogList(tripId);
       if (res.success) {
         const groups = this.processLogGroups(res.groups || []);
-        this.setData({
+        const nextData = {
           logGroups: groups,
           showTabs: true,
           activeTab: this.data.activeTab || 'trip'
-        });
+        };
+        if (this.data.trip) {
+          nextData.trip = {
+            ...this.data.trip,
+            logCount: typeof res.logCount === 'number' ? res.logCount : groups.reduce((count, group) => count + group.logs.length, 0)
+          };
+        }
+        this.setData(nextData);
       }
     } catch (err) {
       console.warn('加载日志失败', err);
@@ -362,9 +369,11 @@ Page({
       if (activeTab === 'comment') {
         await this.loadComments(true);
       } else if (activeTab === 'log') {
-        await this.loadTripDetail(tripId);
+        wx.showLoading({ title: '刷新中...', mask: false });
+        await this.loadLogs(tripId, this.data.trip || {}, { force: true });
       }
     } finally {
+      if (activeTab === 'log') wx.hideLoading();
       wx.stopPullDownRefresh();
     }
   },
@@ -875,9 +884,20 @@ Page({
         wx.showLoading({ title: '处理中...' });
         try {
           await api.tripLogDelete(tripId, logId);
+          const logGroups = (this.data.logGroups || []).map(group => ({
+            ...group,
+            logs: (group.logs || []).filter(log => log._id !== logId)
+          })).filter(group => group.logs.length > 0);
+          const trip = this.data.trip || {};
+          this.setData({
+            logGroups,
+            trip: {
+              ...trip,
+              logCount: Math.max((trip.logCount || 0) - 1, 0)
+            }
+          });
           wx.hideLoading();
           wx.showToast({ title: '已删除', icon: 'success' });
-          setTimeout(() => this.loadTripDetail(tripId), 500);
         } catch (err) {
           wx.hideLoading();
           wx.showToast({ title: err.message || '删除失败', icon: 'none' });
