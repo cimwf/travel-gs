@@ -72,6 +72,8 @@ assert(apiClient.includes('dataEnvironment: env.dataEnvironment'));
 assert(tripHandler.includes(".orderBy('_id', 'desc')"));
 assert(tripHandler.includes('.limit(pageSize + 1)'));
 assert(tripHandler.includes("_id: _.lt(cursorId)"));
+assert(tripHandler.includes("excludeStatus === 'cancelled'"));
+assert(tripHandler.includes("conditions.tripStage = _.neq('cancelled')"));
 assert(tripListPage.includes('pageSize: 10'));
 assert(tripListPage.includes('reqData.cursorId'));
 assert(tripListPage.includes('_skipNextOnShowRefresh'));

@@ -117,8 +117,8 @@ async function tripCreate(openid, data, dataEnvironment = RUNTIME_DEFAULTS.devel
     }
   }
 
-  const currentCount = data.currentCount || 1;
-  const needCount = data.needCount || 3;
+  const currentCount = data.currentCount === undefined || data.currentCount === null ? 1 : data.currentCount;
+  const needCount = data.needCount === undefined || data.needCount === null ? 3 : data.needCount;
 
   let tripLogConfig = { logPublisherLimit: 2, logMaxCount: 15 };
   try {
@@ -140,7 +140,9 @@ async function tripCreate(openid, data, dataEnvironment = RUNTIME_DEFAULTS.devel
     hasCar: data.hasCar !== false,
     currentCount: currentCount,
     needCount: needCount,
-    totalParticipants: data.totalParticipants || (currentCount + needCount),
+    totalParticipants: data.totalParticipants === undefined || data.totalParticipants === null
+      ? currentCount + needCount
+      : data.totalParticipants,
     contactPhone: data.contactPhone || '',
     meetingPlace: data.meetingPlace || '',
     meetingTime: data.meetingTime || '',
@@ -202,7 +204,11 @@ async function tripList(openid, data, dataEnvironment = RUNTIME_DEFAULTS.develop
   if (placeId) conditions.placeId = placeId;
   if (status) conditions.status = status;
   if (date) conditions.date = date;
-  if (excludeStatus) conditions.status = _.neq(excludeStatus);
+  if (excludeStatus === 'cancelled') {
+    conditions.tripStage = _.neq('cancelled');
+  } else if (excludeStatus) {
+    conditions.status = _.neq(excludeStatus);
+  }
   const dataEnvCondition = createReadCondition(_, dataEnvironment.readEnvs);
   const reviewCondition = _.or([
     { reviewStatus: 'approved' },

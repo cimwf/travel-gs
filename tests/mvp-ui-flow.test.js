@@ -680,6 +680,34 @@ test('trip-publish 成功发布会调用 trip/create 并跳转发布成功页', 
   assert(wxCalls.redirectTo[0].url.includes('tripId=trip-created-id'));
 });
 
+test('trip-publish 发布中防止重复提交并保留招募人数 0', async () => {
+  const page = loadPage('pages/trip-publish/trip-publish.js');
+  storage.userInfo = { nickname: '测试用户' };
+  storage.lastLoginTime = Date.now();
+  page.setData({
+    placeName: '东灵山',
+    departure: '海淀区',
+    date: '2026-05-07',
+    recruitCount: 0,
+    contactPhone: '13800138000'
+  });
+
+  await page.onSubmit();
+  await page.onSubmit();
+
+  const createCalls = wxCalls.cloudCalls.filter((call) => call.name === 'api' && call.data.action === 'trip/create');
+  assert.strictEqual(createCalls.length, 1, 'publishing state should block duplicate trip/create calls');
+  assert.strictEqual(createCalls[0].data.data.needCount, 0, 'needCount 0 should be sent unchanged');
+  assert(wxCalls.redirectTo[0].url.includes('needCount=0'), 'success page should receive needCount 0');
+});
+
+test('trip-publish-success 将招募人数 0 计入总人数', () => {
+  const page = loadPage('pages/trip-publish-success/trip-publish-success.js');
+  page.onLoad({ currentCount: '1', needCount: '0', placeName: '东灵山' });
+  assert.strictEqual(page.data.currentCount, 1);
+  assert.strictEqual(page.data.totalCount, 1);
+});
+
 test('trip-publish-success UI 含发布成功、摘要和返回按钮', () => {
   const wxml = read('miniprogram/pages/trip-publish-success/trip-publish-success.wxml');
   ['发布成功', '你的行程已成功发布', '查看行程详情', '返回行程页', '招募人数'].forEach((needle) => {

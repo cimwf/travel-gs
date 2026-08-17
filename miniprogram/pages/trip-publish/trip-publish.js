@@ -19,6 +19,7 @@ Page({
     hasCar: true,
     recruitCount: 3,
     contactPhone: '',     // 联系方式
+    submitting: false,
 
     // 可选信息
     optionalExpanded: false,
@@ -103,7 +104,7 @@ Page({
           departure: trip.departure || '海淀区',
           date: trip.date || '',
           hasCar: trip.hasCar !== false,
-          recruitCount: trip.needCount || 3,
+          recruitCount: trip.needCount === undefined || trip.needCount === null ? 3 : trip.needCount,
           contactPhone: trip.contactPhone || '',
           meetingPlace: trip.meetingPlace || '',
           meetingTime: trip.meetingTime || '',
@@ -277,6 +278,10 @@ Page({
 
   // 提交发布
   onSubmit: async function () {
+    if (this.data.submitting) {
+      return;
+    }
+
     if (!auth.isLoggedIn()) {
       wx.showToast({ title: '请先登录', icon: 'none' });
       return;
@@ -316,7 +321,8 @@ Page({
     }
 
     // 发布模式
-    wx.showLoading({ title: '发布中...' });
+    this.setData({ submitting: true });
+    wx.showLoading({ title: '发布中...', mask: true });
 
     // 构造行程数据
     const currentCount = 1;
@@ -369,13 +375,19 @@ Page({
         ].join('&');
 
         wx.redirectTo({
-          url: '/pages/trip-publish-success/trip-publish-success?' + params
+          url: '/pages/trip-publish-success/trip-publish-success?' + params,
+          fail: () => {
+            this.setData({ submitting: false });
+            wx.showToast({ title: '页面跳转失败，请重试', icon: 'none' });
+          }
         });
       } else {
+        this.setData({ submitting: false });
         wx.showToast({ title: res.error || '发布失败', icon: 'none' });
       }
     } catch (err) {
       wx.hideLoading();
+      this.setData({ submitting: false });
       console.error('发布失败', err);
       wx.showToast({ title: err.message || '发布失败，请重试', icon: 'none' });
     }
@@ -383,7 +395,12 @@ Page({
 
   // 更新行程（编辑模式）
   updateTrip: async function () {
-    wx.showLoading({ title: '保存中...' });
+    if (this.data.submitting) {
+      return;
+    }
+
+    this.setData({ submitting: true });
+    wx.showLoading({ title: '保存中...', mask: true });
 
     const needCount = this.data.recruitCount;
 
@@ -424,10 +441,12 @@ Page({
           wx.navigateBack();
         }, 1500);
       } else {
+        this.setData({ submitting: false });
         wx.showToast({ title: res.error || '保存失败', icon: 'none' });
       }
     } catch (err) {
       wx.hideLoading();
+      this.setData({ submitting: false });
       console.error('更新失败', err);
       wx.showToast({ title: err.message || '保存失败，请重试', icon: 'none' });
     }

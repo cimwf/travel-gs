@@ -18,8 +18,10 @@ Page({
     const tripId = options.tripId || '';
     const placeId = options.placeId || '';
     const dateText = decodeURIComponent(options.dateText || '');
-    const currentCount = parseInt(options.currentCount) || 1;
-    const needCount = parseInt(options.needCount) || 3;
+    const parsedCurrentCount = parseInt(options.currentCount, 10);
+    const parsedNeedCount = parseInt(options.needCount, 10);
+    const currentCount = Number.isNaN(parsedCurrentCount) ? 1 : parsedCurrentCount;
+    const needCount = Number.isNaN(parsedNeedCount) ? 3 : parsedNeedCount;
     const totalCount = currentCount + needCount;
 
     this.setData({

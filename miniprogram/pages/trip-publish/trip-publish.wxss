@@ -287,6 +287,12 @@ page {
   transform: scale(0.98);
 }
 
+.submit-btn.submit-btn-disabled {
+  opacity: 0.65;
+  transform: none;
+  pointer-events: none;
+}
+
 /* ========== 出发地选择弹窗 ========== */
 .modal-mask {
   position: fixed;
