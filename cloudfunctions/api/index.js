@@ -95,7 +95,7 @@ exports.main = async (event, context) => {
       case 'trip/my':
         return await trip.tripMy(openid);
       case 'trip/listByUser':
-        return await trip.tripListByUser(openid, data);
+        return await trip.tripListByUser(openid, data, dataEnvironment);
       case 'tripMedia/createUploadSession':
         return await tripMedia.tripMediaCreateUploadSession(openid, data);
 

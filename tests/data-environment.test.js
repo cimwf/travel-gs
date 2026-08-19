@@ -62,6 +62,7 @@ assert.deepStrictEqual(releaseEnv.dataEnvironment, {
 delete global.wx;
 
 const tripHandler = fs.readFileSync(path.join(root, 'cloudfunctions/api/handlers/trip.js'), 'utf8');
+const apiRouter = fs.readFileSync(path.join(root, 'cloudfunctions/api/index.js'), 'utf8');
 const communityHandler = fs.readFileSync(path.join(root, 'cloudfunctions/api/handlers/community.js'), 'utf8');
 const apiClient = fs.readFileSync(path.join(root, 'miniprogram/utils/api.js'), 'utf8');
 const tripListPage = fs.readFileSync(path.join(root, 'miniprogram/pages/trip-list/trip-list.js'), 'utf8');
@@ -74,6 +75,9 @@ assert(tripHandler.includes('.limit(pageSize + 1)'));
 assert(tripHandler.includes("_id: _.lt(cursorId)"));
 assert(tripHandler.includes("excludeStatus === 'cancelled'"));
 assert(tripHandler.includes("conditions.tripStage = _.neq('cancelled')"));
+assert(tripHandler.includes('async function tripListByUser(openid, data, dataEnvironment = RUNTIME_DEFAULTS.develop)'));
+assert(tripHandler.includes('profileCondition,\n    createReadCondition(_, dataEnvironment.readEnvs)'));
+assert(apiRouter.includes('trip.tripListByUser(openid, data, dataEnvironment)'));
 assert(tripListPage.includes('pageSize: 10'));
 assert(tripListPage.includes('reqData.cursorId'));
 assert(tripListPage.includes('_skipNextOnShowRefresh'));

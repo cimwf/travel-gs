@@ -1102,14 +1102,14 @@ async function tripMy(openid) {
   return { success: true, trips };
 }
 
-async function tripListByUser(openid, data) {
+async function tripListByUser(openid, data, dataEnvironment = RUNTIME_DEFAULTS.develop) {
   const { userId, page = 1, pageSize = 10 } = data;
 
   if (!userId) {
     return { success: false, error: '用户ID不能为空' };
   }
 
-  const condition = userId === openid
+  const profileCondition = userId === openid
     ? { creatorId: userId }
     : _.and([
       { creatorId: userId },
@@ -1118,6 +1118,10 @@ async function tripListByUser(openid, data) {
         { reviewStatus: _.exists(false) }
       ])
     ]);
+  const condition = _.and([
+    profileCondition,
+    createReadCondition(_, dataEnvironment.readEnvs)
+  ]);
   const tripRes = await db.collection('trips')
     .where(condition)
     .orderBy('createdAt', 'desc')
