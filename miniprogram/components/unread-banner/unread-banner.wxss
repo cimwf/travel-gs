@@ -1,0 +1,61 @@
+.unread-banner {
+  position: fixed;
+  left: 24rpx;
+  right: 24rpx;
+  z-index: 3000;
+  height: 132rpx;
+  display: flex;
+  align-items: center;
+  padding: 0 26rpx;
+  box-sizing: border-box;
+  border: 1rpx solid rgba(39, 131, 238, .08);
+  border-radius: 28rpx;
+  background: rgba(255, 255, 255, .98);
+  box-shadow: 0 14rpx 42rpx rgba(35, 67, 105, .16);
+  opacity: 0;
+  transform: translateY(-150%);
+  transition: transform .22s ease-out, opacity .18s ease-out;
+}
+
+.unread-banner-entered {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.unread-banner-logo {
+  width: 78rpx;
+  height: 78rpx;
+  flex: none;
+  border-radius: 20rpx;
+}
+
+.unread-banner-copy {
+  flex: 1;
+  min-width: 0;
+  margin-left: 22rpx;
+}
+
+.unread-banner-title {
+  color: #17202b;
+  font-size: 29rpx;
+  line-height: 40rpx;
+  font-weight: 650;
+}
+
+.unread-banner-desc {
+  margin-top: 5rpx;
+  overflow: hidden;
+  color: #7f8997;
+  font-size: 25rpx;
+  line-height: 36rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unread-banner-arrow {
+  width: 30rpx;
+  height: 30rpx;
+  flex: none;
+  margin-left: 16rpx;
+  opacity: .7;
+}

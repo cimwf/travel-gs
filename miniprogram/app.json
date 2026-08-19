@@ -31,6 +31,9 @@
     "navigationBarTitleText": "周末约行",
     "navigationBarTextStyle": "white"
   },
+  "usingComponents": {
+    "unread-banner": "/components/unread-banner/unread-banner"
+  },
   "tabBar": {
     "color": "#999999",
     "selectedColor": "#4A90E2",

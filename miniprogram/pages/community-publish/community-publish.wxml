@@ -1,3 +1,4 @@
+<unread-banner></unread-banner>
 <!--pages/community-publish/community-publish.wxml-->
 <view class="container">
   <scroll-view class="pub-scroll" scroll-y enhanced show-scrollbar="{{false}}">

@@ -1,3 +1,4 @@
+<unread-banner></unread-banner>
 <!--pages/community/community.wxml-->
 <view class="container">
   <view class="feed-toolbar">

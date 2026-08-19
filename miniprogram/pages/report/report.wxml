@@ -1,3 +1,4 @@
+<unread-banner></unread-banner>
 <view class="report-page">
   <scroll-view class="report-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="report-content">

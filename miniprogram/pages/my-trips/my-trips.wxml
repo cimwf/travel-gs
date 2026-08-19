@@ -1,3 +1,4 @@
+<unread-banner></unread-banner>
 <!--pages/my-trips/my-trips.wxml-->
 <view class="container">
   <!-- 标签切换 -->

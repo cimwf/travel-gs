@@ -1,3 +1,4 @@
+<unread-banner></unread-banner>
 <view class="detail-page">
   <view class="status-state" wx:if="{{loading}}">
     <view class="spinner"></view>

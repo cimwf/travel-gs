@@ -1,3 +1,4 @@
+<unread-banner></unread-banner>
 <view class="likes-page">
   <view class="state" wx:if="{{loading && likes.length === 0}}">
     <view class="spinner"></view>

@@ -1,3 +1,4 @@
+<unread-banner></unread-banner>
 <!--pages/auth/auth.wxml-->
 <view class="auth-page">
   <!-- 背景光斑 -->

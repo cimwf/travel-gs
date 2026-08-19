@@ -1,3 +1,4 @@
+<unread-banner></unread-banner>
 <view class="container">
   <view class="form-card">
     <!-- 地点名称 -->

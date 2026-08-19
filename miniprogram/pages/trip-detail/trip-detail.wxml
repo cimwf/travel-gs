@@ -1,3 +1,4 @@
+<unread-banner></unread-banner>
 <!--pages/trip-detail/trip-detail.wxml-->
 <view class="detail-v2-page">
   <block wx:if="{{trip}}">

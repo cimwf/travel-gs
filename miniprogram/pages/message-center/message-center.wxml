@@ -1,3 +1,4 @@
+<unread-banner></unread-banner>
 <view class="message-page">
   <view class="message-login" wx:if="{{!isLoggedIn}}">
     <view class="message-login-icon">

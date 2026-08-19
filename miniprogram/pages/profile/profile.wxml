@@ -1,3 +1,4 @@
+<unread-banner></unread-banner>
 <view class="profile-page">
   <view class="profile-safe-area" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
 

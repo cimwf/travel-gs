@@ -249,6 +249,27 @@ test('消息中心使用系统头部并支持全部、行程和互动筛选', ()
   assert(profileJs.includes('api.notificationUnreadCount()'));
 });
 
+test('进入小程序时使用全局顶部通知提醒未读消息', () => {
+  const appJson = JSON.parse(read('miniprogram/app.json'));
+  const appJs = read('miniprogram/app.js');
+  const bannerJs = read('miniprogram/components/unread-banner/unread-banner.js');
+  const bannerWxml = read('miniprogram/components/unread-banner/unread-banner.wxml');
+  const bannerWxss = read('miniprogram/components/unread-banner/unread-banner.wxss');
+
+  assert.strictEqual(appJson.usingComponents['unread-banner'], '/components/unread-banner/unread-banner');
+  assert(appJs.includes('api.notificationUnreadCount()'), 'app foreground should query unread count');
+  assert(appJs.includes('checkUnreadNotifications();'), 'app onShow should trigger unread checking');
+  assert(bannerWxml.includes('/images/xing-logo.png'), 'banner should reuse the message center system avatar');
+  assert(bannerWxml.includes('消息通知') && bannerWxml.includes('您有 {{count}} 条未读消息'));
+  assert(bannerJs.includes("'/pages/message-center/message-center'"), 'banner tap should open message center');
+  assert(bannerJs.includes('4000'), 'banner should auto-hide after four seconds');
+  assert(bannerWxss.includes('transform: translateY(-150%)'), 'banner should animate down from the top');
+  appJson.pages.forEach((pagePath) => {
+    const pageWxml = read('miniprogram/' + pagePath + '.wxml');
+    assert(pageWxml.includes('<unread-banner></unread-banner>'), `missing global unread banner on ${pagePath}`);
+  });
+});
+
 test('trip-list UI 含筛选栏、行程卡片、空状态发布按钮和悬浮发布按钮', () => {
   const wxml = read('miniprogram/pages/trip-list/trip-list.wxml');
   ['data-filter="destination"', 'data-filter="departure"', 'data-filter="date"', 'bindtap="onPublishTrip"', 'class="trip-card"', '还没有人发起这段旅程'].forEach((needle) => {

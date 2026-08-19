@@ -1,0 +1,9 @@
+<view class="unread-banner {{entered ? 'unread-banner-entered' : ''}}" wx:if="{{visible}}"
+  style="top: {{topOffset}}px;" bindtap="onBannerTap">
+  <image class="unread-banner-logo" src="/images/xing-logo.png" mode="aspectFill"></image>
+  <view class="unread-banner-copy">
+    <view class="unread-banner-title">消息通知</view>
+    <view class="unread-banner-desc">您有 {{count}} 条未读消息</view>
+  </view>
+  <image class="unread-banner-arrow" src="/images/icon-profile-chevron.svg" mode="aspectFit"></image>
+</view>

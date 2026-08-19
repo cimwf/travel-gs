@@ -1,6 +1,7 @@
 // app.js
 const auth = require('./utils/auth.js');
 const env = require('./utils/env.js');
+const api = require('./utils/api.js');
 
 App({
   globalData: {
@@ -12,8 +13,13 @@ App({
     dataEnvironment: env.dataEnvironment,
     attractions: [],
     attractionsLoaded: false,
-    notificationsCache: null
+    notificationsCache: null,
+    unreadBanner: null
   },
+
+  _unreadBannerListeners: [],
+  _unreadCheckPromise: null,
+  _lastUnreadCheckAt: 0,
 
   // 获取景点列表（缓存到全局）
   getAttractions: async function (forceRefresh = false) {
@@ -58,6 +64,51 @@ App({
     this.getOpenid();
   },
 
+  onShow: function () {
+    auth.syncToApp(this);
+    this.checkUnreadNotifications();
+  },
+
+  checkUnreadNotifications: function () {
+    if (!this.globalData.isLoggedIn || !this.globalData.openid) return Promise.resolve(null);
+    if (this._unreadCheckPromise) return this._unreadCheckPromise;
+    if (Date.now() - this._lastUnreadCheckAt < 1500) return Promise.resolve(null);
+
+    this._lastUnreadCheckAt = Date.now();
+    const request = api.notificationUnreadCount().then((result) => {
+      const count = Math.max(0, Number(result && result.count) || 0);
+      if (count <= 0) {
+        this.clearUnreadBanner();
+        return null;
+      }
+      const banner = { count, token: Date.now() };
+      this.globalData.unreadBanner = banner;
+      this._unreadBannerListeners.slice().forEach((listener) => listener(banner));
+      return banner;
+    }).catch((err) => {
+      console.warn('检查未读消息失败', err);
+      return null;
+    }).then((result) => {
+      if (this._unreadCheckPromise === request) this._unreadCheckPromise = null;
+      return result;
+    });
+    this._unreadCheckPromise = request;
+    return request;
+  },
+
+  subscribeUnreadBanner: function (listener) {
+    if (typeof listener !== 'function') return function () {};
+    this._unreadBannerListeners.push(listener);
+    if (this.globalData.unreadBanner) listener(this.globalData.unreadBanner);
+    return () => {
+      this._unreadBannerListeners = this._unreadBannerListeners.filter((item) => item !== listener);
+    };
+  },
+
+  clearUnreadBanner: function () {
+    this.globalData.unreadBanner = null;
+  },
+
   // 检查登录状态 - 从本地存储恢复
   checkLoginStatus: function () {
     const userInfo = wx.getStorageSync('userInfo');
@@ -93,6 +144,7 @@ App({
           const openid = res.result.openid;
           this.globalData.openid = openid;
           wx.setStorageSync('openid', openid);
+          if (this.globalData.isLoggedIn) this.checkUnreadNotifications();
           resolve(openid);
         },
         fail: err => {

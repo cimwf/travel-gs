@@ -1,3 +1,4 @@
+<unread-banner></unread-banner>
 <!-- pages/edit-profile/edit-profile.wxml -->
 <view class="edit-page">
   <view class="avatar-section">

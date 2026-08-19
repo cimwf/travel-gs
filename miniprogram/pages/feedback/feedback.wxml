@@ -1,3 +1,4 @@
+<unread-banner></unread-banner>
 <!--pages/feedback/feedback.wxml-->
 <view class="container">
   <!-- 表单内容 -->

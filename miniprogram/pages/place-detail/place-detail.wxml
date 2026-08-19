@@ -1,3 +1,4 @@
+<unread-banner></unread-banner>
 <!--pages/place-detail/place-detail.wxml-->
 <view class="container">
   <view class="place-load-error" wx:if="{{loadError}}">

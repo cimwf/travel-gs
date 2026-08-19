@@ -1,3 +1,4 @@
+<unread-banner></unread-banner>
 <view class="container">
   <scroll-view class="list-scroll" scroll-y enhanced show-scrollbar="{{false}}"
     refresher-enabled="{{true}}" refresher-triggered="{{refreshing}}"

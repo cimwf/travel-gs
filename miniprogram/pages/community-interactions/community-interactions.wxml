@@ -1,3 +1,4 @@
+<unread-banner></unread-banner>
 <view class="interaction-page">
   <view class="interaction-tabs">
     <view class="interaction-tab {{activeTab === 'liked' ? 'interaction-tab-active' : ''}}"

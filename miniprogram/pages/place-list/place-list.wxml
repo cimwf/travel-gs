@@ -1,3 +1,4 @@
+<unread-banner></unread-banner>
 <!--pages/place-list/place-list.wxml-->
 <view class="container">
   <!-- 景点列表 -->

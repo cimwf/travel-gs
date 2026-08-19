@@ -1,3 +1,4 @@
+<unread-banner></unread-banner>
 <view class="follow-page">
   <view class="follow-tabs">
     <view class="follow-tab {{activeTab === 'following' ? 'follow-tab-active' : ''}}"
