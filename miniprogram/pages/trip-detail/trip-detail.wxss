@@ -594,6 +594,16 @@ page {
   border: 2rpx solid var(--border-color);
 }
 
+.footer-share-button {
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.footer-share-button::after {
+  border: none;
+}
+
 /* 危险按钮（红色） */
 .footer-btn-danger {
   flex: 1;

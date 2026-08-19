@@ -611,6 +611,16 @@ test('申请加入行程直接发送，不再填写手机号和备注', () => {
   assert(!appJson.includes('pages/trip-notifications/trip-notifications'), 'old trip notification page should be removed');
 });
 
+test('未加入用户可在行程详情同时申请加入和分享行程', () => {
+  const wxml = read('miniprogram/pages/trip-detail/trip-detail.wxml');
+  const wxss = read('miniprogram/pages/trip-detail/trip-detail.wxss');
+  const unjoinedSection = wxml.slice(wxml.indexOf('<!-- 未加入视角：申请加入 / 分享行程 -->'));
+
+  assert(unjoinedSection.includes('bindtap="onJoinTap"'), 'unjoined footer should keep the join action');
+  assert(unjoinedSection.includes('open-type="share">分享行程</button>'), 'unjoined footer should expose trip sharing');
+  assert(wxss.includes('.footer-share-button::after'), 'share button should reset the native button border');
+});
+
 test('行程和地点详情加载失败时不展示模拟数据', () => {
   const tripJs = read('miniprogram/pages/trip-detail/trip-detail.js');
   const tripWxml = read('miniprogram/pages/trip-detail/trip-detail.wxml');

@@ -338,11 +338,12 @@
     </block>
   </block>
 
-  <!-- 未加入视角：申请加入 -->
+  <!-- 未加入视角：申请加入 / 分享行程 -->
   <block wx:else>
     <view class="footer-btn-full {{canJoin ? '' : 'disabled'}}" bindtap="onJoinTap">
       <text>{{joinBtnText}}</text>
     </view>
+    <button class="footer-btn-secondary footer-share-button" open-type="share">分享行程</button>
   </block>
 </view>
 
