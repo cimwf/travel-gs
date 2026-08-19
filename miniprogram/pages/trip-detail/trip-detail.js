@@ -18,6 +18,8 @@ Page({
     hasJoined: false,
     isCreator: false,
     applySubmitting: false,
+    showJoinApplication: false,
+    joinMessage: '',
     userInfo: null,
     showMemberModal: false,
     selectedMember: null,
@@ -1054,7 +1056,7 @@ Page({
     });
   },
 
-  onJoinTap: async function () {
+  onJoinTap: function () {
     auth.saveDeepLink(`/pages/trip-detail/trip-detail?id=${this.data.tripId}`);
     if (!auth.ensureLogin()) {
       return;
@@ -1071,12 +1073,37 @@ Page({
       return;
     }
 
+    this.setData({ showJoinApplication: true, joinMessage: '' });
+  },
+
+  onJoinMessageInput: function (event) {
+    this.setData({ joinMessage: event.detail.value || '' });
+  },
+
+  onCloseJoinApplication: function () {
+    if (this.data.applySubmitting) return;
+    this.setData({ showJoinApplication: false, joinMessage: '' });
+  },
+
+  onSubmitJoinApplication: async function () {
+    if (!this.data.showJoinApplication || this.data.applySubmitting) return;
+    const trip = this.data.trip;
+    if (!trip || !trip._id) return;
+
+    const message = String(this.data.joinMessage || '').trim();
+    if (message.length > 200) {
+      wx.showToast({ title: '留言不能超过200字', icon: 'none' });
+      return;
+    }
+
     this.setData({ applySubmitting: true });
     wx.showLoading({ title: '发送中...', mask: true });
     try {
-      await api.applyCreate({ tripId: trip._id });
+      await api.applyCreate({ tripId: trip._id, message: message });
       this.setData({
         applySubmitting: false,
+        showJoinApplication: false,
+        joinMessage: '',
         canJoin: false,
         joinBtnText: '申请已发送'
       });

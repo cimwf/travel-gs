@@ -18,7 +18,10 @@ Page({
       trip: 0,
       interaction: 0
     },
-    handlingApplyId: ''
+    handlingApplyId: '',
+    showApplyMessageModal: false,
+    selectedApplyMessage: null,
+    selectedApplyIndex: -1
   },
 
   onLoad: function () {
@@ -146,6 +149,7 @@ Page({
       isTripApply: isTripApply,
       applyId: item.applyId || '',
       applyStatus: item.applyStatus || '',
+      applyMessage: item.applyMessage || '',
       tripId: item.tripId || '',
       tripTitle: item.tripTitle || preview || '行程'
     };
@@ -198,8 +202,28 @@ Page({
     if (!message) return;
 
     this.markOneRead(message, index);
-    if (message.isTripApply) return;
+    if (message.isTripApply) {
+      this.setData({
+        showApplyMessageModal: true,
+        selectedApplyMessage: message,
+        selectedApplyIndex: index
+      });
+      return;
+    }
     this.openMessageTarget(message);
+  },
+
+  onCloseApplyMessage: function () {
+    this.setData({
+      showApplyMessageModal: false,
+      selectedApplyMessage: null,
+      selectedApplyIndex: -1
+    });
+  },
+
+  onApplyModalAction: function (event) {
+    this.onCloseApplyMessage();
+    this.onApplyAction(event);
   },
 
   markOneRead: function (message, index) {

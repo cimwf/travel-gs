@@ -304,7 +304,7 @@ async function installCoreMock(miniProgram, reset = false) {
           toUserId: trip.creatorId,
           toUserName: trip.creatorName,
           contactValue: '',
-          message: '',
+          message: data.message || '',
           status: 'pending',
           createdAt: nowText()
         });
@@ -330,6 +330,7 @@ async function installCoreMock(miniProgram, reset = false) {
             createdAt: apply.createdAt,
             applyId: apply._id,
             applyStatus: apply.status,
+            applyMessage: apply.message || '',
             tripId: apply.tripId,
             tripTitle: trip.tripTitle || trip.placeName || '行程'
           };
@@ -492,6 +493,8 @@ async function applyToTrip(miniProgram, tripId) {
 
   const join = await assertExists(page, '.footer-btn-full', 'join button');
   await join.tap();
+  const sendApply = await assertExists(page, '.join-application-submit', 'send application button');
+  await sendApply.tap();
   await page.waitFor(1000);
 
   const db = await getMockDb(miniProgram);

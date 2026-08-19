@@ -347,6 +347,26 @@
   </block>
 </view>
 
+<!-- 申请加入留言弹窗 -->
+<view class="join-application-mask" wx:if="{{showJoinApplication}}" bindtap="onCloseJoinApplication">
+  <view class="join-application-sheet" catchtap>
+    <view class="join-application-handle"></view>
+    <view class="join-application-title">申请加入</view>
+    <view class="join-application-trip">申请加入「{{trip.tripTitle || trip.placeName || '行程'}}」</view>
+    <view class="join-application-label">留言 <text>选填</text></view>
+    <textarea class="join-application-input" value="{{joinMessage}}" maxlength="200"
+      placeholder="留句话吧，让发起人更了解你" disabled="{{applySubmitting}}"
+      bindinput="onJoinMessageInput"></textarea>
+    <view class="join-application-count">{{joinMessage.length}}/200</view>
+    <view class="join-application-actions">
+      <view class="join-application-cancel" bindtap="onCloseJoinApplication">暂不发送</view>
+      <view class="join-application-submit {{applySubmitting ? 'disabled' : ''}}" bindtap="onSubmitJoinApplication">
+        {{applySubmitting ? '发送中...' : '发送申请'}}
+      </view>
+    </view>
+  </view>
+</view>
+
 <!-- 发布日志弹窗 -->
 <view class="publish-modal-mask detail-v2-publish-mask" wx:if="{{showPublishModal}}" bindtap="onClosePublishModal">
   <view class="publish-modal detail-v2-publish-sheet" catchtap>

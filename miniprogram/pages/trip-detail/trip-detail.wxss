@@ -638,6 +638,117 @@ page {
   box-shadow: none;
 }
 
+/* ========== 申请加入留言弹窗 ========== */
+.join-application-mask {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(18, 25, 38, .48);
+}
+
+.join-application-sheet {
+  width: 100%;
+  padding: 18rpx 32rpx 28rpx;
+  padding-bottom: calc(28rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  border-radius: 34rpx 34rpx 0 0;
+  background: #ffffff;
+}
+
+.join-application-handle {
+  width: 72rpx;
+  height: 8rpx;
+  margin: 0 auto 26rpx;
+  border-radius: 8rpx;
+  background: #d6dbe3;
+}
+
+.join-application-title {
+  color: #172033;
+  font-size: 36rpx;
+  line-height: 50rpx;
+  font-weight: 650;
+  text-align: center;
+}
+
+.join-application-trip {
+  margin-top: 22rpx;
+  color: #303a4b;
+  font-size: 28rpx;
+  line-height: 42rpx;
+}
+
+.join-application-label {
+  margin-top: 30rpx;
+  color: #4c5768;
+  font-size: 27rpx;
+}
+
+.join-application-label text {
+  margin-left: 12rpx;
+  color: #9aa4b2;
+  font-size: 23rpx;
+}
+
+.join-application-input {
+  width: 100%;
+  min-height: 250rpx;
+  margin-top: 14rpx;
+  padding: 24rpx;
+  box-sizing: border-box;
+  border-radius: 18rpx;
+  background: #f6f8fa;
+  color: #303a4b;
+  font-size: 28rpx;
+  line-height: 44rpx;
+}
+
+.join-application-count {
+  margin: -40rpx 18rpx 0 0;
+  color: #a6afbc;
+  font-size: 22rpx;
+  text-align: right;
+}
+
+.join-application-actions {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-top: 44rpx;
+}
+
+.join-application-cancel,
+.join-application-submit {
+  height: 84rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 44rpx;
+  font-size: 29rpx;
+}
+
+.join-application-cancel {
+  width: 190rpx;
+  color: #4e596b;
+}
+
+.join-application-submit {
+  flex: 1;
+  background: #2f80ed;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 8rpx 22rpx rgba(47, 128, 237, .2);
+}
+
+.join-application-submit.disabled {
+  opacity: .55;
+}
+
 /* ========== 已加入状态标签 ========== */
 .status-joined {
   background: rgba(82, 196, 26, 0.9);

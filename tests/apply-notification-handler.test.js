@@ -109,6 +109,13 @@ delete require.cache[handlerPath];
 const apply = require(handlerPath);
 
 async function main() {
+  const tooLong = await apply.applyCreate('openid-applicant', {
+    tripId: 'trip-1',
+    message: '长'.repeat(201)
+  });
+  assert.strictEqual(tooLong.success, false);
+  assert.strictEqual(tooLong.error, '申请留言不能超过200字');
+
   const created = await apply.applyCreate('openid-applicant', {
     tripId: 'trip-1',
     placeName: '京西古道',
@@ -118,6 +125,7 @@ async function main() {
   });
   assert.strictEqual(created.success, true);
   assert.strictEqual(state.applies.length, 2);
+  assert(state.applies.every(item => item.message === '想一起徒步'));
   assert(Object.values(state.notifications).some(item =>
     item.type === 'trip_apply_received' && item.receiverId === 'openid-creator'));
 
@@ -154,7 +162,7 @@ async function main() {
   assert(Object.values(state.notifications).some(item =>
     item.type === 'trip_apply_cancelled' && item.receiverId === 'openid-creator'));
 
-  console.log('PASS trip application handles direct apply, approval notice and silent rejection');
+  console.log('PASS trip application stores optional messages, approval notice and silent rejection');
 }
 
 main().catch(error => {

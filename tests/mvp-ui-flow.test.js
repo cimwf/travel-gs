@@ -232,6 +232,12 @@ test('消息中心使用系统头部并支持全部、行程和互动筛选', ()
   ['申请加入「{{item.tripTitle}}」', 'data-accept="false">拒绝', 'data-accept="true">同意', '已同意', '已拒绝'].forEach((needle) => {
     assert(wxml.includes(needle), `message-center missing application UI ${needle}`);
   });
+  ['class="message-apply-message"', 'class="message-apply-modal-mask"', '申请详情', 'selectedApplyMessage.applyMessage'].forEach((needle) => {
+    assert(wxml.includes(needle), `message-center missing application message UI ${needle}`);
+  });
+  const wxss = read('miniprogram/pages/message-center/message-center.wxss');
+  assert(wxss.includes('-webkit-line-clamp: 2'), 'application message preview should be limited to two lines');
+  assert(js.includes('showApplyMessageModal: true'), 'tapping an application notification should open the full message');
   assert(!js.includes('/pages/trip-notifications/trip-notifications'), 'message center should not use the old trip notification page');
   assert(js.includes("'/images/xing-logo.png'"), 'system notifications should use the product logo');
   assert(!wxml.includes('message-trip-avatar'), 'trip notification avatars should stay circular');
@@ -599,15 +605,18 @@ test('关注与粉丝页面使用选定胶囊标签方案并支持关注状态',
   assert(handler.includes('runTransaction'), 'follow toggle should update relation and counters atomically');
 });
 
-test('申请加入行程直接发送，不再填写手机号和备注', () => {
+test('申请加入行程填写可选留言，不再收集联系方式', () => {
   const tripDetail = read('miniprogram/pages/trip-detail/trip-detail.js');
+  const tripDetailWxml = read('miniprogram/pages/trip-detail/trip-detail.wxml');
   const placeDetail = read('miniprogram/pages/place-detail/place-detail.js');
   const appJson = read('miniprogram/app.json');
-  [tripDetail, placeDetail].forEach((js) => {
-    assert(js.includes('api.applyCreate({'), 'apply entry should call applyCreate directly');
-    assert(!js.includes('contactValue:') && !js.includes('message:'), 'direct application should not submit contact or remarks');
-    assert(js.includes("title: '申请已发送'"), 'direct application should confirm it was sent');
+  assert(tripDetail.includes('api.applyCreate({ tripId: trip._id, message: message })'), 'trip application should submit the optional message');
+  assert(!tripDetail.includes('contactValue:'), 'trip application should not collect contact details');
+  ['申请加入', '留句话吧，让发起人更了解你', 'maxlength="200"', '暂不发送', '发送申请'].forEach((needle) => {
+    assert(tripDetailWxml.includes(needle), `trip application modal missing ${needle}`);
   });
+  assert(placeDetail.includes('api.applyCreate({ tripId })'), 'place detail should keep its existing direct application');
+  assert(tripDetail.includes("title: '申请已发送'") && placeDetail.includes("title: '申请已发送'"), 'application entry should confirm it was sent');
   assert(!appJson.includes('pages/trip-notifications/trip-notifications'), 'old trip notification page should be removed');
 });
 

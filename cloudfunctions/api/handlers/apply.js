@@ -69,9 +69,13 @@ async function getTripCardCover(tripData, fallbackCover = '') {
 
 async function applyCreate(openid, data) {
   const tripId = String(data && data.tripId || '').trim();
+  const message = String(data && data.message || '').trim();
 
   if (!tripId) {
     return { success: false, error: '行程ID不能为空' };
+  }
+  if (message.length > 200) {
+    return { success: false, error: '申请留言不能超过200字' };
   }
 
   const userRes = await db.collection('users').where({ openid }).get();
@@ -128,7 +132,7 @@ async function applyCreate(openid, data) {
     toUserName: tripData.creatorName || '',
     contactType: '',
     contactValue: '',
-    message: '',
+    message,
     status: 'pending',
     groupId,
     createdAt: now

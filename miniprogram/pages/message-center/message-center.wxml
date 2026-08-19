@@ -69,6 +69,7 @@
               <text class="message-time">{{item.timeText}}</text>
             </view>
             <view class="message-apply-title">申请加入「{{item.tripTitle}}」</view>
+            <view class="message-apply-message" wx:if="{{item.applyMessage}}">{{item.applyMessage}}</view>
             <view class="message-apply-actions" wx:if="{{item.applyStatus === 'pending'}}">
               <view class="message-apply-btn message-apply-reject {{handlingApplyId === item.applyId ? 'message-apply-disabled' : ''}}"
                 catchtap="onApplyAction" data-index="{{index}}" data-accept="false">拒绝</view>
@@ -110,4 +111,39 @@
     <view class="message-load-more" wx:if="{{!loading && !loadingMore && visibleMessages.length > 0 && !hasMore}}">— 没有更多了 —</view>
     <view class="message-safe-bottom"></view>
   </block>
+</view>
+
+<!-- 行程申请完整留言 -->
+<view class="message-apply-modal-mask" wx:if="{{showApplyMessageModal}}" bindtap="onCloseApplyMessage">
+  <view class="message-apply-modal" catchtap>
+    <view class="message-apply-modal-handle"></view>
+    <view class="message-apply-modal-head">
+      <view class="message-apply-modal-title">申请详情</view>
+      <view class="message-apply-modal-close" bindtap="onCloseApplyMessage">
+        <image src="/images/icon-close-gray.png" mode="aspectFit"></image>
+      </view>
+    </view>
+    <view class="message-apply-modal-user">
+      <image class="message-apply-modal-avatar" wx:if="{{selectedApplyMessage.avatar}}"
+        src="{{selectedApplyMessage.avatar}}" mode="aspectFill"></image>
+      <view class="message-apply-modal-avatar message-avatar-fallback" wx:else>{{selectedApplyMessage.avatarText}}</view>
+      <view class="message-apply-modal-user-copy">
+        <view class="message-apply-modal-name">{{selectedApplyMessage.title}}</view>
+        <view class="message-apply-modal-trip">申请加入「{{selectedApplyMessage.tripTitle}}」</view>
+      </view>
+    </view>
+    <view class="message-apply-modal-divider"></view>
+    <view class="message-apply-modal-label">留言</view>
+    <view class="message-apply-modal-content {{selectedApplyMessage.applyMessage ? '' : 'message-apply-modal-empty'}}">
+      {{selectedApplyMessage.applyMessage || '申请人未填写留言'}}
+    </view>
+    <view class="message-apply-modal-actions" wx:if="{{selectedApplyMessage.applyStatus === 'pending'}}">
+      <view class="message-apply-modal-btn message-apply-modal-reject" catchtap="onApplyModalAction"
+        data-index="{{selectedApplyIndex}}" data-accept="false">拒绝</view>
+      <view class="message-apply-modal-btn message-apply-modal-agree" catchtap="onApplyModalAction"
+        data-index="{{selectedApplyIndex}}" data-accept="true">同意申请</view>
+    </view>
+    <view class="message-apply-modal-status" wx:elif="{{selectedApplyMessage.applyStatus === 'accepted'}}">该申请已同意</view>
+    <view class="message-apply-modal-status" wx:elif="{{selectedApplyMessage.applyStatus === 'rejected'}}">该申请已拒绝</view>
+  </view>
 </view>

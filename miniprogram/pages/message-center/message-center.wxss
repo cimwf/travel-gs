@@ -137,6 +137,19 @@ page {
   line-height: 40rpx;
 }
 
+.message-apply-message {
+  display: -webkit-box;
+  margin-top: 10rpx;
+  overflow: hidden;
+  color: #7f8997;
+  font-size: 25rpx;
+  line-height: 36rpx;
+  text-overflow: ellipsis;
+  word-break: break-all;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 .message-apply-actions {
   display: flex;
   justify-content: flex-end;
@@ -373,4 +386,161 @@ page {
 
 .message-safe-bottom {
   height: calc(40rpx + env(safe-area-inset-bottom));
+}
+
+/* 行程申请完整留言弹窗 */
+.message-apply-modal-mask {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(18, 25, 38, .48);
+}
+
+.message-apply-modal {
+  width: 100%;
+  min-height: 620rpx;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 18rpx 34rpx 28rpx;
+  padding-bottom: calc(28rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  border-radius: 34rpx 34rpx 0 0;
+  background: #ffffff;
+}
+
+.message-apply-modal-handle {
+  width: 72rpx;
+  height: 8rpx;
+  margin: 0 auto 20rpx;
+  border-radius: 8rpx;
+  background: #d6dbe3;
+}
+
+.message-apply-modal-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.message-apply-modal-title {
+  color: #17202b;
+  font-size: 34rpx;
+  font-weight: 650;
+}
+
+.message-apply-modal-close {
+  position: absolute;
+  right: -4rpx;
+  top: -12rpx;
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.message-apply-modal-close image {
+  width: 28rpx;
+  height: 28rpx;
+}
+
+.message-apply-modal-user {
+  display: flex;
+  align-items: center;
+  margin-top: 42rpx;
+}
+
+.message-apply-modal-avatar {
+  width: 92rpx;
+  height: 92rpx;
+  flex: none;
+  border-radius: 50%;
+  background: #eaf4ff;
+}
+
+.message-apply-modal-user-copy {
+  min-width: 0;
+  margin-left: 20rpx;
+}
+
+.message-apply-modal-name {
+  color: #17202b;
+  font-size: 30rpx;
+  font-weight: 650;
+}
+
+.message-apply-modal-trip {
+  margin-top: 8rpx;
+  overflow: hidden;
+  color: #4e596b;
+  font-size: 25rpx;
+  line-height: 36rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.message-apply-modal-divider {
+  height: 1rpx;
+  margin-top: 32rpx;
+  background: #e8edf3;
+}
+
+.message-apply-modal-label {
+  margin-top: 30rpx;
+  color: #6f7a8b;
+  font-size: 25rpx;
+}
+
+.message-apply-modal-content {
+  margin-top: 16rpx;
+  color: #17202b;
+  font-size: 29rpx;
+  line-height: 48rpx;
+  word-break: break-all;
+}
+
+.message-apply-modal-empty {
+  color: #9aa4b2;
+}
+
+.message-apply-modal-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 48rpx;
+}
+
+.message-apply-modal-btn {
+  height: 84rpx;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 44rpx;
+  box-sizing: border-box;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.message-apply-modal-reject {
+  border: 2rpx solid #2783ee;
+  background: #ffffff;
+  color: #2783ee;
+}
+
+.message-apply-modal-agree {
+  background: #2783ee;
+  color: #ffffff;
+}
+
+.message-apply-modal-status {
+  margin-top: 48rpx;
+  color: #8b95a5;
+  font-size: 26rpx;
+  text-align: center;
 }

@@ -77,7 +77,7 @@ const db = {
           return {
             async get() {
               if (id !== 'apply-1') return { data: null };
-              return { data: { _id: id, ownerId: 'me', toUserId: 'me', tripId: 'trip-1', tripTitle: '周末徒步', status: 'pending' } };
+              return { data: { _id: id, ownerId: 'me', toUserId: 'me', tripId: 'trip-1', tripTitle: '周末徒步', message: '想一起徒步', status: 'pending' } };
             }
           };
         }
@@ -139,6 +139,7 @@ async function main() {
   assert.strictEqual(applicationNotification.applyId, 'apply-1');
   assert.strictEqual(applicationNotification.applyStatus, 'pending');
   assert.strictEqual(applicationNotification.tripTitle, '周末徒步');
+  assert.strictEqual(applicationNotification.applyMessage, '想一起徒步');
 
   const interactions = await notification.notificationList('me', {
     category: 'interaction',

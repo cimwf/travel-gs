@@ -129,6 +129,7 @@ async function enrichTripApplications(openid, notifications) {
       item.applyStatus = apply.status || 'pending';
       item.tripId = apply.tripId || '';
       item.tripTitle = apply.tripTitle || apply.placeName || item.content || '行程';
+      item.applyMessage = String(apply.message || '').trim();
     } catch (err) {
       console.warn('加载行程申请状态失败:', err.message || err);
       item.applyId = '';
