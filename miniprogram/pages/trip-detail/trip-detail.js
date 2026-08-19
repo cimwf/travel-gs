@@ -42,6 +42,7 @@ Page({
     commentsError: false,
     commentsHasMore: true,
     commentDraft: '',
+    commentImages: [],
     commentPlaceholder: '说点什么…',
     replyTarget: null,
     inputFocused: false,
@@ -466,6 +467,7 @@ Page({
     const tripCreatorId = this.data.trip && this.data.trip.creatorId || '';
     return {
       ...reply,
+      imageUrls: (reply.images || []).map(image => image.url || '').filter(Boolean),
       timeText: reply.timeText || this.formatCommentTime(reply.createdAt),
       canDelete: !!currentUserId && (reply.authorId === currentUserId || tripCreatorId === currentUserId)
     };
@@ -476,6 +478,7 @@ Page({
     const tripCreatorId = this.data.trip && this.data.trip.creatorId || '';
     return {
       ...comment,
+      imageUrls: (comment.images || []).map(image => image.url || '').filter(Boolean),
       timeText: comment.timeText || this.formatCommentTime(comment.createdAt),
       replyCount: Math.max(0, Number(comment.replyCount) || 0),
       replies: (comment.replies || []).map(reply => this.formatTripReply(reply)),
@@ -552,9 +555,67 @@ Page({
     this.setData({ inputFocused: false });
   },
 
+  onChooseCommentImages: function () {
+    if (this.data.submittingComment) return;
+    if (!auth.ensureLogin()) {
+      if (this.data.trip) {
+        auth.saveDeepLink(`/pages/trip-detail/trip-detail?id=${encodeURIComponent(this.data.trip._id)}`);
+      }
+      return;
+    }
+    const remaining = 3 - this.data.commentImages.length;
+    if (remaining <= 0) {
+      wx.showToast({ title: '最多选择3张图片', icon: 'none' });
+      return;
+    }
+    wx.chooseMedia({
+      count: remaining,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      sizeType: ['compressed'],
+      success: result => {
+        const selected = (result.tempFiles || []).map((file, index) => ({
+          id: `trip_comment_img_${Date.now()}_${index}`,
+          path: file.tempFilePath,
+          size: Number(file.size) || 0
+        }));
+        this.setData({
+          commentImages: this.data.commentImages.concat(selected).slice(0, 3),
+          inputFocused: true
+        });
+      }
+    });
+  },
+
+  onRemoveCommentImage: function (e) {
+    if (this.data.submittingComment) return;
+    const id = e.currentTarget.dataset.id;
+    this.setData({ commentImages: this.data.commentImages.filter(image => image.id !== id) });
+  },
+
+  onPreviewCommentDraftImage: function (e) {
+    const urls = this.data.commentImages.map(image => image.path);
+    if (urls.length > 0) wx.previewImage({ urls, current: e.currentTarget.dataset.current || urls[0] });
+  },
+
+  uploadCommentImages: function () {
+    if (!this.data.commentImages.length) {
+      return Promise.resolve({ images: [], uploadSessionId: '' });
+    }
+    return tripMediaUpload.uploadFiles({
+      tripId: this.data.trip._id,
+      purpose: 'comment',
+      files: this.data.commentImages.map(image => ({ tempFilePath: image.path }))
+    }).then(result => ({
+      images: result.media || [],
+      uploadSessionId: result.sessionId || ''
+    }));
+  },
+
   onCommentConfirm: function () {
     const content = String(this.data.commentDraft || '').trim();
-    if (!content || !this.data.trip || this.data.submittingComment) return;
+    const hasImages = this.data.commentImages.length > 0;
+    if ((!content && !hasImages) || !this.data.trip || this.data.submittingComment) return;
     if (!auth.ensureLogin()) {
       auth.saveDeepLink(`/pages/trip-detail/trip-detail?id=${encodeURIComponent(this.data.trip._id)}`);
       return;
@@ -562,7 +623,9 @@ Page({
     const replyTarget = this.data.replyTarget;
     this.setData({ submittingComment: true });
     wx.showLoading({ title: replyTarget ? '回复中...' : '评论中...', mask: true });
-    api.tripCommentCreate(this.data.trip._id, content, replyTarget).then(result => {
+    this.uploadCommentImages().then(media => {
+      return api.tripCommentCreate(this.data.trip._id, content, replyTarget, media);
+    }).then(result => {
       const nextComments = this.data.comments.slice();
       if (result.isReply) {
         const rootIndex = nextComments.findIndex(item => item._id === result.rootCommentId);
@@ -578,6 +641,7 @@ Page({
       this.setData({
         comments: nextComments,
         commentDraft: '',
+        commentImages: [],
         commentPlaceholder: '说点什么…',
         replyTarget: null,
         inputFocused: false,

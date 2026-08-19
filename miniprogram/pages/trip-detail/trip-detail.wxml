@@ -195,7 +195,13 @@
                   catchtap="onCommentAuthorTap" data-user-id="{{item.authorId}}">{{item.authorName ? item.authorName[0] : '旅'}}</view>
                 <view class="detail-v2-comment-main">
                   <view class="detail-v2-comment-author" catchtap="onCommentAuthorTap" data-user-id="{{item.authorId}}">{{item.authorName || '旅行者'}}</view>
-                  <view class="detail-v2-comment-content">{{item.content}}</view>
+                  <view class="detail-v2-comment-content" wx:if="{{item.content}}">{{item.content}}</view>
+                  <view class="detail-v2-comment-images count-{{item.imageUrls.length}}"
+                    wx:if="{{item.imageUrls && item.imageUrls.length}}">
+                    <image class="detail-v2-comment-image" wx:for="{{item.imageUrls}}" wx:for-item="commentImage"
+                      wx:key="*this" src="{{commentImage}}" mode="aspectFill"
+                      bindtap="onPreviewImage" data-urls="{{item.imageUrls}}" data-current="{{commentImage}}"></image>
+                  </view>
                   <view class="detail-v2-comment-footer">
                     <text class="detail-v2-comment-time">{{item.timeText}}</text>
                     <text class="detail-v2-comment-reply" catchtap="onReplyTap"
@@ -218,7 +224,13 @@
                       <text class="detail-v2-reply-author">{{reply.authorName || '旅行者'}}</text>
                       <text class="detail-v2-reply-word"> 回复 </text>
                       <text class="detail-v2-reply-target">{{reply.replyToUserName || '旅行者'}}</text>
-                      <text>：{{reply.content}}</text>
+                      <text wx:if="{{reply.content}}">：{{reply.content}}</text>
+                    </view>
+                    <view class="detail-v2-comment-images detail-v2-reply-images count-{{reply.imageUrls.length}}"
+                      wx:if="{{reply.imageUrls && reply.imageUrls.length}}">
+                      <image class="detail-v2-comment-image" wx:for="{{reply.imageUrls}}" wx:for-item="replyImage"
+                        wx:key="*this" src="{{replyImage}}" mode="aspectFill"
+                        bindtap="onPreviewImage" data-urls="{{reply.imageUrls}}" data-current="{{replyImage}}"></image>
                     </view>
                     <view class="detail-v2-comment-footer">
                       <text class="detail-v2-comment-time">{{reply.timeText}}</text>
@@ -258,13 +270,29 @@
 <!-- 底部按钮区域 -->
 <view class="footer-bar detail-v2-footer" wx:if="{{trip}}">
   <block wx:if="{{activeTab === 'comment'}}">
-    <input class="detail-v2-comment-input" value="{{commentDraft}}" placeholder="{{commentPlaceholder}}"
-      maxlength="300" confirm-type="send" focus="{{inputFocused}}" disabled="{{submittingComment}}"
-      bindtap="onCommentInputTap" bindinput="onCommentInput" bindfocus="onCommentFocus"
-      bindblur="onCommentBlur" bindconfirm="onCommentConfirm"></input>
-    <view class="detail-v2-footer-log" bindtap="onPublishLogTap">
-      <image src="/images/icon-plus-blue.png" mode="aspectFit"></image>
-      <text>发布日志</text>
+    <view class="detail-v2-comment-composer">
+      <view class="detail-v2-comment-draft-images" wx:if="{{commentImages.length}}">
+        <view class="detail-v2-comment-draft-image-wrap" wx:for="{{commentImages}}" wx:key="id">
+          <image class="detail-v2-comment-draft-image" src="{{item.path}}" mode="aspectFill"
+            bindtap="onPreviewCommentDraftImage" data-current="{{item.path}}"></image>
+          <view class="detail-v2-comment-draft-remove" catchtap="onRemoveCommentImage" data-id="{{item.id}}">
+            <image src="/images/icon-close-white.png" mode="aspectFit"></image>
+          </view>
+        </view>
+      </view>
+      <view class="detail-v2-comment-composer-row">
+        <view class="detail-v2-comment-media" bindtap="onChooseCommentImages">
+          <image src="/images/icon-camera-blue.png" mode="aspectFit"></image>
+        </view>
+        <input class="detail-v2-comment-input" value="{{commentDraft}}" placeholder="{{commentPlaceholder}}"
+          maxlength="300" confirm-type="send" focus="{{inputFocused}}" disabled="{{submittingComment}}"
+          bindtap="onCommentInputTap" bindinput="onCommentInput" bindfocus="onCommentFocus"
+          bindblur="onCommentBlur" bindconfirm="onCommentConfirm"></input>
+        <view class="detail-v2-footer-log" bindtap="onPublishLogTap">
+          <image src="/images/icon-plus-blue.png" mode="aspectFit"></image>
+          <text>发布日志</text>
+        </view>
+      </view>
     </view>
   </block>
   <block wx:elif="{{activeTab === 'log'}}">

@@ -35,6 +35,10 @@ const state = {
   replies: {},
   tripLogAudits: {},
   tripLogs: {},
+  tripCommentAudits: {},
+  tripComments: {},
+  tripReplies: {},
+  trips: {},
   transactionConflictsRemaining: 0
 };
 
@@ -46,6 +50,10 @@ function collectionStore(name) {
   if (name === 'community_comment_replies') return state.replies;
   if (name === 'trip_log_image_audits') return state.tripLogAudits;
   if (name === 'trip_logs') return state.tripLogs;
+  if (name === 'trip_comment_image_audits') return state.tripCommentAudits;
+  if (name === 'trip_comments') return state.tripComments;
+  if (name === 'trip_comment_replies') return state.tripReplies;
+  if (name === 'trips') return state.trips;
   throw new Error(`Unexpected collection: ${name}`);
 }
 
@@ -290,7 +298,43 @@ async function main() {
   assert.strictEqual(state.comments['root-1'].replyCount, 0);
   assert.strictEqual(state.posts['post-1'].commentCount, 1);
 
-  console.log('PASS media check callback handles posts, trip logs and comment images');
+  state.tripCommentAudits['trip-comment-trace-1'] = {
+    traceId: 'trip-comment-trace-1', commentId: 'trip-comment-1',
+    commentTargetType: 'comment', suggest: 'pending'
+  };
+  state.tripComments['trip-comment-1'] = {
+    _id: 'trip-comment-1', tripId: 'trip-1', status: 'active', replyCount: 0,
+    imageAuditTraceIds: ['trip-comment-trace-1']
+  };
+  state.trips['trip-1'] = { _id: 'trip-1', commentCount: 1 };
+  result = await callback.main({
+    trace_id: 'trip-comment-trace-1', result: { suggest: 'risky', label: 20001 }
+  });
+  assert.strictEqual(result.reviewStatus, 'rejected');
+  assert.strictEqual(state.tripComments['trip-comment-1'].status, 'rejected');
+  assert.strictEqual(state.trips['trip-1'].commentCount, 0);
+
+  state.tripCommentAudits['trip-reply-trace-1'] = {
+    traceId: 'trip-reply-trace-1', commentId: 'trip-reply-1',
+    commentTargetType: 'reply', suggest: 'pending'
+  };
+  state.tripComments['trip-root-1'] = {
+    _id: 'trip-root-1', tripId: 'trip-1', status: 'active', replyCount: 1
+  };
+  state.tripReplies['trip-reply-1'] = {
+    _id: 'trip-reply-1', tripId: 'trip-1', rootCommentId: 'trip-root-1', status: 'active',
+    imageAuditTraceIds: ['trip-reply-trace-1']
+  };
+  state.trips['trip-1'].commentCount = 2;
+  result = await callback.main({
+    trace_id: 'trip-reply-trace-1', result: { suggest: 'risky', label: 20001 }
+  });
+  assert.strictEqual(result.reviewStatus, 'rejected');
+  assert.strictEqual(state.tripReplies['trip-reply-1'].status, 'rejected');
+  assert.strictEqual(state.tripComments['trip-root-1'].replyCount, 0);
+  assert.strictEqual(state.trips['trip-1'].commentCount, 1);
+
+  console.log('PASS media check callback handles posts, trip logs, community comments and trip comments');
 }
 
 main().catch((error) => {

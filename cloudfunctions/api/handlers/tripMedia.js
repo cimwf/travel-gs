@@ -18,6 +18,7 @@ const PURPOSE_CONFIG = {
   log: { directory: 'trip-logs', maxFiles: 9 },
   cover: { directory: 'trip-covers', maxFiles: 9 },
   avatar: { directory: 'trip-avatars', maxFiles: 1 },
+  comment: { directory: 'trip-comments', maxFiles: 3 },
   user_avatar: { directory: 'user-avatars', maxFiles: 1 },
   report: { directory: 'reports', maxFiles: 3 }
 };
@@ -90,7 +91,7 @@ async function getTripForUpload(openid, tripId, purpose) {
     if ((trip.tripStage || 'not_started') !== 'ongoing') {
       throw new Error('行程日志未开启或已结束');
     }
-  } else if (trip.creatorId !== openid) {
+  } else if (purpose !== 'comment' && trip.creatorId !== openid) {
     throw new Error('只有发起人可以修改行程图片');
   }
   return trip;

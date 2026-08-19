@@ -26,7 +26,8 @@
 18. trip_media_cleanup_tasks - 行程媒体COS清理任务表
 19. trip_comments - 行程评论表
 20. trip_comment_replies - 行程评论回复表
-21. official_upload_sessions - 后台官方内容 COS 上传会话表
+21. trip_comment_image_audits - 行程评论图片异步审核映射表
+22. official_upload_sessions - 后台官方内容 COS 上传会话表
 ==========================================
 集合结构说明
 ==========================================
@@ -369,7 +370,7 @@ const tripMediaUploadSessionSchema = {
   _id: "trip_media_xxx",
   ownerId: "openid_xxx",
   tripId: "trip_xxx",
-  purpose: "log",                // log/cover/avatar/user_avatar
+  purpose: "log",                // log/cover/avatar/comment/user_avatar
   status: "uploading",           // uploading/consumed/expired
   uploadItems: [{
     index: 0,
@@ -406,6 +407,10 @@ const tripCommentSchema = {
   authorName: "旅行者",
   authorAvatar: "https://...",
   content: "这次行程还有位置吗？",
+  images: [{ provider: "cos", key: "miniapp/trip-comments/...jpg", url: "https://..." }],
+  imageCount: 1,
+  imageAuditTraceIds: ["trace_xxx"],
+  imageAuditStatus: "pending",    // pending/approved/rejected/not_required
   likeCount: 0,
   replyCount: 1,
   isReply: false,
@@ -436,6 +441,22 @@ const tripCommentReplySchema = {
   createdAt: 1785149400000,
   updatedAt: 1785149400000,
   deletedAt: 0
+};
+
+// 21. trip_comment_image_audits - 行程评论图片异步审核映射表
+const tripCommentImageAuditSchema = {
+  _id: "trace_xxx",
+  traceId: "trace_xxx",
+  commentId: "trip_comment_xxx",
+  commentTargetType: "comment",   // comment/reply
+  imageKey: "miniapp/trip-comments/...jpg",
+  imageUrl: "https://...",
+  status: "pending",              // pending/completed
+  suggest: "pending",             // pending/pass/review/risky
+  label: 0,
+  createdAt: 1785149400000,
+  updatedAt: 1785149400000,
+  expiresAt: 1785754200000
 };
 
 // 14. community_comments - 社区评论表
@@ -589,6 +610,9 @@ trip_comments:
 
 trip_comment_replies:
   - tripId + rootCommentId + status + createdAt + _id（复合索引，供行程回复稳定分页）
+
+trip_comment_image_audits:
+  - expiresAt（TTL索引或定时清理依据）
 
 user_follows:
   - followerId + createdAt + _id（复合索引，供“关注”列表稳定分页）

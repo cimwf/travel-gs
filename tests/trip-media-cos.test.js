@@ -26,7 +26,7 @@ assert(index.includes("require('./handlers/tripMedia')"));
 assert(index.includes("case 'tripMedia/createUploadSession'"));
 assert(api.includes('tripMediaCreateUploadSession'));
 
-['trip-logs', 'trip-covers', 'trip-avatars'].forEach(directory => {
+['trip-logs', 'trip-covers', 'trip-avatars', 'trip-comments'].forEach(directory => {
   assert(tripMedia.includes(directory), `missing COS directory ${directory}`);
 });
 assert(tripMedia.includes("user_avatar: { directory: 'user-avatars', maxFiles: 1 }"));
@@ -52,6 +52,7 @@ assert(userHandler.includes('consumeUploadSession'));
 assert(userHandler.includes("reason: 'user_avatar_replaced'"));
 assert(detail.includes("purpose: 'log'"));
 assert(detail.includes("purpose: 'cover'"));
+assert(detail.includes("purpose: 'comment'"));
 assert(!detail.includes("purpose: 'avatar'"));
 assert(!detailWxml.includes('行程头像'));
 assert(!detailWxml.includes('onUploadAvatar'));

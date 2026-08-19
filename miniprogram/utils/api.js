@@ -232,11 +232,15 @@ function tripReplyList(data) {
   return callApi('tripComment/replyList', data || {});
 }
 
-function tripCommentCreate(tripId, content, replyTarget) {
+function tripCommentCreate(tripId, content, replyTarget, media) {
   const data = { tripId, content };
   if (replyTarget && replyTarget.id) {
     data.replyToId = replyTarget.id;
     data.replyToType = replyTarget.type;
+  }
+  if (media && Array.isArray(media.images) && media.images.length > 0) {
+    data.images = media.images;
+    data.uploadSessionId = media.uploadSessionId || '';
   }
   return callApi('tripComment/create', data);
 }

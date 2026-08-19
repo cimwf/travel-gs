@@ -1,7 +1,13 @@
 const { db, _, cloud } = require('../utils/shared');
 const { setNotification } = require('./notification');
+const tripMedia = require('./tripMedia');
 
 const MAX_COMMENT_LENGTH = 300;
+const MAX_COMMENT_IMAGES = 3;
+
+function generateCommentId(prefix) {
+  return prefix + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 14);
+}
 
 function isDocumentNotFoundError(error) {
   const code = error && (error.errCode || error.code);
@@ -32,6 +38,37 @@ async function securityCheck(openid, content) {
     console.warn('trip comment msgSecCheck failed:', error.message || error);
     return { ok: false, unavailable: error && error.errCode === -604101 };
   }
+}
+
+async function submitImageAudits(openid, commentId, targetType, images) {
+  return Promise.all(images.map(async image => {
+    const response = await cloud.openapi.security.mediaCheckAsync({
+      version: 2,
+      scene: 4,
+      openid,
+      mediaType: 2,
+      mediaUrl: image.url
+    });
+    const traceId = response && (response.traceId || response.trace_id);
+    if (!traceId) throw new Error('评论图片安全检测未返回 traceId');
+    const now = Date.now();
+    await db.collection('trip_comment_image_audits').doc(traceId).set({
+      data: {
+        traceId,
+        commentId,
+        commentTargetType: targetType,
+        imageKey: image.key,
+        imageUrl: image.url,
+        status: 'pending',
+        suggest: 'pending',
+        label: 0,
+        createdAt: now,
+        updatedAt: now,
+        expiresAt: now + 7 * 24 * 60 * 60 * 1000
+      }
+    });
+    return { traceId, imageKey: image.key };
+  }));
 }
 
 async function resolveAvatarUrls(items) {
@@ -193,26 +230,60 @@ async function tripCommentCreate(openid, data) {
     if (!openid) return { success: false, error: '请先登录' };
     const tripId = String(data && data.tripId || '').trim();
     const content = String(data && data.content || '').trim();
+    const uploadSessionId = String(data && data.uploadSessionId || '').trim();
+    const images = Array.isArray(data && data.images) ? data.images : [];
     const replyToId = String(data && data.replyToId || '').trim();
     const replyToType = String(data && data.replyToType || '').trim();
     const isReply = !!replyToId;
     if (!tripId) return { success: false, error: '行程 ID 不能为空' };
-    if (!content) return { success: false, error: '评论内容不能为空' };
+    if (!content && images.length === 0) return { success: false, error: '评论内容不能为空，或请选择图片' };
     if (content.length > MAX_COMMENT_LENGTH) return { success: false, error: '评论不能超过 300 字' };
+    if (images.length > MAX_COMMENT_IMAGES) return { success: false, error: '评论图片不能超过 3 张' };
     if (isReply && ['comment', 'reply'].indexOf(replyToType) === -1) {
       return { success: false, error: '回复目标无效' };
     }
     const trip = await getTrip(tripId);
     if (!trip) return { success: false, error: '行程不存在' };
-    const check = await securityCheck(openid, content);
-    if (!check.ok) {
-      return {
-        success: false,
-        error: check.unavailable ? '内容安全检测服务暂不可用，请稍后重试' : '评论未通过安全检测，请修改后重试'
-      };
+    if (content) {
+      const check = await securityCheck(openid, content);
+      if (!check.ok) {
+        return {
+          success: false,
+          error: check.unavailable ? '内容安全检测服务暂不可用，请稍后重试' : '评论未通过安全检测，请修改后重试'
+        };
+      }
     }
     const user = await getCurrentUser(openid);
     const now = Date.now();
+    let validatedImages = [];
+    if (images.length > 0) {
+      const verified = await tripMedia.verifyUploadSession(openid, {
+        sessionId: uploadSessionId,
+        tripId,
+        purpose: 'comment',
+        media: images
+      });
+      validatedImages = verified.media;
+    }
+    const fixedCommentId = generateCommentId(isReply ? 'trip_reply' : 'trip_comment');
+    let imageAudits = [];
+    if (validatedImages.length > 0) {
+      try {
+        imageAudits = await submitImageAudits(
+          openid,
+          fixedCommentId,
+          isReply ? 'reply' : 'comment',
+          validatedImages
+        );
+      } catch (auditError) {
+        console.error('提交行程评论图片安全检测失败:', auditError);
+        return {
+          success: false,
+          error: '图片安全检测服务暂不可用，请稍后重试',
+          errorCode: 'IMAGE_SECURITY_CHECK_FAILED'
+        };
+      }
+    }
     const base = {
       tripId,
       tripCreatorId: trip.creatorId,
@@ -220,6 +291,12 @@ async function tripCommentCreate(openid, data) {
       authorName: user.nickname || '旅行者',
       authorAvatar: user.avatar || '',
       content,
+      images: validatedImages,
+      imageCount: validatedImages.length,
+      imageAuditTraceIds: imageAudits.map(audit => audit.traceId),
+      imageAuditStatus: validatedImages.length > 0 ? 'pending' : 'not_required',
+      machineSuggest: validatedImages.length > 0 ? 'pending' : 'pass',
+      reviewStatus: 'approved',
       likeCount: 0,
       status: 'active',
       createdAt: now,
@@ -230,6 +307,16 @@ async function tripCommentCreate(openid, data) {
       const tripDoc = transaction.collection('trips').doc(tripId);
       const currentTrip = (await tripDoc.get()).data;
       if (!currentTrip) throw new Error('行程不存在');
+      let uploadSessionDoc = null;
+      if (validatedImages.length > 0) {
+        uploadSessionDoc = transaction.collection('trip_media_upload_sessions').doc(uploadSessionId);
+        const session = (await uploadSessionDoc.get()).data;
+        if (!session || session.ownerId !== openid || session.tripId !== tripId ||
+          session.purpose !== 'comment' || session.status !== 'uploading') {
+          throw new Error('评论图片上传会话已经使用或不可用');
+        }
+        if (Number(session.expiresAt) <= Date.now()) throw new Error('评论图片上传会话已过期');
+      }
       let createdData;
       let addResult;
       let rootCommentId = '';
@@ -254,12 +341,25 @@ async function tripCommentCreate(openid, data) {
           replyToUserName: target.authorName || '旅行者',
           isReply: true
         });
-        addResult = await transaction.collection('trip_comment_replies').add({ data: createdData });
+        if (validatedImages.length > 0) {
+          await transaction.collection('trip_comment_replies').doc(fixedCommentId).set({ data: createdData });
+          addResult = { _id: fixedCommentId };
+        } else {
+          addResult = await transaction.collection('trip_comment_replies').add({ data: createdData });
+        }
         rootReplyCount = Math.max(0, Number(root.replyCount) || 0) + 1;
         await rootDoc.update({ data: { replyCount: rootReplyCount, updatedAt: now } });
       } else {
         createdData = Object.assign({}, base, { replyCount: 0, isReply: false });
-        addResult = await transaction.collection('trip_comments').add({ data: createdData });
+        if (validatedImages.length > 0) {
+          await transaction.collection('trip_comments').doc(fixedCommentId).set({ data: createdData });
+          addResult = { _id: fixedCommentId };
+        } else {
+          addResult = await transaction.collection('trip_comments').add({ data: createdData });
+        }
+      }
+      if (uploadSessionDoc) {
+        await uploadSessionDoc.update({ data: { status: 'consumed', consumedAt: now } });
       }
       const receiverId = isReply ? createdData.replyToUserId : currentTrip.creatorId;
       if (receiverId && receiverId !== openid) {
@@ -276,7 +376,7 @@ async function tripCommentCreate(openid, data) {
           sourceId: addResult._id,
           title: isReply ? '回复通知' : '评论通知',
           actionText: isReply ? '回复了你' : '评论了你的行程',
-          content,
+          content: content || '[图片]',
           thumbnail: getTripThumbnail(currentTrip),
           createdAt: now
         });

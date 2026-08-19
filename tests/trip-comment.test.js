@@ -19,6 +19,9 @@ const schema = read('database/schema.js');
   "data-tab=\"comment\"",
   "activeTab === 'comment'",
   'bindconfirm="onCommentConfirm"',
+  'bindtap="onChooseCommentImages"',
+  'detail-v2-comment-draft-images',
+  'detail-v2-comment-images',
   'bindlongpress="onCommentLongPress"',
   '出发后才能发布日志'
 ].forEach((value) => assert.ok(wxml.includes(value) || page.includes(value), `missing ${value}`));
@@ -28,6 +31,9 @@ assert.ok(page.includes('api.tripCommentList'), 'detail should load trip comment
 assert.ok(page.includes('api.tripCommentCreate'), 'detail should create trip comments');
 assert.ok(page.includes('api.tripCommentDelete'), 'detail should delete trip comments');
 assert.ok(page.includes('api.tripReplyList'), 'detail should page replies');
+assert.ok(page.includes("purpose: 'comment'"), 'trip comments should upload images through a verified COS session');
+assert.ok(page.includes('commentImages: []'), 'trip comment image draft state missing');
+assert.ok(page.includes('const hasImages = this.data.commentImages.length > 0'), 'image-only comments should be supported');
 
 [
   "case 'tripComment/list'",
@@ -47,10 +53,15 @@ assert.ok(handler.includes("collection('trip_comments')"), 'trip comment collect
 assert.ok(handler.includes("collection('trip_comment_replies')"), 'trip reply collection missing');
 assert.ok(handler.includes('msgSecCheck'), 'text security check missing');
 assert.ok(handler.includes("suggest === 'pass'"), 'only pass should be accepted');
+assert.ok(handler.includes('MAX_COMMENT_IMAGES = 3'), 'trip comments should allow at most three images');
+assert.ok(handler.includes('verifyUploadSession'), 'trip comment COS objects must be verified server-side');
+assert.ok(handler.includes('mediaCheckAsync'), 'trip comment images should enter async security review');
+assert.ok(handler.includes("collection('trip_comment_image_audits')"), 'trip comment image audit mapping missing');
 assert.ok(handler.includes("type: isReply ? 'trip_reply' : 'trip_comment'"), 'notifications missing');
 assert.ok(handler.includes("trip.creatorId !== openid"), 'trip creator delete permission missing');
 
 assert.ok(schema.includes('trip_comments:'), 'trip comment index documentation missing');
 assert.ok(schema.includes('trip_comment_replies:'), 'trip reply index documentation missing');
+assert.ok(schema.includes('trip_comment_image_audits:'), 'trip comment image audit documentation missing');
 
 console.log('PASS trip detail always shows three tabs and supports secure threaded comments');
