@@ -16,7 +16,7 @@
           </view>
           <view class="region-row">
             <image class="region-icon" src="/images/icon-location-blue.png" mode="aspectFit"></image>
-            <text>{{userInfo.region ? '北京市 · ' + userInfo.region : '北京市'}}</text>
+            <text>{{userInfo.region || '北京市'}}{{userInfo.age ? '·' + userInfo.age + '岁' : ''}}</text>
           </view>
           <text class="user-bio">{{userInfo.bio}}</text>
         </view>

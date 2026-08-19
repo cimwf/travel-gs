@@ -15,6 +15,7 @@ Page({
       avatar: '',
       bio: '',
       region: '',
+      age: '',
       isOfficial: false
     },
     stats: {
@@ -59,7 +60,10 @@ Page({
       'userInfo.nickname': update.nickname || this.data.userInfo.nickname,
       'userInfo.avatar': update.avatar || this.data.userInfo.avatar,
       'userInfo.bio': update.bio || '去山野，也记录沿途的人',
-      'userInfo.region': update.region || ''
+      'userInfo.region': update.region || '',
+      'userInfo.age': update.age === undefined
+        ? this.data.userInfo.age
+        : (update.age === null ? '' : update.age)
     });
   },
 
@@ -99,6 +103,7 @@ Page({
           avatar,
           bio: userData.bio || '去山野，也记录沿途的人',
           region: userData.region || '',
+          age: userData.age === undefined || userData.age === null ? '' : userData.age,
           isOfficial: userData.accountType === 'official' || userData.isOfficial === true
         },
         stats: {

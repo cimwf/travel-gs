@@ -532,6 +532,13 @@ test('user-profile UI 支持作品动态流和行程切换', () => {
   assert(js.includes('statusClass'), 'user-profile trip card should render trip status');
   assert(js.includes('profileUpdated'), 'user-profile should receive saved profile fields through EventChannel');
   assert(js.includes('applyProfileUpdate'), 'user-profile should update profile fields without reloading the page');
+  assert(wxml.includes("{{userInfo.region || '北京市'}}{{userInfo.age ? '·' + userInfo.age + '岁' : ''}}"),
+    'user-profile should display district and optional age in one metadata row');
+  assert(js.includes("'userInfo.age': update.age === undefined"),
+    'user-profile should apply saved age without reloading the whole page');
+  const userHandler = read('cloudfunctions/api/handlers/user.js');
+  assert(userHandler.includes("'nickname', 'avatar', 'region', 'age', 'bio'"),
+    'public profile responses should include age for other users');
   const onShowBody = js.match(/onShow:\s*function\s*\(\)\s*\{([\s\S]*?)\n\s*\},/);
   assert(onShowBody && !onShowBody[1].includes('loadUserProfile'), 'returning to user-profile should not reload all content');
 

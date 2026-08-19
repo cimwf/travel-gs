@@ -248,7 +248,8 @@ Page({
         nickname: localUserInfo.nickname || '',
         avatar: info.avatar || localUserInfo.avatar || '',
         bio: localUserInfo.bio || '',
-        region: localUserInfo.region || ''
+        region: localUserInfo.region || '',
+        age: localUserInfo.age === undefined || localUserInfo.age === null ? '' : localUserInfo.age
       };
       app.globalData._profileUpdated = profileUpdate;
       if (this.openerEventChannel && typeof this.openerEventChannel.emit === 'function') {
