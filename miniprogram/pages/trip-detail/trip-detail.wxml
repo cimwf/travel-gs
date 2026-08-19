@@ -110,7 +110,8 @@
               <view class="detail-v2-member-avatar detail-v2-member-text" wx:else>{{item.nickname ? item.nickname[0] : '旅'}}</view>
               <view class="detail-v2-member-name">{{item.nickname || '旅行者'}}</view>
             </view>
-            <view class="detail-v2-member detail-v2-member-placeholder" wx:for="{{remainCount}}" wx:key="index">
+            <view class="detail-v2-member detail-v2-member-placeholder" wx:for="{{remainCount}}" wx:key="index"
+              bindtap="onPendingMemberTap">
               <view class="detail-v2-member-avatar detail-v2-placeholder-avatar">+</view>
               <view class="detail-v2-member-name">待加入</view>
             </view>

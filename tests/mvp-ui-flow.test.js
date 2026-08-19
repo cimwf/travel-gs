@@ -615,6 +615,8 @@ test('申请加入行程填写可选留言，不再收集联系方式', () => {
   ['申请加入', '留句话吧，让发起人更了解你', 'maxlength="200"', '暂不发送', '发送申请'].forEach((needle) => {
     assert(tripDetailWxml.includes(needle), `trip application modal missing ${needle}`);
   });
+  assert(tripDetailWxml.includes('bindtap="onPendingMemberTap"'), 'pending member slot should open the application flow');
+  assert(tripDetail.includes('this.onJoinTap();'), 'pending member slot should reuse the existing application flow');
   assert(placeDetail.includes('api.applyCreate({ tripId })'), 'place detail should keep its existing direct application');
   assert(tripDetail.includes("title: '申请已发送'") && placeDetail.includes("title: '申请已发送'"), 'application entry should confirm it was sent');
   assert(!appJson.includes('pages/trip-notifications/trip-notifications'), 'old trip notification page should be removed');

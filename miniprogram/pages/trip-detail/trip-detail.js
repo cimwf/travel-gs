@@ -1076,6 +1076,11 @@ Page({
     this.setData({ showJoinApplication: true, joinMessage: '' });
   },
 
+  onPendingMemberTap: function () {
+    if (this.data.isCreator || this.data.hasJoined || !this.data.canJoin) return;
+    this.onJoinTap();
+  },
+
   onJoinMessageInput: function (event) {
     this.setData({ joinMessage: event.detail.value || '' });
   },
