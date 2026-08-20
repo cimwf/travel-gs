@@ -42,7 +42,7 @@
   <view class="follow-list" wx:else>
     <view class="follow-row" wx:for="{{users}}" wx:key="userId"
       bindtap="onUserTap" data-user-id="{{item.userId}}">
-      <image class="follow-avatar" src="{{item.avatar || '/images/logo.png'}}" mode="aspectFill"></image>
+      <image class="follow-avatar" src="{{item.avatar || '/images/xing-logo.png'}}" mode="aspectFill"></image>
       <view class="follow-copy">
         <text class="follow-name">{{item.nickname}}</text>
         <view class="follow-region">

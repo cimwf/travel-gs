@@ -9,7 +9,7 @@
   <block wx:else>
     <view class="profile-summary">
       <view class="identity-row">
-        <image class="user-avatar" src="{{userInfo.avatar || '/images/logo.png'}}" mode="aspectFill"></image>
+        <image class="user-avatar" src="{{userInfo.avatar || '/images/xing-logo.png'}}" mode="aspectFill"></image>
         <view class="identity-copy">
           <view class="profile-name-row">
             <text class="user-name">{{userInfo.nickname}}</text>

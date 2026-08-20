@@ -24,7 +24,7 @@
       <view class="post-card" wx:for="{{posts}}" wx:key="_id">
         <view class="post-header">
           <view class="author">
-            <image class="avatar" src="{{item.authorAvatar || '/images/logo.png'}}" mode="aspectFill"></image>
+            <image class="avatar" src="{{item.authorAvatar || '/images/xing-logo.png'}}" mode="aspectFill"></image>
             <view class="author-meta">
               <view class="author-row">
                 <text class="author-name">{{item.authorName || '旅行者'}}</text>

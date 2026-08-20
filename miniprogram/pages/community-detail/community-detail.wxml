@@ -16,7 +16,7 @@
     <view class="post">
       <view class="post-header">
         <view class="author">
-          <image class="avatar" src="{{post.authorAvatar || '/images/logo.png'}}" mode="aspectFill"
+          <image class="avatar" src="{{post.authorAvatar || '/images/xing-logo.png'}}" mode="aspectFill"
             catchtap="onOpenUserProfile" data-user-id="{{post.authorId}}"></image>
           <view class="author-meta">
             <view class="author-name-row">
@@ -57,7 +57,7 @@
       <scroll-view class="liker-scroll" scroll-x enhanced show-scrollbar="{{false}}" wx:if="{{likers.length > 0}}">
         <view class="liker-list">
           <view class="liker-item" wx:for="{{likers}}" wx:key="userId">
-            <image class="liker-avatar" src="{{item.userAvatar || '/images/logo.png'}}" mode="aspectFill"
+            <image class="liker-avatar" src="{{item.userAvatar || '/images/xing-logo.png'}}" mode="aspectFill"
               catchtap="onOpenUserProfile" data-user-id="{{item.userId}}"></image>
           </view>
         </view>
@@ -77,7 +77,7 @@
             catchlongpress="onCommentLongPress"
             data-target-type="comment" data-root-comment-id="{{item._id}}"
             data-comment-id="{{item._id}}">
-            <image class="comment-avatar" src="{{item.authorAvatar || '/images/logo.png'}}" mode="aspectFill"
+            <image class="comment-avatar" src="{{item.authorAvatar || '/images/xing-logo.png'}}" mode="aspectFill"
               catchtap="onOpenUserProfile" data-user-id="{{item.authorId}}"></image>
             <view class="comment-main">
               <text class="comment-author">{{item.authorName || '旅行者'}}</text>
@@ -103,7 +103,7 @@
               catchlongpress="onCommentLongPress"
               data-target-type="reply" data-root-comment-id="{{item._id}}"
               data-comment-id="{{reply._id}}">
-              <image class="reply-avatar" src="{{reply.authorAvatar || '/images/logo.png'}}" mode="aspectFill"
+              <image class="reply-avatar" src="{{reply.authorAvatar || '/images/xing-logo.png'}}" mode="aspectFill"
                 catchtap="onOpenUserProfile" data-user-id="{{reply.authorId}}"></image>
               <view class="reply-main">
                 <view class="reply-content">

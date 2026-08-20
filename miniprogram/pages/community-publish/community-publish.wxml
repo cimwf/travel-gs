@@ -4,7 +4,7 @@
   <scroll-view class="pub-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <!-- Author row -->
     <view class="author-row">
-      <image class="author-avatar" src="{{authorAvatar || '/images/logo.png'}}" mode="aspectFill"></image>
+      <image class="author-avatar" src="{{authorAvatar || '/images/xing-logo.png'}}" mode="aspectFill"></image>
       <text class="author-name">{{authorName}}</text>
     </view>
 

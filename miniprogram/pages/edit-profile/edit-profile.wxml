@@ -4,7 +4,7 @@
   <view class="avatar-section">
     <button class="avatar-picker" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
       <view class="avatar-image-wrap">
-        <image class="avatar-image" src="{{userInfo.avatar || '/images/logo.png'}}" mode="aspectFill"></image>
+        <image class="avatar-image" src="{{userInfo.avatar || '/images/xing-logo.png'}}" mode="aspectFill"></image>
         <view class="avatar-camera-badge">
           <image src="/images/icon-camera-white.png" mode="aspectFit"></image>
         </view>

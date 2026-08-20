@@ -46,7 +46,7 @@
           <!-- Author -->
           <view class="post-hd">
             <view class="author">
-            <image class="avatar" src="{{item.authorAvatar || '/images/logo.png'}}" mode="aspectFill"
+            <image class="avatar" src="{{item.authorAvatar || '/images/xing-logo.png'}}" mode="aspectFill"
               catchtap="onOpenUserProfile" data-user-id="{{item.authorId}}"></image>
             <view class="author-meta">
               <view class="author-row">

@@ -18,7 +18,7 @@
   <view class="likes-list" wx:else>
     <view class="like-user" wx:for="{{likes}}" wx:key="_id"
       bindtap="onOpenUserProfile" data-user-id="{{item.userId}}">
-      <image class="user-avatar" src="{{item.userAvatar || '/images/logo.png'}}" mode="aspectFill"></image>
+      <image class="user-avatar" src="{{item.userAvatar || '/images/xing-logo.png'}}" mode="aspectFill"></image>
       <view class="user-info">
         <text class="user-name">{{item.userName || '旅行者'}}</text>
         <text class="like-label">赞了这条动态</text>

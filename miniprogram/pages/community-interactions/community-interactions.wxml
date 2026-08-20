@@ -37,7 +37,7 @@
       <view class="liked-card" wx:if="{{activeTab === 'liked'}}"
         bindtap="onOpenDetail" data-interaction-id="{{item._id}}">
         <view class="post-author">
-          <image class="post-avatar" src="{{item.post.authorAvatar || '/images/logo.png'}}" mode="aspectFill"
+          <image class="post-avatar" src="{{item.post.authorAvatar || '/images/xing-logo.png'}}" mode="aspectFill"
             catchtap="onOpenUserProfile" data-user-id="{{item.post.authorId}}"></image>
           <view class="post-author-copy">
             <text class="post-author-name">{{item.post.authorName || '旅行者'}}</text>
@@ -75,7 +75,7 @@
       <view class="comment-card" wx:else
         bindtap="onOpenDetail" data-interaction-id="{{item._id}}">
         <view class="post-author">
-          <image class="post-avatar" src="{{item.post.authorAvatar || '/images/logo.png'}}" mode="aspectFill"
+          <image class="post-avatar" src="{{item.post.authorAvatar || '/images/xing-logo.png'}}" mode="aspectFill"
             catchtap="onOpenUserProfile" data-user-id="{{item.post.authorId}}"></image>
           <view class="post-author-copy">
             <text class="post-author-name">{{item.post.authorName || '旅行者'}}</text>
