@@ -649,7 +649,9 @@ test('未加入用户可在行程详情同时申请加入和分享行程', () =>
   const unjoinedSection = wxml.slice(wxml.indexOf('<!-- 未加入视角：申请加入 / 分享行程 -->'));
 
   assert(unjoinedSection.includes('bindtap="onJoinTap"'), 'unjoined footer should keep the join action');
-  assert(unjoinedSection.includes('open-type="share">分享行程</button>'), 'unjoined footer should expose trip sharing');
+  assert(unjoinedSection.includes('bindtap="onOpenTripShare">分享行程</view>'), 'unjoined footer should open the unified sharing sheet');
+  assert(unjoinedSection.includes('open-type="share"') && unjoinedSection.includes('微信好友') && unjoinedSection.includes('生成海报'), 'sharing sheet should expose WeChat sharing and poster generation');
+  assert(unjoinedSection.includes('trip-share-actions') && unjoinedSection.includes('trip-share-action-icon'), 'sharing sheet should use a horizontal icon grid');
   assert(wxss.includes('.footer-share-button::after'), 'share button should reset the native button border');
 });
 

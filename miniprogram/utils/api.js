@@ -218,6 +218,20 @@ function tripMediaCreateUploadSession(data) {
 }
 
 /**
+ * 获取当前运行版本对应的行程海报小程序码。
+ */
+function tripPosterCode(tripId) {
+  return callApi('trip/posterCode', { tripId });
+}
+
+/**
+ * 将小程序码 scene 安全短码解析为行程 ID。
+ */
+function tripResolvePosterScene(scene) {
+  return callApi('trip/resolvePosterScene', { scene });
+}
+
+/**
  * 获取我的行程
  */
 function tripMy() {
@@ -608,6 +622,8 @@ module.exports = {
   tripDelete,
   tripUpdate,
   tripMediaCreateUploadSession,
+  tripPosterCode,
+  tripResolvePosterScene,
   tripMy,
   tripListByUser,
   tripCommentList,

@@ -299,12 +299,12 @@
   </block>
   <block wx:elif="{{activeTab === 'log'}}">
     <view class="footer-btn-full detail-v2-log-footer-btn" wx:if="{{!isPastTrip}}" bindtap="onPublishLogTap">发布日志</view>
-    <button class="footer-btn-full footer-share-button" wx:else open-type="share">分享行程</button>
+    <view class="footer-btn-full footer-share-button" wx:else bindtap="onOpenTripShare">分享行程</view>
   </block>
   <!-- 往期行程只保留查看、评论与分享，不再允许编辑或申请加入。 -->
   <block wx:elif="{{isPastTrip}}">
     <view class="footer-btn-full footer-btn-ended">已结束</view>
-    <button class="footer-btn-secondary footer-share-button" open-type="share">分享行程</button>
+    <view class="footer-btn-secondary footer-share-button" bindtap="onOpenTripShare">分享行程</view>
   </block>
   <!-- 发起人视角 -->
   <block wx:elif="{{isCreator}}">
@@ -312,7 +312,7 @@
     <block wx:if="{{tripStage === 'not_started'}}">
       <view class="footer-btn-secondary" bindtap="onEditTrip">编辑行程</view>
       <view class="footer-btn-primary" wx:if="{{isTripDay}}" bindtap="onStartLog">开始出发</view>
-      <button class="footer-btn-primary" wx:else open-type="share">分享招募</button>
+      <view class="footer-btn-primary" wx:else bindtap="onOpenTripShare">分享招募</view>
     </block>
     <!-- 进行中：发布日志 + 结束行程 -->
     <block wx:elif="{{tripStage === 'ongoing'}}">
@@ -338,7 +338,7 @@
     <!-- 未开始：退出行程 + 分享 -->
     <block wx:elif="{{tripStage === 'not_started'}}">
       <view class="footer-btn-danger" bindtap="onQuitTrip">退出行程</view>
-      <button class="footer-btn-primary" open-type="share">分享给朋友</button>
+      <view class="footer-btn-primary" bindtap="onOpenTripShare">分享给朋友</view>
     </block>
     <!-- 已结束 -->
     <block wx:else>
@@ -351,8 +351,54 @@
     <view class="footer-btn-full {{canJoin ? '' : 'disabled'}}" bindtap="onJoinTap">
       <text>{{joinBtnText}}</text>
     </view>
-    <button class="footer-btn-secondary footer-share-button" open-type="share">分享行程</button>
+    <view class="footer-btn-secondary footer-share-button" bindtap="onOpenTripShare">分享行程</view>
   </block>
+</view>
+
+<!-- 分享方式选择 -->
+<view class="trip-share-mask" wx:if="{{showShareSheet}}" bindtap="onCloseTripShare">
+  <view class="trip-share-sheet" catchtap>
+    <view class="trip-share-handle"></view>
+    <view class="trip-share-title">分享行程</view>
+    <view class="trip-share-subtitle">选择你想要的分享方式</view>
+    <view class="trip-share-actions">
+      <button class="trip-share-action" open-type="share" bindtap="onShareWechatTap">
+        <view class="trip-share-action-icon trip-share-action-icon-wechat">
+          <image class="trip-share-wechat-image" src="/images/wechat.png" mode="aspectFit"></image>
+        </view>
+        <view class="trip-share-action-title">微信好友</view>
+      </button>
+      <view class="trip-share-action" bindtap="onGenerateTripPoster">
+        <view class="trip-share-action-icon trip-share-action-icon-poster">
+          <view class="trip-share-poster-frame">
+            <view class="trip-share-poster-sun"></view>
+            <view class="trip-share-poster-mountain trip-share-poster-mountain-left"></view>
+            <view class="trip-share-poster-mountain trip-share-poster-mountain-right"></view>
+          </view>
+        </view>
+        <view class="trip-share-action-title">生成海报</view>
+      </view>
+    </view>
+    <view class="trip-share-cancel" bindtap="onCloseTripShare">取消</view>
+  </view>
+</view>
+
+<!-- 海报预览；画布保留在屏幕外，避免 display:none 导致 2D Canvas 无法初始化。 -->
+<canvas type="2d" id="tripPosterCanvas" class="trip-poster-render-canvas"></canvas>
+<view class="trip-poster-preview-mask" wx:if="{{showPosterPreview}}" bindtap="onClosePosterPreview">
+  <view class="trip-poster-preview" catchtap>
+    <view class="trip-poster-preview-head">
+      <view>
+        <view class="trip-poster-preview-title">行程海报</view>
+        <view class="trip-poster-preview-subtitle">长按海报保存到相册</view>
+      </view>
+      <image class="trip-poster-preview-close" src="/images/icon-close-gray.png" mode="aspectFit" bindtap="onClosePosterPreview"></image>
+    </view>
+    <scroll-view class="trip-poster-preview-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+      <image class="trip-poster-preview-image" src="{{posterTempPath}}" mode="widthFix"
+        show-menu-by-longpress="true"></image>
+    </scroll-view>
+  </view>
 </view>
 
 <!-- 申请加入留言弹窗 -->

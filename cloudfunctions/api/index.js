@@ -7,6 +7,7 @@ const place = require('./handlers/place');
 const trip = require('./handlers/trip');
 const tripLog = require('./handlers/tripLog');
 const tripMedia = require('./handlers/tripMedia');
+const tripPoster = require('./handlers/tripPoster');
 const tripComment = require('./handlers/tripComment');
 const apply = require('./handlers/apply');
 const want = require('./handlers/want');
@@ -78,7 +79,7 @@ exports.main = async (event, context) => {
       case 'trip/list':
         return await trip.tripList(openid, data, dataEnvironment);
       case 'trip/get':
-        return await trip.tripGet(openid, data.tripId);
+        return await trip.tripGet(openid, data.tripId, dataEnvironment);
       case 'trip/view':
         return await trip.tripView(data.tripId);
       case 'trip/join':
@@ -99,6 +100,10 @@ exports.main = async (event, context) => {
         return await trip.tripListByUser(openid, data, dataEnvironment);
       case 'tripMedia/createUploadSession':
         return await tripMedia.tripMediaCreateUploadSession(openid, data);
+      case 'trip/posterCode':
+        return await tripPoster.tripPosterCodeGet(openid, data, dataEnvironment);
+      case 'trip/resolvePosterScene':
+        return await tripPoster.tripPosterSceneResolve(openid, data, dataEnvironment);
 
       // ========== 行程日志相关 ==========
       case 'tripLog/start':

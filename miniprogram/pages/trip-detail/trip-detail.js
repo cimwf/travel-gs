@@ -60,11 +60,31 @@ Page({
     // 更换封面相关
     showCoverModal: false,
     pendingImages: [],
-    savingCover: false
+    savingCover: false,
+    // 分享与海报
+    showShareSheet: false,
+    posterGenerating: false,
+    showPosterPreview: false,
+    posterTempPath: '',
+    posterCodeUrl: ''
   },
 
   onLoad: async function (options) {
-    const tripId = options.id || '';
+    let tripId = options.id || '';
+    const posterScene = options.scene ? decodeURIComponent(options.scene).trim() : '';
+    if (!tripId && posterScene) {
+      wx.showLoading({ title: '正在打开行程...', mask: true });
+      try {
+        const sceneResult = await api.tripResolvePosterScene(posterScene);
+        tripId = sceneResult.tripId || '';
+      } catch (err) {
+        wx.hideLoading();
+        this.setData({ loading: false, loadError: true });
+        wx.showToast({ title: err.message || '行程码已失效', icon: 'none' });
+        return;
+      }
+      wx.hideLoading();
+    }
     const windowInfo = wx.getWindowInfo();
     this.setData({
       tripId,
@@ -1354,5 +1374,542 @@ Page({
       path: `/pages/trip-detail/trip-detail?id=${trip._id}`,
       imageUrl: trip.placeCoverImage
     };
+  },
+
+  onOpenTripShare: function () {
+    if (!this.data.trip) return;
+    this.setData({ showShareSheet: true });
+  },
+
+  onCloseTripShare: function () {
+    this.setData({ showShareSheet: false });
+  },
+
+  onShareWechatTap: function () {
+    this.setData({ showShareSheet: false });
+  },
+
+  onGenerateTripPoster: async function () {
+    if (this.data.posterGenerating || !this.data.trip) return;
+    this.setData({ showShareSheet: false, posterGenerating: true });
+    wx.showLoading({ title: '生成海报中...', mask: true });
+    try {
+      const codeResult = await api.tripPosterCode(this.data.trip._id);
+      const posterPath = await this.drawTripPoster(codeResult.codeUrl);
+      this.setData({
+        posterGenerating: false,
+        posterCodeUrl: codeResult.codeUrl,
+        posterTempPath: posterPath,
+        showPosterPreview: true
+      });
+      wx.hideLoading();
+    } catch (err) {
+      wx.hideLoading();
+      this.setData({ posterGenerating: false });
+      console.error('生成行程海报失败', err);
+      wx.showToast({ title: err.message || '海报生成失败，请重试', icon: 'none' });
+    }
+  },
+
+  onClosePosterPreview: function () {
+    this.setData({ showPosterPreview: false });
+  },
+
+  getPosterCanvas: function () {
+    return new Promise((resolve, reject) => {
+      wx.createSelectorQuery().in(this)
+        .select('#tripPosterCanvas')
+        .fields({ node: true, size: true })
+        .exec(result => {
+          const item = result && result[0];
+          if (!item || !item.node) {
+            reject(new Error('海报画布初始化失败'));
+            return;
+          }
+          resolve(item.node);
+        });
+    });
+  },
+
+  loadPosterImage: function (canvas, source) {
+    return new Promise((resolve, reject) => {
+      if (!source) {
+        reject(new Error('图片地址为空'));
+        return;
+      }
+      const load = path => {
+        const image = canvas.createImage();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error('海报素材加载失败'));
+        image.src = path;
+      };
+      if (/^https?:\/\//.test(source) || /^cloud:\/\//.test(source)) {
+        wx.getImageInfo({
+          src: source,
+          success: result => load(result.path),
+          fail: () => reject(new Error('海报图片下载失败，请检查下载域名配置'))
+        });
+      } else {
+        load(source);
+      }
+    });
+  },
+
+  drawPosterRoundRect: function (ctx, x, y, width, height, radius) {
+    const r = Math.min(radius, width / 2, height / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + width, y, x + width, y + height, r);
+    ctx.arcTo(x + width, y + height, x, y + height, r);
+    ctx.arcTo(x, y + height, x, y, r);
+    ctx.arcTo(x, y, x + width, y, r);
+    ctx.closePath();
+  },
+
+  drawPosterCover: function (ctx, image, x, y, width, height) {
+    const sourceRatio = image.width / image.height;
+    const targetRatio = width / height;
+    let sx = 0;
+    let sy = 0;
+    let sw = image.width;
+    let sh = image.height;
+    if (sourceRatio > targetRatio) {
+      sw = image.height * targetRatio;
+      sx = (image.width - sw) / 2;
+    } else {
+      sh = image.width / targetRatio;
+      sy = (image.height - sh) / 2;
+    }
+    ctx.drawImage(image, sx, sy, sw, sh, x, y, width, height);
+  },
+
+  drawPosterCalendarIcon: function (ctx, x, y, size) {
+    const scale = size / 24;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    ctx.strokeStyle = '#4A90E2';
+    ctx.globalAlpha = .72;
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(11.5, 21);
+    ctx.lineTo(6, 21);
+    ctx.quadraticCurveTo(4, 21, 4, 19);
+    ctx.lineTo(4, 7);
+    ctx.quadraticCurveTo(4, 5, 6, 5);
+    ctx.lineTo(18, 5);
+    ctx.quadraticCurveTo(20, 5, 20, 7);
+    ctx.lineTo(20, 13);
+    ctx.moveTo(8, 3);
+    ctx.lineTo(8, 7);
+    ctx.moveTo(16, 3);
+    ctx.lineTo(16, 7);
+    ctx.moveTo(4, 11);
+    ctx.lineTo(20, 11);
+    ctx.moveTo(15, 19);
+    ctx.lineTo(17, 21);
+    ctx.lineTo(21, 17);
+    ctx.stroke();
+    ctx.restore();
+  },
+
+  drawPosterLocationIcon: function (ctx, x, y, size) {
+    const scale = size / 24;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    ctx.strokeStyle = '#4A90E2';
+    ctx.globalAlpha = .72;
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(12, 22);
+    ctx.bezierCurveTo(11.5, 22, 11.05, 21.78, 10.59, 21.31);
+    ctx.lineTo(6.34, 17.07);
+    ctx.bezierCurveTo(3.22, 13.95, 3.22, 8.88, 6.34, 5.76);
+    ctx.bezierCurveTo(9.47, 2.63, 14.53, 2.63, 17.66, 5.76);
+    ctx.bezierCurveTo(20.78, 8.88, 20.78, 13.95, 17.66, 17.07);
+    ctx.lineTo(13.41, 21.31);
+    ctx.bezierCurveTo(12.95, 21.78, 12.5, 22, 12, 22);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(12, 11, 3, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  },
+
+  ellipsizePosterText: function (ctx, text, maxWidth) {
+    const value = String(text || '');
+    if (ctx.measureText(value).width <= maxWidth) return value;
+    let result = value;
+    while (result && ctx.measureText(result + '…').width > maxWidth) result = result.slice(0, -1);
+    return result + '…';
+  },
+
+  drawPosterWrappedText: function (ctx, text, x, y, maxWidth, lineHeight, maxLines) {
+    const lines = this.getPosterTextLines(ctx, text, maxWidth, maxLines);
+    lines.forEach((item, index) => ctx.fillText(item, x, y + index * lineHeight));
+    return lines;
+  },
+
+  getPosterTextLines: function (ctx, text, maxWidth, maxLines) {
+    const paragraphs = String(text || '').split(/\r?\n/);
+    const lines = [];
+    let truncated = false;
+    paragraphs.forEach((paragraph, paragraphIndex) => {
+      let line = '';
+      Array.from(paragraph).forEach(char => {
+        if (maxLines && lines.length >= maxLines) {
+          truncated = true;
+          return;
+        }
+        const next = line + char;
+        if (ctx.measureText(next).width > maxWidth && line) {
+          lines.push(line);
+          line = char;
+        } else {
+          line = next;
+        }
+      });
+      if (line && (!maxLines || lines.length < maxLines)) lines.push(line);
+      if (!paragraph && (!maxLines || lines.length < maxLines)) lines.push('');
+      if (paragraphIndex < paragraphs.length - 1 && maxLines && lines.length >= maxLines) truncated = true;
+    });
+    if (truncated && lines.length) {
+      lines[lines.length - 1] = this.ellipsizePosterText(ctx, lines[lines.length - 1] + '…', maxWidth);
+    }
+    return lines.length ? lines : [''];
+  },
+
+  getPosterRenderScale: function (logicalWidth, logicalHeight) {
+    const targetScale = 2;
+    const maxCanvasEdge = 4096;
+    const maxCanvasPixels = 12000000;
+    const edgeScale = maxCanvasEdge / Math.max(logicalWidth, logicalHeight);
+    const areaScale = Math.sqrt(maxCanvasPixels / (logicalWidth * logicalHeight));
+    const safeScale = Math.min(targetScale, edgeScale, areaScale);
+    if (safeScale < 1) {
+      throw new Error('行程内容过长，暂时无法生成海报');
+    }
+    // 向下保留三位小数，避免浮点取整后越过真机 Canvas 的边长或面积上限。
+    return Math.max(1, Math.floor(safeScale * 1000) / 1000);
+  },
+
+  drawTripPoster: async function (codeUrl) {
+    const trip = this.data.trip;
+    const canvas = await this.getPosterCanvas();
+    const width = 750;
+    canvas.width = width;
+    canvas.height = 100;
+    let ctx = canvas.getContext('2d');
+
+    // 海报严格沿用行程详情页行程 Tab 的字段顺序与显示条件。
+    const infoRows = [
+      { label: '出发日期', value: trip.dateText || trip.date || '' },
+      { label: '出发地', value: trip.departure || '待定' }
+    ];
+    if (trip.meetingPlace) infoRows.push({ label: '集合地点', value: trip.meetingPlace });
+    if (trip.destLocation) {
+      infoRows.push({
+        label: '目的地定位',
+        value: trip.destLocation.name || trip.destLocation.address || '',
+        link: true
+      });
+    }
+    if (trip.meetingTime) infoRows.push({ label: '集合时间', value: trip.meetingTime });
+    infoRows.push({ label: '出行方式', value: trip.hasCar ? '有车' : '无车' });
+    if (trip.hasCar && (trip.carSeats || trip.carModel)) {
+      infoRows.push({
+        label: '车辆信息',
+        value: [trip.carSeats ? trip.carSeats + '座' : '', trip.carModel || ''].filter(Boolean).join(' · ')
+      });
+    }
+    if (!trip.hasCar && trip.travelDesc) infoRows.push({ label: '出行描述', value: trip.travelDesc });
+    if (trip.price) infoRows.push({ label: '人均费用', value: trip.price + '元/人', price: true });
+    infoRows.push({
+      label: '招募人数',
+      value: (trip.currentCount || 0) + '/' + (trip.totalCount || ((trip.currentCount || 0) + (trip.needCount || 0))) + '人'
+    });
+
+    ctx.font = '28px sans-serif';
+    infoRows.forEach(row => {
+      row.lines = this.getPosterTextLines(ctx, row.value, 470);
+      row.height = Math.max(86, row.lines.length * 40 + 20);
+    });
+    const remarkLines = trip.remark ? this.getPosterTextLines(ctx, trip.remark, 646) : [];
+    const overviewTop = 398;
+    const overviewLeft = 32;
+    const titleTop = overviewTop + 34;
+    const posterJoinedStatus = this.data.hasJoined && !this.data.isCreator;
+    const status = posterJoinedStatus ? '已加入' : (this.data.statusText || '招募中');
+    ctx.font = '24px sans-serif';
+    const statusWidth = ctx.measureText(status).width + 36;
+    const statusX = width - overviewLeft - statusWidth;
+    ctx.font = 'bold 42px sans-serif';
+    const titleLines = this.getPosterTextLines(
+      ctx,
+      trip.tripTitle || trip.placeName || '周末行程',
+      statusX - overviewLeft - 18,
+      2
+    );
+    const titleHeight = Math.max(58, titleLines.length * 58);
+    ctx.font = '27px sans-serif';
+    const destinationText = [trip.placeName, trip.placeHighlight].filter(Boolean).join(' · ');
+    const destinationLines = this.getPosterTextLines(ctx, destinationText, width - 64);
+    const destinationTop = titleTop + titleHeight + 8;
+    const dateText = (trip.dateText || trip.date || '') + (trip.meetingTime ? ' ' + trip.meetingTime + ' 出发' : '');
+    ctx.font = '28px sans-serif';
+    const dateLines = this.getPosterTextLines(ctx, dateText, 620);
+    const dateTop = destinationTop + destinationLines.length * 40 + 22;
+    const hasOverviewLocation = !!(trip.meetingPlace || trip.departure);
+    const overviewLocationText = trip.meetingPlace || trip.departure || '';
+    const locationLines = hasOverviewLocation ? this.getPosterTextLines(ctx, overviewLocationText, 620) : [];
+    const locationTop = dateTop + dateLines.length * 40 + 22;
+    const peopleTop = hasOverviewLocation
+      ? locationTop + locationLines.length * 40 + 24
+      : dateTop + dateLines.length * 40 + 24;
+    const overviewHeight = peopleTop - overviewTop + 64 + 30;
+    const contentTop = overviewTop + overviewHeight + 22;
+    const remarkHeight = trip.remark ? 30 + 46 + 18 + remarkLines.length * 48 + 30 : 0;
+    const infoHeight = 30 + 46 + 12 + infoRows.reduce((sum, row) => sum + row.height, 0) + 30;
+    const infoTop = contentTop + (trip.remark ? remarkHeight + 22 : 0);
+    const brandTop = infoTop + infoHeight + 22;
+    const brandHeight = 230;
+    const height = brandTop + brandHeight + 24;
+    const renderScale = this.getPosterRenderScale(width, height);
+    const physicalWidth = Math.floor(width * renderScale);
+    const physicalHeight = Math.floor(height * renderScale);
+    canvas.width = physicalWidth;
+    canvas.height = physicalHeight;
+    ctx = canvas.getContext('2d');
+    ctx.scale(renderScale, renderScale);
+
+    const logoPromise = this.loadPosterImage(canvas, '/images/xing-logo.png');
+    const [logo, code] = await Promise.all([
+      logoPromise,
+      this.loadPosterImage(canvas, codeUrl)
+    ]);
+    const cover = await this.loadPosterImage(canvas, trip.placeCoverImage).catch(() => null);
+    const avatarImages = await Promise.all((this.data.participants || []).slice(0, 4).map(member => {
+      return member.avatar ? this.loadPosterImage(canvas, member.avatar).catch(() => null) : Promise.resolve(null);
+    }));
+
+    // 页面背景、封面与顶部概览完全对应 detail-v2-page / hero / overview。
+    ctx.fillStyle = '#f5f7fa';
+    ctx.fillRect(0, 0, width, height);
+    if (cover) {
+      this.drawPosterCover(ctx, cover, 0, 0, width, 430);
+    } else {
+      ctx.fillStyle = '#e8edf3';
+      ctx.fillRect(0, 0, width, 430);
+      ctx.fillStyle = '#eaf3ff';
+      ctx.beginPath();
+      ctx.arc(375, 215, 72, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(375, 215, 60, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(logo, 315, 155, 120, 120);
+      ctx.restore();
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(0, overviewTop + 32);
+    ctx.arcTo(0, overviewTop, 32, overviewTop, 32);
+    ctx.lineTo(width - 32, overviewTop);
+    ctx.arcTo(width, overviewTop, width, overviewTop + 32, 32);
+    ctx.lineTo(width, overviewTop + overviewHeight);
+    ctx.lineTo(0, overviewTop + overviewHeight);
+    ctx.closePath();
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+
+    ctx.fillStyle = '#111827';
+    ctx.font = 'bold 42px sans-serif';
+    ctx.textBaseline = 'top';
+    titleLines.forEach((line, index) => ctx.fillText(line, overviewLeft, titleTop + index * 58));
+    ctx.font = '24px sans-serif';
+    this.drawPosterRoundRect(ctx, statusX, titleTop + 6, statusWidth, 50, 12);
+    ctx.fillStyle = posterJoinedStatus ? '#edf8ef' : '#eaf3ff';
+    ctx.fill();
+    ctx.fillStyle = posterJoinedStatus ? '#52a663' : '#2f80ed';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(status, statusX + statusWidth / 2, titleTop + 31);
+    ctx.textAlign = 'left';
+
+    ctx.fillStyle = '#2f80ed';
+    ctx.font = '27px sans-serif';
+    ctx.textBaseline = 'top';
+    destinationLines.forEach((line, index) => ctx.fillText(line, overviewLeft, destinationTop + index * 40));
+
+    const quickRows = [{
+      iconType: 'calendar',
+      lines: dateLines,
+      y: dateTop
+    }];
+    if (hasOverviewLocation) {
+      quickRows.push({
+        iconType: 'location',
+        lines: locationLines,
+        y: locationTop
+      });
+    }
+    ctx.fillStyle = '#677386';
+    ctx.font = '28px sans-serif';
+    quickRows.forEach(row => {
+      if (row.iconType === 'calendar') this.drawPosterCalendarIcon(ctx, overviewLeft, row.y + 2, 34);
+      if (row.iconType === 'location') this.drawPosterLocationIcon(ctx, overviewLeft, row.y + 2, 34);
+      row.lines.forEach((line, index) => ctx.fillText(line, overviewLeft + 50, row.y + index * 40));
+    });
+
+    const participants = (this.data.participants || []).slice(0, 4);
+    participants.forEach((member, index) => {
+      const centerX = overviewLeft + 27 + index * 46;
+      const centerY = peopleTop + 32;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 27, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 23, 0, Math.PI * 2);
+      ctx.clip();
+      if (avatarImages[index]) {
+        this.drawPosterCover(ctx, avatarImages[index], centerX - 23, centerY - 23, 46, 46);
+      } else {
+        ctx.fillStyle = '#dcecff';
+        ctx.fillRect(centerX - 23, centerY - 23, 46, 46);
+        ctx.fillStyle = '#2f80ed';
+        ctx.font = '22px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText((member.nickname || '旅').slice(0, 1), centerX, centerY);
+      }
+      ctx.restore();
+    });
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#697586';
+    ctx.font = '25px sans-serif';
+    const peopleTextX = overviewLeft + (participants.length ? (participants.length - 1) * 46 + 68 : 0);
+    ctx.fillText(
+      '已加入 ' + (trip.currentCount || 0) + '/' + (trip.totalCount || ((trip.currentCount || 0) + (trip.needCount || 0))) + ' 人',
+      peopleTextX,
+      peopleTop + 32
+    );
+
+    const drawSectionCard = (top, cardHeight) => {
+      ctx.save();
+      ctx.shadowColor = 'rgba(29, 55, 90, .05)';
+      ctx.shadowBlur = 24;
+      ctx.shadowOffsetY = 6;
+      this.drawPosterRoundRect(ctx, 24, top, 702, cardHeight, 22);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.restore();
+    };
+
+    if (trip.remark) {
+      drawSectionCard(contentTop, remarkHeight);
+      ctx.fillStyle = '#172033';
+      ctx.font = 'bold 32px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText('行程说明', 52, contentTop + 30);
+      ctx.fillStyle = '#566274';
+      ctx.font = '28px sans-serif';
+      this.drawPosterWrappedText(ctx, trip.remark, 52, contentTop + 94, 646, 48);
+    }
+
+    drawSectionCard(infoTop, infoHeight);
+    ctx.fillStyle = '#172033';
+    ctx.font = 'bold 32px sans-serif';
+    ctx.textBaseline = 'top';
+    ctx.fillText('行程信息', 52, infoTop + 30);
+    const listTop = infoTop + 88;
+    let rowTop = listTop;
+    infoRows.forEach((row, index) => {
+      const rowCenter = rowTop + row.height / 2;
+      ctx.fillStyle = '#8a94a4';
+      ctx.font = '27px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(row.label, 52, rowCenter);
+      ctx.fillStyle = row.price ? '#ff7d36' : (row.link ? '#2f80ed' : '#303a4b');
+      ctx.font = row.price ? 'bold 28px sans-serif' : '28px sans-serif';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = row.lines.length > 1 ? 'top' : 'middle';
+      const valueTop = row.lines.length > 1 ? rowTop + 10 : rowCenter;
+      row.lines.forEach((line, lineIndex) => ctx.fillText(line, 698, valueTop + lineIndex * 40));
+      if (index < infoRows.length - 1) {
+        ctx.strokeStyle = '#f0f2f5';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(52, rowTop + row.height);
+        ctx.lineTo(698, rowTop + row.height);
+        ctx.stroke();
+      }
+      rowTop += row.height;
+    });
+
+    // 仅在行程主体之后追加品牌组件；不加入成员区、Tab、评论或底部操作栏。
+    drawSectionCard(brandTop, brandHeight);
+    const logoCenterX = 99;
+    const logoCenterY = brandTop + 103;
+    ctx.fillStyle = '#eaf3ff';
+    ctx.beginPath();
+    ctx.arc(logoCenterX, logoCenterY, 48, 0, Math.PI * 2);
+    ctx.fill();
+    // 直接等比绘制项目原始正方形 Logo，黑色四角由 Canvas 圆形 clip 自然排除。
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(logoCenterX, logoCenterY, 32, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(logo, logoCenterX - 32, logoCenterY - 32, 64, 64);
+    ctx.restore();
+
+    ctx.fillStyle = '#17243b';
+    ctx.font = 'bold 32px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('周末约行', 168, brandTop + 86);
+    ctx.fillStyle = '#7b8798';
+    ctx.font = '19px sans-serif';
+    ctx.fillText('发现同路的人，记录真实旅途', 168, brandTop + 128);
+
+    const codeCenterX = 594;
+    const codeCenterY = brandTop + 86;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(codeCenterX, codeCenterY, 68, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.drawImage(code, codeCenterX - 62, codeCenterY - 62, 124, 124);
+    ctx.fillStyle = '#697586';
+    ctx.font = '18px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText('微信扫码，查看行程详情', codeCenterX, brandTop + 166);
+
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        wx.canvasToTempFilePath({
+          canvas,
+          x: 0,
+          y: 0,
+          width: physicalWidth,
+          height: physicalHeight,
+          destWidth: physicalWidth,
+          destHeight: physicalHeight,
+          fileType: 'png',
+          success: result => resolve(result.tempFilePath),
+          fail: () => reject(new Error('海报图片导出失败'))
+        });
+      }, 80);
+    });
   }
 });

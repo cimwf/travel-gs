@@ -638,6 +638,257 @@ page {
   box-shadow: none;
 }
 
+/* ========== 行程分享与海报 ========== */
+.trip-share-mask {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1500;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(18, 25, 38, .48);
+}
+
+.trip-share-sheet {
+  width: 100%;
+  padding: 18rpx 32rpx 28rpx;
+  padding-bottom: calc(28rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  border-radius: 34rpx 34rpx 0 0;
+  background: #ffffff;
+}
+
+.trip-share-handle {
+  width: 72rpx;
+  height: 8rpx;
+  margin: 0 auto 26rpx;
+  border-radius: 8rpx;
+  background: #d6dbe3;
+}
+
+.trip-share-title {
+  color: #172033;
+  font-size: 36rpx;
+  line-height: 50rpx;
+  font-weight: 650;
+  text-align: center;
+}
+
+.trip-share-subtitle {
+  margin: 8rpx 0 28rpx;
+  color: #9aa4b2;
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.trip-share-actions {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-around;
+  min-height: 176rpx;
+  padding: 8rpx 4rpx 24rpx;
+  box-sizing: border-box;
+}
+
+.trip-share-action {
+  flex: 1;
+  width: 0;
+  min-width: 0;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #303a4b;
+  font-size: 26rpx;
+  line-height: normal;
+  -webkit-appearance: none;
+}
+
+.trip-share-action::after {
+  border: 0;
+}
+
+.trip-share-action-icon {
+  position: relative;
+  width: 104rpx;
+  height: 104rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.trip-share-action-icon-wechat {
+  background: transparent;
+}
+
+.trip-share-action-icon-poster {
+  background: #2f80ed;
+}
+
+.trip-share-wechat-image {
+  width: 104rpx;
+  height: 104rpx;
+  display: block;
+}
+
+.trip-share-action-title {
+  margin-top: 16rpx;
+  color: #303a4b;
+  font-size: 26rpx;
+  line-height: 36rpx;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.trip-share-poster-frame {
+  position: relative;
+  width: 50rpx;
+  height: 42rpx;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 4rpx solid #ffffff;
+  border-radius: 7rpx;
+}
+
+.trip-share-poster-sun {
+  position: absolute;
+  top: 7rpx;
+  right: 8rpx;
+  width: 7rpx;
+  height: 7rpx;
+  border: 3rpx solid #ffffff;
+  border-radius: 50%;
+}
+
+.trip-share-poster-mountain {
+  position: absolute;
+  bottom: -15rpx;
+  width: 31rpx;
+  height: 31rpx;
+  box-sizing: border-box;
+  border-top: 4rpx solid #ffffff;
+  border-left: 4rpx solid #ffffff;
+  transform: rotate(45deg);
+}
+
+.trip-share-poster-mountain-left {
+  left: 3rpx;
+}
+
+.trip-share-poster-mountain-right {
+  right: -8rpx;
+  width: 25rpx;
+  height: 25rpx;
+}
+
+.trip-share-cancel {
+  height: 88rpx;
+  margin: 0 -32rpx -28rpx;
+  margin-bottom: calc(-28rpx - env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: content-box;
+  border-top: 1rpx solid #edf0f4;
+  color: #697586;
+  font-size: 27rpx;
+}
+
+.trip-poster-render-canvas {
+  position: fixed;
+  left: -1600rpx;
+  top: 0;
+  width: 750rpx;
+  height: 1334rpx;
+  opacity: .01;
+  pointer-events: none;
+}
+
+.trip-poster-preview-mask {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 36rpx;
+  box-sizing: border-box;
+  background: rgba(13, 20, 32, .68);
+}
+
+.trip-poster-preview {
+  width: 100%;
+  max-height: calc(100vh - 72rpx);
+  display: flex;
+  flex-direction: column;
+  padding: 28rpx;
+  box-sizing: border-box;
+  border-radius: 30rpx;
+  background: #ffffff;
+  box-shadow: 0 30rpx 90rpx rgba(0, 0, 0, .28);
+}
+
+.trip-poster-preview-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 22rpx;
+}
+
+.trip-poster-preview-title {
+  color: #172033;
+  font-size: 34rpx;
+  font-weight: 650;
+}
+
+.trip-poster-preview-subtitle {
+  margin-top: 6rpx;
+  color: #9aa4b2;
+  font-size: 23rpx;
+}
+
+.trip-poster-preview-close {
+  width: 52rpx;
+  height: 52rpx;
+  padding: 13rpx;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: #f3f5f8;
+}
+
+.trip-poster-preview-scroll {
+  width: 100%;
+  height: calc(100vh - 230rpx);
+  min-height: 0;
+  border-radius: 18rpx;
+  background: #f4f6f8;
+  box-shadow: 0 5rpx 20rpx rgba(22, 38, 66, .12);
+  overflow: hidden;
+}
+
+.trip-poster-preview-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
 /* ========== 申请加入留言弹窗 ========== */
 .join-application-mask {
   position: fixed;

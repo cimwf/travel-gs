@@ -131,6 +131,8 @@ const tripSchema = {
   adminReviewerName: "",
   adminReviewRemark: "",
   commentCount: 0,                  // 行程主评论与回复总数
+  posterShareCode: "a1b2c3d4e5f60708", // 海报小程序码 scene 安全短码（首次生成时写入）
+  posterShareCodeCreatedAt: 1711123200000,
   
   createdAt: 1711123200000
 };

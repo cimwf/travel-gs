@@ -400,7 +400,7 @@ async function tripList(openid, data, dataEnvironment = RUNTIME_DEFAULTS.develop
   };
 }
 
-async function tripGet(openid, tripId) {
+async function tripGet(openid, tripId, dataEnvironment = RUNTIME_DEFAULTS.develop) {
   if (!tripId) {
     return { success: false, error: '行程ID不能为空' };
   }
@@ -410,6 +410,11 @@ async function tripGet(openid, tripId) {
 
   if (!trip) {
     return { success: false, error: '行程不存在' };
+  }
+  const readEnvs = Array.isArray(dataEnvironment.readEnvs) ? dataEnvironment.readEnvs : ['dev'];
+  const tripDataEnv = trip.dataEnv || 'dev';
+  if (!readEnvs.includes(tripDataEnv)) {
+    return { success: false, error: '该行程不属于当前数据环境' };
   }
   if (trip.reviewStatus === 'rejected' && trip.creatorId !== openid) {
     return { success: false, error: '该行程暂不可查看' };
