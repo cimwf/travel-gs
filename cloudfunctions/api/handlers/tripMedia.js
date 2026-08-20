@@ -1,4 +1,5 @@
 const { db } = require('../utils/shared');
+const { getPastTripWriteError } = require('../utils/tripListVisibility');
 
 const COS_CONFIG = {
   bucket: process.env.COMMUNITY_COS_BUCKET || 'imagica-images-1436573577',
@@ -84,6 +85,8 @@ async function getTripForUpload(openid, tripId, purpose) {
   if (!trip) throw new Error('行程不存在');
 
   if (purpose === 'log') {
+    const pastTripError = getPastTripWriteError(trip, 'log');
+    if (pastTripError) throw new Error(pastTripError);
     const authorizedIds = trip.logAuthorizedPublisherIds || [];
     if (trip.creatorId !== openid && !authorizedIds.includes(openid)) {
       throw new Error('您没有发布日志的权限');
@@ -91,8 +94,10 @@ async function getTripForUpload(openid, tripId, purpose) {
     if ((trip.tripStage || 'not_started') !== 'ongoing') {
       throw new Error('行程日志未开启或已结束');
     }
-  } else if (purpose !== 'comment' && trip.creatorId !== openid) {
-    throw new Error('只有发起人可以修改行程图片');
+  } else if (purpose !== 'comment') {
+    if (trip.creatorId !== openid) throw new Error('只有发起人可以修改行程图片');
+    const pastTripError = getPastTripWriteError(trip, 'edit');
+    if (pastTripError) throw new Error(pastTripError);
   }
   return trip;
 }

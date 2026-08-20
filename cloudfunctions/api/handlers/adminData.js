@@ -244,6 +244,8 @@ async function adminSpotPublish(data = {}) {
 }
 
 module.exports = {
+  requireAdmin,
+  requireEditor,
   adminLogin,
   adminRegister,
   adminDataList,

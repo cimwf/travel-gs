@@ -27,6 +27,7 @@ Page({
     showRemoveConfirm: false,
     // 日志相关
     tripStage: 'not_started',
+    isPastTrip: false,
     isTripDay: false,
     activeTab: 'trip',
     showTabs: true,
@@ -230,13 +231,18 @@ Page({
     const todayEnd = todayStart + 24 * 60 * 60 * 1000 - 1;
     const tripTime = new Date(trip.date).getTime();
     const hasValidTripTime = !Number.isNaN(tripTime);
+    const isPastTrip = trip.isPastTrip === true || (hasValidTripTime && tripTime < todayStart);
 
     let statusText = '招募中';
     let canJoin = true;
     let joinBtnText = '申请加入';
 
     const tripStageForStatus = trip.tripStage || 'not_started';
-    if (tripStageForStatus === 'cancelled') {
+    if (isPastTrip) {
+      statusText = '已结束';
+      canJoin = false;
+      joinBtnText = '已结束';
+    } else if (tripStageForStatus === 'cancelled') {
       statusText = '已取消';
       canJoin = false;
       joinBtnText = '已取消';
@@ -321,6 +327,7 @@ Page({
       isCreator,
       loading: false,
       tripStage: tripStage,
+      isPastTrip,
       canPublishLog,
       isTripDay,
       showTabs: true,
@@ -384,6 +391,10 @@ Page({
   // ========== 日志相关操作 ==========
 
   onStartLog: function () {
+    if (this.data.isPastTrip) {
+      wx.showToast({ title: '往期行程不能开始', icon: 'none' });
+      return;
+    }
     const trip = this.data.trip;
     wx.showModal({
       title: '开始出发',
@@ -428,6 +439,10 @@ Page({
   },
 
   onPublishLogTap: function () {
+    if (this.data.isPastTrip) {
+      wx.showToast({ title: '行程已结束，不能发布日志', icon: 'none' });
+      return;
+    }
     if (this.data.tripStage !== 'ongoing') {
       wx.showToast({
         title: this.data.tripStage === 'not_started' ? '出发后才能发布日志' : '行程已结束，不能发布日志',
@@ -854,6 +869,10 @@ Page({
 
   onSubmitLog: async function () {
     if (this.data.publishSubmitting) return;
+    if (this.data.isPastTrip) {
+      wx.showToast({ title: '行程已结束，不能发布日志', icon: 'none' });
+      return;
+    }
 
     const content = this.data.publishContent.trim();
     const images = this.data.publishImages;
@@ -1017,6 +1036,10 @@ Page({
   },
 
   onEditTrip: function () {
+    if (this.data.isPastTrip) {
+      wx.showToast({ title: '往期行程不能编辑', icon: 'none' });
+      return;
+    }
     const trip = this.data.trip;
     wx.navigateTo({
       url: `/pages/trip-publish/trip-publish?id=${trip._id}`,
@@ -1224,6 +1247,10 @@ Page({
   // ========== 更换封面图 ==========
 
   onOpenCoverModal: function () {
+    if (this.data.isPastTrip) {
+      wx.showToast({ title: '往期行程不能编辑', icon: 'none' });
+      return;
+    }
     const trip = this.data.trip;
     if (!trip) return;
 

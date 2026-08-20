@@ -2,6 +2,7 @@
 const app = getApp();
 const auth = require('../../utils/auth.js');
 const api = require('../../utils/api.js');
+const { matchesTripStatusFilter } = require('../../utils/trip-list-status.js');
 
 Page({
   data: {
@@ -34,18 +35,6 @@ Page({
     showCustomDatePicker: false,
     customStartDate: '',
     customEndDate: ''
-  },
-
-  getTodayRange: function () {
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    const todayEnd = todayStart + 24 * 60 * 60 * 1000 - 1;
-    return { todayStart, todayEnd };
-  },
-
-  getTripTimestamp: function (dateValue) {
-    const tripTime = new Date(dateValue).getTime();
-    return Number.isNaN(tripTime) ? 0 : tripTime;
   },
 
   formatPublishTime: function (createdAt) {
@@ -126,6 +115,7 @@ Page({
     if (reset) {
       this._cursor = 0;
       this._cursorId = '';
+      this._cursorPhase = '';
     }
     if (reset && !silent) {
       this.setData({ loading: true, page: 0 });
@@ -137,11 +127,17 @@ Page({
       try {
         const { page, pageSize } = this.data;
 
-        const reqData = { openid, pageSize, excludeStatus: 'cancelled' };
+        const reqData = {
+          openid,
+          pageSize,
+          excludeStatus: 'cancelled',
+          supportsTripHistoryPhases: true
+        };
         // 翻页时用游标，首次加载和刷新始终拿第 1 页
-        if (!reset && this._cursor) {
+        if (!reset && this._cursorPhase) {
           reqData.cursor = this._cursor;
           reqData.cursorId = this._cursorId || '';
+          reqData.cursorPhase = this._cursorPhase;
         } else {
           reqData.page = 1;
         }
@@ -158,15 +154,7 @@ Page({
 
       if (tripsData.length > 0) {
         const trips = [];
-        const { todayStart, todayEnd } = this.getTodayRange();
         for (const trip of tripsData) {
-          const tripTime = this.getTripTimestamp(trip.date);
-
-          // 过滤掉已过期的行程，避免历史行程继续在首页展示为“招募中”。
-          if (!tripTime || tripTime < todayStart) {
-            continue;
-          }
-
           // 格式化日期
           let dateText = trip.date || '';
           if (trip.date) {
@@ -204,7 +192,10 @@ Page({
           let statusClass = 'recruiting';
           let statusText = '招募中';
 
-          if (tripStage === 'cancelled') {
+          if (trip.isPastTrip) {
+            statusClass = 'ended';
+            statusText = '已结束';
+          } else if (tripStage === 'cancelled') {
             statusClass = 'cancelled';
             statusText = '已取消';
           } else if (tripStage === 'ongoing') {
@@ -270,6 +261,7 @@ Page({
             imgBg,
             emoji,
             needCount,
+            isPastTrip: trip.isPastTrip === true,
             statusClass,
             statusText
           });
@@ -290,6 +282,7 @@ Page({
 
         this._cursor = tripRes.nextCursor || 0;
         this._cursorId = tripRes.nextCursorId || '';
+        this._cursorPhase = tripRes.nextCursorPhase || '';
 
         this.setData({
           allTrips,
@@ -353,7 +346,7 @@ Page({
     const { filterStatus, filterDestination, filterDeparture, filterDate } = this.data;
     let result = trips;
 
-    result = result.filter(t => this.matchesStatusFilter(t.statusClass, filterStatus));
+    result = result.filter(t => this.matchesStatusFilter(t, filterStatus));
 
     if (filterDestination) {
       result = result.filter(t => t.placeName === filterDestination);
@@ -410,18 +403,8 @@ Page({
     return result;
   },
 
-  matchesStatusFilter: function (statusClass, filterStatus) {
-    const normalizedStatus = statusClass || 'recruiting';
-
-    if (!filterStatus) {
-      return ['recruiting', 'almost-full', 'full', 'ongoing'].includes(normalizedStatus);
-    }
-
-    if (filterStatus === 'recruiting') {
-      return ['recruiting', 'almost-full'].includes(normalizedStatus);
-    }
-
-    return normalizedStatus === filterStatus;
+  matchesStatusFilter: function (trip, filterStatus) {
+    return matchesTripStatusFilter(trip, filterStatus);
   },
 
   // 获取行程图片背景

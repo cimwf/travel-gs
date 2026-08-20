@@ -25,6 +25,7 @@ const adminTripLog = require('./handlers/adminTripLog');
 const adminReport = require('./handlers/adminReport');
 const adminData = require('./handlers/adminData');
 const adminOfficialCommunity = require('./handlers/adminOfficialCommunity');
+const adminSystemConfig = require('./handlers/adminSystemConfig');
 const { resolveDataEnvironment } = require('./utils/dataEnvironment');
 
 exports.main = async (event, context) => {
@@ -274,6 +275,10 @@ exports.main = async (event, context) => {
         return await adminData.adminDataBatchCreate(data);
       case 'admin/spotPublish':
         return await adminData.adminSpotPublish(data);
+      case 'admin/tripListVisibilityGet':
+        return await adminSystemConfig.adminTripListVisibilityGet(data);
+      case 'admin/tripListVisibilityUpdate':
+        return await adminSystemConfig.adminTripListVisibilityUpdate(data);
 
       default:
         return { success: false, error: '未知操作' };

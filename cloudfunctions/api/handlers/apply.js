@@ -1,6 +1,7 @@
 const { db, _, cloud, safeAvatar } = require('../utils/shared');
 const { tripJoin } = require('./trip');
 const { setNotification } = require('./notification');
+const { getPastTripWriteError } = require('../utils/tripListVisibility');
 
 function getTripTitle(trip, fallback) {
   return trip && (trip.tripTitle || trip.placeName) || fallback || '行程';
@@ -93,6 +94,8 @@ async function applyCreate(openid, data) {
   }
   if (!tripData) return { success: false, error: '行程不存在' };
   if (tripData.reviewStatus === 'rejected') return { success: false, error: '该行程暂无法申请加入' };
+  const pastTripError = getPastTripWriteError(tripData, 'apply');
+  if (pastTripError) return { success: false, error: pastTripError };
   if (!tripData.creatorId) return { success: false, error: '行程发起人信息不完整' };
   if (tripData.creatorId === openid) return { success: false, error: '不能申请加入自己的行程' };
   if (tripData.status !== 'open' || (tripData.tripStage || 'not_started') !== 'not_started') {

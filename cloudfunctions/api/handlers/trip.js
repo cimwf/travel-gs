@@ -3,6 +3,15 @@ const { recordUserStatEvent } = require('./auth');
 const { setNotification } = require('./notification');
 const tripMedia = require('./tripMedia');
 const { createReadCondition, RUNTIME_DEFAULTS } = require('../utils/dataEnvironment');
+const {
+  TRIP_LIST_VISIBILITY_CONFIG_ID,
+  normalizeVisibilityConfig,
+  getBeijingDateKey,
+  isPastTripDate,
+  resolvePastReadEnvs,
+  paginateTripPhases,
+  getPastTripWriteError
+} = require('../utils/tripListVisibility');
 
 function normalizeDestinationLocation(value) {
   if (value === null || value === undefined || value === '') return null;
@@ -189,16 +198,20 @@ async function tripCreate(openid, data, dataEnvironment = RUNTIME_DEFAULTS.devel
 }
 
 async function tripList(openid, data, dataEnvironment = RUNTIME_DEFAULTS.develop) {
-  const { placeId, status, date, excludeStatus, page = 1 } = data;
+  const { placeId, status, date, excludeStatus } = data;
+  const page = Math.max(1, Number(data.page) || 1);
   const pageSize = Math.max(1, Math.min(Number(data.pageSize) || 10, 20));
   const cursor = Number(data.cursor) || 0;
   const cursorId = String(data.cursorId || '');
+  // 旧版小程序不认识分页阶段。只有明确声明支持的新客户端才下发往期数据，
+  // 避免配置开启后旧客户端在“当前 -> 往期”的边界重复加载第一页。
+  const supportsHistoryPhases = data.supportsTripHistoryPhases === true;
+  const requestedPhase = supportsHistoryPhases && data.cursorPhase === 'past' ? 'past' : 'upcoming';
+  const today = getBeijingDateKey();
 
   if (openid) {
     recordUserStatEvent('tripListVisit', openid, { page, pageSize }).catch(() => {});
   }
-
-  let query = db.collection('trips');
 
   const conditions = {};
   if (placeId) conditions.placeId = placeId;
@@ -209,37 +222,83 @@ async function tripList(openid, data, dataEnvironment = RUNTIME_DEFAULTS.develop
   } else if (excludeStatus) {
     conditions.status = _.neq(excludeStatus);
   }
-  const dataEnvCondition = createReadCondition(_, dataEnvironment.readEnvs);
   const reviewCondition = _.or([
     { reviewStatus: 'approved' },
     { reviewStatus: _.exists(false) }
   ]);
-  const baseCondition = Object.keys(conditions).length > 0
-    ? _.and([conditions, dataEnvCondition, reviewCondition])
-    : _.and([dataEnvCondition, reviewCondition]);
-  const listCondition = cursor
-    ? _.and([
-      baseCondition,
-      cursorId
-        ? _.or([
-          { createdAt: _.lt(cursor) },
-          { createdAt: _.eq(cursor), _id: _.lt(cursorId) }
-        ])
-        : { createdAt: _.lt(cursor) }
-    ])
-    : baseCondition;
-  query = query.where(listCondition);
 
-  const res = await query
-    .orderBy('createdAt', 'desc')
-    .orderBy('_id', 'desc')
-    .skip(cursor ? 0 : (page - 1) * pageSize)
-    .limit(pageSize + 1)
-    .get();
+  let visibilityDocument = null;
+  try {
+    const result = await db.collection('system_config').doc(TRIP_LIST_VISIBILITY_CONFIG_ID).get();
+    visibilityDocument = result && result.data;
+  } catch (error) {
+    console.warn('读取往期行程展示配置失败，按默认关闭处理', error);
+  }
+  const visibilityConfig = normalizeVisibilityConfig(visibilityDocument || {});
+  const readEnvs = Array.isArray(dataEnvironment.readEnvs) && dataEnvironment.readEnvs.length
+    ? dataEnvironment.readEnvs
+    : ['dev'];
+  const pastReadEnvs = resolvePastReadEnvs(readEnvs, visibilityConfig, supportsHistoryPhases);
 
-  let trips = res.data || [];
-  const hasMore = trips.length > pageSize;
-  if (hasMore) trips = trips.slice(0, pageSize);
+  const buildCursorCondition = (phaseCursor, phaseCursorId) => {
+    if (!phaseCursor) return null;
+    return phaseCursorId
+      ? _.or([
+        { createdAt: _.lt(phaseCursor) },
+        { createdAt: _.eq(phaseCursor), _id: _.lt(phaseCursorId) }
+      ])
+      : { createdAt: _.lt(phaseCursor) };
+  };
+
+  const fetchPhase = async (phase, limit, phaseCursor = 0, phaseCursorId = '') => {
+    if (limit <= 0) return [];
+    const phaseReadEnvs = phase === 'past' ? pastReadEnvs : readEnvs;
+    if (phaseReadEnvs.length === 0) return [];
+    const phaseConditions = [
+      createReadCondition(_, phaseReadEnvs),
+      reviewCondition,
+      phase === 'past' ? { date: _.lt(today) } : { date: _.gte(today) }
+    ];
+    if (Object.keys(conditions).length > 0) phaseConditions.push(conditions);
+    const cursorCondition = buildCursorCondition(phaseCursor, phaseCursorId);
+    if (cursorCondition) phaseConditions.push(cursorCondition);
+    const result = await db.collection('trips')
+      .where(_.and(phaseConditions))
+      .orderBy('createdAt', 'desc')
+      .orderBy('_id', 'desc')
+      .limit(limit)
+      .get();
+    return result.data || [];
+  };
+
+  let trips = [];
+  let hasMore = false;
+  let nextCursorPhase = '';
+  let nextCursor = 0;
+  let nextCursorId = '';
+
+  if (requestedPhase === 'past') {
+    const pastTrips = await fetchPhase('past', pageSize + 1, cursor, cursorId);
+    const pageResult = paginateTripPhases({ phase: 'past', pageSize, pastProbe: pastTrips });
+    ({ trips, hasMore, nextCursorPhase, nextCursor, nextCursorId } = pageResult);
+  } else {
+    const upcomingTrips = await fetchPhase('upcoming', pageSize + 1, cursor, cursorId);
+    if (upcomingTrips.length > pageSize) {
+      const pageResult = paginateTripPhases({ phase: 'upcoming', pageSize, upcomingProbe: upcomingTrips });
+      ({ trips, hasMore, nextCursorPhase, nextCursor, nextCursorId } = pageResult);
+    } else {
+      const remaining = pageSize - upcomingTrips.length;
+      const pastProbe = await fetchPhase('past', remaining + 1);
+      const pageResult = paginateTripPhases({
+        phase: 'upcoming', pageSize, upcomingProbe: upcomingTrips, pastProbe
+      });
+      ({ trips, hasMore, nextCursorPhase, nextCursor, nextCursorId } = pageResult);
+    }
+  }
+
+  trips.forEach(trip => {
+    trip.isPastTrip = isPastTripDate(trip.date, today);
+  });
 
   const userIds = new Set();
   trips.forEach(trip => {
@@ -330,13 +389,14 @@ async function tripList(openid, data, dataEnvironment = RUNTIME_DEFAULTS.develop
 
   await resolveTripCoverImages(trips);
 
-  const last = trips.length > 0 ? trips[trips.length - 1] : null;
   return {
     success: true,
     trips,
     hasMore,
-    nextCursor: hasMore && last ? Number(last.createdAt) || 0 : 0,
-    nextCursorId: hasMore && last ? String(last._id || '') : ''
+    nextCursorPhase,
+    nextCursor,
+    nextCursorId,
+    showPastTrips: pastReadEnvs.length > 0
   };
 }
 
@@ -450,6 +510,7 @@ async function tripGet(openid, tripId) {
   }
 
   await resolveTripCoverImages([trip]);
+  trip.isPastTrip = isPastTripDate(trip.date);
 
   return { success: true, trip };
 }
@@ -479,6 +540,9 @@ async function tripJoin(openid, data) {
   if (!trip || trip.reviewStatus === 'rejected') {
     return { success: false, error: '该行程暂无法加入' };
   }
+
+  const pastTripError = getPastTripWriteError(trip, 'join');
+  if (pastTripError) return { success: false, error: pastTripError };
 
   if (trip.status !== 'open') {
     return { success: false, error: '行程已满或已取消' };
@@ -698,6 +762,9 @@ async function tripUpdateStatus(openid, data) {
     return { success: false, error: '无权操作' };
   }
 
+  const pastTripError = getPastTripWriteError(trip, 'edit');
+  if (pastTripError) return { success: false, error: pastTripError };
+
   const now = Date.now();
   const updateData = status === 'cancelled'
     ? { tripStage: 'cancelled', updatedAt: now }
@@ -837,6 +904,9 @@ async function tripUpdate(openid, data) {
   if (trip.creatorId !== openid) {
     return { success: false, error: '无权更新' };
   }
+
+  const pastTripError = getPastTripWriteError(trip, 'edit');
+  if (pastTripError) return { success: false, error: pastTripError };
 
   const oldAvatarObject = tripMedia.normalizeMediaObject(trip.customCoverImageObject);
   const oldCoverObjects = Array.isArray(trip.coverImageObjects)

@@ -1,5 +1,6 @@
 const { db, _, cloud, safeAvatar } = require('../utils/shared');
 const tripMedia = require('./tripMedia');
+const { getPastTripWriteError } = require('../utils/tripListVisibility');
 
 const TRIP_LOGS_COLLECTION = 'trip_logs';
 const TRIP_LOG_AUDITS_COLLECTION = 'trip_log_image_audits';
@@ -128,6 +129,8 @@ async function tripLogStart(openid, data) {
   const trip = tripRes.data;
   if (!trip) return { success: false, error: '行程不存在' };
   if (trip.creatorId !== openid) return { success: false, error: '只有发起人可以开始行程' };
+  const pastTripError = getPastTripWriteError(trip, 'start');
+  if (pastTripError) return { success: false, error: pastTripError };
 
   const tripStage = trip.tripStage || 'not_started';
   if (tripStage !== 'not_started') {
@@ -150,6 +153,8 @@ async function tripLogEnd(openid, data) {
   const trip = tripRes.data;
   if (!trip) return { success: false, error: '行程不存在' };
   if (trip.creatorId !== openid) return { success: false, error: '只有发起人可以结束行程' };
+  const pastTripError = getPastTripWriteError(trip, 'log');
+  if (pastTripError) return { success: false, error: pastTripError };
 
   const tripStage = trip.tripStage || 'not_started';
   if (tripStage !== 'ongoing') return { success: false, error: '行程未在进行中' };
@@ -250,6 +255,8 @@ async function tripLogCreate(openid, data) {
   const tripRes = await db.collection('trips').doc(tripId).get();
   const trip = tripRes.data;
   if (!trip) return { success: false, error: '行程不存在' };
+  const pastTripError = getPastTripWriteError(trip, 'log');
+  if (pastTripError) return { success: false, error: pastTripError };
 
   const tripStage = trip.tripStage || 'not_started';
   if (tripStage !== 'ongoing') return { success: false, error: '行程日志未开启或已结束' };
@@ -447,6 +454,8 @@ async function tripLogAuthorize(openid, data) {
   const trip = tripRes.data;
   if (!trip) return { success: false, error: '行程不存在' };
   if (trip.creatorId !== openid) return { success: false, error: '只有发起人可以授权' };
+  const pastTripError = getPastTripWriteError(trip, 'log');
+  if (pastTripError) return { success: false, error: pastTripError };
   if ((trip.tripStage || 'not_started') !== 'ongoing') return { success: false, error: '只有进行中的行程才能授权发布日志' };
   if (memberId === openid) return { success: false, error: '不能授权发起人自己' };
 
@@ -474,6 +483,8 @@ async function tripLogUnauthorize(openid, data) {
   const trip = tripRes.data;
   if (!trip) return { success: false, error: '行程不存在' };
   if (trip.creatorId !== openid) return { success: false, error: '只有发起人可以取消授权' };
+  const pastTripError = getPastTripWriteError(trip, 'log');
+  if (pastTripError) return { success: false, error: pastTripError };
   if ((trip.tripStage || 'not_started') !== 'ongoing') return { success: false, error: '只有进行中的行程才能修改授权' };
 
   const authorizedIds = (trip.logAuthorizedPublisherIds || []).filter(id => id !== memberId);

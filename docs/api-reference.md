@@ -53,7 +53,7 @@
 | Action | 用途 |
 | --- | --- |
 | `trip/create` | 创建行程并写入 `writeEnv` |
-| `trip/list` | 行程分页列表，应用 `readEnvs` |
+| `trip/list` | 公共行程游标分页列表，应用 `readEnvs`；按运营配置先返回今天及以后，再返回往期行程 |
 | `trip/get` | 行程详情 |
 | `trip/view` | 记录浏览 |
 | `trip/join` | 兼容的直接加入操作 |
@@ -127,6 +127,8 @@
 | `admin/officialUploadSession` | 官方动态 COS 上传会话 |
 | `admin/officialPostList` / `admin/officialPostCreate` | 官方动态列表和创建 |
 | `admin/officialPostUpdate` | 编辑、上下架及从开发环境发布到生产 |
+| `admin/tripListVisibilityGet` | 读取 `dev/test/prod` 三套公共行程往期展示开关 |
+| `admin/tripListVisibilityUpdate` | 按业务数据环境更新往期行程展示开关（管理员/运营可写） |
 
 `admin/data*` 只允许访问服务端 `RESOURCES` 白名单，目前包括景点、快速景点、反馈、
 用户上传、Banner、用户、浏览统计、用户统计及后台图片资源，不能由客户端传任意集合名。

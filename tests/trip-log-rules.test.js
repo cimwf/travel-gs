@@ -185,24 +185,27 @@ test('trip log create/delete enforce max count and idempotent decrement', () => 
 test('trip-list status filter includes ongoing and ended with final filter semantics', () => {
   const wxml = read('miniprogram/pages/trip-list/trip-list.wxml');
   const js = read('miniprogram/pages/trip-list/trip-list.js');
+  const statusUtil = read('miniprogram/utils/trip-list-status.js');
 
   assertIncludes(wxml, '行程状态');
   assertIncludes(wxml, "{{statusFilterText || '行程状态'}}");
   assertNotIncludes(wxml, "statusFilterText || '招募进度'");
   assertIncludes(wxml, 'data-value="ongoing">进行中');
   assertIncludes(wxml, 'data-value="ended">已结束');
-  assertIncludes(js, "['recruiting', 'almost-full', 'full', 'ongoing'].includes(normalizedStatus)");
-  assertIncludes(js, "['recruiting', 'almost-full'].includes(normalizedStatus)");
+  assertIncludes(statusUtil, "['recruiting', 'almost-full', 'full', 'ongoing'].includes(normalizedStatus)");
+  assertIncludes(statusUtil, "['recruiting', 'almost-full'].includes(normalizedStatus)");
+  assertIncludes(js, 'matchesTripStatusFilter(trip, filterStatus)');
 
   const page = loadPage('pages/trip-list/trip-list.js');
-  assert.strictEqual(page.matchesStatusFilter('recruiting', ''), true);
-  assert.strictEqual(page.matchesStatusFilter('almost-full', ''), true);
-  assert.strictEqual(page.matchesStatusFilter('full', ''), true);
-  assert.strictEqual(page.matchesStatusFilter('ongoing', ''), true);
-  assert.strictEqual(page.matchesStatusFilter('ended', ''), false);
-  assert.strictEqual(page.matchesStatusFilter('almost-full', 'recruiting'), true);
-  assert.strictEqual(page.matchesStatusFilter('full', 'recruiting'), false);
-  assert.strictEqual(page.matchesStatusFilter('ended', 'ended'), true);
+  assert.strictEqual(page.matchesStatusFilter({ statusClass: 'recruiting' }, ''), true);
+  assert.strictEqual(page.matchesStatusFilter({ statusClass: 'almost-full' }, ''), true);
+  assert.strictEqual(page.matchesStatusFilter({ statusClass: 'full' }, ''), true);
+  assert.strictEqual(page.matchesStatusFilter({ statusClass: 'ongoing' }, ''), true);
+  assert.strictEqual(page.matchesStatusFilter({ statusClass: 'ended' }, ''), false);
+  assert.strictEqual(page.matchesStatusFilter({ statusClass: 'ended', isPastTrip: true }, ''), true);
+  assert.strictEqual(page.matchesStatusFilter({ statusClass: 'almost-full' }, 'recruiting'), true);
+  assert.strictEqual(page.matchesStatusFilter({ statusClass: 'full' }, 'recruiting'), false);
+  assert.strictEqual(page.matchesStatusFilter({ statusClass: 'ended' }, 'ended'), true);
 });
 
 test('trip-detail uses tripStage for log UI and authorization entry', () => {
@@ -251,7 +254,7 @@ test('trip-detail v2 keeps complete trip info, wrapping members, logs and publis
     '车辆信息',
     '出行描述',
     '人均费用',
-    '目的定位',
+    '目的地定位',
     '招募人数'
   ].forEach((needle) => assertIncludes(wxml, needle));
 

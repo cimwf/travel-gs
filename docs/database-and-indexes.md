@@ -65,7 +65,7 @@
 | `banners` | Banner 配置 |
 | `user_spots` | 用户上传景点 |
 | `messages` | 早期消息能力；当前站内通知以 `notifications` 为主 |
-| `system_config` | 行程日志等服务端配置 |
+| `system_config` | 行程日志、公共行程往期展示等服务端配置 |
 | `beImages` | 后台图片资源 |
 | `beImage_folder` | 后台图片文件夹 |
 
@@ -137,6 +137,29 @@
 | `idx_trips_env_review_status_time` | `dataEnv` 升序、`reviewStatus` 升序、`status` 升序、`createdAt` 降序、`_id` 降序 |
 | `idx_trips_env_review_place_time` | `dataEnv` 升序、`reviewStatus` 升序、`placeId` 升序、`createdAt` 降序、`_id` 降序 |
 | `idx_trips_env_review_date_time` | `dataEnv` 升序、`reviewStatus` 升序、`date` 升序、`createdAt` 降序、`_id` 降序 |
+| `idx_trips_env_review_stage_date_time` | `dataEnv` 升序、`reviewStatus` 升序、`tripStage` 升序、`date` 升序、`createdAt` 降序、`_id` 降序 |
+
+公共行程列表现在按 `date` 分为“今天及以后”和“往期”两个游标阶段，每个阶段内部按
+`createdAt + _id` 倒序。若云控制台提示缺少索引，优先创建
+`idx_trips_env_review_stage_date_time`；历史数据缺少 `reviewStatus` 或 `dataEnv` 时仍按代码
+中的兼容分支读取。`system_config/trip_list_visibility` 不需要复合索引，文档结构如下：
+
+```json
+{
+  "_id": "trip_list_visibility",
+  "showPastTripsByEnv": {
+    "dev": false,
+    "test": false,
+    "prod": false
+  }
+}
+```
+
+无需手工创建该文档；后台系统设置第一次保存时会自动创建。未创建或读取失败时三个环境
+都按关闭处理。
+
+注意：`system_config` 集合本身必须先在云开发控制台手工创建，权限设为“所有用户不可
+读写”；这里只是无需手工创建集合中的 `trip_list_visibility` 文档。
 
 ### `trip_logs`
 
