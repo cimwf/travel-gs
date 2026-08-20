@@ -15,6 +15,7 @@
 | [部署指南](deploy-guide.md) | 云环境、COS、云函数、审核回调和后台部署 |
 | [隐私与数据说明](privacy-and-data.md) | 实际收集的数据、用途、位置权限和存储位置 |
 | [上线检查清单](release-checklist.md) | 每次提交微信审核前的回归清单 |
+| [产品待办与暂缓事项](product-backlog.md) | 已讨论但尚未开发的功能、优先级和验收口径 |
 | [消息中心通知规则](message-center-notification-spec.md) | 通知类型、接收者、跳转和索引 |
 | [数据环境隔离](data-environment-isolation.md) | `dev/test/prod` 的详细实现 |
 | [行程媒体迁移](trip-media-cos-migration.md) | 行程封面与旅途记录迁移到 COS 的兼容规则 |
